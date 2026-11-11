@@ -14,8 +14,8 @@ android {
         applicationId = "cn.dkarbon.enroute"
         minSdk = 26
         targetSdk = 35
-        versionCode = 17
-        versionName = "0.1.0-m17"
+        versionCode = 18
+        versionName = "0.1.0-m18"
     }
 
     signingConfigs {
