@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      深色窗口底色。与 Ink.PaperDark (#17150F) 一致，
+      保证冷启动第一帧不再是白的。
+    -->
+    <style name="Theme.EnRoute" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF17150F</item>
+        <item name="android:colorBackground">#FF17150F</item>
+    </style>
+</resources>

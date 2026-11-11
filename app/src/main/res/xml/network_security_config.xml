@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  明文 HTTP 只对**校内内网主机**开口子，其余一律强制 HTTPS。
+
+  为什么要开这么多：学校的内网系统几乎全是明文 HTTP，且分散在不同网段 ——
+    · 10.2.0.47   本科教务（URP，学生端）
+    · 10.2.0.110  创新创业管理平台（竞赛）
+    · 10.1.1.33   统一认证 / 校园门户
+    · 10.2.0.58   FiF 智慧教学
+    ⚠️ 2026-11-11 实测踩坑：`cxcy.syau.edu.cn` 解析到 10.2.0.110，
+       但配置里只写了裸 IP，Android 按**主机名**匹配，于是被
+       「Cleartext HTTP traffic not permitted」拦掉，竞赛平台整源失败。
+
+  所以这里既写 IP 也写域名 —— 两者在系统眼里不是一回事。
+  校外（公网）依旧强制 HTTPS，出校门时这些域名本来就不可达，属于设计如此。
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false" />
+
+    <domain-config cleartextTrafficPermitted="true">
+        <!-- 本科教务（学生端 / 教师端） -->
+        <domain includeSubdomains="false">10.2.0.47</domain>
+        <domain includeSubdomains="false">10.2.0.48</domain>
+
+        <!-- 创新创业管理平台：IP 与域名都要写 -->
+        <domain includeSubdomains="false">10.2.0.110</domain>
+        <domain includeSubdomains="true">cxcy.syau.edu.cn</domain>
+
+        <!-- 统一认证 / 校园门户（tpass 主体走 HTTPS，此处仅为 http 入口兜底） -->
+        <domain includeSubdomains="false">10.1.1.33</domain>
+        <domain includeSubdomains="true">pass.syau.edu.cn</domain>
+        <domain includeSubdomains="true">portal.syau.edu.cn</domain>
+
+        <!-- 学工系统 / FiF 智慧教学 -->
+        <domain includeSubdomains="false">210.47.163.44</domain>
+        <domain includeSubdomains="false">10.2.0.58</domain>
+        <domain includeSubdomains="true">exam.syau.edu.cn</domain>
+
+        <!-- 上网自助（深澜 srun）与其它校内 http 服务 -->
+        <domain includeSubdomains="true">a.syau.edu.cn</domain>
+        <domain includeSubdomains="true">spdt.syau.edu.cn</domain>
+        <domain includeSubdomains="true">xm.syau.edu.cn</domain>
+        <domain includeSubdomains="true">syyp.syau.edu.cn</domain>
+    </domain-config>
+</network-security-config>

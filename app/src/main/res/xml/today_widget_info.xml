@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  桌面小组件元数据。
+  targetCellWidth/Height 是 Android 12+ 的 4x2 格子；
+  minWidth/minHeight 给老系统兜底（单位 dp，按 70dp≈1 格换算）。
+  每 30 分钟自动刷新一次（updatePeriodMillis 最小 30 分钟，系统限制）。
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:description="@string/widget_desc" />

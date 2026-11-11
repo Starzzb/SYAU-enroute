@@ -1,0 +1,156 @@
+[
+ {
+  "site": "www/tzgg",
+  "how": "http 200",
+  "kb": 40.2,
+  "enc": "utf-8",
+  "items": 11,
+  "with_date": 10,
+  "total_in_page": "21",
+  "sample": {
+   "id": "1830",
+   "col": "1031",
+   "title": "知名人才",
+   "date": "",
+   "url": "https://rcb.syau.edu.cn/info/1031/1830.htm"
+  }
+ },
+ {
+  "site": "www/list1144",
+  "how": "http 200",
+  "kb": 0.1,
+  "enc": "utf-8",
+  "items": 0,
+  "with_date": 0,
+  "total_in_page": "",
+  "sample": null
+ },
+ {
+  "site": "news/snyw",
+  "how": "http 200",
+  "kb": 21.8,
+  "enc": "utf-8",
+  "items": 10,
+  "with_date": 10,
+  "total_in_page": "5461",
+  "sample": {
+   "id": "24398",
+   "col": "1002",
+   "title": "我校新增畜牧学博士后科研流动站",
+   "date": "2026-11-10",
+   "url": "https://news.syau.edu.cn/info/1002/24398.htm"
+  }
+ },
+ {
+  "site": "jwc/jwtz",
+  "how": "http 200",
+  "kb": 18.0,
+  "enc": "utf-8",
+  "items": 15,
+  "with_date": 15,
+  "total_in_page": "",
+  "sample": {
+   "id": "10666",
+   "col": "1250",
+   "title": "关于开展2026年全国高等农林院校课程思政优秀教学案例征集与",
+   "date": "2026-11-10",
+   "url": "https://jwc.syau.edu.cn/info/1250/10666.htm"
+  }
+ },
+ {
+  "site": "xsc/tzgg",
+  "how": "http 200",
+  "kb": 16.9,
+  "enc": "utf-8",
+  "items": 10,
+  "with_date": 10,
+  "total_in_page": "381",
+  "sample": {
+   "id": "5435",
+   "col": "1048",
+   "title": "关于开展沈阳农业大学第十二届“励志成长成才优秀大学生”评选活动的通知",
+   "date": "2026-11-09",
+   "url": "http://xsc.syau.edu.cn/info/1048/5435.htm"
+  }
+ },
+ {
+  "site": "grs/tzgg",
+  "how": "http 200",
+  "kb": 15.6,
+  "enc": "utf-8",
+  "items": 10,
+  "with_date": 10,
+  "total_in_page": "1356",
+  "sample": {
+   "id": "9121",
+   "col": "1165",
+   "title": "关于做好2026年冬季研究生学位（毕业）论文答辩工作的通知",
+   "date": "2026-11-10",
+   "url": "https://grs.syau.edu.cn/info/1165/9121.htm"
+  }
+ },
+ {
+  "site": "zbxy/tzgg",
+  "how": "http 200",
+  "kb": 23.2,
+  "enc": "utf-8",
+  "items": 9,
+  "with_date": 7,
+  "total_in_page": "132",
+  "sample": {
+   "id": "1866",
+   "col": "1151",
+   "title": "学院邮件",
+   "date": "",
+   "url": "https://zbxy.syau.edu.cn/info/1151/1866.htm"
+  }
+ },
+ {
+  "site": "spxy/tzgg",
+  "how": "http 200",
+  "kb": 19.6,
+  "enc": "utf-8",
+  "items": 18,
+  "with_date": 18,
+  "total_in_page": "",
+  "sample": {
+   "id": "6653",
+   "col": "1127",
+   "title": "科技成果转化公示（五行五色早餐粉产品配方）",
+   "date": "2026-11-09",
+   "url": "http://spxy.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1127&wbnewsid=6653"
+  }
+ },
+ {
+  "site": "lib/xwgg",
+  "how": "http 200",
+  "kb": 36.0,
+  "enc": "utf-8",
+  "items": 30,
+  "with_date": 20,
+  "total_in_page": "240",
+  "sample": {
+   "id": "1950",
+   "col": "1124",
+   "title": "本馆简介",
+   "date": "",
+   "url": "https://lib.syau.edu.cn/info/1124/1950.htm"
+  }
+ },
+ {
+  "site": "gzc/zbgg",
+  "how": "http 200",
+  "kb": 15.0,
+  "enc": "utf-8",
+  "items": 16,
+  "with_date": 0,
+  "total_in_page": "",
+  "sample": {
+   "id": "7460",
+   "col": "1014",
+   "title": "2026-11",
+   "date": "",
+   "url": "https://gzc.syau.edu.cn/info/1014/7460.htm"
+  }
+ }
+]

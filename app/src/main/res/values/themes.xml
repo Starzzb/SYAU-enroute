@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      浅色（默认）窗口底色：沿用课表原来的纸面色 #F7F3EA，
+      这样冷启动的第一帧不会先白闪一下再变成纸色。
+    -->
+    <style name="Theme.EnRoute" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">#FFF7F3EA</item>
+        <item name="android:colorBackground">#FFF7F3EA</item>
+    </style>
+</resources>
