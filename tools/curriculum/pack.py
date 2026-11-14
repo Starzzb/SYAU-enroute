@@ -6,7 +6,7 @@
   一次只读几 KB，且可被 Gson/kotlinx 直接反序列化。
 
 输出（默认写进 app/src/main/assets/curriculum/）：
-  plan_index.json           {"2024":[{id,major,type,pages}], "2025":[...]}
+  plan_index.json           {"2023":[…], "2024":[{id,major,type,pages}], "2025":[...]}
   plan_2024_<id>.json       单专业培养方案（只留展示要用的字段）
   syllabus_index.json       [{id,code,name,credit,hours,type}]
   syllabus_<id>.json        单门课程大纲
@@ -68,12 +68,12 @@ def main():
     src, out = args.src, args.out
     os.makedirs(out, exist_ok=True)
 
-    plan_index = {"2024": [], "2025": []}
+    plan_index = {"2023": [], "2024": [], "2025": []}
     total_bytes = 0
     report = []
 
     # ── 培养方案 ────────────────────────────────────────────
-    for year in ("2024", "2025"):
+    for year in ("2023", "2024", "2025"):
         fp = os.path.join(src, f"培养方案_{year}.json")
         if not os.path.exists(fp):
             print(f"!! 缺 {fp}", file=sys.stderr)
@@ -140,7 +140,8 @@ def main():
     meta = {
         "generated": "2026-11-14",
         "source": {
-            "2024级培养方案": "2024级沈阳农业大学本科人才培养方案.pdf（695 页）",
+            "2023级培养方案": "2023级沈阳农业大学本科人才培养方案.pdf",
+    "2024级培养方案": "2024级沈阳农业大学本科人才培养方案.pdf（695 页）",
             "2025级培养方案": "2025级沈阳农业大学本科人才培养方案.pdf（693 页）",
             "课程大纲": "沈阳农业大学土地与环境学院本科课程大纲（2021版）.pdf（892 页）",
         },

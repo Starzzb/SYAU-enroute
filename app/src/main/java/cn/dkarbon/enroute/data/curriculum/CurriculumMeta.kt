@@ -11,7 +11,7 @@ object CurriculumMeta {
     /** assets 生成日期（META.json 的 `generated`）；写进界面让用户知道这份内置数据多新 */
     const val GENERATED = "2026-11-14"
 
-    private val TOTAL_PAGES = mapOf("2024" to 695, "2025" to 693)
+    private val TOTAL_PAGES = mapOf("2023" to 689, "2024" to 695, "2025" to 693)
 
     fun totalPages(year: String): Int = TOTAL_PAGES[year.trim()] ?: 0
 
