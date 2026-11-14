@@ -53,3 +53,25 @@
 - 迭代期用 `:app:compileDebugKotlin`（`compile-check.bat`），快且锁争小
 - 完整 `build-test.bat` 前先确认没有别人在构建
 - 撞上了先删 `app/build/intermediates/desugar_graph` 再重试，**不要 kill 别人的进程**
+## 装包签名（反复踩过的坑）
+
+这台真机上装的包**必须是 release 签名**，否则 `adb install` 会报
+`INSTALL_FAILED_UPDATE_INCOMPATIBLE`（debug 与 release 证书不同）。
+
+- **默认用 release 包**：`build-release.bat` → `app/build/outputs/apk/release/app-release.apk`
+- 需要装 debug 包时，先按 release 密钥重签再装（能保住用户数据，不必卸载）：
+  ```powershell
+  & "O:\dev\tools\android\sdk\build-tools\35.0.0\apksigner.bat" sign `
+      --ks O:\dev\keys\enroute-release.jks --ksAlias enroute `
+      --in app-debug.apk --out app-debug-release-signed.apk
+  ```
+- **绝不能为了装上而卸载**：会清掉课表缓存、地图标注、已保存的登录凭据
+
+## local.properties 写法
+
+必须**逐行**写入，每行以换行结尾。曾经用字符串拼接导致 `sdk.dir=` 与 `ENROUTE_*` 粘成一行、
+密码键出现两份（一份错），构建时好时坏。写入后自检：
+
+```powershell
+Get-Content local.properties   # 应为 5 行：sdk.dir + 4 个 ENROUTE_*
+```
