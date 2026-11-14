@@ -1,0 +1,2 @@
+Copy-Item -Path 'O:\dev\enroute-android\docs\_probe\cxcy\raw\jingsai_article.html' -Destination 'O:\dev\enroute-android\app\src\test\resources\feed\jingsai_article.html' -Force
+'COPIED' | Set-Content -Path 'O:\dev\enroute-android\docs\_probe\cxcy\copy-article-done.txt' -Encoding UTF8

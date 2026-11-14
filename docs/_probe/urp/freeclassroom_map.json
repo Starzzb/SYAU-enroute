@@ -1,0 +1,231 @@
+{
+  "rows": [
+    {
+      "position": "005_n",
+      "xqm": "海城基地",
+      "buildingName": "全部教学楼"
+    },
+    {
+      "position": "005_01",
+      "xqm": "海城基地",
+      "buildingName": "实训中心楼"
+    },
+    {
+      "position": "006_n",
+      "xqm": "熊岳校区",
+      "buildingName": "全部教学楼"
+    },
+    {
+      "position": "001_n",
+      "xqm": "主校",
+      "buildingName": "全部教学楼"
+    },
+    {
+      "position": "001_1",
+      "xqm": "主校",
+      "buildingName": "第一教学楼"
+    },
+    {
+      "position": "001_10",
+      "xqm": "主校",
+      "buildingName": "农机化楼"
+    },
+    {
+      "position": "001_11",
+      "xqm": "主校",
+      "buildingName": "能源基地"
+    },
+    {
+      "position": "001_12",
+      "xqm": "主校",
+      "buildingName": "经管楼"
+    },
+    {
+      "position": "001_13",
+      "xqm": "主校",
+      "buildingName": "动物医院"
+    },
+    {
+      "position": "001_14",
+      "xqm": "主校",
+      "buildingName": "林学楼"
+    },
+    {
+      "position": "001_15",
+      "xqm": "主校",
+      "buildingName": "牧医学科楼"
+    },
+    {
+      "position": "001_16",
+      "xqm": "主校",
+      "buildingName": "园艺学科楼"
+    },
+    {
+      "position": "001_17",
+      "xqm": "主校",
+      "buildingName": "工程楼"
+    },
+    {
+      "position": "001_18",
+      "xqm": "主校",
+      "buildingName": "体育课上课地点"
+    },
+    {
+      "position": "001_19",
+      "xqm": "主校",
+      "buildingName": "实践地点"
+    },
+    {
+      "position": "001_2",
+      "xqm": "主校",
+      "buildingName": "第二教学楼"
+    },
+    {
+      "position": "001_20",
+      "xqm": "主校",
+      "buildingName": "理学楼"
+    },
+    {
+      "position": "001_21",
+      "xqm": "主校",
+      "buildingName": "水利学科楼"
+    },
+    {
+      "position": "001_22",
+      "xqm": "主校",
+      "buildingName": "植保学科楼"
+    },
+    {
+      "position": "001_23",
+      "xqm": "主校",
+      "buildingName": "生物学科楼"
+    },
+    {
+      "position": "001_24",
+      "xqm": "主校",
+      "buildingName": "农学学科楼"
+    },
+    {
+      "position": "001_25",
+      "xqm": "主校",
+      "buildingName": "信电学科楼"
+    },
+    {
+      "position": "001_26",
+      "xqm": "主校",
+      "buildingName": "图书馆"
+    },
+    {
+      "position": "001_27",
+      "xqm": "主校",
+      "buildingName": "世纪会堂"
+    },
+    {
+      "position": "001_28",
+      "xqm": "主校",
+      "buildingName": "线上教室"
+    },
+    {
+      "position": "001_29",
+      "xqm": "主校",
+      "buildingName": "校医院"
+    },
+    {
+      "position": "001_333",
+      "xqm": "主校",
+      "buildingName": "线上考场"
+    },
+    {
+      "position": "001_4",
+      "xqm": "主校",
+      "buildingName": "综合楼"
+    },
+    {
+      "position": "001_6",
+      "xqm": "主校",
+      "buildingName": "水利馆"
+    },
+    {
+      "position": "001_7",
+      "xqm": "主校",
+      "buildingName": "土壤楼"
+    },
+    {
+      "position": "001_9",
+      "xqm": "主校",
+      "buildingName": "农机楼"
+    },
+    {
+      "position": "001_ZZZYZX",
+      "xqm": "主校",
+      "buildingName": "种质资源中心"
+    },
+    {
+      "position": "001_凡舟体育场",
+      "xqm": "主校",
+      "buildingName": "凡舟体育场"
+    },
+    {
+      "position": "001_分析中心",
+      "xqm": "主校",
+      "buildingName": "分析测试中心"
+    },
+    {
+      "position": "001_食品创新",
+      "xqm": "主校",
+      "buildingName": "食品创新实践基地"
+    },
+    {
+      "position": "001_团委",
+      "xqm": "主校",
+      "buildingName": "团委"
+    },
+    {
+      "position": "001_游泳池",
+      "xqm": "主校",
+      "buildingName": "游泳池"
+    },
+    {
+      "position": "2_n",
+      "xqm": "路南",
+      "buildingName": "全部教学楼"
+    },
+    {
+      "position": "2_1",
+      "xqm": "路南",
+      "buildingName": "路南教学楼"
+    },
+    {
+      "position": "2_2",
+      "xqm": "路南",
+      "buildingName": "实践上课地点"
+    },
+    {
+      "position": "004_n",
+      "xqm": "研究生部",
+      "buildingName": "全部教学楼"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "input-005",
+      "value": "海城基地"
+    },
+    {
+      "id": "input-006",
+      "value": "熊岳校区"
+    },
+    {
+      "id": "input-001",
+      "value": "主校"
+    },
+    {
+      "id": "input-2",
+      "value": "路南"
+    },
+    {
+      "id": "input-004",
+      "value": "研究生部"
+    }
+  ]
+}

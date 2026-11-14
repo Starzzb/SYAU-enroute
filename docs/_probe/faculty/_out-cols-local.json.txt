@@ -1,0 +1,490 @@
+[
+ {
+  "file": "col_gcxy.syau.edu.cn_szdw1_jsml.htm.html",
+  "title": "ææç®å½-å·¥ç¨å­¦é¢",
+  "articles": 11,
+  "links": 12,
+  "column_ids": [
+   "1044",
+   "1260"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 10,
+   "em": 0,
+   "plain": 2,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_gcxy.syau.edu.cn_szdw1_xxmj.htm.html",
+  "title": "åè´¤åå®¶-å·¥ç¨å­¦é¢",
+  "articles": 4,
+  "links": 5,
+  "column_ids": [
+   "1112",
+   "1260"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 3,
+   "em": 0,
+   "plain": 2,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_jgxy.syau.edu.cn_szdw_bssds.htm.html",
+  "title": "åå£«çå¯¼å¸-ç»æµç®¡çå­¦é¢",
+  "articles": 20,
+  "links": 40,
+  "column_ids": [
+   "1326"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 40,
+   "title_attr": 40
+  },
+  "container": null
+ },
+ {
+  "file": "col_jgxy.syau.edu.cn_szdw_xz_jfry.htm.html",
+  "title": "è¡æ¿-æè¾äººå-ç»æµç®¡çå­¦é¢",
+  "articles": 16,
+  "links": 32,
+  "column_ids": [
+   "1174"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 32,
+   "title_attr": 32
+  },
+  "container": null
+ },
+ {
+  "file": "col_lin.syau.edu.cn_szdw_zyjs.htm.html",
+  "title": "ä¸ä¸æå¸-æ²åÂ·æå­¦é¢",
+  "articles": 12,
+  "links": 24,
+  "column_ids": [
+   "1032"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 12,
+   "em": 0,
+   "plain": 12,
+   "title_attr": 24
+  },
+  "container": null
+ },
+ {
+  "file": "col_lxy.syau.edu.cn_szdw1.htm.html",
+  "title": "å¸èµéä¼-æ²é³åä¸å¤§å­¦çå­¦é¢",
+  "articles": 7,
+  "links": 14,
+  "column_ids": [
+   "1025"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 7,
+   "em": 0,
+   "plain": 7,
+   "title_attr": 14
+  },
+  "container": null
+ },
+ {
+  "file": "col_lxy.syau.edu.cn_szdw1_js.htm.html",
+  "title": "ææ-æ²é³åä¸å¤§å­¦çå­¦é¢",
+  "articles": 7,
+  "links": 14,
+  "column_ids": [
+   "1025"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 7,
+   "em": 0,
+   "plain": 7,
+   "title_attr": 14
+  },
+  "container": null
+ },
+ {
+  "file": "col_marx.syau.edu.cn_szll_sxddyfzjys.htm.html",
+  "title": "ææ³éå¾·ä¸æ³æ²»æç å®¤-é©¬åæä¸»ä¹å­¦é¢",
+  "articles": 0,
+  "links": 0,
+  "column_ids": [],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 0,
+   "title_attr": 0
+  },
+  "container": "vsb_content_2_2973_u51"
+ },
+ {
+  "file": "col_myxy.syau.edu.cn_szdw_fjs.htm.html",
+  "title": "å¯ææ-å¨ç©ç§å­¦ä¸å»å­¦å­¦é¢",
+  "articles": 12,
+  "links": 24,
+  "column_ids": [
+   "1228"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 12,
+   "em": 0,
+   "plain": 12,
+   "title_attr": 24
+  },
+  "container": null
+ },
+ {
+  "file": "col_myxy.syau.edu.cn_szdw_js.htm.html",
+  "title": "ææ-å¨ç©ç§å­¦ä¸å»å­¦å­¦é¢",
+  "articles": 12,
+  "links": 24,
+  "column_ids": [
+   "1170"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 12,
+   "em": 0,
+   "plain": 12,
+   "title_attr": 24
+  },
+  "container": null
+ },
+ {
+  "file": "col_myxy.syau.edu.cn_szdw_xwbssds.htm.html",
+  "title": "æ ¡å¤åå£«çå¯¼å¸-å¨ç©ç§å­¦ä¸å»å­¦å­¦é¢",
+  "articles": 12,
+  "links": 24,
+  "column_ids": [
+   "1166"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 12,
+   "em": 0,
+   "plain": 12,
+   "title_attr": 24
+  },
+  "container": null
+ },
+ {
+  "file": "col_nxy.syau.edu.cn_szdw1.htm.html",
+  "title": "å¸èµéä¼-æ²é³åä¸å¤§å­¦åå­¦é¢",
+  "articles": 139,
+  "links": 139,
+  "column_ids": [
+   "1392",
+   "1393",
+   "1394",
+   "1396",
+   "1399",
+   "1400",
+   "1401",
+   "1403",
+   "1404",
+   "1405",
+   "1407",
+   "1408",
+   "1409",
+   "1411",
+   "1412",
+   "1415",
+   "1416",
+   "1417",
+   "1419",
+   "1428",
+   "1430",
+   "1431"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 139,
+   "title_attr": 139
+  },
+  "container": null
+ },
+ {
+  "file": "col_slxy.syau.edu.cn_szdw2.htm.html",
+  "title": "å¸èµéä¼-æ°´å©å­¦é¢",
+  "articles": 10,
+  "links": 20,
+  "column_ids": [
+   "1241"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 10,
+   "em": 0,
+   "plain": 10,
+   "title_attr": 10
+  },
+  "container": null
+ },
+ {
+  "file": "col_slxy.syau.edu.cn_szdw2_js.htm.html",
+  "title": "ææ-æ°´å©å­¦é¢",
+  "articles": 10,
+  "links": 20,
+  "column_ids": [
+   "1241",
+   "1248"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 10,
+   "em": 0,
+   "plain": 10,
+   "title_attr": 10
+  },
+  "container": null
+ },
+ {
+  "file": "col_spxy.syau.edu.cn_szdw_dsfc.htm.html",
+  "title": "å¯¼å¸é£é-æ²é³åä¸å¤§å­¦é£åå­¦é¢",
+  "articles": 6,
+  "links": 6,
+  "column_ids": [
+   "1112"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 6,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_spxy.syau.edu.cn_szdw_zysz.htm.html",
+  "title": "ä¸ä¸å¸èµ-æ²é³åä¸å¤§å­¦é£åå­¦é¢",
+  "articles": 7,
+  "links": 7,
+  "column_ids": [
+   "1109"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 7,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_swxy.syau.edu.cn_szdw_szgk.htm.html",
+  "title": "å¸èµæ¦åµ-çç©ç§å­¦ææ¯å­¦é¢",
+  "articles": 0,
+  "links": 0,
+  "column_ids": [],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 0,
+   "title_attr": 0
+  },
+  "container": "WspDetailContent"
+ },
+ {
+  "file": "col_swxy.syau.edu.cn_szdw_zzjs.htm.html",
+  "title": "å¨èæå¸-çç©ç§å­¦ææ¯å­¦é¢",
+  "articles": 80,
+  "links": 80,
+  "column_ids": [
+   "1020",
+   "1021",
+   "1022"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 80,
+   "title_attr": 80
+  },
+  "container": null
+ },
+ {
+  "file": "col_thxy.syau.edu.cn_szdw_bssds.htm.html",
+  "title": "åç¡å£«å¯¼å¸-åå°ä¸ç¯å¢å­¦é¢",
+  "articles": 3,
+  "links": 3,
+  "column_ids": [
+   "1542",
+   "1543"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 3,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_thxy.syau.edu.cn_szdw_jsxl_zgjzc.htm.html",
+  "title": "æ­£é«çº§èç§°-åå°ä¸ç¯å¢å­¦é¢",
+  "articles": 10,
+  "links": 10,
+  "column_ids": [
+   "1611"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 10,
+   "em": 0,
+   "plain": 0,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_tyb.syau.edu.cn_bmgk_jsdw.htm.html",
+  "title": "æå¸éä¼-ä½è²é¨",
+  "articles": 12,
+  "links": 12,
+  "column_ids": [
+   "1019"
+  ],
+  "paging": {
+   "JS 跳页": 7
+  },
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 0,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_wyb.syau.edu.cn_szdw.htm.html",
+  "title": "å¸èµéä¼-å¤è¯­æå­¦é¨",
+  "articles": 0,
+  "links": 0,
+  "column_ids": [],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 0,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_wyb.syau.edu.cn_szdw_szdw.htm.html",
+  "title": "å¸èµéä¼-å¤è¯­æå­¦é¨",
+  "articles": 54,
+  "links": 54,
+  "column_ids": [
+   "1094",
+   "1095",
+   "1096",
+   "1098"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 54,
+   "title_attr": 0
+  },
+  "container": "vsb_content_4595_u101"
+ },
+ {
+  "file": "col_xdxy.syau.edu.cn_szdw.htm.html",
+  "title": "å¸èµéä¼-ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢",
+  "articles": 60,
+  "links": 60,
+  "column_ids": [
+   "1008",
+   "1009",
+   "1010"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 60,
+   "title_attr": 60
+  },
+  "container": null
+ },
+ {
+  "file": "col_xdxy.syau.edu.cn_szdw_zgzc.htm.html",
+  "title": "æ­£é«èç§°-ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢",
+  "articles": 13,
+  "links": 26,
+  "column_ids": [
+   "1008"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 13,
+   "em": 0,
+   "plain": 13,
+   "title_attr": 0
+  },
+  "container": null
+ },
+ {
+  "file": "col_yyxy.syau.edu.cn_xkjs_szdw.htm.html",
+  "title": "å¸èµéä¼-å­èºå­¦é¢",
+  "articles": 0,
+  "links": 0,
+  "column_ids": [],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 0,
+   "title_attr": 0
+  },
+  "container": "vsb_content_1391_u81"
+ },
+ {
+  "file": "col_zbxy.syau.edu.cn_xkjs_szll.htm.html",
+  "title": "å¸èµåé-æ²é³åä¸å¤§å­¦æ¤ç©ä¿æ¤å­¦é¢",
+  "articles": 11,
+  "links": 21,
+  "column_ids": [
+   "1123",
+   "1124",
+   "1125",
+   "1151"
+  ],
+  "paging": {},
+  "anchor_family": {
+   "img": 0,
+   "em": 0,
+   "plain": 21,
+   "title_attr": 11
+  },
+  "container": null
+ }
+]

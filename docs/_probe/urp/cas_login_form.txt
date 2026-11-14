@@ -1,0 +1,89 @@
+URL=https://pass.syau.edu.cn/tpass/login?service=http%3A%2F%2F10.2.0.47%2Flogin
+TITLE=统一身份认证
+=== FORMS ===
+[
+ {
+  "action": "/tpass/login?service=http%3A%2F%2F10.2.0.47%2Flogin",
+  "method": "post",
+  "fields": [
+   {
+    "type": "hidden",
+    "name": "ul",
+    "id": "ul",
+    "ph": "",
+    "visible": false
+   },
+   {
+    "type": "hidden",
+    "name": "pl",
+    "id": "pl",
+    "ph": "",
+    "visible": false
+   },
+   {
+    "type": "hidden",
+    "name": "lt",
+    "id": "lt",
+    "ph": "",
+    "visible": false
+   },
+   {
+    "type": "hidden",
+    "name": "execution",
+    "id": "",
+    "ph": "",
+    "visible": false
+   },
+   {
+    "type": "hidden",
+    "name": "_eventId",
+    "id": "",
+    "ph": "",
+    "visible": false
+   },
+   {
+    "type": "hidden",
+    "name": "",
+    "id": "not_exit_number",
+    "ph": "",
+    "visible": false
+   },
+   {
+    "type": "hidden",
+    "name": "",
+    "id": "service_id",
+    "ph": "",
+    "visible": false
+   }
+  ]
+ }
+]
+=== IMGS ===
+[
+ {
+  "src": "https://pass.syau.edu.cn/tpass/uploadfiles/ltm/09901/2023/11/20/1700468165799.jpg?v=2026111412?1794630759346",
+  "id": "",
+  "cls": "imgLoaded"
+ },
+ {
+  "src": "https://pass.syau.edu.cn/tpass/uploadfiles/ltm/09901/2023/11/20/1700468165959.jpg?v=2026111412?1794630759399",
+  "id": "",
+  "cls": "imgLoaded"
+ },
+ {
+  "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJkAAACZCAYAAAA8XJi6AAALsklEQVR4AeycgZLjKAxE8/b//3kvXK03qGEQBGfWyfTUcHYjqSXaKkNNsvfrdrv9/s7xu/",
+  "id": "",
+  "cls": ""
+ }
+]
+=== TEXT ===
+统一身份认证
+English
+扫码登录
+账号登录
+手机扫码 安全防盗
+扫二维码登录校园门户
+温馨提示：使用微信或企业微信扫描二维码
+Copyright©2024 沈阳农业大学 版权所有 技术支持：现代教育信息中心
+联系电话：024-88487016 邮箱：info@syau.edu.cn
+=== 是否含验证码线索: false ===

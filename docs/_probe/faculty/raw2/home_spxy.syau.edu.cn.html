@@ -1,0 +1,888 @@
+﻿ï»¿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<HTML><HEAD><TITLE>æ²é³åä¸å¤§å­¦é£åå­¦é¢</TITLE><META Name="keywords" Content="æ²é³åä¸å¤§å­¦ï¼é£åå­¦é¢ï¼åä¸å¤§å­¦é£åå­¦é¢" />
+
+
+
+
+
+<META content="IE=edge,chrome=1" http-equiv="X-UA-Compatible">
+<META content="text/html; charset=UTF-8" http-equiv="Content-Type">
+<LINK rel="stylesheet" type="text/css" href="css/style.css">
+
+<script type="text/javascript" src="js/jquery.min.js"></script>
+
+<script type="text/javascript">
+var step = 1; // ç§»å¨çåç´ 
+var y = -1; // åç´ç§»å¨çæ¹åï¼-1è¡¨ç¤ºåä¸ï¼1è¡¨ç¤ºåä¸
+var x = 1; // æ°´å¹³ç§»å¨çæ¹åï¼-1è¡¨ç¤ºåå·¦ï¼1è¡¨ç¤ºåå³
+function myFloat()
+{
+var img = document.getElementById("myImg");
+// è·åå¾çåå½åæµè§å¨çªå£ä¸è¾¹è·ï¼ç±äºimg.style.topè·åçå¼å¸¦pxåä½
+var top = img.style.top.replace("px", "");
+// top = top - 100;
+// img.style.top = top + "px";
+// è·åå¾çåå½åæµè§å¨çªå£å·¦è¾¹è·
+var left = img.style.left.replace("px", "");
+// left = left - 100;
+// img.style.left = left + "px";
+// ä¸ä¸ç§»å¨
+if(top <= 0)
+{
+y = 1;
+}
+if(top >= document.body.clientHeight)
+{
+y = -1;
+}
+top = (top*1) + (step * y);
+img.style.top = top + "px";
+// å·¦å³ç§»å¨
+if(left <= 0)
+{
+x = 1;
+}
+// alert(img.clientWidth);
+if(left >= (document.body.clientWidth - img.clientWidth))
+{
+x = -1;
+}
+left = (left*1) + (step * x);
+img.style.left = left + "px";
+setTimeout("myFloat()", 20);
+}
+</script>
+<link rel="stylesheet" type="text/css" href="_sitegray/_sitegray_d.css" />
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:7765626265723230797347545353554a03090203 -->
+<link rel="stylesheet" type="text/css" href="index.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1001,'/index.jsp',-1,1565475406)</script>
+</HEAD>
+<BODY onload="myFloat();" style="height: 400px;">
+<div>   
+   
+   
+   
+<script language="javascript" src="/system/resource/js/dynclicks.js"></script>   
+</SCRIPT></div>
+<DIV class="header" style="margin:0 auto;">
+<DIV class="wid_1000">
+<DIV class="logo"><div class="logod">
+<div style="float:left;"><img src="images/logo.png" style="width:700px;"></div>
+<div style="float: right;margin-top: 50px;margin-right: 50px;">
+
+<script language="javascript">
+function dosuba1070930a()
+{
+    try{
+        var ua = navigator.userAgent.toLowerCase();
+        if(ua.indexOf("msie 8")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE8
+        }else if(ua.toLowerCase().indexOf("rv:")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE11+
+        }else{
+            if (document.all) 
+            {
+                window.external.addFavorite(document.location.href, document.title);
+            }else if(window.sidebar)
+            {
+                window.sidebar.addPanel( document.title, document.location.href, "");//firefox
+            }
+            else
+            {
+                alert(hotKeysa1070930a());
+            }
+        }
+
+    }
+    catch (e){alert("æ æ³èªå¨æ·»å å°æ¶èå¤¹ï¼è¯·ä½¿ç¨ Ctrl + d æå¨æ·»å ");}
+}
+function hotKeysa1070930a() 
+{
+    var ua = navigator.userAgent.toLowerCase(); 
+    var str = "";    
+    var isWebkit = (ua.indexOf('webkit') != - 1); 
+    var isMac = (ua.indexOf('mac') != - 1);     
+    if (ua.indexOf('konqueror') != - 1) 
+    {  
+        str = 'CTRL + B'; // Konqueror   
+    } 
+    else if (window.home || isWebkit || isMac) 
+    {        
+        str = (isMac ? 'Command/Cmd' : 'CTRL') + ' + D'; // Netscape, Safari, iCab, IE5/Mac   
+    }
+    return ((str) ? 'æ æ³èªå¨æ·»å å°æ¶èå¤¹ï¼è¯·ä½¿ç¨' + str + 'æå¨æ·»å ' : str);
+}
+function setHomepagea1070930a()
+{
+    var url = document.location.href;
+    if (document.all)
+    {
+        document.body.style.behavior='url(#default#homepage)';
+        document.body.setHomePage(url);
+    }
+    else if (window.sidebar)
+    {
+        if(window.netscape)
+        {
+             try{
+                  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+             }catch (e){
+                   alert("è¯¥æä½è¢«æµè§å¨æç»ï¼å¦ææ³å¯ç¨è¯¥åè½ï¼è¯·å¨å°åæ åè¾å¥ about:config,ç¶åå°é¡¹ signed.applets.codebase_principal_support å¼è¯¥ä¸ºtrue");
+             }
+        }
+    var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components. interfaces.nsIPrefBranch);
+    prefs.setCharPref('browser.startup.homepage',url);
+    }
+    else
+    {
+        alert("æµè§å¨ä¸æ¯æèªå¨è®¾ä¸ºé¦é¡µï¼è¯·æå¨è®¾ç½®");
+    }
+}
+</script>
+
+<div class="fr" style="margin-bottom:10px;">
+
+
+<a href="https://www.syau.edu.cn" style="color:#ffffff;">å­¦æ ¡é¦é¡µ&nbsp;&nbsp;|&nbsp;</a>
+
+<A onclick="javascript:dosuba1070930a();" href="#" style="TEXT-DECORATION: none;color:#ffffff;">å å¥æ¶è</A>
+
+</div>
+<script type="text/javascript">
+    function _nl_ys_check(){
+        
+        var keyword = document.getElementById('showkeycode1070931').value;
+        if(keyword==null||keyword==""){
+            alert("è¯·è¾å¥ä½ è¦æ£ç´¢çåå®¹ï¼");
+            return false;
+        }
+        if(window.toFF==1)
+        {
+            document.getElementById("lucenenewssearchkey1070931").value = Simplized(keyword );
+        }else
+        {
+            document.getElementById("lucenenewssearchkey1070931").value = keyword;            
+        }
+        var  base64 = new Base64();
+        document.getElementById("lucenenewssearchkey1070931").value = base64.encode(document.getElementById("lucenenewssearchkey1070931").value);
+        new VsbFormFunc().disableAutoEnable(document.getElementById("showkeycode1070931"));
+        return true;
+    } 
+</script>
+<form action="ssjg.jsp?wbtreeid=1001" method="post" id="au2a" name="au2a" onsubmit="return _nl_ys_check()" style="display: inline">
+ <input type="hidden" id="lucenenewssearchkey1070931" name="lucenenewssearchkey" value=""><input type="hidden" id="_lucenesearchtype1070931" name="_lucenesearchtype" value="1"><input type="hidden" id="searchScope1070931" name="searchScope" value="0">
+
+
+<div>
+          <input name="showkeycode" id="showkeycode1070931" onclick="if(this.value == 'è¯·è¾å¥æç´¢åå®¹...')this.value='';" onblur="if(this.value == '')this.value='è¯·è¾å¥æç´¢åå®¹...';" class="search-input" value="è¯·è¾å¥æç´¢åå®¹..."> 
+         <input name="search-btn" type="image" src="images/search-fdj.png" class="search-btn" />
+        </div>
+
+
+</form>
+
+
+
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/formfunc.js"></script>
+
+</div></div></DIV></DIV></DIV>
+
+    <div class="menu-nav">
+    <div id="menu">    
+      <ul class="l1-nav">    
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="index.htm" title="å­¦é¢é¦é¡µ" style="font-size:18px;">å­¦é¢é¦é¡µ</a>
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="xygk.htm" title="å­¦é¢æ¦åµ" style="font-size:18px;">å­¦é¢æ¦åµ</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="xygk/xyjj.htm" title="å­¦é¢ç®ä»">å­¦é¢ç®ä»</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xygk/zzjg.htm" title="ç»ç»æºæ">ç»ç»æºæ</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xygk/xrld.htm" title="ç°ä»»é¢å¯¼">ç°ä»»é¢å¯¼</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xygk/lrld.htm" title="åä»»é¢å¯¼">åä»»é¢å¯¼</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="dqgz.htm" title="åç¾¤å·¥ä½" style="font-size:18px;">åç¾¤å·¥ä½</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="dqgz/zzjg.htm" title="ç»ç»æºæ">ç»ç»æºæ</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="dqgz/djdt.htm" title="åå»ºå¨æ">åå»ºå¨æ</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="dqgz/ldsr1.htm" title="ç«å¾·æ äºº">ç«å¾·æ äºº</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="dqgz/zgzj.htm" title="èå·¥ä¹å®¶">èå·¥ä¹å®¶</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="xkjs.htm" title="å­¦ç§å»ºè®¾" style="font-size:18px;">å­¦ç§å»ºè®¾</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="xkjs/xkfzlc.htm" title="å­¦ç§åå±åç¨">å­¦ç§åå±åç¨</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xkjs/xkjj.htm" title="å­¦ç§ç®ä»">å­¦ç§ç®ä»</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xkjs/xkdt.htm" title="å­¦ç§å¨æ">å­¦ç§å¨æ</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="szdw.htm" title="å¸èµéä¼" style="font-size:18px;">å¸èµéä¼</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="szdw/zysz.htm" title="ä¸ä¸å¸èµ">ä¸ä¸å¸èµ</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="szdw/cxrc.htm" title="åæ°äººæ">åæ°äººæ</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="szdw/dsfc.htm" title="å¯¼å¸é£é">å¯¼å¸é£é</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="szdw/jsml1.htm" title="ææåå½">ææåå½</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="szdw/rxjs.htm" title="è£ä¼ææ">è£ä¼ææ</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="rcpy1.htm" title="äººæå¹å»" style="font-size:18px;">äººæå¹å»</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="rcpy1/bksjy.htm" title="æ¬ç§çæè²">æ¬ç§çæè²</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="rcpy1/yjsjy1.htm" title="ç ç©¶çæè²">ç ç©¶çæè²</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="rcpy1/bshldz1.htm" title="åå£«åæµå¨ç«">åå£«åæµå¨ç«</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="kxyj1.htm" title="ç§å­¦ç ç©¶" style="font-size:18px;">ç§å­¦ç ç©¶</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="kxyj1/xstd1.htm" title="å­¦æ¯å¢é">å­¦æ¯å¢é</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="kxyj1/kycg1.htm" title="ç§ç ææ">ç§ç ææ</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="kxyj1/kypt.htm" title="ç§ç å¹³å°">ç§ç å¹³å°</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="xsyd.htm" title="å­¦çå­å°" style="font-size:18px;">å­¦çå­å°</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="xsyd/xfjs.htm" title="å­¦é£å»ºè®¾">å­¦é£å»ºè®¾</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xsyd/xywh1.htm" title="æ ¡å­æå">æ ¡å­æå</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xsyd/byll.htm" title="æ¦æ ·åé">æ¦æ ·åé</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xsyd/txzz.htm" title="å¢å­¦ç»ç»">å¢å­¦ç»ç»</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xsyd/xsst.htm" title="å­¦çç¤¾å¢">å­¦çç¤¾å¢</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="zsjy.htm" title="æçå°±ä¸" style="font-size:18px;">æçå°±ä¸</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="zsjy/bkzs.htm" title="æ¬ç§æç">æ¬ç§æç</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="zsjy/syjdx.htm" target="_blank" title="çæºåºå°æ ¡">çæºåºå°æ ¡</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="zsjy/jycyjy.htm" title="å°±ä¸åä¸æè²">å°±ä¸åä¸æè²</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="zsjy/jyxx.htm" title="å°±ä¸ä¿¡æ¯">å°±ä¸ä¿¡æ¯</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+
+        <li class="l1-nav">  
+          <a class="l1-nav" href="xyzj.htm" title="æ ¡åä¹å®¶" style="font-size:18px;">æ ¡åä¹å®¶</a>
+          <ul class="l2-nav">   
+         
+            <li class="l2-nav"><a class="l2-nav" href="xyzj/byln.htm" title="æ¯ä¸çå¿µ">æ¯ä¸çå¿µ</a></li>
+          
+         
+            <li class="l2-nav"><a class="l2-nav" href="xyzj/xydt.htm" title="æ ¡åå¨æ">æ ¡åå¨æ</a></li>
+          
+          </ul>
+
+        </li>
+
+   
+      </ul>    
+    </div>  
+</div>  
+
+<DIV class="clear"></DIV>
+<DIV class="vsb-box">
+<DIV class="vsb-container" containerid="1" columns="3">
+<DIV class="vsb-space banner_2 clearFix" columns="3">    <div id="TeXiao3" style="width:1200px;height:400px;margin:0 auto;">
+   <ul class="rotaion_list">
+                   <li><a href="" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 73808)" target="_blank"><img src="images/yixinyiyi.jpg" alt="" width="100%" height="400"></a></li>
+               <li><a href="" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 73806)" target="_blank"><img src="images/guanceluoshi.jpg" alt="" width="100%" height="400"></a></li>
+               <li><a href="" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 72796)" target="_blank"><img src="images/newyear002.jpg" alt="" width="100%" height="400"></a></li>
+   </ul>
+</div></DIV></DIV></DIV>
+
+<DIV class="vsb-box">
+<div style="margin:0 auto 20px;width:1200px;border:1px solid #eee;padding:5px 0;">
+<div style="width:35px;float:left;padding-left:15px;"><img src="images/zytz.png" style="height:23px;"></div>
+<div style="width:1150px;float:left;"><script language="javascript" src="/system/resource/js/news/mp4video.js"></script>
+<marquee style="width: 1140px;"> <p><strong><span style="color: rgb(255, 0, 0); font-family: å®ä½, SimSun; font-size: 18px;">ææ°å¬å:</span></strong><span style="color: rgb(255, 0, 0); font-family: å®ä½, SimSun; font-size: 18px;"><strong><span style="color: rgb(255, 0, 0); font-family: å®ä½, SimSun; font-size: 16px;">æ¬¢è¿æ¥èæ²é³åä¸å¤§å­¦é£åå­¦é¢ï¼æ¬¢è¿ç¨äººåä½æ¥æ ¡éè2026å±æ¯ä¸çï¼</span></strong></span></p> 
+<p><span style="font-family: å®ä½, SimSun; font-size: 18px;"></span></p></marquee></div>
+<div style="clear:both;"></div>
+</div></div>
+
+<DIV class="vsb-box">
+<DIV class="vsb-container part1 clearFix" containerid="2" columns="3">
+<DIV class="vsb-space part-gy" columns="1" style="margin-right:20px;"><script language="javascript" src="/system/resource/js/ajax.js"></script><div id="TeXiao5" style="width:384px;height:314px;">
+                <ul class="rotaion_list">
+                    <li style="height:320px;"><a href="info/1126/6539.htm" target="_blank" title="å°æµæå½å®¶æä¸åèåå±éç¹å®éªå®¤å¬å¼ç¬¬ä¸å±å­¦æ¯å§åä¼ä¼è®®"><img src="/__local/D/48/DC/204F66EF8D886C4644F08E5AA00_FEBB4936_3A5D8C.jpg" alt="å°æµæå½å®¶æä¸åèåå±éç¹å®éªå®¤å¬å¼ç¬¬ä¸å±å­¦æ¯å§åä¼ä¼è®®" style="width:453px;height:320px;"></a></li>
+                    <li style="height:320px;"><a href="info/1126/6536.htm" target="_blank" title="ç²¾åå¯¹æ¥ä¿å°±ä¸ äº§æèåè°±æ°ç¯ââææ ¡æåä¸¾åé£åè¡ä¸äººæä¾éå¯¹æ¥ä¼æ¨æ ¡ä¼åä½æ´½è°ä¼"><img src="/__local/1/11/8E/C7ABCF2121FFE46A9D0CE5B58D1_15D07B0F_B9BB8F.jpg" alt="ç²¾åå¯¹æ¥ä¿å°±ä¸ äº§æèåè°±æ°ç¯ââææ ¡æåä¸¾åé£åè¡ä¸äººæä¾éå¯¹æ¥ä¼æ¨æ ¡ä¼åä½æ´½è°ä¼" style="width:453px;height:320px;"></a></li>
+                    <li style="height:320px;"><a href="info/1129/6424.htm" target="_blank" title="é£åå­¦é¢âæè²é«è´¨éåå±è®ºåâå­¦æ¯æ¥ååä¸ é¹è¿å¼º æ­£é«çº§ç ç©¶å"><img src="/__local/3/E9/7E/33012F67AF7B0F34A8B0EE39135_F3A2201F_1321391.jpg" alt="é£åå­¦é¢âæè²é«è´¨éåå±è®ºåâå­¦æ¯æ¥ååä¸ é¹è¿å¼º æ­£é«çº§ç ç©¶å" style="width:453px;height:320px;"></a></li>
+                    <li style="height:320px;"><a href="info/1126/6336.htm" target="_blank" title="è¾½å®çé£åäº§ä¸åå±å¤§ä¼æ¨è¾½å®é£åæ°åå·¥ä¸åé¢å¯å¨ä¼å¨ææ ¡å¬å¼"><img src="/__local/8/54/36/F09FF8837C8D6F35ED40CBA7981_50636A13_2A07A.jpg" alt="è¾½å®çé£åäº§ä¸åå±å¤§ä¼æ¨è¾½å®é£åæ°åå·¥ä¸åé¢å¯å¨ä¼å¨ææ ¡å¬å¼" style="width:453px;height:320px;"></a></li>
+                </ul>
+            </div><script>_showDynClickBatch(['dynclicks_u6_6539','dynclicks_u6_6536','dynclicks_u6_6424','dynclicks_u6_6336'],[6539,6536,6424,6336],"wbnews", 1565475406)</script>
+</DIV>
+<!-----è½®æ¢æ°é»------------>
+<DIV class="vsb-space part-gy" columns="1" style="margin-right:20px;border:1px solid #eee;">            <div class="sy-title fl">
+                 <a href="index/xykx.htm" class="more"><h3>å­¦é¢å¿«è®¯</h3></a>
+               
+            </div>
+            <div class="tzgg-list fl">
+                <ul>
+                    <li>
+                        <a href="info/1126/6655.htm" target="_blank" title="ç¥åè±æç§ææ²é¾ï¼æ°åé£ååå¶ï¼å¨æ²é³åä¸å¤§å­¦ä¸¾è¡">
+                           
+                            <div class="txt fl">
+                                <h3>ç¥åè±æç§ææ²é¾ï¼æ°åé£ååå¶ï¼å¨æ²é³åä¸å¤§å­¦ä¸¾è¡</h3>
+                            </div>
+                             <div class="date fl">11-09</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1126/6654.htm" target="_blank" title="ææ ¡ä¸ä¸­åå¨å½ä¾éæ»ç¤¾æµåæåç ç©¶æç­¾ç½²æç¥åä½åè®®">
+                           
+                            <div class="txt fl">
+                                <h3>ææ ¡ä¸ä¸­åå¨å½ä¾éæ»ç¤¾æµåæåç ç©¶æç­¾ç½²æç¥åä½åè®®</h3>
+                            </div>
+                             <div class="date fl">11-06</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1126/6639.htm" target="_blank" title="å­¦ç§å¸¦å¤´äººææææèµ´ä¸­åå¨å½ä¾éåä½æ»ç¤¾æµåæåç ç©¶æè°ç äº¤æµå¹¶çæèåå¹å»ç ç©¶ç">
+                           
+                            <div class="txt fl">
+                                <h3>å­¦ç§å¸¦å¤´äººææææèµ´ä¸­åå¨å½ä¾éåä½æ»ç¤¾æµåæåç ç©¶æè°ç äº¤æµå¹¶çæèåå¹å»ç ç©¶ç</h3>
+                            </div>
+                             <div class="date fl">10-29</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1126/6637.htm" target="_blank" title="å´æ¶¦ä¸ææåºéä¸ºå­¦é¢å¸çä½ä¸é¢é³ä¹åè¯¾">
+                           
+                            <div class="txt fl">
+                                <h3>å´æ¶¦ä¸ææåºéä¸ºå­¦é¢å¸çä½ä¸é¢é³ä¹åè¯¾</h3>
+                            </div>
+                             <div class="date fl">10-28</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1126/6629.htm" target="_blank" title="é£åå­¦é¢ä¸¾åæ ¡åæ»ä¼é£åå­¦é¢åä¼å¥å©å­¦éæèµ ä»ªå¼">
+                           
+                            <div class="txt fl">
+                                <h3>é£åå­¦é¢ä¸¾åæ ¡åæ»ä¼é£åå­¦é¢åä¼å¥å©å­¦éæèµ ä»ªå¼</h3>
+                            </div>
+                             <div class="date fl">10-26</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1126/6627.htm" target="_blank" title="ææ ¡æ¿åä¸­å½çç©å·¥ç¨å­¦ä¼ç¬¬åå«å±å­¦æ¯å¹´ä¼æ¨2026å¹´å¨å½çç©ææ¯å¤§ä¼åè®ºå">
+                           
+                            <div class="txt fl">
+                                <h3>ææ ¡æ¿åä¸­å½çç©å·¥ç¨å­¦ä¼ç¬¬åå«å±å­¦æ¯å¹´ä¼æ¨2026å¹´å¨å½çç©ææ¯å¤§ä¼åè®ºå</h3>
+                            </div>
+                             <div class="date fl">10-26</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1126/6626.htm" target="_blank" title="é£åå­¦é¢ä¸¾å2026å¹´æå¸æå­¦åæ°å¤§èµ">
+                           
+                            <div class="txt fl">
+                                <h3>é£åå­¦é¢ä¸¾å2026å¹´æå¸æå­¦åæ°å¤§èµ</h3>
+                            </div>
+                             <div class="date fl">10-26</div>
+                        </a>
+                    </li>
+                   
+                </ul>   
+            </div>
+
+
+
+
+
+<script>_showDynClickBatch(['dynclicks_u7_6655','dynclicks_u7_6654','dynclicks_u7_6639','dynclicks_u7_6637','dynclicks_u7_6629','dynclicks_u7_6627','dynclicks_u7_6626'],[6655,6654,6639,6637,6629,6627,6626],"wbnews", 1565475406)</script>
+</DIV>
+<!-----ç­ç¹æ°é»------------>
+<DIV class="vsb-space part-gy" columns="1" style="border:1px solid #eee;">            <div class="sy-title fl">
+                 <a href="index/tzgg.htm" class="more"><h3>éç¥å¬å</h3></a>
+               
+            </div>
+            <div class="tzgg-list fl">
+                <ul>
+                    <li>
+                        <a href="content.jsp?urltype=news.NewsContentUrl&wbtreeid=1127&wbnewsid=6653" target="_blank" title="ç§æææè½¬åå¬ç¤ºï¼äºè¡äºè²æ©é¤ç²äº§åéæ¹ï¼">
+                           
+                            <div class="txt fl">
+                                <h3>ç§æææè½¬åå¬ç¤ºï¼äºè¡äºè²æ©é¤ç²äº§åéæ¹ï¼</h3>
+                            </div>
+                             <div class="date fl">11-09</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1127/6652.htm" target="_blank" title="ç§æææè½¬åå¬ç¤ºï¼ä¸ç§èèæ±çåéµæ¹æ³ï¼">
+                           
+                            <div class="txt fl">
+                                <h3>ç§æææè½¬åå¬ç¤ºï¼ä¸ç§èèæ±çåéµæ¹æ³ï¼</h3>
+                            </div>
+                             <div class="date fl">11-04</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1127/6613.htm" target="_blank" title="å³äºå¬å¸åå­¦é¢2026çº§æ¬ç§çè½¬ä¸ä¸æ¥æ¶ç³è¯·èµæ ¼ä¿¡æ¯çéç¥">
+                           
+                            <div class="txt fl">
+                                <h3>å³äºå¬å¸åå­¦é¢2026çº§æ¬ç§çè½¬ä¸ä¸æ¥æ¶ç³è¯·èµæ ¼ä¿¡æ¯çéç¥</h3>
+                            </div>
+                             <div class="date fl">10-13</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1127/6606.htm" target="_blank" title="å³äºæ¬å­¦æå¾®ä¸ä¸éè¯¾çéç¥">
+                           
+                            <div class="txt fl">
+                                <h3>å³äºæ¬å­¦æå¾®ä¸ä¸éè¯¾çéç¥</h3>
+                            </div>
+                             <div class="date fl">10-12</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="content.jsp?urltype=news.NewsContentUrl&wbtreeid=1127&wbnewsid=6607" target="_blank" title="å³äº2026-2027å­¦å¹´ç§å­£å­¦æææ«èè¯å½é¢å®ææ¶é´çéç¥">
+                           
+                            <div class="txt fl">
+                                <h3>å³äº2026-2027å­¦å¹´ç§å­£å­¦æææ«èè¯å½é¢å®ææ¶é´çéç¥</h3>
+                            </div>
+                             <div class="date fl">10-10</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="content.jsp?urltype=news.NewsContentUrl&wbtreeid=1127&wbnewsid=6608" target="_blank" title="è½¬åæ ¡çºªå§éç¥ï¼ãå³äºåå¥½ä¸­ç§å½åºæé´æ­£é£èçºªå·¥ä½çéç¥ã">
+                           
+                            <div class="txt fl">
+                                <h3>è½¬åæ ¡çºªå§éç¥ï¼ãå³äºåå¥½ä¸­ç§å½åºæé´æ­£é£èçºªå·¥ä½çéç¥ã</h3>
+                            </div>
+                             <div class="date fl">09-23</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="content.jsp?urltype=news.NewsContentUrl&wbtreeid=1127&wbnewsid=6609" target="_blank" title="å³äºæ¬å­¦æè¯¾ç¨éä¿®ç­éè¯¾æ¥åçéç¥">
+                           
+                            <div class="txt fl">
+                                <h3>å³äºæ¬å­¦æè¯¾ç¨éä¿®ç­éè¯¾æ¥åçéç¥</h3>
+                            </div>
+                             <div class="date fl">09-22</div>
+                        </a>
+                    </li>
+                   
+                </ul>   
+            </div>
+
+
+
+
+
+<script>_showDynClickBatch(['dynclicks_u8_6653','dynclicks_u8_6652','dynclicks_u8_6613','dynclicks_u8_6606','dynclicks_u8_6607','dynclicks_u8_6608','dynclicks_u8_6609'],[6653,6652,6613,6606,6607,6608,6609],"wbnews", 1565475406)</script>
+</DIV>
+
+<!-----éç¥å¬å------------>
+</DIV>
+<!----------ç¬¬å­é¨å------------>
+<DIV class="vsb-container part7 clearFix" containerid="2" columns="3">
+<DIV class="vsb-space part-gy" columns="1" style="margin-right:20px;border:1px solid #eee;">            <div class="sy-title fl">
+                 <a href="index/mtgz.htm" class="more"><h3>åªä½å³æ³¨</h3></a>
+               
+            </div>
+            <div class="tzgg-list fl">
+                <ul>
+                    <li>
+                        <a href="info/1128/6645.htm" target="_blank" title="è¾½å®æ¥æ¥ï¼å¨çé¦ä¸ªçç©æ´»æ§è½äººå·¥æºè½å¤§è¯­è¨æ¨¡ååå¸">
+                           
+                            <div class="txt fl">
+                                <h3>è¾½å®æ¥æ¥ï¼å¨çé¦ä¸ªçç©æ´»æ§è½äººå·¥æºè½å¤§è¯­è¨æ¨¡ååå¸</h3>
+                            </div>
+                             <div class="date fl">10-29</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1128/6644.htm" target="_blank" title="ä¸­å½æ°é»ç½ï¼æ²é³åä¸å¤§å­¦ç åï¼å¨çé¦ä¸ªçç©æ´»æ§è½äººå·¥æºè½å¤§è¯­è¨æ¨¡åPepNova-AIåå¸ï¼">
+                           
+                            <div class="txt fl">
+                                <h3>ä¸­å½æ°é»ç½ï¼æ²é³åä¸å¤§å­¦ç åï¼å¨çé¦ä¸ªçç©æ´»æ§è½äººå·¥æºè½å¤§è¯­è¨æ¨¡åPepNova-AIåå¸ï¼</h3>
+                            </div>
+                             <div class="date fl">10-29</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1128/6647.htm" target="_blank" title="åæ°æ¥æ¥ï¼è®©ææä½ç°å¨åæ°å¢æ¶åäº§ä¸å¢æä¸èèäº§ä¸ææ¯ä½ç³»è¾½å®åæ°å¢éå¨é¾æ¡ååæ»å">
+                           
+                            <div class="txt fl">
+                                <h3>åæ°æ¥æ¥ï¼è®©ææä½ç°å¨åæ°å¢æ¶åäº§ä¸å¢æä¸èèäº§ä¸ææ¯ä½ç³»è¾½å®åæ°å¢éå¨é¾æ¡ååæ»å</h3>
+                            </div>
+                             <div class="date fl">07-28</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1128/6648.htm" target="_blank" title="è¾½å®æ¥æ¥å®¢æ·ç«¯ï¼ä¸ºå¥èèæ»æ¯125åâå°çè£âï¼ï½ä½ æªå¿ç¥é">
+                           
+                            <div class="txt fl">
+                                <h3>è¾½å®æ¥æ¥å®¢æ·ç«¯ï¼ä¸ºå¥èèæ»æ¯125åâå°çè£âï¼ï½ä½ æªå¿ç¥é</h3>
+                            </div>
+                             <div class="date fl">03-18</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1128/6337.htm" target="_blank" title="è¾½å®å«è§ï¼è¾½å®çé£åäº§ä¸åå±å¤§ä¼æ¨è¾½å®é£åæ°åå·¥ä¸åé¢å¯å¨ä¼">
+                           
+                            <div class="txt fl">
+                                <h3>è¾½å®å«è§ï¼è¾½å®çé£åäº§ä¸åå±å¤§ä¼æ¨è¾½å®é£åæ°åå·¥ä¸åé¢å¯å¨ä¼</h3>
+                            </div>
+                             <div class="date fl">12-31</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1128/6338.htm" target="_blank" title="äººæ°æ¥æ¥å®¢æ·ç«¯ï¼è¾½å®çé£åäº§ä¸åå±å¤§ä¼æ¨è¾½å®é£åæ°åå·¥ä¸åé¢å¯å¨ä¼å¬å¼">
+                           
+                            <div class="txt fl">
+                                <h3>äººæ°æ¥æ¥å®¢æ·ç«¯ï¼è¾½å®çé£åäº§ä¸åå±å¤§ä¼æ¨è¾½å®é£åæ°åå·¥ä¸åé¢å¯å¨ä¼å¬å¼</h3>
+                            </div>
+                             <div class="date fl">12-30</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1128/6317.htm" target="_blank" title="ç ´è§£ä¸ç¢éª¨æ±¤é¸èçâé£å³å¯ç â">
+                           
+                            <div class="txt fl">
+                                <h3>ç ´è§£ä¸ç¢éª¨æ±¤é¸èçâé£å³å¯ç â</h3>
+                            </div>
+                             <div class="date fl">11-29</div>
+                        </a>
+                    </li>
+                   
+                </ul>   
+            </div>
+
+
+
+
+
+<script>_showDynClickBatch(['dynclicks_u9_6645','dynclicks_u9_6644','dynclicks_u9_6647','dynclicks_u9_6648','dynclicks_u9_6337','dynclicks_u9_6338','dynclicks_u9_6317'],[6645,6644,6647,6648,6337,6338,6317],"wbnews", 1565475406)</script>
+</DIV>
+<!-----è½®æ¢æ°é»------------>
+<DIV class="vsb-space part-gy" columns="1" style="margin-right:20px;border:1px solid #eee;">            <div class="sy-title fl">
+                 <a href="index/xszx.htm" class="more"><h3>å­¦æ¯å¨çº¿</h3></a>
+               
+            </div>
+            <div class="tzgg-list fl">
+                <ul>
+                    <li>
+                        <a href="info/1129/6636.htm" target="_blank" title="ä¸»é¢é³ä¹åè¯¾">
+                           
+                            <div class="txt fl">
+                                <h3>ä¸»é¢é³ä¹åè¯¾</h3>
+                            </div>
+                             <div class="date fl">10-26</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1129/6660.htm" target="_blank" title="âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åäºè®²ï¼èäº®ææ">
+                           
+                            <div class="txt fl">
+                                <h3>âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åäºè®²ï¼èäº®ææ</h3>
+                            </div>
+                             <div class="date fl">10-26</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1129/6659.htm" target="_blank" title="âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬ååè®²ï¼æ±é¸¿äº®ææ">
+                           
+                            <div class="txt fl">
+                                <h3>âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬ååè®²ï¼æ±é¸¿äº®ææ</h3>
+                            </div>
+                             <div class="date fl">10-23</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1129/6658.htm" target="_blank" title="âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åä¸è®²ï¼æ¹é¦è½©ææ">
+                           
+                            <div class="txt fl">
+                                <h3>âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åä¸è®²ï¼æ¹é¦è½©ææ</h3>
+                            </div>
+                             <div class="date fl">10-23</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1129/6657.htm" target="_blank" title="âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åäºè®²ï¼Â æ¹å´æ±ææ">
+                           
+                            <div class="txt fl">
+                                <h3>âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åäºè®²ï¼Â æ¹å´æ±ææ</h3>
+                            </div>
+                             <div class="date fl">10-23</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1129/6656.htm" target="_blank" title="âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åä¸è®²ï¼å¨æåææ">
+                           
+                            <div class="txt fl">
+                                <h3>âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åä¸è®²ï¼å¨æåææ</h3>
+                            </div>
+                             <div class="date fl">10-22</div>
+                        </a>
+                    </li>
+                   
+                    <li>
+                        <a href="info/1129/6617.htm" target="_blank" title="âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åè®²ï¼ å¨æ¯æææ">
+                           
+                            <div class="txt fl">
+                                <h3>âç§æåæ²¿âé¢å£«ä¸å®¶è®²åï¼ç¬¬åè®²ï¼ å¨æ¯æææ</h3>
+                            </div>
+                             <div class="date fl">10-15</div>
+                        </a>
+                    </li>
+                   
+                </ul>   
+            </div>
+
+
+
+
+
+<script>_showDynClickBatch(['dynclicks_u10_6636','dynclicks_u10_6660','dynclicks_u10_6659','dynclicks_u10_6658','dynclicks_u10_6657','dynclicks_u10_6656','dynclicks_u10_6617'],[6636,6660,6659,6658,6657,6656,6617],"wbnews", 1565475406)</script>
+</DIV>
+<!-----ç­ç¹æ°é»------------>
+<DIV class="vsb-space part-gy" columns="1" style="border:1px solid #eee;padding:2px 0;">    <table align="center">
+            <tr>
+                <td>
+                        <a href="rcpy1/bksjy/zyjj.htm" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 42483)" target="_blank">
+                            <img src="images/jkzx.png" border="0" width="366" height="50" style="padding:5px 0px;">
+                        </a>  
+                </td>
+        </tr>
+        <tr>
+                <td>
+                        <a href="index/shfw.htm" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 42484)" target="_blank">
+                            <img src="images/shfw.png" border="0" width="366" height="50" style="padding:5px 0px;">
+                        </a>  
+                </td>
+        </tr>
+        <tr>
+                <td>
+                        <a href="index/sjds.htm" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 42485)" target="_blank">
+                            <img src="images/sjds.png" border="0" width="366" height="50" style="padding:5px 0px;">
+                        </a>  
+                </td>
+        </tr>
+        <tr>
+                <td>
+                        <a href="info/1336/3898.htm" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 42486)" target="_blank">
+                            <img src="images/wxgz.png" border="0" width="366" height="50" style="padding:5px 0px;">
+                        </a>  
+                </td>
+        </tr>
+        <tr>
+                <td>
+                        <a href="index/yyfw.htm" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1565475406, 42487)" target="_blank">
+                            <img src="images/yypt.png" border="0" width="366" height="50" style="padding:5px 0px;">
+                        </a>  
+                </td>
+        </tr>
+</table></DIV></DIV><!----------ç¬¬12é¨å------------>
+<!----------ç¬¬13é¨å------------>
+
+<DIV class="vsb-container part14 clearFix" containerid="2" columns="3">
+<div style="float:left;width:183px;margin-right:10px;"><script language="javascript" src="/system/resource/js/openlink.js"></script><select onchange="_openSelectLink(this, 'value', 'addclicks')" style="width:183px;height:30px;">
+    <option>--------åæé¾æ¥--------</option>
+    <option value="http://spxy.cau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 87902)">ä¸­å½åä¸å¤§å­¦é£åç§å­¦ä¸è¥å»å·¥ç¨å­¦é¢</option>
+    <option value="http://foodsci.jiangnan.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43884)">æ±åå¤§å­¦é£åå­¦é¢</option>
+    <option value="http://food.njau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43883)">åäº¬åä¸å¤§å­¦é£åç§å­¦ææ¯å­¦é¢</option>
+    <option value="https://food.nwafu.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43885)">è¥¿ååæç§æå¤§å­¦é£åç§å­¦ä¸å·¥ç¨å­¦é¢</option>
+    <option value="http://sfst.ncu.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 87903)">åæå¤§å­¦é£åå­¦é¢</option>
+    <option value="https://spxy.btbu.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 87904)">åäº¬å·¥åå¤§å­¦é£åä¸å¥åº·å­¦é¢</option>
+    <option value="http://ss.dep.dlpu.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 87905)">å¤§è¿å·¥ä¸å¤§å­¦é£åå­¦é¢</option>
+</select></div>
+<div style="float:left;width:183px;margin-right:10px;"><select onchange="_openSelectLink(this, 'value', 'addclicks')" style="width:183px;height:30px;">
+    <option>--------å¸¸ç¨é¾æ¥--------</option>
+    <option value="http://www.moe.gov.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43861)">æè²é¨</option>
+    <option value="http://www.most.gov.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43862)">ç§æé¨</option>
+    <option value="http://www.moa.gov.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43863)">åä¸åæé¨</option>
+    <option value="http://www.nsfc.gov.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43864)">å½å®¶èªç¶åºéå§åä¼</option>
+    <option value="http://www.lnen.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43865)">è¾½å®çæè²å</option>
+    <option value="http://kjt.ln.gov.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43866)">è¾½å®çç§æå</option>
+    <option value="http://kjj.shenyang.gov.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43867)">æ²é³å¸ç§æå±</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1094.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43868)">ä¸­å½ç¥ç½(CNKI)</option>
+</select></div>
+<div style="float:left;width:183px;margin-right:10px;"><select onchange="_openSelectLink(this, 'value', 'addclicks')" style="width:183px;height:30px;">
+    <option>--------åç¾¤æºæ--------</option>
+    <option value="https://tw.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43699)">å±éå¢æ²é³åä¸å¤§å­¦å§åä¼</option>
+    <option value="https://tzb.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43700)">æ²é³åä¸å¤§å­¦åå§ç»æé¨</option>
+    <option value="https://gh.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43701)">æ²é³åä¸å¤§å­¦å·¥ä¼å§åä¼</option>
+    <option value="https://xcb.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43702)">æ²é³åä¸å¤§å­¦åå§å®£ä¼ é¨</option>
+    <option value="https://zzb.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43703)">æ²é³åä¸å¤§å­¦åå§ç»ç»é¨</option>
+</select></div>
+<div style="float:left;width:183px;margin-right:10px;"><select onchange="_openSelectLink(this, 'value', 'addclicks')" style="width:183px;height:30px;">
+    <option>--------è¡æ¿æºæ--------</option>
+    <option value="https://dzb.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43854)">åæ¿åå¬å®¤</option>
+    <option value="https://xsc.syau.edu.cn/SyauXG/Website/#/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43855)">åå§å­¦çå·¥ä½é¨ãæ­¦è£é¨</option>
+    <option value="https://kjc.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43856)">ç§å­¦ææ¯ç ç©¶é¢</option>
+    <option value="https://jwc.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43857)">æå¡å¤</option>
+    <option value="https://cwc.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43858)">è´¢å¡å¤</option>
+    <option value="https://gzc.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43859)">å½æèµäº§ç®¡çå¤</option>
+    <option value="https://gac.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43860)">å¬å®å¤</option>
+</select></div>
+<div style="float:left;width:183px;margin-right:10px;"><select onchange="_openSelectLink(this, 'value', 'addclicks')" style="width:183px;height:30px;">
+    <option>--------é¢ç³»å­¦é¨--------</option>
+    <option value="https://nxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43704)">åå­¦é¢</option>
+    <option value="https://zbxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43705)">æ¤ç©ä¿æ¤å­¦é¢</option>
+    <option value="https://yyxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43706)">å­èºå­¦é¢</option>
+    <option value="https://thxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43707)">åå°ä¸ç¯å¢å­¦é¢</option>
+    <option value="https://jgxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43708)">ç»æµç®¡çå­¦é¢</option>
+    <option value="https://myxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43709)">çç§å½å»å­¦é¢</option>
+    <option value="https://lin.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43710)">æå­¦é¢</option>
+    <option value="https://gcxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43711)">å·¥ç¨å­¦é¢</option>
+    <option value="https://xdxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43712)">ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢</option>
+    <option value="https://slxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43713)">æ°´å©å­¦é¢</option>
+    <option value="https://swxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43714)">çç©ç§å­¦ææ¯å­¦é¢</option>
+    <option value="https://lxy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43715)">çå­¦é¢</option>
+    <option value="https://jxjy.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43716)">ç»§ç»­æè²å­¦é¢</option>
+    <option value="https://marx.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43717)">é©¬åæä¸»ä¹å­¦é¢</option>
+    <option value="https://gjjlc.syau.edu.cn/" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43718)">å½éæè²å­¦é¢</option>
+</select></div>
+<div style="float:left;width:183px;"><select onchange="_openSelectLink(this, 'value', 'addclicks')" style="width:183px;">
+    <option>--------å¶ä»é¾æ¥--------</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1094.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43869)">ä¸­å½ç¥ç½(CNKI)</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1095.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43870)">ä¸æ¹æ°æ®ç¥è¯æå¡å¹³å°</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1098.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43871)">åçäººæçéæå</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1105.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43872)">EBSCOç³»åæ°æ®åº</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1106.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43873)">Natureçµå­æå</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1107.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43874)">SCIE,SSCI,CPCI</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1108.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43875)">Springer Linkçµå­æå</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1096.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43876)">ä¸­ææåæå¡å¹³å°(ç»´æ®èµè®¯)</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1097.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43877)">è¯»ç§å­¦æ¯æç´¢</option>
+    <option value="https://lib.syau.edu.cn/info/1023/1100.htm" title="" addclicks="_addDynClicks(&#34;wburl&#34;, 1565475406, 43878)">CABI,Agricola,BP</option>
+</select></div>
+
+</DIV>
+<!----------ç¬¬14é¨å------------>
+</DIV>
+<DIV class="foot">
+    <DIV class="foot-1"><!-- çæåå®¹è¯·å¨æ¬ç»ä»¶"åå®¹éç½®-çæ"å¤å¡«å -->
+<p><span style="color: rgb(255, 255, 255);"><span style="font-family: &quot;Microsoft YaHei&quot;; font-size: 13.3333px; text-align: center;">Â©2023&nbsp;</span>æ²é³åä¸å¤§å­¦é£åå­¦é¢ ç®¡ç åå¬å®¤çµè¯ï¼024-88487161</span></p>
+    </DIV>
+</DIV>
+
+<script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/pic.js"></script>
+
+</BODY></HTML>

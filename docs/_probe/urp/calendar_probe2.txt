@@ -1,0 +1,12 @@
+切换前页面学期标注: 2026-2027学年秋
+切换目标: 2024-2025-1-1
+URL after change: http://10.2.0.47/student/courseSelect/calendarSemesterCurriculum/index
+请求: POST /student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback | POST /ajax/student/getSectionAndTime | GET /student/internship/sxbggl/findSxkb?xnxq=2024-2025-1-1&flag=&_=1794624592149 | POST /student/courseSelect/thisSemesterCurriculum/index/queryExperiment
+切换后页面学期标注: 2026-2027学年秋
+切换后出现的课程: 地理信息科学_01
+GET index?planCode=2024-2025-1-1 → 200 len=72811 学期=2026-2027学年秋(当前)
+ 课程样例=
+GET index?planCode=2025-2026-1-1 → 200 len=72811 学期=2026-2027学年秋(当前)
+ 课程样例=
+GET ajaxStudentSchedule/callback?xnxq=2024-2025-1-1 → 200 len=22157 keys=rwbgLists,allUnits,xkxx,csz,jcsjbs,dateList
+GET ajaxStudentSchedule/callback?xnxq=2025-2026-1-1 → 200 len=22157 keys=rwbgLists,allUnits,xkxx,csz,jcsjbs,dateList

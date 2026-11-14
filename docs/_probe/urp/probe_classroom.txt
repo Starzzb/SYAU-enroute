@@ -1,0 +1,71 @@
+=== goto index ===  HTTP 200  url=http://10.2.0.47/student/teachingResources/classroomCurriculum/index  len=127436
+    登录态=有效
+
+=== 表单控件 ===
+  {"tag":"INPUT","name":"kszc","id":"kszc","type":"text","ph":""}
+  {"tag":"INPUT","name":"jszc","id":"jszc","type":"text","ph":""}
+  {"tag":"INPUT","name":"zcms","id":"","type":"radio","ph":""}
+  {"tag":"INPUT","name":"zcms","id":"","type":"radio","ph":""}
+  {"tag":"INPUT","name":"zcms","id":"","type":"radio","ph":""}
+  {"tag":"INPUT","name":"xxbm","id":"xxbm","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"","id":"search-input","type":"text","ph":"查找功能..."}
+  {"tag":"INPUT","name":"","id":"userId","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"param_value","id":"param_value","type":"hidden","ph":""}
+  {"tag":"SELECT","name":"executiveEducationPlanNumber","id":"","type":"select-one","ph":""}
+  {"tag":"SELECT","name":"campusNumber","id":"campus","type":"select-one","ph":""}
+  {"tag":"SELECT","name":"teachingBuildingNumber","id":"teachingBuilding","type":"select-one","ph":""}
+  {"tag":"SELECT","name":"classRoomNumber","id":"classRoom","type":"select-one","ph":""}
+  {"tag":"INPUT","name":"planCode","id":"planNumber","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"campusCode","id":"campusNumber","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"teachingBuildingCode","id":"teachingBuildingNumber","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"classroomCode","id":"classroomNumber","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"campusName","id":"","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"teachingBuildingName","id":"","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"classroomName","id":"","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"week","id":"","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"oper","id":"","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"","id":"endflag_urppagebar","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"","id":"turnpageto_urppagebar","type":"text","ph":""}
+  {"tag":"INPUT","name":"","id":"btn_turnpageto_urppagebar","type":"button","ph":""}
+  {"tag":"SELECT","name":"","id":"pagination_pageSize_urppagebar","type":"select-one","ph":""}
+  {"tag":"INPUT","name":"planCode","id":"planCode","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"campusCode","id":"campusCode","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"teachingBuildingCode","id":"teachingBuildingCode","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"classroomCode","id":"classroomCode","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"campusName","id":"campusName","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"teachingBuildingName","id":"teachingBuildingNamec","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"classroomName","id":"classroomNamec","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"week","id":"week","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"oper","id":"oper","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"ycd","id":"ycd","type":"hidden","ph":""}
+
+=== 首屏期间的请求 ===
+  GET /student/teachingResources/classroomCurriculum/index
+      ct=
+      body=
+  GET /main/queryStudent/img
+      ct=
+      body=
+  POST /student/teachingResources/classroomCurriculum/search
+      ct=application/x-www-form-urlencoded; charset=UTF-8
+      body=executiveEducationPlanNumber=2026-2027-1-1&campusNumber=&teachingBuildingNumber=&classRoomNumber=&pageNum=1&pageSize=30
+
+=== 基线请求体 ===
+  {"executiveEducationPlanNumber":"2026-2027-1-1","campusNumber":"","teachingBuildingNumber":"","classRoomNumber":"","pageNum":"1","pageSize":"30"}
+
+=== 变体 ===
+A0 原样（页面自己发的）  HTTP 200 len=10702 totalCount=295  first=主校/第一教学楼/5楼2机房/106 , 主校/第一教学楼/5楼4机房/56 , 主校/第一教学楼/5楼5机房/72
+A1 classroomName=719  HTTP 200 len=10702 totalCount=295  first=主校/第一教学楼/5楼2机房/106 , 主校/第一教学楼/5楼4机房/56 , 主校/第一教学楼/5楼5机房/72
+A2 classroomName=719 且 pageSize=200  HTTP 200 len=71655 totalCount=295  first=主校/第一教学楼/5楼2机房/106 , 主校/第一教学楼/5楼4机房/56 , 主校/第一教学楼/5楼5机房/72
+A3 teachingBuildingName=第二教学楼  HTTP 200 len=10702 totalCount=295  first=主校/第一教学楼/5楼2机房/106 , 主校/第一教学楼/5楼4机房/56 , 主校/第一教学楼/5楼5机房/72
+A4 xqName/xqm=主校  HTTP 200 len=10702 totalCount=295  first=主校/第一教学楼/5楼2机房/106 , 主校/第一教学楼/5楼4机房/56 , 主校/第一教学楼/5楼5机房/72
+A5 campusName=主校  HTTP 200 len=10702 totalCount=295  first=主校/第一教学楼/5楼2机房/106 , 主校/第一教学楼/5楼4机房/56 , 主校/第一教学楼/5楼5机房/72
+A6 pageSize=400（能否一次拿全 295 间）  HTTP 200 len=105955 totalCount=295  first=主校/第一教学楼/5楼2机房/106 , 主校/第一教学楼/5楼4机房/56 , 主校/第一教学楼/5楼5机房/72
+
+=== 点第一行的「课表信息查看」 ===
+  clicked = null
+  —— 点击后新增请求 ——
+
+=== 弹层文本 ===
+  ---
+   × 调课后的周次 开始周次: 结束周次: 选择周次模式: 全周 单周 双周 保存 关闭 

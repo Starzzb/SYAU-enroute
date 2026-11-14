@@ -1,0 +1,48 @@
+== 指导性教学计划页 相关控件 ==
+  {"tag":"BUTTON","text":"保存","onclick":"","href":""}
+  {"tag":"UL","text":"学籍管理 学生学籍信息 个人信息修改 学籍异动 奖惩信息 电子注册 辅修方案注册","onclick":"stopHere();","href":""}
+  {"tag":"LI","text":"学生证明打印","onclick":"toSelect(this);","href":""}
+  {"tag":"A","text":"学生证明打印","onclick":"","href":"/student/studentCertificatePrinting/index"}
+  {"tag":"A","text":"交流生成绩认定","onclick":"","href":"#"}
+  {"tag":"UL","text":"成绩查询 全部及格成绩 课程属性成绩 方案成绩 不及格成绩 本学期成绩 成绩查询","onclick":"stopHere();","href":""}
+  {"tag":"A","text":"培养方案完成情况","onclick":"","href":"#"}
+  {"tag":"LI","text":"指导性教学计划","onclick":"toSelect(this);","href":""}
+  {"tag":"A","text":"指导性教学计划","onclick":"","href":"/student/integratedQuery/instructionPlanQuery/detail/index"}
+== HTML 里的导出/打印路径 ==
+  /student/studentCertificatePrinting/index
+
+== 学生证明打印页文本（前 900 字）==
+URP高校教学管理与服务平台
+ 2026-2027 秋 第12周 星期五
+ 菜单推荐
+ 
+欢迎您，
+张三 
+ 个人管理
+ 选课管理
+ 教学评估
+ 教学资源
+ 综合查询
+ 考务管理
+ 实习管理
+ 首页
+ 生成条件
+证明类型	
+1.中文成绩单
+2.英文成绩单
+3.主修中文成绩单
+4.主修英文成绩单
+6.辅导员成绩单
+辅修中文成绩单
+中文成绩单（无公章）
+在读证明_中文
+在读证明_英文
+ 查看
+ 证明
+== 证明打印页里的路径 ==
+  /student/studentCertificatePrinting/index
+  /student/studentCertificatePrinting/index/checkedYjbyrq
+
+== 两个页面期间命中的 export/print/download 请求 ==
+  GET chrome-extension://memhacajcfhmibggbgilihlmiiddeggo/assets/_plugin-vue_export-helper-cc2b3d55.js
+  GET /student/studentCertificatePrinting/index

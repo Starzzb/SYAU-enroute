@@ -1,0 +1,487 @@
+[
+  {
+    "label": "学籍信息",
+    "path": "/student/rollManagement/rollInfo/index",
+    "title": "学籍信息",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 与我相关的信息\n \n2024级土地资源管理培\n养方案\n主修方案\n 基本信息\n身高\t\n体重\t\n电子邮件\t\nQQ号\t\n个人简介\t\n个人主页\t\n手机\t\n宿舍电话\t\n邮编\t\n血型\t\n宿舍地址\t\n家长信息\t\n备注\t17739538251\n备注1\t\n备注2\t\n备注3\t\n 学籍信息\n修改信息\n学号\t2024000000\t姓名\t某某同学\n姓名拼音\t\t英文姓名\t\n证件号码\t******\t年级\t2024级\n院系\t土环\t专业\t土地资源管理\n专业方向\t\t班级\t24土管1\n校区\t\t辅修专业\t\n第二学位专业\t\t是否有学籍\t是\n是否有国家学籍\t是\t学生类别\t\n学籍状态\t在学\t学科门类\t\n特殊学生类型\t普通类\t收费类别\t\n分流方向\t\t培养方式\t\n入学日期\t20240901\t因材施教\t\n培养层次\t本科\t是否离校\t\n是否应届毕业\t\t入学年级\t2024级\n学制类型\t本科\t学生类型\t理工\n是否留学生\t\t\t\n 招生信息\n性别\t男"
+  },
+  {
+    "label": "我的学籍卡片",
+    "path": "/student/rollManagement/myRollCard/index",
+    "title": "我的学籍卡片",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 学籍卡\n 完善我的信息"
+  },
+  {
+    "label": "电子注册",
+    "path": "/student/rollManagement/electronicRegistration/index",
+    "title": "电子注册",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 注册信息\n学年学期\t\n2026-2027学年秋\n2025-2026学年春\n2025-2026学年秋\n2024-2025学年春\n2024-2025学年秋\n2023-2024学年春\n2023-2024学年秋\n2022-2023学年春\n2022-2023学年秋\n2021-2022学年春\n2021-2022学年秋\n2020-2021学年春\n2020-2021学年秋\n2019-2020学年秋\n\n学号\t2024000000\n姓名\t某某同学\n性别\t男\n院系\t土地与环境学院\n专业\t土地资源管理\n班级\t24土管1\n注册人\t\n注册日期\t\n是否报到\t否\n是否注册\t否"
+  },
+  {
+    "label": "奖惩信息",
+    "path": "/student/rollManagement/rewardsAndPenalties/index",
+    "title": "奖惩信息",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 奖惩信息\n\n暂时木有内容呀~~"
+  },
+  {
+    "label": "学籍异动",
+    "path": "/student/rollManagement/rollChanges/index",
+    "title": "学籍异动信息",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 学籍异动信息\n\n暂时木有内容呀~~"
+  },
+  {
+    "label": "本学期课表",
+    "path": "/student/courseSelect/thisSemesterCurriculum/index",
+    "title": "本学期课程表",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/internship/sxbggl/findSxkb?xnxq=&flag=&_=1794573835454",
+        "status": 200,
+        "len": 333,
+        "sample": "[{\"kcm\":\"不动产估价教学实习\",\"id\":\"548140818A993280E065000000000001\",\"kch\":\"911040303\",\"xnxq\":\"2026-2027-1-1\",\"kxh\":\"01\",\"sxap\":\"2026-12-07至2026-12-11【未安排基地】董秀茹(1995500023)\"},{\"kcm\":\"土地资源类课程综合实习\",\"id\":\"5482832A5F487C2FE065000000000001\",\"kch\":\"911041604\",\"xnxq\":\"2026-20"
+      },
+      {
+        "url": "/student/courseSelect/thisSemesterCurriculum/index/queryExperiment",
+        "status": 200,
+        "len": 3100,
+        "sample": "{\"status\":200,\"msg\":\"OK\",\"data\":[[\"901041606\",\"01\",\"土地信息管理\",\"地图制图\",\"4\",\"1\",\"土地资源管理实验室(主校>>土壤楼>>土壤楼土地资源管理实验室401)\",\"第2周\",\"星期四\",\"18:30~19:15\",\"苏里*\",\"2023121805446\",\"2026-2027-1-1\",\"2024000000\",\"010000000000000000000000\",\"4\"],[\"901041606\",\"01\",\"土地信息管理\",\"地图制图\",\"4\","
+      },
+      {
+        "url": "/ajax/student/getSectionAndTime",
+        "status": 200,
+        "len": 3171,
+        "sample": "{\"status\":200,\"msg\":\"OK\",\"data\":{\"firstday\":1,\"sectionTime\":\"[{\\\"endTime\\\":\\\"0845\\\",\\\"englishSessionName\\\":\\\"\\\",\\\"id\\\":{\\\"semesterCode\\\":\\\"1\\\",\\\"semesterTypeCode\\\":\\\"1\\\",\\\"session\\\":1,\\\"sessionTypeCode\\\":\\\"01\\\"},\\\"sessionName\\\":\\\"一\\\",\\\"startTime\\\":\\\"0800\\\",\\\"t"
+      },
+      {
+        "url": "/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback",
+        "status": 200,
+        "len": 22157,
+        "sample": "{\"rwbgLists\":[],\"allUnits\":12.25,\"xkxx\":[{\"902021102_01\":{\"attendClassTeacher\":\"李洋* \",\"courseCategoryCode\":\"7\",\"courseCategoryName\":\"通识选修课\",\"courseName\":\"社会主义发展史\",\"coursePropertiesCode\":\"003\",\"coursePropertiesName\":\"选修课\",\"dgFlag\":\"（无）\",\"englishCourseName\":\"His"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 选课管理（已安排的理论课）注：未安排具体时间的课程请在下方“全部理论课安排”中查看\n打印课表  导出课表\n节次/时间\t星期一\t星期二\t星期三\t星期四\t星期五\t星期六\t星期日\n上\n午\t第一节(08:00-08:45)\t\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 蒋卓东\n\n1,3 周\n\n1-2节\n\n主校第二教学楼610\n\n\t\t\n\n国土空间规划_01\n\n吴佳倩*\n\n1,3,5周上\n\n1-2节\n\n主校第二教学楼406\n\n\t\t\t\t\n第一节(08:55-09:40)\t\t\t\t\t\t\t\n第二节(10:00-10:45)\t\t\n\n不动产估价_01\n\n董秀茹*\n\n1-3,5,8-15周上\n\n3-4节\n\n主校第二教学楼606\n\n\t\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 蒋卓东\n\n1-3,5,8-15,17-18 周\n\n3-4节\n\n主校第二教学楼610\n\n\t\n\n不动产估价_01\n\n董秀茹*\n\n1-3,"
+  },
+  {
+    "label": "本学期周课表",
+    "path": "/student/personalSenate/giveLessonInfo/thisSemesterSchedule/weekLySchedule",
+    "title": "本学期课程表",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/ajax/student/getSectionAndTime",
+        "status": 200,
+        "len": 3171,
+        "sample": "{\"status\":200,\"msg\":\"OK\",\"data\":{\"firstday\":1,\"sectionTime\":\"[{\\\"endTime\\\":\\\"0845\\\",\\\"englishSessionName\\\":\\\"\\\",\\\"id\\\":{\\\"semesterCode\\\":\\\"1\\\",\\\"semesterTypeCode\\\":\\\"1\\\",\\\"session\\\":1,\\\"sessionTypeCode\\\":\\\"01\\\"},\\\"sessionName\\\":\\\"一\\\",\\\"startTime\\\":\\\"0800\\\",\\\"t"
+      },
+      {
+        "url": "/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/weekLySchedule/callback/12",
+        "status": 200,
+        "len": 16008,
+        "sample": "{\"allUnits\":12.25,\"xkxx\":[{\"902021102_01\":{\"attendClassTeacher\":\"李洋* \",\"courseCategoryCode\":\"7\",\"courseCategoryName\":\"通识选修课\",\"courseName\":\"社会主义发展史\",\"coursePropertiesCode\":\"003\",\"coursePropertiesName\":\"选修课\",\"dgFlag\":\"（无）\",\"englishCourseName\":\"History of the Dev"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 选课管理（已安排的课程）注：未安排具体时间的课程请在下方“全部课程清单”中查看\n按周次查询 打印课表  导出课表\n查询周次\t\n0\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n节次/时间\t星期一\t星期二\t星期三\t星期四\t星期五\t星期六\t星期日\n上\n午\t第一节(08:00-08:45)\t\t\t\t\t\t\t\n第一节(08:55-09:40)\t\t\t\t\t\t\t\n第二节(10:00-10:45)\t\t\n\n不动产估价_01\n\n董秀茹*\n\n1-3,5,8-15周上\n\n3-4节\n\n主校第二教学楼606\n\n\t\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 蒋卓东\n\n5,8-15,17-18周\n\n3-4节\n\n主校第二教学楼610\n\n\t\n\n不动产估价_01\n\n董秀茹*\n\n1-3,5,8-15周上\n\n3-4节\n\n主校第二教学楼606\n\n\t\t"
+  },
+  {
+    "label": "历年学期课表",
+    "path": "/student/courseSelect/calendarSemesterCurriculum/index",
+    "title": "历年学期课表",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/ajax/student/getSectionAndTime",
+        "status": 200,
+        "len": 3171,
+        "sample": "{\"status\":200,\"msg\":\"OK\",\"data\":{\"firstday\":1,\"sectionTime\":\"[{\\\"endTime\\\":\\\"0845\\\",\\\"englishSessionName\\\":\\\"\\\",\\\"id\\\":{\\\"semesterCode\\\":\\\"1\\\",\\\"semesterTypeCode\\\":\\\"1\\\",\\\"session\\\":1,\\\"sessionTypeCode\\\":\\\"01\\\"},\\\"sessionName\\\":\\\"一\\\",\\\"startTime\\\":\\\"0800\\\",\\\"t"
+      },
+      {
+        "url": "/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback",
+        "status": 200,
+        "len": 22157,
+        "sample": "{\"rwbgLists\":[],\"allUnits\":12.25,\"xkxx\":[{\"902021102_01\":{\"attendClassTeacher\":\"李洋* \",\"courseCategoryCode\":\"7\",\"courseCategoryName\":\"通识选修课\",\"courseName\":\"社会主义发展史\",\"coursePropertiesCode\":\"003\",\"coursePropertiesName\":\"选修课\",\"dgFlag\":\"（无）\",\"englishCourseName\":\"His"
+      },
+      {
+        "url": "/student/internship/sxbggl/findSxkb?xnxq=2026-2027-1-1&flag=&_=1794573841116",
+        "status": 200,
+        "len": 333,
+        "sample": "[{\"kcm\":\"不动产估价教学实习\",\"id\":\"548140818A993280E065000000000001\",\"kch\":\"911040303\",\"xnxq\":\"2026-2027-1-1\",\"kxh\":\"01\",\"sxap\":\"2026-12-07至2026-12-11【未安排基地】董秀茹(1995500023)\"},{\"kcm\":\"土地资源类课程综合实习\",\"id\":\"5482832A5F487C2FE065000000000001\",\"kch\":\"911041604\",\"xnxq\":\"2026-20"
+      },
+      {
+        "url": "/student/courseSelect/thisSemesterCurriculum/index/queryExperiment",
+        "status": 200,
+        "len": 3100,
+        "sample": "{\"status\":200,\"msg\":\"OK\",\"data\":[[\"901041606\",\"01\",\"土地信息管理\",\"地图制图\",\"4\",\"1\",\"土地资源管理实验室(主校>>土壤楼>>土壤楼土地资源管理实验室401)\",\"第2周\",\"星期四\",\"18:30~19:15\",\"苏里*\",\"2023121805446\",\"2026-2027-1-1\",\"2024000000\",\"010000000000000000000000\",\"4\"],[\"901041606\",\"01\",\"土地信息管理\",\"地图制图\",\"4\","
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n2026-2027学年秋(当前)\n2025-2026学年春\n2025-2026学年秋\n2024-2025学年春\n2024-2025学年秋\n 课程信息\n节次/时间\t星期一\t星期二\t星期三\t星期四\t星期五\t星期六\t星期日\n上\n午\t第一节(08:00-08:45)\t\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 蒋卓东\n\n1,3 周\n\n1-2节\n\n主校第二教学楼610\n\n\t\t\n\n国土空间规划_01\n\n吴佳倩*\n\n1,3,5周上\n\n1-2节\n\n主校第二教学楼406\n\n\t\t\t\t\n第一节(08:55-09:40)\t\t\t\t\t\t\t\n第二节(10:00-10:45)\t\t\n\n不动产估价_01\n\n董秀茹*\n\n1-3,5,8-15周上\n\n3-4节\n\n主校第二教学楼606\n\n\t\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 蒋卓东\n\n1-3,5,8-15,17-18 周\n\n3-4节\n\n主校第二教学楼610\n\n\t\n"
+  },
+  {
+    "label": "选课公告",
+    "path": "/student/courseSelect/courseSelectNotice/index",
+    "title": "选课公告",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/main/queryYcbxkc",
+        "status": 200,
+        "len": 8,
+        "sample": "{\"kg\":0}"
+      }
+    ],
+    "text": "⏰选课公告 去选课 去退课 去看选课结果\n关闭\n●\t\n关于做好2026-2027学年秋季学期本科生选课工作的通知\n\t2026-07-06"
+  },
+  {
+    "label": "选课结果",
+    "path": "/student/courseSelect/courseSelectResult/index",
+    "title": "选课结果",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/ajax/student/getSectionAndTime",
+        "status": 200,
+        "len": 3171,
+        "sample": "{\"status\":200,\"msg\":\"OK\",\"data\":{\"firstday\":1,\"sectionTime\":\"[{\\\"endTime\\\":\\\"0845\\\",\\\"englishSessionName\\\":\\\"\\\",\\\"id\\\":{\\\"semesterCode\\\":\\\"1\\\",\\\"semesterTypeCode\\\":\\\"1\\\",\\\"session\\\":1,\\\"sessionTypeCode\\\":\\\"01\\\"},\\\"sessionName\\\":\\\"一\\\",\\\"startTime\\\":\\\"0800\\\",\\\"t"
+      },
+      {
+        "url": "/student/courseSelect/thisSemesterCurriculum/callback",
+        "status": 200,
+        "len": 25456,
+        "sample": "{\"allUnits\":12.25,\"xkxx\":[{\"901040302_01\":{\"attendClassTeacher\":\"董秀茹* \",\"courseCategoryCode\":\"1\",\"courseCategoryName\":\"必修课\",\"courseName\":\"不动产估价\",\"coursePropertiesCode\":\"001\",\"coursePropertiesName\":\"必修课\",\"courseSelectionTime\":\"20260702192936\",\"cxfsdm\":\"\",\"dgFla"
+      },
+      {
+        "url": "/student/internship/sxbggl/findSxkb?xnxq=&flag=xkjgck&_=1794573845888",
+        "status": 200,
+        "len": 333,
+        "sample": "[{\"kcm\":\"不动产估价教学实习\",\"id\":\"548140818A993280E065000000000001\",\"kch\":\"911040303\",\"xnxq\":\"2026-2027-1-1\",\"kxh\":\"01\",\"sxap\":\"2026-12-07至2026-12-11【未安排基地】董秀茹(1995500023)\"},{\"kcm\":\"土地资源类课程综合实习\",\"id\":\"5482832A5F487C2FE065000000000001\",\"kch\":\"911041604\",\"xnxq\":\"2026-20"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 选课管理（2026-2027学年秋已安排的课程）当前有1门课程未显示，请点这里查看\n『初修“按项目合成总成绩”课程』漏选检查打印课表导出课表\n节次/时间\t星期一\t星期二\t星期三\t星期四\t星期五\t星期六\t星期日\n上\n午\t第一节(08:00-08:45)\t\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 蒋卓东\n\n第1周\n\n1-2节\n\n主校第二教学楼610\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 蒋卓东\n\n第3周\n\n1-2节\n\n主校第二教学楼610\n\n\t\t\n\n国土空间规划_01\n\n吴佳倩*\n\n1,3,5周上\n\n1-2节\n\n主校第二教学楼406\n\n\t\t\t\t\n第一节(08:55-09:40)\t\t\t\t\t\t\t\n第二节(10:00-10:45)\t\t\n\n不动产估价_01\n\n董秀茹*\n\n1-3,5,8-15周上\n\n3-4节\n\n主校第二教学楼606\n\n\t\n\n地球表层系统概论_01\n\n孙仲秀* 黄文韬 "
+  },
+  {
+    "label": "选课失败信息",
+    "path": "/student/courseSelect/courseSelectFailed/index",
+    "title": "提示",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页 一级菜单 二级菜单 三级菜单\n✕\n 对不起，当前选课阶段已过截止时间！"
+  },
+  {
+    "label": "计费学分确认",
+    "path": "/student/courseSelect/creditCheck/index",
+    "title": "计费学分明细",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n暂未找到需要确认的数据。"
+  },
+  {
+    "label": "空闲教室查询",
+    "path": "/student/teachingResources/freeClassroom/index",
+    "title": "空闲教室查询",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n海城基地\n全部教学楼实训中心楼\n熊岳校区\n全部教学楼\n主校\n全部教学楼第一教学楼农机化楼能源基地经管楼动物医院林学楼牧医学科楼园艺学科楼工程楼体育课上课地点实践地点第二教学楼理学楼水利学科楼植保学科楼生物学科楼农学学科楼信电学科楼图书馆世纪会堂线上教室校医院线上考场综合楼水利馆土壤楼农机楼种质资源中心凡舟体育场分析测试中心食品创新实践基地团委游泳池\n路南\n全部教学楼路南教学楼实践上课地点\n研究生部\n全部教学楼"
+  },
+  {
+    "label": "教室使用状况",
+    "path": "/student/teachingResources/classroomUseStatus/index",
+    "title": "教室使用状况查询",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 教学楼信息\n序号\t校区\t教学楼\t查看\n1\t主校\t第一教学楼\t 查看\n2\t农机化楼\t 查看\n3\t能源基地\t 查看\n4\t经管楼\t 查看\n5\t动物医院\t 查看\n6\t林学楼\t 查看\n7\t牧医学科楼\t 查看\n8\t园艺学科楼\t 查看\n9\t工程楼\t 查看\n10\t体育课上课地点\t 查看\n11\t实践地点\t 查看\n12\t第二教学楼\t 查看\n13\t理学楼\t 查看\n14\t水利学科楼\t 查看\n15\t植保学科楼\t 查看\n16\t生物学科楼\t 查看\n17\t农学学科楼\t 查看\n18\t信电学科楼\t 查看\n19\t图书馆\t 查看\n20\t世纪会堂\t 查看\n21\t线上教室\t 查看\n22\t校医院\t 查看\n23\t线上考场\t 查看\n24\t综合楼\t 查看\n25\t水利馆\t 查看\n26\t土壤楼\t 查看\n27\t农机楼\t 查看\n28\t种质资源中心\t 查看\n29\t凡舟体育场\t 查看\n30\t分析测试中心\t 查看\n31\t食品创新实践基地\t 查看\n32"
+  },
+  {
+    "label": "教室课表",
+    "path": "/student/teachingResources/classroomCurriculum/index",
+    "title": "教室课表",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/teachingResources/classroomCurriculum/search",
+        "status": 200,
+        "len": 10702,
+        "sample": "[{\"xqzs\":\"21\",\"pageData\":{\"pageContext\":{\"totalCount\":295},\"pageNum\":1,\"pageSize\":30,\"records\":[{\"campusName\":\"主校\",\"classNumberOfSeats\":106.0,\"classroomName\":\"5楼2机房\",\"classroomTypeDirections\":\"机房\",\"departmentName\":\"信电\",\"executiveEducationPlanName\":\"2026-2027学年"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n查询条件\n 查询\n学年学期\t\n2026-2027学年秋\n\t校区\t\n全部\n海城基地\n熊岳校区\n主校\n路南\n研究生部\n\t教学楼\t\n全部\n\t教室名称\t\n全部\n 列表\n序号\t课表信息查看\t教室信息查看\t校区名\t教学楼名\t教室号\t教室名\t上课座位数\t所属院系\t教室类型\n1\t 查看\t 查看\t主校\t第一教学楼\t2机房\t5楼2机房\t106\t信电\t机房\n2\t 查看\t 查看\t主校\t第一教学楼\t4机房\t5楼4机房\t56\t信电\t机房\n3\t 查看\t 查看\t主校\t第一教学楼\t5机房\t5楼5机房\t72\t信电\t机房\n4\t 查看\t 查看\t主校\t第一教学楼\t北101\t北101\t108\t全院\t多媒体教室\n5\t 查看\t 查看\t主校\t第一教学楼\t北102\t北102\t108\t全院\t多媒体教室\n6\t 查看\t 查看\t主校\t第一教学楼\t北103\t北103\t108\t全院\t多媒体教室\n7\t 查看\t 查看\t主校\t第一教学楼\t北104\t北104"
+  },
+  {
+    "label": "教师课表",
+    "path": "/student/teachingResources/teacherCurriculum/index",
+    "title": "教师课表",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/teachingResources/teacherCurriculum/search",
+        "status": 200,
+        "len": 7699,
+        "sample": "[{\"pageContext\":{\"totalCount\":1008},\"pageNum\":1,\"pageSize\":30,\"records\":[{\"departmentName\":\"农学\",\"departmentNum\":\"101\",\"executiveEducationPlanName\":\"2026-2027学年秋\",\"id\":{\"executiveEducationPlanNumber\":\"2026-2027-1-1\",\"teacherNumber\":\"1979500003\"},\"professionalTi"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n查询条件\n 查询\n学年学期\t\n2026-2027学年秋\n\t院系\t\n全部\n\t教师名\t\n\t\n 列表\n序号\t查看\t教师名\t院系\t职称\n1\t 查看\t陈温福\t农学\t教授\n2\t 查看\t王承杰\t体育\t副教授\n3\t 查看\t吕杰\t经管\t教授\n4\t 查看\t马雯虹\t外语\t教授\n5\t 查看\t迟道才\t水利\t教授\n6\t 查看\t刘青柏\t林学\t副教授\n7\t 查看\t刘利民\t农学\t教授\n8\t 查看\t赵立艳\t马院\t副教授\n9\t 查看\t赵春燕\t食品\t副教授\n10\t 查看\t魏忠义\t土环\t教授\n11\t 查看\t李明浩\t体育\t教授\n12\t 查看\t刘江\t农学\t副教授\n13\t 查看\t郭维东\t水利\t教授\n14\t 查看\t许童羽\t信电\t教授\n15\t 查看\t吕文彦\t农学\t教授\n16\t 查看\t陈丽君\t工程\t副教授\n17\t 查看\t呼应\t经管\t副教授\n18\t 查看\t罗新兰\t农学\t副教授\n19\t 查看\t白义奎\t水利\t教授\n20\t 查看\t金兰淑\t土环\t副教"
+  },
+  {
+    "label": "班级课表",
+    "path": "/student/teachingResources/classCurriculum/index",
+    "title": "班级课表",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/teachingResources/classCurriculum/search",
+        "status": 200,
+        "len": 9126,
+        "sample": "[{\"pageContext\":{\"totalCount\":479},\"pageNum\":1,\"pageSize\":30,\"records\":[{\"admissionDate\":\"\",\"admissionGrade\":\"2025\",\"className\":\"25农学1\",\"departmentName\":\"农学院\",\"departmentNum\":\"101\",\"executiveEducationPlanName\":\"2026-2027学年秋\",\"id\":{\"classNum\":\"2025010101\",\"exec"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n查询条件\n 查询\n学年学期\t\n2026-2027学年秋\n\t年级\t\n全部\n\t院系\t\n全部\n\t专业\t\n全部\n\n班级\t\n全部\n\t\t\t\t\t\t\n 列表\n序号\t查看\t班级号\t班级名\t院系\t专业\n1\t查看\t2025010101\t25农学1\t农学院\t农学\n2\t查看\t2025010102\t25农学2\t农学院\t农学\n3\t查看\t2025010103\t25农学3\t农学院\t农学\n4\t查看\t2025010104\t25农学4\t农学院\t农学\n5\t查看\t2025010105\t25农学5\t农学院\t农学\n6\t查看\t2025010301\t25生态\t农学院\t生态学\n7\t查看\t2025010401\t25气象1\t农学院\t应用气象学\n8\t查看\t2025010402\t25气象2\t农学院\t应用气象学\n9\t查看\t2025010501\t25大气1\t农学院\t大气科学\n10\t查看\t2025010502\t25大气2\t农学院\t大气科学\n11\t查看\t2"
+  },
+  {
+    "label": "课程课表",
+    "path": "/student/teachingResources/courseCurriculum/index",
+    "title": "课程课表",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/teachingResources/courseCurriculum/search",
+        "status": 200,
+        "len": 7683,
+        "sample": "{\"pageSize\":30,\"pageNum\":1,\"pageContext\":{\"totalCount\":2177},\"records\":[{\"ZXJXJHH\":\"2026-2027-1-1\",\"ZXJXJHM\":\"2026-2027学年秋\",\"KCH\":\"901010207\",\"KXH\":\"01\",\"KCM\":\"农业生态学（Ⅱ）\",\"KKXSH\":\"101\",\"KKXSM\":\"农学院\",\"XF\":2,\"KSLXDM\":\"01\",\"KSLXMC\":\"常规考试（开卷）\",\"KCLBDM\":\"2\",\"KCLBMC\""
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n查询条件\n 查询\n学年学期\t\n2026-2027学年秋\n\t开课院系\t\n全部\n\t课程名\t\t课程号\t\n课序号\t\t课程类别\t\n全部\n国家统一课\n其他\n通识选修课\n专业方向限修课\n必修课\n限修课\n选修课\n校公选课\n\t\t\t\t\n 列表\n序号\t查看\t课程号\t课程名\t课序号\t学分\t课程类别\t考试类型\t院系\t教师\n1\t 查看\t901010207\t农业生态学（Ⅱ）\t01\t2\t限修课\t常规考试（开卷）\t农学院\t朱先进*\n2\t 查看\t901010232\t生态监测与评价\t01\t2\t专业方向限修课\t常规考试（开卷）\t农学院\t燕雪飞,燕雪飞*\n3\t 查看\t901010303\t试验设计与统计分析（农学）\t01\t3.5\t必修课\t常规考试（开卷）\t农学院\t钟超,钟超*\n4\t 查看\t901010303\t试验设计与统计分析（农学）\t02\t3.5\t必修课\t常规考试（开卷）\t农学院\t关欣,关欣*\n5\t 查看\t901010303\t试"
+  },
+  {
+    "label": "成绩查询(全学期)",
+    "path": "/student/integratedQuery/scoreQuery/allTermScores/index",
+    "title": "历年成绩",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/integratedQuery/scoreQuery/k9EB2L1DuM/allTermScores/data",
+        "status": 200,
+        "len": 5312,
+        "sample": "{\"list\":{\"pageSize\":300,\"pageNum\":1,\"pageContext\":{\"totalCount\":16},\"records\":[{\"ZXJXJHH\":\"2025-2026-2-1\",\"ZXJXJHM\":\"2025-2026学年春\",\"KCH\":\"901040337\",\"KXH\":\"01\",\"KSSJ\":\"20260701\",\"LRZTDM\":\"05\",\"KCSXDM\":\"002\",\"KSLXDM\":\"\",\"CJLRFSDM\":\"001\",\"KCCJ\":\"90\",\"DJCJ\":\"-95\""
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 查询条件\n 查询\n学年学期\t\n2025-2026学年春\n\t成绩类型\t\n替代前成绩\n替代后成绩\n\t课程号\t\t课程名\t\n 成绩列表\n序号\t课程号\t课序号\t课程名\t英文课程名\t学分\t学时\t课程属性\t考试类型\t成绩\t未通过原因\n1\t901040337\t01\t应用遥感技术\tApplication of Remote Sensing Technology\t2\t32\t限修课\t\t90\t\n2\t901040368\t01\t土地整治学\tLand Consolidation\t3\t48\t必修课\t\t85\t\n3\t901041709\t01\t土壤地理学（Ⅱ）\tPedogeography (Ⅱ)\t3\t48\t必修课\t\t75\t\n4\t901090542\t04\t计量经济学\tEconometrics\t2.5\t40\t限修课\t\t83\t\n5\t901091501\t01\t管理学\tManagement\t2.5\t40\t必修课\t\t75\t\n6\t901"
+  },
+  {
+    "label": "本学期成绩",
+    "path": "/student/integratedQuery/scoreQuery/thisTermScores/index",
+    "title": "本学期成绩",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/integratedQuery/scoreQuery/D8E10648k0/thisTermScores/data",
+        "status": 200,
+        "len": 25,
+        "sample": "[{\"state\":\"1\",\"list\":[]}]"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n没有信息"
+  },
+  {
+    "label": "不及格成绩",
+    "path": "/student/integratedQuery/scoreQuery/unpassedScores/index",
+    "title": "不及格成绩",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/integratedQuery/scoreQuery/t61I35Md1f/unpassedScores/callback",
+        "status": 200,
+        "len": 648,
+        "sample": "{\"lnList\":[{\"cjList\":[],\"xqwtg\":0.0,\"xqzms\":0.0,\"xqtgms\":0.0,\"xqzxs\":0.0,\"xqzxf\":0.0,\"zxf\":0.0,\"zxs\":0.0,\"yqzxf\":0.0,\"yqxf\":0.0,\"yxxf\":0.0,\"tgms\":0,\"wtgms\":0,\"zms\":0,\"cjlx\":\"\",\"cjbh\":null,\"fajhwkcms\":0,\"kznzms\":0,\"fajhnkcms\":0,\"kzxdms\":0,\"kzwtgms\":0,\"kztgms\":0"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n没有信息"
+  },
+  {
+    "label": "全部及格成绩",
+    "path": "/student/integratedQuery/scoreQuery/allPassingScores/index",
+    "title": "全部及格成绩",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/integratedQuery/scoreQuery/8yol2Qq034/allPassingScores/callback",
+        "status": 200,
+        "len": 63986,
+        "sample": "{\"lnList\":[{\"cjList\":[{\"id\":{\"executiveEducationPlanNumber\":\"2024-2025-1-1\",\"courseNumber\":\"901040351\",\"startTime\":\"20250101\",\"studentId\":\"2024000000\",\"coureSequenceNumber\":\"01\",\"kch_zj\":\"901040351\",\"courseScore\":81.0},\"classNo\":\"24土管1\",\"entryStatusCode\":\"05\","
+      },
+      {
+        "url": "/student/integratedQuery/scoreQuery/coursePropertyScores/useScoreExtension",
+        "status": 200,
+        "len": 35,
+        "sample": "{\"schoolName\":\"100036\",\"param\":\"0\"}"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n2025-2026学年春\n2025-2026学年秋\n2024-2025学年春\n2024-2025学年秋\n 2025-2026学年春(两学期) 已修16门，28.95学分 通过16门\n序号\t课程号\t课序号\t课程名\t课程属性\t学分\t成绩\t英文课程名\n1\t901040368\t01\t土地整治学\t必修课\t3\t85\tLand Consolidation\n2\t901041709\t01\t土壤地理学（Ⅱ）\t必修课\t3\t75\tPedogeography (Ⅱ)\n3\t901091501\t01\t管理学\t必修课\t2.5\t75\tManagement\n4\t901111521\t03\t测量学\t必修课\t2.5\t83\tSurveying\n5\t902021108\t06\t毛泽东思想和中国特色社会主义理论体系概论\t必修课\t3\t80\tIntroduction to Mao Zedong Thought and the Sociali"
+  },
+  {
+    "label": "课程属性成绩",
+    "path": "/student/integratedQuery/scoreQuery/coursePropertyScores/index",
+    "title": "课程属性成绩",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/integratedQuery/scoreQuery/2810xLAd5v/coursePropertyScores/callback",
+        "status": 200,
+        "len": 63452,
+        "sample": "{\"lnList\":[{\"cjList\":[{\"id\":{\"executiveEducationPlanNumber\":\"2025-2026-1-1\",\"courseNumber\":\"901040318\",\"startTime\":\"20260101\",\"studentId\":\"2024000000\",\"coureSequenceNumber\":\"01\",\"kch_zj\":\"901040318\",\"courseScore\":78.0},\"classNo\":\"24土管1\",\"entryStatusCode\":\"05\","
+      },
+      {
+        "url": "/student/integratedQuery/scoreQuery/coursePropertyScores/useScoreExtension",
+        "status": 200,
+        "len": 35,
+        "sample": "{\"schoolName\":\"100036\",\"param\":\"0\"}"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n必修课\n限修课\n选修课\n 必修课 已修43门，88.5学分 通过43门\n序号\t课程号\t课程名\t课程属性\t学分\t成绩\t未通过原因\t课序号\t英文课程名\n1\t901040318\t土地经济学\t必修课\t3\t78.0\t\t01\tLand Economicis\n2\t901040329\t土地资源学\t必修课\t3\t84.0\t\t01\tLand Resources\n3\t901040351\t地理信息科学\t必修课\t3\t81.0\t\t01\tGeographic Information Science\n4\t901040368\t土地整治学\t必修课\t3\t85.0\t\t01\tLand Consolidation\n5\t901040433\t地质学基础（Ⅱ）\t必修课\t2\t80.0\t\t02\tBasic Geology（Ⅱ）\n6\t901041709\t土壤地理学（Ⅱ）\t必修课\t3\t75.0\t\t01\tPedogeography (Ⅱ)\n7\t90"
+  },
+  {
+    "label": "方案成绩",
+    "path": "/student/integratedQuery/scoreQuery/schemeScores/index",
+    "title": "方案成绩",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/integratedQuery/scoreQuery/6zY8C97O06/schemeScores/callback",
+        "status": 200,
+        "len": 62837,
+        "sample": "{\"lnList\":[{\"cjList\":[{\"id\":{\"executiveEducationPlanNumber\":\"2025-2026-1-1\",\"courseNumber\":\"901041603\",\"startTime\":\"20260101\",\"studentId\":\"2024000000\",\"coureSequenceNumber\":\"01\",\"kch_zj\":\"901041603\",\"courseScore\":63.0},\"classNo\":\"24土管1\",\"entryStatusCode\":\"05\","
+      },
+      {
+        "url": "/student/integratedQuery/scoreQuery/coursePropertyScores/useScoreExtension",
+        "status": 200,
+        "len": 35,
+        "sample": "{\"schoolName\":\"100036\",\"param\":\"0\"}"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n2024级土地资源管理培养方案\n 2024级土地资源管理培养方案 已修55门，106学分 通过55门，获得106学分 不通过0门\n序号\t课程号\t课程名\t课程属性\t学分\t成绩\t未通过原因\t课序号\t英文课程名\n1\t901041603\tGIS空间数据分析与应用\t限修课\t1\t63\t\t01\tGIS Data Analysis and Application\n2\t902021111\t马克思主义基本原理\t必修课\t3\t79\t\t21\tThe Fundamental Tenets of Marxism\n3\t901040318\t土地经济学\t必修课\t3\t78\t\t01\tLand Economicis\n4\t901090103\t公共管理学\t限修课\t2\t77\t\t01\tPublic Administration\n5\t901040433\t地质学基础（Ⅱ）\t必修课\t2\t80\t\t02\tBasic Geology（Ⅱ）\n6\t90"
+  },
+  {
+    "label": "方案完成情况",
+    "path": "/student/integratedQuery/planCompletion/index",
+    "title": "方案完成情况",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n培养方案总体完成情况\n培养方案课程修读情况\n指导教学计划完成情况\n2024级土地资源管理培养方案\n \n55\n方案内修读课程门数\n  \n0\n方案外修读课程门数\n 100%\n \n及格率\n及格55门,未及格0门\n19.4%\n \n未完成课组最\n低进度百分比\n  \n6\n完成修读课组个数\n  \n10\n未完成修读课组个数"
+  },
+  {
+    "label": "指导性教学计划",
+    "path": "/student/integratedQuery/instructionPlanQuery/detail/index",
+    "title": "个人指导教学计划完成情况",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/integratedQuery/instructionPlanQuery/DqEUA03s55/detail/callback",
+        "status": 200,
+        "len": 64560,
+        "sample": "{\"famc\":\"2024级土地资源管理培养方案\",\"showMode\":\"enrolled\",\"wtgmc\":\"0\",\"xnxqList\":[{\"executiveEducationPlanNumber\":\"2026-2027-2-1\",\"executiveEducationPlanName\":\"2026-2027学年春\",\"yearCode\":\"2026-2027\",\"semesterCode\":\"2\",\"semesterTypeCode\":\"1\",\"semesterTypeName\":\"两学期\",\"semes"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n2024级土地资源管理培养方案完成情况\n \n165\n要求总学分\n  \n106\n已获得学分\n  \n55\n通过门次\n  \n0\n未通过门次\n2025-2026学年春\n2025-2026学年秋\n2024-2025学年春\n2024-2025学年秋\n 2025-2026学年春计划要求\n28.95\n修读学分\n  \n16\n修读门次\n  \n0\n未通过门次\n计划内课程成绩\n课程号\t课程名称\t课程属性\t课程成绩\t学分\t考试时间\n903050104\t社会实践Ⅳ\t必修课\t93\t0.2\t20260701\n902021204\t形势与政策Ⅳ\t必修课\t94\t0.25\t20260701\n902031104\t体育Ⅳ\t必修课\t94\t1\t20260701\n903081103\t创业基础Ⅰ\t必修课\t91\t1\t20260701\n901040337\t应用遥感技术\t限修课\t90\t2\t20260701\n903031309\t沟通的艺术\t选修课"
+  },
+  {
+    "label": "本学期课程安排",
+    "path": "/student/integratedQuery/course/courseSchdule/index",
+    "title": "本学期课程安排",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n查询条件\n 查询\n学年学期\t\n2026-2027学年秋\n\t开课院系\t\n全部\n\t校区\t\n全部\n\t教学楼\t\n全部\n\n教室\t\n全部\n\t上课星期\t\n全部\n星期一\n星期二\n星期三\n星期四\n星期五\n星期六\n星期日\n\t上课节次\t\n全部\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n\t课程号\t\n课程名\t\t课程类别\t\n全部\n国家统一课\n其他\n通识选修课\n专业方向限修课\n必修课\n限修课\n选修课\n校公选课\n\t教师名\t\t\t\n 列表\n序号\t开课院系\t课程号\t课程名\t课序号\t学分\t课程类别\t考试类型\t教师\t周次\t星期\t节次\t校区\t教学楼\t教室\t课容量\t学生数\t选课限制说明"
+  },
+  {
+    "label": "课程基本信息",
+    "path": "/student/integratedQuery/course/courseBasicInformation/basicInf",
+    "title": "课程基本信息",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n查询条件\n 查询\n开课院系\t\n全部\n\t课程类别\t\n全部\n\t课程号\t\t课程名\t\n 列表\n序号\t查看\t课程号\t课程名\t开课院系\t课程类别"
+  },
+  {
+    "label": "班级订书详单",
+    "path": "/student/integratedQuery/teachingMaterial/bookList/index",
+    "title": "班级订书详单查询",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n首页 上一页 下一页 尾页 (页号 1/1)\n 直接打印  预览PDF\n  \n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\n\t沈阳农业大学班级订书详单\n\t2026-2027学年秋\n\t24土管1\n\t\t第1页，共1页\n\t序号 \t学号\t姓名\t课程名称\t教材名称\t主编\t出版社\t版次\t估价\t折扣\t预订数\t总金额\t备注\n\t1\t202415\n6015\t李昊洋\t国土空间规\n划\t区域分析与区\n域规划（第3\n版）\t崔功豪\n等\t高等教育\n出版社\t1\t63\t1\t1\t63.00\t\n地球表层系\n统概论\t自然地理学\n（第四版）\t伍光和\t高等教育\n出版社\t4\t52.8\t1\t1\t52.80\t\n\t                      学号合计\t2\t115.8\t\n\t按班级合计\t2\t115.80"
+  },
+  {
+    "label": "考试安排",
+    "path": "/student/examinationManagement/examPlan/index",
+    "title": "考试安排",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/examinationManagement/examPlan/detail?start=2026-10-26&end=2026-12-07&_=1794573894763",
+        "status": 200,
+        "len": 521,
+        "sample": "[{\"title\":\"形势与政策Ⅴ\\n10:00-11:40\\n主校\\n线上考场\\n线上虚拟考场1\\n\",\"id\":\"0\",\"start\":\"2026-11-15 10:00\",\"end\":\"2026-11-15 11:40\",\"color\":\"#3a87ad\"},{\"title\":\"不动产估价\\n08:00-09:40\\n主校\\n第二教学楼\\n201\\n\",\"id\":\"1\",\"start\":\"2026-12-15 08:00\",\"end\":\"2026-12-15 09:40\",\"color\":\"#3a87ad\"}"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 考试时间轴\n选择显示风格:   \n时间轴模式\n日历模式\n2026-2027学年秋\n 20261115\n（902021205-13）形势与政策Ⅴ\n考试名称: 2026-2027秋期末考试\n考试时间:  12周  2026-11-15   星期日  10:00-11:40\n地点: 主校 线上考场 线上虚拟考场1\n座位号: 361\n准考证号: \n考试提示信息： 无\n 20261215\n（901040302-01）不动产估价\n考试名称: 2026-2027秋期末考试\n考试时间:  17周  2026-12-15   星期二  08:00-09:40\n地点: 主校 第二教学楼 201\n座位号: 29\n准考证号: \n考试提示信息： 无\n 20261228\n（901040377-01）国土空间规划\n考试名称: 2026-2027秋期末考试\n考试时间:  19周  2026-12-28   星期一  "
+  },
+  {
+    "label": "考试报名",
+    "path": "/student/examinationManagement/examSignUp/index",
+    "title": "考试报名",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 暂时没有考试信息，请确认时间!"
+  },
+  {
+    "label": "教学评估",
+    "path": "/student/teachingEvaluation/newEvaluation/index",
+    "title": "教学评估",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/teachingAssessment/evaluation/queryAll",
+        "status": 200,
+        "len": 6279,
+        "sample": "{\"status\":200,\"msg\":\"OK\",\"data\":{\"pageSize\":30,\"pageNum\":1,\"pageContext\":{\"totalCount\":18},\"records\":[{\"KTID\":\"555A277AD49EAD6DE065000000000001\",\"WJBM\":\"5559BFF747EC89C4E065000000000001\",\"WJMC\":\"沈阳农业大学本科生期末网上评教问卷\",\"JSH\":\"2000500055\",\"JSM\":\"王冰\",\"KCH\":\"901040337"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n课堂教师\n课堂\n毕业生调查\n教材评价\n  列表\n1\t查看\t沈阳农业大学本科生期末网上评教问卷\t王冰\t应用遥感技术\t901040337\t01\t是\n2\t查看\t沈阳农业大学本科生期末网上评教问卷\t边振兴\t土地整治学\t901040368\t01\t是\n3\t查看\t沈阳农业大学本科生期末网上评教问卷\t刘雨鑫\t土地整治学\t901040368\t01\t是\n4\t查看\t沈阳农业大学本科生期末网上评教问卷\t孙仲秀\t土壤地理学（Ⅱ）\t901041709\t01\t是\n5\t查看\t沈阳农业大学本科生期末网上评教问卷\t吴佳倩\t土壤地理学（Ⅱ）\t901041709\t01\t是\n6\t查看\t沈阳农业大学本科生期末网上评教问卷\t蒋卓东\t土壤地理学（Ⅱ）\t901041709\t01\t是\n7\t查看\t沈阳农业大学本科生期末网上评教问卷\t张俊妍\t计量经济学\t901090542\t04\t是\n8\t查看\t沈阳农业大学本科生期末网上评教问卷\t李雁南\t管理学"
+  },
+  {
+    "label": "我的实习周报",
+    "path": "/student/internship/mysxzb/index",
+    "title": "我的实习周报",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n我的实习周报\n 发布\n2026\n2025\n2026\n2025"
+  },
+  {
+    "label": "实习过程管理",
+    "path": "/student/internship/sxgcgl/index",
+    "title": "实习过程管理",
+    "err": "",
+    "jsons": [
+      {
+        "url": "/student/internship/sxgcgl/findXszbs?xh=&xm=&nj=&yx=&zy=&bj=&pageNum=1&pageSize=30&_=1794573901814",
+        "status": 200,
+        "len": 961,
+        "sample": "{\"pageSize\":30,\"pageNum\":1,\"pageContext\":{\"totalCount\":7},\"records\":[{\"XH\":\"2021198025\",\"TXRQ\":\"20241116185520\",\"XM\":\"谢皓\",\"NJMC\":\"2021级\",\"XSM\":\"水利学院\",\"ZYM\":\"测绘工程\",\"BM\":\"21测绘\",\"HFCNT\":0,\"RN\":1},{\"XH\":\"2017122022\",\"TXRQ\":\"20210322175105\",\"XM\":\"郭沁雨\",\"NJMC\":\"2017级"
+      }
+    ],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 查询条件\n 查询\n学号\t\t姓名\t\t年级\t\n全部\n2023级\n2021级\n2022级\n2024级\n2025级\n2026级\n2008级\n2009级\n2010级\n2011级\n2000级\n2001级\n2002级\n2003级\n2004级\n2005级\n2006级\n2007级\n2012级\n2013级\n2014级\n2015级\n2016级\n2017级\n2018级\n2019级\n2020级\n\t院系\t\n全部\n 问卷列表\n序号\n\t\n操作\n\t\n学号\n\t\n姓名\n\t\n年级\n\t\n院系\n\t\n专业\n\t\n班级\n\t\n最新发布周报时间\n\t\n是否已回复\n\n1\t  \t2021198025\t谢皓\t2021级\t水利学院\t测绘工程\t21测绘\t20241116185520\t未回复\n2\t  \t2017122022\t郭沁雨\t2017级\t水利学院\t测绘工程\t17测绘\t20210322175105\t未回复\n3\t  \t2017122004\t王万允\t2"
+  },
+  {
+    "label": "学生证明打印",
+    "path": "/student/studentCertificatePrinting/index",
+    "title": "学生证明打印",
+    "err": "",
+    "jsons": [],
+    "text": "URP高校教学管理与服务平台\n 2026-2027 秋 第12周 星期五\n 菜单推荐\n \n欢迎您，\n某某同学 \n 个人管理\n 选课管理\n 教学评估\n 教学资源\n 综合查询\n 考务管理\n 实习管理\n 首页\n 生成条件\n证明类型\t\n1.中文成绩单\n2.英文成绩单\n3.主修中文成绩单\n4.主修英文成绩单\n6.辅导员成绩单\n辅修中文成绩单\n中文成绩单（无公章）\n在读证明_中文\n在读证明_英文\n 查看\n 证明"
+  }
+]

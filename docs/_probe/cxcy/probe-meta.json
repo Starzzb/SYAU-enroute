@@ -1,0 +1,74 @@
+﻿[
+    {
+        "name":  "cxcy_home",
+        "bytes":  17449,
+        "error":  "",
+        "contentType":  "text/html; charset=UTF-8",
+        "url":  "http://cxcy.syau.edu.cn/",
+        "status":  200
+    },
+    {
+        "name":  "cxcy_comp_list",
+        "bytes":  31500,
+        "error":  "",
+        "contentType":  "text/html; charset=UTF-8",
+        "url":  "http://cxcy.syau.edu.cn/comp/front/comp/list",
+        "status":  200
+    },
+    {
+        "name":  "cxcy_comp_list_p2",
+        "bytes":  31714,
+        "error":  "",
+        "contentType":  "text/html; charset=UTF-8",
+        "url":  "http://cxcy.syau.edu.cn/comp/front/comp/list?page=2",
+        "status":  200
+    },
+    {
+        "name":  "cxcy_articlelist",
+        "bytes":  0,
+        "error":  "远程服务器返回错误: (404) 未找到。",
+        "contentType":  "",
+        "url":  "http://cxcy.syau.edu.cn/comp/articlelist?cid=12",
+        "status":  404
+    },
+    {
+        "name":  "cxcy_dcplan",
+        "bytes":  24936,
+        "error":  "",
+        "contentType":  "text/html; charset=UTF-8",
+        "url":  "http://cxcy.syau.edu.cn/dcplan/front/dcplan/list",
+        "status":  200
+    },
+    {
+        "name":  "cxcy_comp_detail",
+        "bytes":  36240,
+        "error":  "",
+        "contentType":  "text/html; charset=UTF-8",
+        "url":  "http://cxcy.syau.edu.cn/comp/info?id=1542",
+        "status":  200
+    },
+    {
+        "name":  "tw_list",
+        "bytes":  27382,
+        "error":  "",
+        "contentType":  "text/html;charset=UTF-8",
+        "url":  "https://tw.syau.edu.cn/channel.jsp?urltype=tree.TreeTempUrl\u0026wbtreeid=1053",
+        "status":  200
+    },
+    {
+        "name":  "cahe_list",
+        "bytes":  94322,
+        "error":  "",
+        "contentType":  "text/html; charset=UTF-8",
+        "url":  "https://www.cahe.edu.cn/site/term/373.html",
+        "status":  200
+    },
+    {
+        "name":  "jingsai_list",
+        "bytes":  63771,
+        "error":  "",
+        "contentType":  "text/html; charset=gbk",
+        "url":  "https://www.52jingsai.com/bisai/xkjn/bangdan/",
+        "status":  200
+    }
+]

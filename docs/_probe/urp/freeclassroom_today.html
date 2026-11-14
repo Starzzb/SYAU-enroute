@@ -1,0 +1,5315 @@
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta charset="utf-8"/>
+
+    <title>空闲教室查询</title>
+    <link rel="shortcut icon" href="/img/icon/favicon.ico" type="image/x-icon"/>
+    <meta name="description" content="overview &amp; stats"/>
+
+    <link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
+
+
+
+
+    <link rel="stylesheet" href="/assets/font-awesome/4.1.0/css/font-awesome.min.css"/>
+    <link rel="stylesheet" href="/assets/iconfont/css/iconfont.css"/>
+    <!-- page specific plugin styles -->
+    <link rel="stylesheet" href="/assets/css/jquery-ui.min.css" type="text/css"/>
+    <link rel="stylesheet" href="/assets/css/chosen.css"/>
+    <link rel="stylesheet" href="/css/phone/phone.css" type="text/css"/>
+
+    <!-- text fonts -->
+    <link rel="stylesheet" href="/assets/css/fonts-woff2.css"/>
+
+    <!-- ace styles -->
+    <link rel="stylesheet" href="/assets/css/ace.min.css" id="main-ace-style"/>
+
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="/assets/css/ace-part2.min.css"/>
+    <![endif]-->
+
+    <!--[if lte IE 9]>
+    <link rel="stylesheet" href="/assets/css/ace-ie.min.css"/>
+    <![endif]-->
+
+    <!-- ace settings handler -->
+    <script src="/assets/js/ace-extra.min.js"></script>
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src="/assets/js/html5shiv.min.js"></script>
+    <script src="/assets/js/respond.min.js"></script>
+    <![endif]-->
+
+    <!--[if !IE]> -->
+    <script src="/js/jQuery/jquery-3.4.1.min.js"></script>
+	<script src="/js/jQuery/jquery-migrate-3.1.0.min.js"></script>
+    <!-- <![endif]-->
+
+    <!--[if IE]>
+    <script src="/js/jQuery/jquery-3.4.1.min.js"></script>
+	<script src="/js/jQuery/jquery-migrate-1.4.1.min.js"></script>
+    <![endif]-->
+
+    <script type="text/javascript">
+        if ('ontouchstart' in document.documentElement) document.write("<script src='/assets/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
+    </script>
+
+    <script type="text/javascript" src="/js/My97DatePicker/WdatePicker.js"></script>
+    
+    <script type="text/javascript" src="/assets/js/chosen.jquery.min.js"></script>
+
+    <!-- ace scripts -->
+    <script src="/assets/js/ace-elements.min.js"></script>
+    <script src="/assets/js/ace.min.js"></script>
+
+    <script type="text/javascript" src="/js/jQuery/jquery.cookie.js"></script>
+
+    <!-- commoncss -->
+    <link rel="stylesheet" href="/css/commons/commoncss.css" type="text/css"/>
+    <!-- commoncss -->
+
+    <!-- alert -->
+    <script type="text/javascript" src="/assets/js/jquery-ui.min.js"></script>
+    
+    <script type="text/javascript" src="/js/customjs/pagination.js"></script>
+    <script type="text/javascript" src="/js/customjs/urpalert.js"></script>
+    <script type="text/javascript" src="/assets/layer/layer.js"></script>
+
+    <script src="/assets/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <!-- alert -->
+
+    <!-- urp-ajax -->
+	<script type="text/javascript" src="/js/customjs/urpajax.js"></script>
+	<!-- urp-ajax -->
+    <script type="text/javascript">
+        $(function () {
+       		           
+        });
+        
+    </script>
+    <script type="text/javascript" src="/js/customjs/template/template.js"></script>
+
+    <style type="text/css">
+
+        @media screen and (max-width: 768px) {
+            .span_bbzx {
+                display: none!important;
+            }
+        }
+
+        @media only screen and (max-width: 479px) {
+            .navbar:not(.navbar-collapse) .navbar-header {
+                float: right !important;
+                display: block;
+            }
+        }
+
+        @media (max-width: 479px){
+            .navbar-fixed-top + .main-container {
+                padding-top: 45px;
+            }
+        }
+    </style>
+
+    
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+    <meta charset="utf-8"/>
+    
+    <style>
+        a:focus {
+            outline: none;
+        }
+
+        .jc-back {
+            background-color: #f0f0f0
+        }
+
+        #drag-section {
+            padding-bottom: 20px;
+        }
+
+        #drag-ol {
+            list-style-type: none;
+            margin: 0px;
+            padding: 0;
+        }
+
+        #drag-ol .ui-selecting {
+            background: #FECA40;
+        }
+
+        #drag-ol .ui-selected {
+            background: #F39814 !important;
+            color: white;
+        }
+
+        #drag-ol .border-common {
+            float: left;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            width: 50px;
+            height: 30px;
+            line-height: 30px;
+            border: 1px solid #aaa;
+            border-right: 0;
+        }
+
+        .drag-border-right {
+            border-right: 1px solid #aaa !important;
+        }
+
+        #drag-ul {
+            list-style-type: none;
+            margin: 0px;
+            padding: 0;
+        }
+
+        #drag-ul .ui-selecting {
+            background: #FECA40;
+        }
+
+        #drag-ul .ui-selected {
+            background: #F39814 !important;
+            color: white;
+        }
+
+        #drag-ul .border-common {
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            width: 120px;
+            height: 30px;
+            line-height: 30px;
+            border: 1px solid #aaa;
+            background: white;
+        }
+
+        .td-selected {
+            background: #F39814 !important;
+            color: white;
+        }
+
+        ol > li {
+            float: left;
+            border: 1px solid #aaa;
+            height: 30px;
+
+        }
+
+        ol {
+            margin-left: 0px;
+            margin-bottom: 0px;
+        }
+
+        #xq-section {
+            /*position: absolute;*/
+            height: 80%;
+            top: 10%;
+            bottom: 160px;;
+            right: 0;
+            /*display:none;*/
+            /*box-shadow: #a9a9a9 0px 0px 10px;*/
+            /*-webkit-box-shadow: #a9a9a9 0px 0px 10px;*/
+            -moz-box-shadow: #a9a9a9 0px 0px 10px;
+            overflow: auto;
+            position: fixed;
+            z-index: 2;
+        }
+
+        #curriculumInfo-divcon {
+            width: 40%;
+            height: 95%;
+            background: #fff;
+            /*position: absolute;*/
+            top: 35px;;
+            right: -42%;
+            /*display:none;*/
+            box-shadow: #a9a9a9 0px 0px 10px;
+            -webkit-box-shadow: #a9a9a9 0px 0px 10px;
+            -moz-box-shadow: #a9a9a9 0px 0px 10px;
+            overflow: auto;
+            position: fixed;
+            z-index: 999;
+        }
+
+        .div-title {
+            width: 100%;
+            position: relative;
+            border-bottom: #eeece8 solid 1px;
+        }
+
+        .div-title h3 {
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+            line-height: 55px;
+            color: #999;
+            text-indent: 23px;
+            font-weight: normal;
+        }
+
+        .div-title span {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            margin-right: 10px;
+            display: inline-block;
+            position: absolute;
+            right: 0px;
+            top: 15px;
+            width: 50px;
+            height: 25px;
+            border-left: #dbdbdb solid 1px;
+        }
+
+        .page-header h4 {
+            padding: 0;
+            margin: 0 8px;
+            font-size: 24px;
+            font-weight: lighter;
+            color: #2679b5;
+        }
+
+        #feedback {
+            font-size: 1.4em;
+        }
+
+        #faq-list-1 .ui-selecting {
+            background: #FECA40;
+        }
+
+        #faq-list-1 .ui-selected {
+            background: #F39814;
+            color: white;
+        }
+
+        .today {
+            background: url(../../../../assets/font-awesome/4.1.0/svg/today.png) no-repeat;
+            width: 20px;
+            height: 20px;
+            display: inline-black;
+            float: left;
+            margin-right: 5px;
+        }
+
+        .tomorrow {
+            background: url(../../../../assets/font-awesome/4.1.0/svg/tomorrow.png) no-repeat;
+            width: 20px;
+            height: 20px;
+            width: 20px;
+            height: 20px;
+            display: inline-black;
+            float: left;
+            margin-right: 5px;
+        }
+
+        .backday {
+            background: url(../../../../assets/font-awesome/4.1.0/svg/backday.png) no-repeat;
+            width: 20px;
+            height: 20px;
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            float: left;
+            margin-right: 5px;
+        }
+    </style>
+
+
+</head>
+<body class="no-skin">
+
+<!-- 查看详情专用 -->
+<div class="modal fade" id="view-table" tabindex="1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="width:60%;">
+        <div class="modal-content">
+            <div class="center">
+                <span class="view-pre-loading"></span>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 查看详情专用 -->
+
+<div class="modal fade" id="myModal" tabindex="1" role="dialog"
+     aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"
+                        aria-hidden="true">×
+                </button>
+                <h4 class="modal-title" id="myModalLabel">
+                    调课后的周次
+                </h4>
+            </div>
+            <div class="modal-body">
+                开始周次:<input type="text" name="kszc" id="kszc" readonly="readonly"/><br/>
+                结束周次:<input type="text" name="jszc" id="jszc"/><br/>
+                选择周次模式:<input type="radio" name="zcms" value="1" style="width:20px"/> 全周 &nbsp;&nbsp;
+                <input type="radio" name="zcms" value="2" style="width:20px"/> 单周&nbsp;&nbsp;
+                <input type="radio" name="zcms" value="3" style="width:20px"/> 双周
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default">
+                    保存
+                </button>
+                <button type="button" class="btn btn-primary" data-dismiss="modal">
+                    关闭
+                </button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal-dialog -->
+</div>
+
+				
+<div id="navbar" class="navbar navbar-default  navbar-fixed-top hide">
+    <script type="text/javascript">
+        try {
+            ace.settings.check('navbar', 'fixed')
+        } catch (e) {
+        }
+    </script>
+
+    <div class="navbar-container" id="navbar-container">
+        <button type="button" class="navbar-toggle menu-toggler pull-left" id="menu-toggler">
+            <span class="sr-only">Toggle sidebar</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <div class="navbar-header pull-left">
+            <a href="/" class="navbar-brand" id='0' onclick="toSelect(this);">
+                <small class="span_bbzx" style="font-weight:700;font-family:微软雅黑">
+                    
+                    URP高校教学管理与服务平台
+
+                </small>
+            </a>
+        </div>
+
+        <div class="navbar-buttons navbar-header pull-right" role="navigation">
+            <input type="hidden" id="xxbm" name="xxbm" value="100036">
+            <ul class="nav ace-nav">
+                <li class="green" style="text-align: center; vertical-align: top;">
+                    <div class="intellegenceUDiv" style="z-index:1" id="intellegenceUDiv"
+                         style="display:inline-block; left: 100%; position:absolute;height:100%;line-height:normal;">
+                        <div style="height:100%; width:32px; display:inline-block;
+									 position:absolute;line-height:100%;left:-32px;
+									 background-color:#777;cursor:pointer; " id="clickdiv"
+                             onclick="changeInfo()">
+                            <i class="fa fa-search white" style='margin-top: 50%;' id="clicki"></i>
+                        </div>
+                    </div>
+                    <div id="form-search" class="nav-search" style="width:0px;right:-20px;margin-top: 8px; margin-right:20px;background-color:rgba(0,0,0,0);z-index:-1">
+                        <form class="form-search">
+							<span class="input-icon">
+								<input type="text" placeholder="查找功能..." class="nav-search-input" id="search-input"
+                                       autocomplete="off">
+								<i class="ace-icon fa fa-search blue" ></i>
+							</span>
+                        </form>
+                    </div>
+                </li>
+                <!-- 通知   -->
+
+                
+				
+                
+                <!-- 展示当前的学期季度信息 -->
+                <li class="light-red" style="text-align: center">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#" onclick="SchoolCalendar()">
+                        <i class="ace-icon fa fa-calendar"></i><span class='span_bbzx'>
+
+
+2026-2027 秋  第12周   星期五</span>
+                    </a>
+                </li>
+                
+
+                <!-- 智能应用推荐入口 -->
+                <li class="green" style="text-align: center">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#"
+                       onclick="openMenuRecommend();return false;">
+                        <i class="ace-icon fa fa-magic icon-animated-bell"></i>
+                        <span class='span_bbzx'>菜单推荐</span>
+                    </a>
+                </li>
+
+
+                
+                <li class="light-blue" style="text-align: center">
+                    <a data-toggle="dropdown" href="#" class="dropdown-toggle">
+                        <img class="nav-user-photo" src="/main/queryStudent/img" onerror="this.src='/assets/avatars/user.jpg'"
+                             alt="Jason's Photo"/>
+								<span class="user-info">
+									<small>欢迎您，</small>
+									
+
+
+张三
+								</span>
+                        <i class="ace-icon fa fa-caret-down"></i>
+                    </a>
+                    <input type="hidden" id="userId" value="
+
+
+2024000000
+">
+                    <ul class="user-menu dropdown-menu-right dropdown-menu dropdown-yellow dropdown-caret dropdown-close">
+                        <li>
+                            <a href="/" title="主页" onclick="toSelect(this);">
+                                <i class="ace-icon fa fa-home"></i>首页
+                            </a>
+                        </li>
+                        <li>
+							<a href="javascript:void(0);" title="在线反馈" 
+								onclick="location.href = '/main/systemQuestion/index';">
+							<i class="ace-icon fa fa-question-circle"></i> 在线反馈 </a>
+						</li>
+			        
+                        <li class="divider"></li>
+
+                        <li>
+                            <a id="logout" href="/logout" title="退出系统">
+                                <i class="ace-icon fa fa-power-off"></i>
+                                注销
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+    <!-- /.navbar-container -->
+</div>
+
+<div class="main-container" id="main-container">
+    <script type="text/javascript">
+        try {
+            ace.settings.check('main-container', 'fixed')
+        } catch (e) {
+        }
+    </script>
+
+    <style type="text/css">
+        .sidebar > .nav-search {
+            position: static;
+            background-color: #FAFAFA;
+            border-bottom: 1px solid #DDD;
+            text-align: center;
+            height: 35px;
+            padding-top: 0px;
+        }
+
+        .sidebar > .nav-search .nav-search-input {
+            width: 162px !important;
+            border-radius: 5px !important;
+            max-width: 162px !important;
+            opacity: 1 !important;
+            filter: alpha(opacity=100) !important;
+        }
+
+        #breadcrumbs li {
+            cursor: pointer;
+        }
+        hide {
+            display: none;
+        }
+    </style>
+    <div id="sidebar" class="sidebar responsive sidebar-fixed hide">
+        <script type="text/javascript">
+            try {
+                ace.settings.check('sidebar', 'fixed')
+            } catch (e) {
+            }
+        </script>
+
+        <ul class="nav nav-list" id="menus">
+        	
+			
+            
+            <li class="" id="1181690" onclick="rootMenuClick(this);">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-tachometer"></i>
+                    <span class="menu-text"> 个人管理 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <b class="arrow"></b>
+                
+                <ul class="submenu" onclick="stopHere();">
+                    
+                    <li class="" id="1188620">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            学籍管理
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1183421" onclick="toSelect(this);">
+                                <a href="/student/rollManagement/rollInfo/index">&nbsp;&nbsp;
+                                    学生学籍信息
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1183422" onclick="toSelect(this);">
+                                <a href="/student/rollManagement/personalInfoUpdate/index">&nbsp;&nbsp;
+                                    个人信息修改
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1183423" onclick="toSelect(this);">
+                                <a href="/student/rollManagement/rollChanges/index">&nbsp;&nbsp;
+                                    学籍异动
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1183424" onclick="toSelect(this);">
+                                <a href="/student/rollManagement/rewardsAndPenalties/index">&nbsp;&nbsp;
+                                    奖惩信息
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1183425" onclick="toSelect(this);">
+                                <a href="/student/rollManagement/electronicRegistration/index">&nbsp;&nbsp;
+                                    电子注册
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1183426" onclick="toSelect(this);">
+                                <a href="/student/rollManagement/minorProgramRegistration/index">&nbsp;&nbsp;
+                                    辅修方案注册
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="125803335" onclick="toSelect(this);">
+                                <a href="/student/rollManagement/myRollCard/index">&nbsp;&nbsp;
+                                    我的学籍卡片
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="32580380" onclick="toSelect(this);">
+                                <a href="/student/studentCertificatePrinting/index">&nbsp;&nbsp;
+                                    学生证明打印
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="125803261">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            个人申请
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="125803262" onclick="toSelect(this);">
+                                <a href="/student/application/index">&nbsp;&nbsp;
+                                    个人申请
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="1188624">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            课程替代
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="11813440" onclick="toSelect(this);">
+                                <a href="/student/personalManagement/personalApplication/curriculumReplacement/index">&nbsp;&nbsp;
+                                    课程替代申请
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="2522868">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            交流生成绩认定
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="2522869" onclick="toSelect(this);">
+                                <a href="/student/personalManagement/achievementDetermination/index">&nbsp;&nbsp;
+                                    申请成绩认定
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                </ul>
+                
+            </li>
+            
+            <li class="" id="82020" onclick="rootMenuClick(this);">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-desktop"></i>
+                    <span class="menu-text"> 选课管理 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <b class="arrow"></b>
+                
+                <ul class="submenu" onclick="stopHere();">
+                    
+                    <li class="" id="1293220">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            选课管理
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1293217" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/courseSelectNotice/index">&nbsp;&nbsp;
+                                    选课公告
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1293218" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/courseSelect/index">&nbsp;&nbsp;
+                                    选课
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1293219" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/courseSelectResult/index">&nbsp;&nbsp;
+                                    选课结果
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1293221" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/quitCourse/index">&nbsp;&nbsp;
+                                    退课
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1298420" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/courseSelectFailed/index">&nbsp;&nbsp;
+                                    选课失败信息
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="82021">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            本学期课表
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="82022" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/thisSemesterCurriculum/index">&nbsp;&nbsp;
+                                    本学期课表
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1162620" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/calendarSemesterCurriculum/index">&nbsp;&nbsp;
+                                    历年学期课表
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1611530" onclick="toSelect(this);">
+                                <a href="/student/personalSenate/giveLessonInfo/thisSemesterSchedule/weekLySchedule">&nbsp;&nbsp;
+                                    本学期周课表
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="125803145">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            教材
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="125803146" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/books/dealBooks/index">&nbsp;&nbsp;
+                                    选定教材
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                </ul>
+                
+            </li>
+            
+            <li class="" id="12580300" onclick="rootMenuClick(this);">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-pencil-square-o"></i>
+                    <span class="menu-text"> 教学评估 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <b class="arrow"></b>
+                
+                <ul class="submenu" onclick="stopHere();">
+                    
+                    <li class="" id="12580301">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            评估
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="12580302" onclick="toSelect(this);">
+                                <a href="/student/teachingEvaluation/newEvaluation/index">&nbsp;&nbsp;
+                                    教学评估
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                </ul>
+                
+            </li>
+            
+            <li class="" id="1423370" onclick="rootMenuClick(this);">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-list-alt"></i>
+                    <span class="menu-text"> 教学资源 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <b class="arrow"></b>
+                
+                <ul class="submenu" onclick="stopHere();">
+                    
+                    <li class="" id="1423371">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            教学资源
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1423372" onclick="toSelect(this);">
+                                <a href="/student/teachingResources/classroomCurriculum/index">&nbsp;&nbsp;
+                                    教室课表
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1423373" onclick="toSelect(this);">
+                                <a href="/student/teachingResources/teacherCurriculum/index">&nbsp;&nbsp;
+                                    教师课表
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1423374" onclick="toSelect(this);">
+                                <a href="/student/teachingResources/classCurriculum/index">&nbsp;&nbsp;
+                                    班级课表
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1423384" onclick="toSelect(this);">
+                                <a href="/student/teachingResources/courseCurriculum/index">&nbsp;&nbsp;
+                                    课程课表
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="1443371">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            自习查询
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1443372" onclick="toSelect(this);">
+                                <a href="/student/teachingResources/freeClassroom/index">&nbsp;&nbsp;
+                                    空闲教室查询
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1443384" onclick="toSelect(this);">
+                                <a href="/student/teachingResources/classroomUseStatus/index">&nbsp;&nbsp;
+                                    教室使用状况查询
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                </ul>
+                
+            </li>
+            
+            <li class="" id="1377620" onclick="rootMenuClick(this);">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-calendar"></i>
+                    <span class="menu-text"> 综合查询 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <b class="arrow"></b>
+                
+                <ul class="submenu" onclick="stopHere();">
+                    
+                    <li class="" id="1377621">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            成绩查询
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1379870" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/scoreQuery/allPassingScores/index">&nbsp;&nbsp;
+                                    全部及格成绩
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1417250" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/scoreQuery/coursePropertyScores/index">&nbsp;&nbsp;
+                                    课程属性成绩
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1443373" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/scoreQuery/schemeScores/index">&nbsp;&nbsp;
+                                    方案成绩
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1443374" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/scoreQuery/unpassedScores/index">&nbsp;&nbsp;
+                                    不及格成绩
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1443375" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/scoreQuery/thisTermScores/index">&nbsp;&nbsp;
+                                    本学期成绩
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1007001011" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/scoreQuery/allTermScores/index">&nbsp;&nbsp;
+                                    成绩查询
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="1377622">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            培养方案完成情况
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1377623" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/planCompletion/index">&nbsp;&nbsp;
+                                    方案完成情况
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="1443376">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            指导性计划完成情况
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1443377" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/instructionPlanQuery/detail/index">&nbsp;&nbsp;
+                                    指导性教学计划
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="1443378">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            课程
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1443379" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/course/courseSchdule/index">&nbsp;&nbsp;
+                                    本学期课程安排
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1443380" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/course/courseBasicInformation/basicInf">&nbsp;&nbsp;
+                                    课程基本信息
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="125803297" onclick="toSelect(this);">
+                                <a href="/student/personalManagement/personalApplication/curriculumReplacement/index">&nbsp;&nbsp;
+                                    课程替代
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="1443381">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            教材
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1800742" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/teachingMaterial/bookList/index">&nbsp;&nbsp;
+                                    班级订书详单查询
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="143136222" onclick="toSelect(this);">
+                                <a href="/student/integratedQuery/teachingMaterial/bookList/classMatericalIndex">&nbsp;&nbsp;
+                                    班级订书查看
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="1007005000">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            选课学费
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1007005001" onclick="toSelect(this);">
+                                <a href="/student/courseSelect/creditCheck/index">&nbsp;&nbsp;
+                                    计费学分确认情况查询
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                </ul>
+                
+            </li>
+            
+            <li class="" id="1423377" onclick="rootMenuClick(this);">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-picture-o"></i>
+                    <span class="menu-text"> 考务管理 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <b class="arrow"></b>
+                
+                <ul class="submenu" onclick="stopHere();">
+                    
+                    <li class="" id="1423378">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            考务管理
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="1423379" onclick="toSelect(this);">
+                                <a href="/student/examinationManagement/examPlan/index">&nbsp;&nbsp;
+                                    考试安排
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1423380" onclick="toSelect(this);">
+                                <a href="/student/examinationManagement/examSignUp/index">&nbsp;&nbsp;
+                                    考试报名
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                </ul>
+                
+            </li>
+            
+            <li class="" id="2537070" onclick="rootMenuClick(this);">
+                <a href="#" class="dropdown-toggle">
+                    <i class="menu-icon fa fa-tag"></i>
+                    <span class="menu-text"> 实习管理 </span>
+                    <b class="arrow fa fa-angle-down"></b>
+                </a>
+
+                <b class="arrow"></b>
+                
+                <ul class="submenu" onclick="stopHere();">
+                    
+                    <li class="" id="2537071">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            实习过程管理
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="2537073" onclick="toSelect(this);">
+                                <a href="/student/internship/mysxzb/index">&nbsp;&nbsp;
+                                    我的实习周报
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1009001003" onclick="toSelect(this);">
+                                <a href="/student/internship/internship/execution/planCompletion/index">&nbsp;&nbsp;
+                                    实习执行计划填报
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1009001001" onclick="toSelect(this);">
+                                <a href="/student/internship/sxgcgl/index">&nbsp;&nbsp;
+                                    实习过程管理
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                            <li class="" id="1009001004" onclick="toSelect(this);">
+                                <a href="/student/internship/sxbggl/uploadIndex">&nbsp;&nbsp;
+                                    实习报告
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                    <li class="" id="2557570">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="menu-icon fa fa-caret-right"></i>
+                            实习信息
+                            <b class="arrow fa fa-angle-down"></b>
+                        </a>
+
+                        <b class="arrow"></b>
+
+                        
+                        <ul class="submenu">
+                            
+                            <li class="" id="2557571" onclick="toSelect(this);">
+                                <a href="/student/internship/sxbggl/uploadIndex">&nbsp;&nbsp;
+                                    我的实习信息
+                                </a>
+
+                                <b class="arrow"></b>
+                            </li>
+                            
+                        </ul>
+
+                        
+                    </li>
+                    
+                </ul>
+                
+            </li>
+            
+
+        </ul>
+        <!-- /.nav-list -->
+
+        <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+            <i class="ace-icon fa fa-angle-double-left" data-icon1="ace-icon fa fa-angle-double-left"
+               data-icon2="ace-icon fa fa-angle-double-right"></i>
+        </div>
+
+        <script type="text/javascript">
+            try {
+                ace.settings.check('sidebar', 'collapsed')
+            } catch (e) {
+            }
+        </script>
+    </div>
+
+    <div class="main-content">
+        <div class="breadcrumbs hide" id="breadcrumbs">
+            <script type="text/javascript">
+                try {
+                    ace.settings.check('breadcrumbs', 'fixed')
+                } catch (e) {
+                }
+            </script>
+
+            <ul class="breadcrumb">
+                <li onclick="javascript:window.location.href='/'" style="cursor:pointer;">
+                    <i class="ace-icon fa fa-home home-icon"></i>
+                    首页
+                </li>
+                <li class="active" onclick="ckickTopMenu(this);return false;" id="firmenu">一级菜单</li>
+                <li class="active" onclick="ckickTopMenu(this);return false;" id="secmenu">二级菜单</li>
+                <li class="active" onclick="ckickTopMenu(this);return false;" id="lastmenu">三级菜单</li>
+            </ul>
+            <!-- /.breadcrumb -->
+        </div>
+
+        
+        <div class="page-content" id="page-content-template">
+            
+<script type="text/javascript">
+    var sec = parseInt('11');
+    var esec = parseInt('12');
+
+    /*window.onscroll = function() {
+     var lh=0;
+     var secNum='';
+     var secNum1='';
+     for(var i=sec;i<=esec;i++){
+     var h = $('#'+i).height();
+     var curh = lh+h;
+     lh=curh;
+     secNum = secNum+i+'.'+curh+',';
+     secNum1=secNum;
+     }
+     var curNum = secNum.split(',');
+     var curNum1 = secNum.split(',');
+     for(var n=0;n<curNum.length-1;n++){
+     var t = document.documentElement.scrollTop || document.body.scrollTop;
+     var fnum = curNum[0].split(".");
+     var ffnum = parseInt(fnum[1]);
+     var sNum =curNum[n].split(".");
+     var num = sNum[0];
+     var nnum = sNum[1];
+     var snum = parseInt(num);
+     var senum = parseInt(nnum);
+
+     if(t<senum){
+     var ssnum=snum;
+     $('#d'+ssnum).css("display", "block");
+     $('#s'+ssnum).css("display", "");
+     $('#t'+ssnum).html("");
+     break;
+     }
+     }
+
+     for(var k=0;k<curNum.length-1;k++){
+     var t = document.documentElement.scrollTop || document.body.scrollTop;
+     var fnum = curNum[0].split(".");
+     var ffnum = parseInt(fnum[1]);
+
+     var sNum =curNum[k].split(".");
+     var num = sNum[0];
+     var nnum = sNum[1];
+     var snum = parseInt(num);
+     var senum = parseInt(nnum);
+     if(t<50){
+     $('#d'+ssnum).css("display", "none");
+     $('#s'+ssnum).css("display", "none");
+     $('#t'+ssnum).html("<div style='width:30px;height:30px; background-color: green; border-radius:30px;text-align: center;vertical-align:middle; line-height:25px;color: white;'>"+ssnum+"</div>");
+     }
+
+     if(t>senum){
+     continue;
+     }
+     var ssnum=snum+1;
+     $('#d'+ssnum).css("display", "none");
+     $('#s'+ssnum).css("display", "none");
+     $('#t'+ssnum).html("<div style='width:30px;height:30px; background-color: green; border-radius:30px;text-align: center;vertical-align:middle; line-height:25px;color: white;'>"+ssnum+"</div>");
+     }
+     }*/
+
+    window.onload = function () {
+        var aDiv = document.getElementById('111');
+        for (var i = sec; i <= esec; i++) {
+            var sDiv = document.createElement('div');
+            sDiv.setAttribute('style', "display:none;width:30px;height:30px; background-color: green; border-radius:30px; text-align: center;vertical-align:middle; line-height:25px;cursor:pointer;");
+            sDiv.setAttribute('id', 's' + i);
+            var a = document.createElement('a');
+            var br = document.createElement('br');
+            a.setAttribute('href', '#' + i);
+            a.setAttribute('id', 'd' + i);
+            a.setAttribute('style', "display:none;width:30px;height:30px;color:white;background-image:url(/img/icon/a_back.png);text-decoration: none;");
+            a.innerHTML = i;
+            sDiv.appendChild(a);
+            aDiv.appendChild(sDiv);
+        }
+    }
+
+    function decoratorRooms(rooms) {
+        var cont = "<table id='tb-slide' class='table table-striped table-bordered table-hover'>";
+        if (rooms.length > 1) {
+            for (var i = 0; i < rooms.length; i++) {
+                cont += "<tr><td style='color:#009999;'>" + rooms[i].acmcBuildingName + "</td><td style='word-break: break-all;'>";
+                var list = rooms[i].claroom;
+                for (var j = 0; j < list.length; j++) {
+                    if (j > 0) {
+                        cont += ",";
+                    }
+                    cont += list[j].classroom;
+                }
+                cont += "</td></tr>";
+            }
+        } else if(rooms.length > 0) {
+            var list = rooms[0].claroom;
+            for (var i = 0; i < list.length; i++) {
+                cont += "<tr><td>" + list[i].classroom + "</td></tr>";
+            }
+        }
+        cont += "</table>";
+
+        $("#rooms").html(cont);
+    }
+
+    function showFreeClassrooms() {
+        var result = "";
+        $("#drag-area .ui-selected").each(function (i, v) {
+            var index = $(this).html();
+            if (i != 0) {
+                result += ",";
+            }
+            result += index;
+        });
+        if (result != "") {
+            $.ajax({
+                url: "/student/teachingResources/freeClassroom/today/" + result,
+                type: "get",
+                data: {dayplus: 0},
+                dataType: "json",
+                success: function (data) {
+                    var rooms = data["spareroomObjList"];
+                    var title = "";
+                    if (rooms.length > 1) {
+                        title = data["curxqm"] + "全部教学楼 " + result + " 节次空闲教室";
+                    } else if (rooms.length > 0) {
+                        title = data["curxqm"] + rooms[0].acmcBuildingName + " " + result + " 节次空闲教室";
+                    } else {
+                        title = "当前教学楼没有空闲教室";
+                    }
+                    decoratorRooms(rooms);
+                    $("#title").html(title);
+                    $("#curriculumInfo-divcon").animate({right: '0'});
+                },
+                error: function () {
+                    urp.alert("查询失败！");
+                }
+            });
+        } else {
+            $("#close").click();
+        }
+    }
+
+    function stopPaoPao(event) {
+        event.stopPropagation();
+    }
+
+    $(function () {
+        var seccont = "<ol id='drag-ol'>";
+        for (var i = 1; i <= parseInt(esec); i++) {
+            seccont += "<li class='border-common";
+            if (i == parseInt(esec)) {
+                seccont += " drag-border-right";
+            }
+            if (i < parseInt(sec)) {
+                seccont += " jc-back";
+            } else {
+                seccont += " jc-future";
+            }
+            seccont += "'>" + i + "</li>";
+        }
+        seccont += "</ol><div style='clear:both'></div>";
+        $("#drag-section").html(seccont);
+
+        $("#drag-area").selectable({
+            stop: showFreeClassrooms,
+            filter: ".jc-future"
+        });
+
+        $("#curriculumInfo-divcon").click(function () {
+            return false;
+        })
+        $(document).click(function (e) {
+            var id = $(e.target).attr("id");
+            if (id == "tb-slide") {
+
+            } else {
+                $('#curriculumInfo-divcon').animate({right: '-42%'});
+            }
+        });
+    });
+    /**
+     * 将日期格式化成指定格式的字符串
+     * @param date 要格式化的日期，不传时默认当前时间，也可以是一个时间戳
+     * @param fmt 目标字符串格式，支持的字符有：y,M,d,q,w,H,h,m,S，默认：yyyy-MM-dd HH:mm:ss
+     * @returns 返回格式化后的日期字符串
+     */
+    function formatDate(date, fmt) {
+        date = date == undefined ? new Date() : date;
+        date = typeof date == 'number' ? new Date(date) : date;
+        fmt = fmt || 'yyyy-MM-dd HH:mm:ss';
+        var obj =
+        {
+            'y': date.getFullYear(), // 年份，注意必须用getFullYear
+            'M': date.getMonth() + 1, // 月份，注意是从0-11
+            'd': date.getDate(), // 日期
+            'q': Math.floor((date.getMonth() + 3) / 3), // 季度
+            'w': date.getDay(), // 星期，注意是0-6
+            'H': date.getHours(), // 24小时制
+            'h': date.getHours() % 12 == 0 ? 12 : date.getHours() % 12, // 12小时制
+            'm': date.getMinutes(), // 分钟
+            's': date.getSeconds(), // 秒
+            'S': date.getMilliseconds() // 毫秒
+        };
+        var week = ['天', '一', '二', '三', '四', '五', '六'];
+        for (var i in obj) {
+            fmt = fmt.replace(new RegExp(i + '+', 'g'), function (m) {
+                var val = obj[i] + '';
+                if (i == 'w') return (m.length > 2 ? '星期' : '周') + week[val];
+                for (var j = 0, len = val.length; j < m.length - len; j++) val = '0' + val;
+                return m.length == 1 ? val : val.substring(val.length - m.length);
+            });
+        }
+        return fmt;
+    }
+    var date = new Date();
+
+
+    /*根据校区查询教学楼*/
+    function queryCodeTeaBuildingList(xqh, xqm) {
+        var jxlh = $("#jxlh").val();
+        layer.closeAll('page');
+        if (xqh == undefined) {
+            xqh = "";
+        }
+        $.ajax({
+            url: "/student/teachingResources/freeClassroom/queryCodeTeaBuildingList",
+            type: "get",
+            data: "&xqh=" + xqh,
+            dataType: "json",
+            success: function (data) {
+                var scount = "<ul id='drag-ul'>";
+                $.each(data, function (i, v) {
+                    scount += "<li class='border-common jc-future ui-selectee";
+                    if (jxlh == v.id.teachingBuildingNumber) {
+                        scount += " ui-selected";
+                        $("#divTopTitle").append("<li class='active' >" + v.teachingBuildingName + "</li>");
+                    }
+                    scount += "' style='cursor:pointer;' onclick='goDetail(\"" + v.id.campusNumber + "_" + v.id.teachingBuildingNumber + "\",\"" + xqm + "\");'>" + v.teachingBuildingName + "</li>";
+                    if (i == 9) {
+                        return false;
+                    }
+                });
+                if (data.length > 10) {
+                    scount += "</ul><ul id='drag-ul'><li  onclick='layerjxl(\"" + xqh + "\",\"" + xqm + "\");return false;' class='border-common drag-border-right jc-future ui-selectee'' style='background: #ffb752; color: white;cursor:pointer;border-bottom:0'>更多..</li></ul>";
+                }
+                scount += "</ul><ul id='drag-ul'><li  onclick='layerXQ();return false;' class='border-common drag-border-right jc-future ui-selectee'' style='background: #2679b5; color: white;cursor:pointer;'>其他校区</li></ul>";
+                $("#xq-section").html(scount);
+            },
+            error: function () {
+                urp.alert("查询失败！");
+            }
+        });
+    }
+
+    //弹出一个页面层展示所有校区
+    function layerXQ() {
+        var xqHtml = "";
+        $.ajax({
+            url: "/student/teachingResources/freeClassroom/queryCodeCampusList",
+            type: "post",
+            data: null,
+            dataType: "json",
+            success: function (data) {
+                xqHtml = "<div style='padding:20px;'>";
+                $.each(data, function (i, v) {
+                    xqHtml += "<button type='button' class='btn btn-white btn-round' style='border-width:1px;margin-right:10px;margin-bottom:10px;' onclick='queryCodeTeaBuildingList(\"" + v.campusNumber + "\",\"" + v.campusName + "\");'>" + v.campusName + "</button>";
+                });
+                xqHtml += "</div>";
+                layer.open({
+                    type: 1,
+                    area: ['600px', '360px'],
+                    shadeClose: true, //点击遮罩关闭
+                    content: xqHtml
+                });
+            },
+            error: function () {
+                urp.alert("查询失败！");
+            }
+        });
+    }
+    //弹出一个页面层展示所在校区的所有教学楼
+    function layerjxl(xqh, xqm) {
+        var jxlHtml = "";
+        var jxlh = $("#jxlh").val();
+        layer.closeAll('page');
+        if (xqh == undefined) {
+            xqh = "";
+        }
+        $.ajax({
+            url: "/student/teachingResources/freeClassroom/queryCodeTeaBuildingList",
+            type: "get",
+            data: "&xqh=" + xqh,
+            dataType: "json",
+            success: function (data) {
+                jxlHtml = "<div style='padding:20px;'>";
+                $.each(data, function (i, v) {
+                    jxlHtml += "<button type='button' class='btn btn-white btn-round' style='border-width:1px;margin-right:10px;margin-bottom:10px;' onclick='goDetail(\"" + v.id.campusNumber + "_" + v.id.teachingBuildingNumber + "\",\"" + xqm + "\");'>" + v.teachingBuildingName + "</button>";
+                });
+                jxlHtml += "</div>";
+                layer.open({
+                    type: 1,
+                    area: ['600px', '360px'],
+                    shadeClose: true, //点击遮罩关闭
+                    content: jxlHtml
+                });
+            },
+            error: function () {
+                urp.alert("查询失败！");
+            }
+        });
+    }
+
+
+    //跳详情
+    function goDetail(p, xqm) {
+        var tform = document.createElement("form");
+        var tinput = document.createElement("input");
+        var tinput2 = document.createElement("input");
+        tform.action = "/student/teachingResources/freeClassroom/today";
+        tform.method = "post";
+        tform.name = "tform";
+
+        tinput.type = "hidden";
+        tinput.value = p;
+        tinput.name = "position";
+        tinput2.type = "hidden";
+        tinput2.value = xqm;
+        tinput2.name = "xqm";
+
+        tform.appendChild(tinput);
+        tform.appendChild(tinput2);
+        document.getElementById("xq-section").appendChild(tform);
+        document.tform.submit();
+    }
+
+    $(function () {
+        var xqh = $("#xqh").val();
+        var xqm = $("#xqm").val();
+        queryCodeTeaBuildingList(xqh, xqm);
+        buildingClassroom()
+    });
+
+    /*教室楼层分层*/
+    function buildingClassroom() {
+        var tbody = "";
+        var szlc = "";
+        var lc = "";
+		var xxbm = "100036";//学校编码
+
+        var tbody = "<tr ><th width='100px' style='text-align: center; vertical-align: middle'>节次<br></th><th id='h6' style='min-height:50px'>空闲教室<br></th> </tr>";
+        
+        tbody += "<tr id='11'>";
+
+        tbody += "<td width='100px' style='text-align: center; vertical-align: middle'>第11节<br />";//20:20-21:05
+		if(xxbm != "100006"){
+			tbody += "20:20-21:05";
+		}
+        tbody += "</td><td id='h11' style='min-height:50px;word-break:break-all;'>"
+        
+        tbody += "<div ></div>";
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "719";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "719 <font color='#ADADAD' size='2'>";
+        if (72 !=
+        null
+    )
+        {
+            tbody += "(72)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "713";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "713 <font color='#ADADAD' size='2'>";
+        if (1 !=
+        null
+    )
+        {
+            tbody += "(1)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "712";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "712 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "711";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "711 <font color='#ADADAD' size='2'>";
+        if (48 !=
+        null
+    )
+        {
+            tbody += "(48)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "710";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "710 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "708";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "708 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "707";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "707 <font color='#ADADAD' size='2'>";
+        if (28 !=
+        null
+    )
+        {
+            tbody += "(28)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "706";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "706 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "619";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "619 <font color='#ADADAD' size='2'>";
+        if (97 !=
+        null
+    )
+        {
+            tbody += "(97)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "616";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "616 <font color='#ADADAD' size='2'>";
+        if (64 !=
+        null
+    )
+        {
+            tbody += "(64)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "614";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "614 <font color='#ADADAD' size='2'>";
+        if (71 !=
+        null
+    )
+        {
+            tbody += "(71)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "613";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "613 <font color='#ADADAD' size='2'>";
+        if (74 !=
+        null
+    )
+        {
+            tbody += "(74)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "612";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "612 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "611";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "611 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "610";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "610 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "609";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "609 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "608";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "608 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "607";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "607 <font color='#ADADAD' size='2'>";
+        if (67 !=
+        null
+    )
+        {
+            tbody += "(67)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "606";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "606 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "604";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "604 <font color='#ADADAD' size='2'>";
+        if (73 !=
+        null
+    )
+        {
+            tbody += "(73)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "602";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "602 <font color='#ADADAD' size='2'>";
+        if (64 !=
+        null
+    )
+        {
+            tbody += "(64)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "601";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "601 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "513";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "513 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "512";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "512 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "510";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "510 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "509";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "509 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "508";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "508 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "507";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "507 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "506";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "506 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "505";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "505 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "504";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "504 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "502";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "502 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "501";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "501 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "413";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "413 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "412";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "412 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "410";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "410 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "409";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "409 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "408";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "408 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "407";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "407 <font color='#ADADAD' size='2'>";
+        if (67 !=
+        null
+    )
+        {
+            tbody += "(67)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "406";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "406 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "405";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "405 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "404";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "404 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "402";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "402 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "401";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "401 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "313";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "313 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "312";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "312 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "310";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "310 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "309";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "309 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "308";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "308 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "307";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "307 <font color='#ADADAD' size='2'>";
+        if (67 !=
+        null
+    )
+        {
+            tbody += "(67)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "306";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "306 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "305";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "305 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "304";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "304 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "302";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "302 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "301";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "301 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "212";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "212 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "210";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "210 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "208";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "208 <font color='#ADADAD' size='2'>";
+        if (76 !=
+        null
+    )
+        {
+            tbody += "(76)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "207";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "207 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "204";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "204 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "202";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "202 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "201";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "201 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "108";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "108 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "107";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "107 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "106";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "106 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "102";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "102 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "101";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "101 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        
+        
+        tbody += "<br />";
+        
+        tbody += "</td> </tr>";
+        
+        tbody += "<tr id='12'>";
+
+        tbody += "<td width='100px' style='text-align: center; vertical-align: middle'>第12节<br />";//21:15-22:00
+		if(xxbm != "100006"){
+			tbody += "21:15-22:00";
+		}
+        tbody += "</td><td id='h12' style='min-height:50px;word-break:break-all;'>"
+        
+        tbody += "<div ></div>";
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "719";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "719 <font color='#ADADAD' size='2'>";
+        if (72 !=
+        null
+    )
+        {
+            tbody += "(72)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "713";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "713 <font color='#ADADAD' size='2'>";
+        if (1 !=
+        null
+    )
+        {
+            tbody += "(1)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "712";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "712 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "711";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "711 <font color='#ADADAD' size='2'>";
+        if (48 !=
+        null
+    )
+        {
+            tbody += "(48)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "710";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "710 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "708";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "708 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "707";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "707 <font color='#ADADAD' size='2'>";
+        if (28 !=
+        null
+    )
+        {
+            tbody += "(28)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "7";
+        if (lc == "" || lc == null) {
+            var jsm = "706";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "706 <font color='#ADADAD' size='2'>";
+        if (30 !=
+        null
+    )
+        {
+            tbody += "(30)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "619";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "619 <font color='#ADADAD' size='2'>";
+        if (97 !=
+        null
+    )
+        {
+            tbody += "(97)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "616";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "616 <font color='#ADADAD' size='2'>";
+        if (64 !=
+        null
+    )
+        {
+            tbody += "(64)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "614";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "614 <font color='#ADADAD' size='2'>";
+        if (71 !=
+        null
+    )
+        {
+            tbody += "(71)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "613";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "613 <font color='#ADADAD' size='2'>";
+        if (74 !=
+        null
+    )
+        {
+            tbody += "(74)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "612";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "612 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "611";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "611 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "610";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "610 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "609";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "609 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "608";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "608 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "607";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "607 <font color='#ADADAD' size='2'>";
+        if (67 !=
+        null
+    )
+        {
+            tbody += "(67)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "606";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "606 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "604";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "604 <font color='#ADADAD' size='2'>";
+        if (73 !=
+        null
+    )
+        {
+            tbody += "(73)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "602";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "602 <font color='#ADADAD' size='2'>";
+        if (64 !=
+        null
+    )
+        {
+            tbody += "(64)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "6";
+        if (lc == "" || lc == null) {
+            var jsm = "601";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "601 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "513";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "513 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "512";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "512 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "510";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "510 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "509";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "509 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "508";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "508 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "507";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "507 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "506";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "506 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "505";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "505 <font color='#ADADAD' size='2'>";
+        if (99 !=
+        null
+    )
+        {
+            tbody += "(99)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "504";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "504 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "502";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "502 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "5";
+        if (lc == "" || lc == null) {
+            var jsm = "501";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "501 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "413";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "413 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "412";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "412 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "410";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "410 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "409";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "409 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "408";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "408 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "407";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "407 <font color='#ADADAD' size='2'>";
+        if (67 !=
+        null
+    )
+        {
+            tbody += "(67)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "406";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "406 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "405";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "405 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "404";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "404 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "402";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "402 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "4";
+        if (lc == "" || lc == null) {
+            var jsm = "401";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "401 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "313";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "313 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "312";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "312 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "310";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "310 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "309";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "309 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "308";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "308 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "307";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "307 <font color='#ADADAD' size='2'>";
+        if (67 !=
+        null
+    )
+        {
+            tbody += "(67)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "306";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "306 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "305";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "305 <font color='#ADADAD' size='2'>";
+        if (121 !=
+        null
+    )
+        {
+            tbody += "(121)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "304";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "304 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "302";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "302 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "3";
+        if (lc == "" || lc == null) {
+            var jsm = "301";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "301 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "212";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "212 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "210";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "210 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "208";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "208 <font color='#ADADAD' size='2'>";
+        if (76 !=
+        null
+    )
+        {
+            tbody += "(76)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "207";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "207 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "204";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "204 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "202";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "202 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "2";
+        if (lc == "" || lc == null) {
+            var jsm = "201";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "201 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "108";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "108 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "107";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "107 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "106";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "106 <font color='#ADADAD' size='2'>";
+        if (100 !=
+        null
+    )
+        {
+            tbody += "(100)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "102";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "102 <font color='#ADADAD' size='2'>";
+        if (132 !=
+        null
+    )
+        {
+            tbody += "(132)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        tbody += ",";
+        
+        
+
+
+        lc = "1";
+        if (lc == "" || lc == null) {
+            var jsm = "101";
+            lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1);
+            lc = lc == "" ? jsm.substring(0, 1) : lc;
+        }
+        if (szlc != "" && szlc != lc) {
+            tbody = tbody.substring(0, tbody.length - 1);
+            tbody += "<br/>";
+        }
+
+        tbody += "101 <font color='#ADADAD' size='2'>";
+        if (162 !=
+        null
+    )
+        {
+            tbody += "(162)";
+        }
+        tbody += "</font>";
+        szlc = lc;
+        
+        
+        tbody += "<br />";
+        
+        tbody += "</td> </tr>";
+        
+
+        $("#tbodyFreeClassroom").html(tbody);
+
+
+    }
+
+</script>
+<div class="row" id="close">
+    <div class="col-xs-11 self-margin" style="padding-left: 0px;padding-right: 0px;">
+        <div class="col-xs-12 self-margin" style="padding-right: 0px;" id="drag-area">
+            <div class="alert alert-block alert-success">
+                <button type="button" class="close" data-dismiss="alert">
+                    <i class="ace-icon fa fa-times"></i>
+                </button>
+
+                <i class="ace-icon fa fa-info-circle green"></i>
+                想查看连续多个节次的空闲教室，试试拖拽选择多个节次！
+            </div>
+
+            <div id="drag-section">
+
+            </div>
+        </div>
+
+
+        <!-- 连续节次查询 -->
+        <div id="curriculumInfo-divcon">
+            <div class="div-title">
+                <h3 id="title"></h3>
+            </div>
+            <div class="row" style="margin-right: 0px; margin-left: 0px;overflow-x:hidden;">
+                <div id="rooms" style="padding:5px 10px;" onclick="stopPaoPao(event);"></div>
+            </div>
+        </div>
+
+        <div class="col-sm-12 page-header" style="padding-bottom: 0px; padding-left: 0px;">
+            <ul class="breadcrumb" id="divTopTitle">
+                <li>
+                    <i class="ace-icon fa fa-home home-icon"></i>
+                    <font size="3">主校</font>
+                </li>
+            </ul>
+        </div>
+        <div class="col-xs-12 self-margin" style="padding-right: 0px;">
+            <input type="hidden" id="xqh" value="001">
+            <input type="hidden" id="xqm" value="主校">
+            <input type="hidden" id="jxlh" value="2">
+
+            <div class="tabbable">
+                <ul class="nav nav-tabs" id="myTab">
+                    <li class="active">
+                        <a data-toggle="tab" href="#faq-tab-1" style="line-height:13px;">
+                            <div class="today"></div><span style="position:relative;top: 3px;"> 今天
+								<script type="text/javascript">
+                                    document.write(formatDate(new Date(), 'yyyy-MM-dd w'));  // 输出语句
+                                </script>
+							</span></a>
+                    </li>
+
+                    <li>
+                        <a href='/student/teachingResources/freeClassroomQuery/tomrrowDate' style="line-height:13px;">
+                            <div class="tomorrow"></div><span style="position:relative;top:3px;"> 明天
+								<script type="text/javascript">
+                                    document.write(formatDate(new Date().setDate(new Date().getDate() + 1), 'yyyy-MM-dd w'));  // 输出语句
+                                </script>
+							</span></a>
+                    </li>
+
+                    <li>
+                        <a href="/student/teachingResources/freeClassroomQuery/afTomrrowDate" style="line-height:13px;">
+                            <div class="backday"></div><span style="position:relative;top:3px;"> 后天
+								<script type="text/javascript">
+                                    document.write(formatDate(new Date().setDate(new Date().getDate() + 2), 'yyyy-MM-dd w'));  // 输出语句
+                                </script>
+							</span></a>
+                    </li>
+
+                    <li>
+                        <a href="/student/teachingResources/freeClassroomQuery/custom" style="height: 30px;">
+                            <i class="ace-icon fa fa-zdy bigger-130 blue"></i> 自定义 </a>
+                    </li>
+                </ul>
+
+                <div id="faq-tab-1" class="tab-pane fade in active">
+                    <div id="111" style="position: fixed; float: left;padding-left:8px;"></div>
+                    <div id="faq-list-1"
+                         class="panel-group accordion-style1 accordion-style2">
+                        
+                        <table style="border-left-style: dashed; border-width: 1px; border-color: #000000;"
+                               class="table table-striped table-bordered table-hover no-margin-bottom no-border-top">
+                            <tbody id="tbodyFreeClassroom">
+                            
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="col-xs-1">
+        <div id="xq-section">
+
+        </div>
+    </div>
+</div>
+
+        </div>
+        
+        <!-- /.page-content -->
+    </div>
+    <!-- /.main-content -->
+
+
+    <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
+        <i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
+    </a>
+</div>
+
+
+<!-- /.main-container -->
+<script type="text/javascript">
+	$(function() {
+		let isMobile = urp.isMobile();
+		if(isMobile) {
+			$("#navbar,#breadcrumbs,#sidebar").addClass("hide");;
+		}else{
+			$("#navbar,#breadcrumbs,#sidebar").removeClass("hide");;
+		}
+		
+		
+	    var bar = $.cookie('selectionBar');
+	    if (bar && bar != 0) {
+	        if (true) {
+	            var barObj = document.getElementById(bar);
+	            var pts = $(barObj).parents("li");
+	            for (var i = pts.length - 1; i >= 0; i--) {
+	               	if (!$(pts[i]).hasClass("open")) {
+	               		$(pts[i]).addClass("open");
+	                	$(pts[i]).children("ul").addClass("nav-show").attr("style", "display: block;");
+	                }
+	            }
+	            barObj == null ? barObj = document.getElementById(bar) : barObj.className = "active";
+	            $(barObj).find("a").prepend("<i class='menu-icon fa fa-caret-right'></i>");
+	        }
+	
+	        var lastmenu = $("#" + bar).find("a").first().text();
+	        var secmenu = $("#" + bar).parent().parent().find("a").first().text();
+	        var firmenu = $("#" + bar).parent().parent().parent().parent().find("a").first().text();
+	
+	        $("#lastmenu").html(lastmenu.replace(/(^\s*)|(\s*$)/g, ""));
+	        $("#lastmenu").attr("menuid", bar);
+	        $("#secmenu").html(secmenu.replace(/(^\s*)|(\s*$)/g, ""));
+	        $("#secmenu").attr("menuid", $("#" + bar).parent().parent().attr("id"));
+	        $("#firmenu").html(firmenu.replace(/(^\s*)|(\s*$)/g, ""));
+	        $("#firmenu").attr("menuid", $("#" + bar).parent().parent().parent().parent().attr("id"));
+	    } else {
+	        $("#lastmenu").remove();
+	        $("#secmenu").remove();
+	        $("#firmenu").remove();
+	    }
+	});
+</script>
+
+
+
+
+    <script>
+        function openMenuRecommend() {
+            layer.open({
+                type: 2,
+                title: '智能应用推荐',
+                shadeClose: true,
+                shade: 0.6,
+                area: ['600px', '520px'],
+                content: '/student/menu-recommend/page'
+            });
+        }
+    </script>
+</body>
+</html>

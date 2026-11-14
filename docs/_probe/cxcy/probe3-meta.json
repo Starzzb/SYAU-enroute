@@ -1,0 +1,30 @@
+﻿[
+    {
+        "url":  "http://cxcy.syau.edu.cn/comp/front/comp/info?id=1542",
+        "error":  "",
+        "name":  "cxcy_detail_frontpath",
+        "bytes":  36240,
+        "status":  200
+    },
+    {
+        "url":  "http://cxcy.syau.edu.cn/comp/articledetail?id=163",
+        "error":  "远程服务器返回错误: (404) 未找到。",
+        "name":  "cxcy_artdetail_root",
+        "bytes":  0,
+        "status":  404
+    },
+    {
+        "url":  "http://cxcy.syau.edu.cn/comp/front/comp/articledetail?id=163",
+        "error":  "",
+        "name":  "cxcy_artdetail_front",
+        "bytes":  18768,
+        "status":  200
+    },
+    {
+        "url":  "http://cxcy.syau.edu.cn/dcplan/front/dcplan/info?id=1417",
+        "error":  "",
+        "name":  "cxcy_dcplan_detail",
+        "bytes":  39938,
+        "status":  200
+    }
+]

@@ -1,0 +1,16 @@
+
+=== 切到 2024-2025-1-1（存在=true）===
+  POST /student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback
+      CT=application/x-www-form-urlencoded; charset=UTF-8
+      BODY=&planCode=2024-2025-1-1
+  POST /ajax/student/getSectionAndTime
+      CT=application/x-www-form-urlencoded; charset=UTF-8
+      BODY=planNumber=&ff=f&xqh=
+  GET /student/internship/sxbggl/findSxkb?xnxq=2024-2025-1-1&flag=&_=1794624682922
+  POST /student/courseSelect/thisSemesterCurriculum/index/queryExperiment
+      CT=application/x-www-form-urlencoded; charset=UTF-8
+      BODY=zxjxjhh=2024-2025-1-1
+  响应: {"u":"/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback","len":42791,"head":"{\"rwbgLists\":[],\"allUnits\":24.05,\"xkxx\":[{\"901010216_02\":{\"attendClassTeacher\":\"郭伟* \",\"courseCategoryCode\":\"2\",\"courseCategoryName\":\"限修课\",\"courseName\":\"生态学基础\",\""}
+
+=== 切到 2023-2024-2-1（存在=false）===
+  响应: {"u":"/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback","len":42791,"head":"{\"rwbgLists\":[],\"allUnits\":24.05,\"xkxx\":[{\"901010216_02\":{\"attendClassTeacher\":\"郭伟* \",\"courseCategoryCode\":\"2\",\"courseCategoryName\":\"限修课\",\"courseName\":\"生态学基础\",\""}

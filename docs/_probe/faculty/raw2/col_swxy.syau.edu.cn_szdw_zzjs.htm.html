@@ -1,0 +1,447 @@
+﻿ï»¿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>å¨èæå¸-çç©ç§å­¦ææ¯å­¦é¢</title><META Name="keywords" Content="çç©ç§å­¦ææ¯å­¦é¢,å¨èæå¸" />
+
+<meta content="" name="description">
+
+<link href="../dfiles/9900/_wsp_tpl/global.css" rel="stylesheet" type="text/css" />
+<link href="../dfiles/9900/_wsp_tpl/content.css" rel="stylesheet" type="text/css" />
+<link type="text/css" rel="stylesheet" href="../dfiles/9900/_wsp_tpl/responsive.css" media="screen and (max-width:768px)" />
+
+<script type="text/javascript" src="../dfiles/9900/_wsp_tpl/js/jquery.js"></script>
+<script type="text/javascript" src="../dfiles/9900/_wsp_tpl/js/jquery.wsp.js"></script>
+<script type="text/javascript" src="../dfiles/9900/_wsp_tpl/js/common.js"></script>
+<script type="text/javascript" src="../dfiles/9900/_wsp_tpl/js/responsive.js"></script>
+<link rel="stylesheet" type="text/css" href="../_sitegray/_sitegray_d.css" />
+<script language="javascript" src="../_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:7765626265723230797347545353554a03090203 -->
+<link rel="stylesheet" type="text/css" href="../zzjs.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1019,'/zzjs.jsp',-1,1582649655)</script>
+</head>
+<body>
+
+<div id="wrapNT">
+<div id="toptool"><li style="float:left; width:150px;padding-top:10px;"><script language="javascript" src="/system/resource/js/calendar/simple.js"></script>               
+<script language="JavaScript">
+//é³å
+var c_Calendar205587EnDateString;
+
+var c_Calendar205587WeekDayString;
+
+//é´å
+var c_Calendar205587CnDateString;
+//èæ°
+var c_Calendar205587JQString;
+//å¹´
+var c_Calendar205587YearString;
+//æ
+var c_Calendar205587MonthString;
+//æ¥
+var c_Calendar205587DayString;
+//å¨
+var c_Calendar205587WeekString;
+//æ¾ç¤º
+var c_Calendar205587ShowString;
+function RunGLNL205587()
+{          
+    var  sc =new Simple_Calendar ();
+    sc.init();
+    c_Calendar205587CnDateString=sc.getCnDateString();
+    c_Calendar205587WeekDayString=sc.getCalendarWeekString();
+    c_Calendar205587JQString=sc.getJQString();
+    c_Calendar205587EnDateString=sc.getEnDateString();
+    c_Calendar205587YearString=sc.getYearString();
+    c_Calendar205587MonthString=sc.getMonthString();
+    c_Calendar205587DayString=sc.getDayString();
+    c_Calendar205587WeekString=sc.getWeekString();
+    c_Calendar205587ShowString= "";
+}
+RunGLNL205587();
+      
+c_Calendar205587ShowString+=c_Calendar205587EnDateString; 
+c_Calendar205587ShowString+="&nbsp;&nbsp;"+c_Calendar205587WeekDayString; 
+
+
+
+</script>
+<div id="c_lunar205587" class="fontstyle205587"></div>
+<script>
+	document.getElementById("c_lunar205587").innerHTML = c_Calendar205587ShowString;
+</script>
+</li>
+<script language="javascript">
+function dosuba205588a()
+{
+    try{
+        var ua = navigator.userAgent.toLowerCase();
+        if(ua.indexOf("msie 8")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE8
+        }else if(ua.toLowerCase().indexOf("rv:")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE11+
+        }else{
+            if (document.all) 
+            {
+                window.external.addFavorite(document.location.href, document.title);
+            }else if(window.sidebar)
+            {
+                window.sidebar.addPanel( document.title, document.location.href, "");//firefox
+            }
+            else
+            {
+                alert(hotKeysa205588a());
+            }
+        }
+
+    }
+    catch (e){alert("æ æ³èªå¨æ·»å å°æ¶èå¤¹ï¼è¯·ä½¿ç¨ Ctrl + d æå¨æ·»å ");}
+}
+function hotKeysa205588a() 
+{
+    var ua = navigator.userAgent.toLowerCase(); 
+    var str = "";    
+    var isWebkit = (ua.indexOf('webkit') != - 1); 
+    var isMac = (ua.indexOf('mac') != - 1);     
+    if (ua.indexOf('konqueror') != - 1) 
+    {  
+        str = 'CTRL + B'; // Konqueror   
+    } 
+    else if (window.home || isWebkit || isMac) 
+    {        
+        str = (isMac ? 'Command/Cmd' : 'CTRL') + ' + D'; // Netscape, Safari, iCab, IE5/Mac   
+    }
+    return ((str) ? 'æ æ³èªå¨æ·»å å°æ¶èå¤¹ï¼è¯·ä½¿ç¨' + str + 'æå¨æ·»å ' : str);
+}
+function setHomepagea205588a()
+{
+    var url = document.location.href;
+    if (document.all)
+    {
+        document.body.style.behavior='url(#default#homepage)';
+        document.body.setHomePage(url);
+    }
+    else if (window.sidebar)
+    {
+        if(window.netscape)
+        {
+             try{
+                  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+             }catch (e){
+                   alert("è¯¥æä½è¢«æµè§å¨æç»ï¼å¦ææ³å¯ç¨è¯¥åè½ï¼è¯·å¨å°åæ åè¾å¥ about:config,ç¶åå°é¡¹ signed.applets.codebase_principal_support å¼è¯¥ä¸ºtrue");
+             }
+        }
+    var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components. interfaces.nsIPrefBranch);
+    prefs.setCharPref('browser.startup.homepage',url);
+    }
+    else
+    {
+        alert("æµè§å¨ä¸æ¯æèªå¨è®¾ä¸ºé¦é¡µï¼è¯·æå¨è®¾ç½®");
+    }
+}
+</script>
+
+           
+       <li><a href="../xygk/lxwm.htm">èç³»æä»¬</a></li>
+            <li><A onclick="javascript:dosuba205588a();" href="#" style="TEXT-DECORATION: none;">
+                å å¥æ¶è
+            </A></li>
+        <li><a href="http://www.syau.edu.cn" target="_blank">å­¦æ ¡ä¸»é¡µ</a></li>
+</div>
+<div id="header" style="height:95px;">
+<div id="logo"><a href="../" style="display:block;width:100%;height:100%"> </a></div><span class="sj-logo">
+<!-- ç½ç«logoå¾çå°åè¯·å¨æ¬ç»ä»¶"åå®¹éç½®-ç½ç«logo"å¤å¡«å -->
+<a href="../index.htm" title="çç©ç§å­¦ææ¯å­¦é¢"><img src="../dfiles/12974/_wsp_tpl/images/sj-logo.jpg" width="100" height="100" border="0" alt="çç©ç§å­¦ææ¯å­¦é¢" title="çç©ç§å­¦ææ¯å­¦é¢"></a></span>
+<div class="boxso" style="margin-top:45px;"><script type="text/javascript">
+    function _nl_ys_check(){
+        
+        var keyword = document.getElementById('showkeycode205591').value;
+        if(keyword==null||keyword==""){
+            alert("è¯·è¾å¥ä½ è¦æ£ç´¢çåå®¹ï¼");
+            return false;
+        }
+        if(window.toFF==1)
+        {
+            document.getElementById("lucenenewssearchkey205591").value = Simplized(keyword );
+        }else
+        {
+            document.getElementById("lucenenewssearchkey205591").value = keyword;            
+        }
+        var  base64 = new Base64();
+        document.getElementById("lucenenewssearchkey205591").value = base64.encode(document.getElementById("lucenenewssearchkey205591").value);
+        new VsbFormFunc().disableAutoEnable(document.getElementById("showkeycode205591"));
+        return true;
+    } 
+</script>
+<form action="../ssjg.jsp?wbtreeid=1019" method="post" id="au3a" name="au3a" onsubmit="return _nl_ys_check()" style="text-align:left;height:32px;padding:6px 0;">
+ <input type="hidden" id="lucenenewssearchkey205591" name="lucenenewssearchkey" value=""><input type="hidden" id="_lucenesearchtype205591" name="_lucenesearchtype" value="1"><input type="hidden" id="searchScope205591" name="searchScope" value="0">
+<input name="showkeycode" id="showkeycode205591" type="text" size="20" placeholder="è¯·è¾å¥å³é®å­" value="" name="q" ÃÃÃÃ¥";padding: 0px;margin: 0px;text-indent: 32px;text-align: left;display: inline-block;vertical-align: middle;float: left;background-image:url(../dfiles/12974/_wsp_tpl/images/icoso.jpg);background-repeat: no-repeat;background-position: left center;filter:alpha(opacity="80);" -moz-opacity:0.8; -khtml-opacity: 0.8; opacity: 0.8;" style="width: 200px;height: 30px;border: 1px solid #CCC;font: normal 14px/28px ">
+ <input tyid="btnso" type="submit" value="æç´¢ä¿¡æ¯" name="btnso" align="absmiddle" style="text-align: center;color: #FFF;cursor: pointer;border: 0;width: 60px;height: 32px;line-height: 30px;display: inline-block;vertical-align: middle;float: right;font-size: 12px;background-color:#2EB6F0;margin-top: 0;margin-bottom: 0;margin-left: 0;">
+</form><script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/formfunc.js"></script>
+</div>
+</div>
+<div class="clear"></div>
+    <div id="nav"><dl class="navbtns">
+    
+    <dd><a href="../index.htm">é¦é¡µ</a>
+
+    </dd>
+    
+    <dd><a>å­¦é¢æ¦åµ</a>
+    <ul class="subnav">
+    <li><a href="../xygk/xyjj.htm">å­¦é¢ç®ä»</a></li>
+        <li><a href="../xygk/zzjg.htm">ç»ç»æºæ</a></li>
+        <li><a href="../xygk/xrld.htm">ç°ä»»é¢å¯¼</a></li>
+        <li><a href="../xygk/lrld.htm">åä»»é¢å¯¼</a></li>
+        <li><a href="../xygk/lxwm.htm">èç³»æä»¬</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>å¸èµéä¼</a>
+    <ul class="subnav">
+    <li><a href="szgk.htm">å¸èµæ¦åµ</a></li>
+        <li><a href="yxrc.htm">ä¼ç§äººæ</a></li>
+        <li><a href="zzjs.htm">å¨èæå¸</a></li>
+        <li><a href="rxjs1.htm">è£ä¼ææ</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>æ¬ç§æå­¦</a>
+    <ul class="subnav">
+    <li><a href="../bk/zyjs.htm">ä¸ä¸ä»ç»</a></li>
+        <li><a href="../bk/jxpt.htm">æå­¦å¹³å°</a></li>
+        <li><a href="../bk/kcjs.htm">è¯¾ç¨å»ºè®¾</a></li>
+        <li><a href="../bk/jyxm.htm">æç é¡¹ç®</a></li>
+        <li><a href="../bk/jxcg.htm">æå­¦ææ</a></li>
+        <li><a href="../bk/zdyq.htm">å¶åº¦è¦æ±</a></li>
+        <li><a href="../bk/zyrz.htm">ä¸ä¸è®¤è¯</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>ç ç©¶çæè²</a>
+    <ul class="subnav">
+    <li><a href="../yjs/pygk.htm">å¹å»æ¦åµ</a></li>
+        <li><a href="../yjs/zyjs.htm">ä¸ä¸ä»ç»</a></li>
+        <li><a href="../yjs/pyfa.htm">å¹å»æ¹æ¡</a></li>
+        <li><a href="../yjs/dsdw.htm">å¯¼å¸éä¼</a></li>
+        <li><a href="../yjs/yxyjs.htm">ä¼ç§ç ç©¶ç</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>å­¦ç§å»ºè®¾</a>
+    <ul class="subnav">
+    <li><a href="../xkjs/yjxk.htm">ä¸çº§å­¦ç§</a></li>
+        <li><a href="../xkjs/xkfx.htm">å­¦ç§æ¹å</a></li>
+        <li><a href="../xkjs/xstd.htm">å­¦æ¯å¢é</a></li>
+        <li><a href="../xkjs/zdxk.htm">éç¹å­¦ç§</a></li>
+        <li><a href="../xkjs/ndbg.htm">å¹´åº¦æ¥å</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>ç§å­¦ç ç©¶</a>
+    <ul class="subnav">
+    <li><a href="../kxyj/kypt.htm">ç§ç å¹³å°</a></li>
+        <li><a href="../kxyj/kyxm.htm">ç§ç é¡¹ç®</a></li>
+        <li><a href="../kxyj/kycg.htm">ç§ç ææ</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>æçå°±ä¸</a>
+    <ul class="subnav">
+    <li><a href="../zsjy/bkzs.htm">æ¬ç§æç</a></li>
+        <li><a href="../zsjy/s_bzs.htm">ç¡ãåæç</a></li>
+        <li><a href="../zsjy/jydt.htm">å°±ä¸å¨æ</a></li>
+        <li><a href="../zsjy/kyfx.htm">èç åäº«</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>åç¾¤å·¥ä½</a>
+    <ul class="subnav">
+    <li><a href="../dqgz/zzjg1.htm">ç»ç»æºæ</a></li>
+        <li><a href="../dqgz/djdt.htm">åå»ºå¨æ</a></li>
+        <li><a href="../dqgz/llxx.htm">çè®ºå­¦ä¹ </a></li>
+        <li><a href="../dqgz/ghhd1.htm">å·¥ä¼æ´»å¨</a></li>
+        <li><a href="../dqgz/dflz.htm">åé£å»æ¿</a></li>
+    </ul>
+    </dd>
+    
+    <dd><a>å­¦çå·¥ä½</a>
+    <ul class="subnav">
+    <li><a href="../xsgz1/gzgk.htm">å·¥ä½æ¦åµ</a></li>
+        <li><a href="../xsgz1/gzdt.htm">å·¥ä½å¨æ</a></li>
+        <li><a href="../xsgz1/twxsh.htm">å¢å§å­¦çä¼</a></li>
+        <li><a href="../xsgz1/xsst.htm">å­¦çç¤¾å¢</a></li>
+        <li><a href="../xsgz1/gzzd.htm">è§ç« å¶åº¦</a></li>
+    </ul>
+    </dd>
+  </dl></div>
+<div class="layout">
+    <div class="header">
+          <div class="header-wp">
+              <div class="nav">
+ <ul>
+<li class="selected"><a href="../index.htm">é¦é¡µ</a></li>
+<li><a href="../xygk.htm">å­¦é¢æ¦åµ</a></li>
+<li><a href="../szdw.htm">å¸èµéä¼</a></li>
+<li><a href="../bk.htm">æ¬ç§æå­¦</a></li>
+<li><a href="../yjs.htm">ç ç©¶çæè²</a></li>
+<li><a href="../xkjs.htm">å­¦ç§å»ºè®¾</a></li>
+<li><a href="../kxyj.htm">ç§å­¦ç ç©¶</a></li>
+<li><a href="../zsjy.htm">æçå°±ä¸</a></li>
+<li><a href="../dqgz.htm">åç¾¤å·¥ä½</a></li>
+<li><a href="../xsgz1.htm">å­¦çå·¥ä½</a></li>
+</ul>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+<div id="wrap">
+<div id="barCrumb"><strong>å½åä½ç½®ï¼</strong>
+                        <a href="../index.htm">é¦é¡µ</a>
+                >
+                <a href="../szdw.htm">å¸èµéä¼</a>
+                >
+                <a href="zzjs.htm">å¨èæå¸</a>
+</div>
+<table width="100%" border="0" cellpadding="0" cellspacing="0" class="layout">
+  <tr valign="top">
+    <td class="layoutL">
+    <div class="box20">
+    <div class="box20"> <div class="bar20">å¨èæå¸</div><div class="body20">   <ul class="ul20"><li><a href="szgk.htm" title="å¸èµæ¦åµ" target="_blank">å¸èµæ¦åµ</a></li>      
+<li><a href="yxrc.htm" title="ä¼ç§äººæ" target="_blank">ä¼ç§äººæ</a></li>      
+<li><a href="zzjs.htm" title="å¨èæå¸" target="_blank">å¨èæå¸</a></li>      
+<li><a href="rxjs1.htm" title="è£ä¼ææ" target="_blank">è£ä¼ææ</a></li>      
+</ul></div></div></div></div></td>
+    <td class="layoutM">
+    
+    
+        <div class="box21"><script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><div class="bar21"><em><a href="zzjs/js.htm"> &gt;&gt;æ´å¤</a></em>ææ</div>
+            <div class="body21">
+            
+            <ul class="ulsz">
+              
+<li><a href="../info/1020/1198.htm" title="æ²æ³¢" target="_blank">æ²æ³¢</a></li>
+<li><a href="../info/1020/1200.htm" title="å®è¿é" target="_blank">å®è¿é</a></li>
+<li><a href="../info/1020/2493.htm" title="å¯çé¾" target="_blank">å¯çé¾</a></li>
+<li><a href="../info/1020/1201.htm" title="èæµ·å»¶" target="_blank">èæµ·å»¶</a></li>
+<li><a href="../info/1020/1196.htm" title="åå½¦ç¾¤" target="_blank">åå½¦ç¾¤</a></li>
+<li><a href="../info/1020/3306.htm" title="çæ¾ç²" target="_blank">çæ¾ç²</a></li>
+<li><a href="../info/1020/3101.htm" title="çæå" target="_blank">çæå</a></li>
+<li><a href="../info/1020/3501.htm" title="é­å¿å¯" target="_blank">é­å¿å¯</a></li>
+<li><a href="../info/1020/1199.htm" title="éªä¸æ´ª" target="_blank">éªä¸æ´ª</a></li>
+<li><a href="../info/1020/2484.htm" title="éä¸½é" target="_blank">éä¸½é</a></li>
+<li><a href="../info/1020/5457.htm" title="è®¸çå¤" target="_blank">è®¸çå¤</a></li>
+<li><a href="../info/1020/3071.htm" title="æ¨éå¨" target="_blank">æ¨éå¨</a></li>
+<li><a href="../info/1020/5729.htm" title="éå½ä»" target="_blank">éå½ä»</a></li>
+<li><a href="../info/1020/2483.htm" title="éé¸£" target="_blank">éé¸£</a></li>
+<li><a href="../info/1020/1203.htm" title="æå¤" target="_blank">æå¤</a></li>
+<li><a href="../info/1020/2427.htm" title="å´å¨" target="_blank">å´å¨</a></li>
+<li><a href="../info/1020/1197.htm" title="æ±ªæ¾" target="_blank">æ±ªæ¾</a></li>
+<li><a href="../info/1020/3072.htm" title="é®çæ" target="_blank">é®çæ</a></li>
+<li><a href="../info/1020/3302.htm" title="éçº¢æ¼«" target="_blank">éçº¢æ¼«</a></li>
+<li><a href="../info/1020/4453.htm" title="äºæä¸¹" target="_blank">äºæä¸¹</a></li>
+<li><a href="../info/1020/5032.htm" title="äºæ¾" target="_blank">äºæ¾</a></li>
+<li><a href="../info/1020/5728.htm" title="çæ " target="_blank">çæ </a></li>
+</ul>
+            <div class="clear"></div>
+            
+            </div><script>_showDynClickBatch(['dynclicks_u9_1198','dynclicks_u9_1200','dynclicks_u9_2493','dynclicks_u9_1201','dynclicks_u9_1196','dynclicks_u9_3306','dynclicks_u9_3101','dynclicks_u9_3501','dynclicks_u9_1199','dynclicks_u9_2484','dynclicks_u9_5457','dynclicks_u9_3071','dynclicks_u9_5729','dynclicks_u9_2483','dynclicks_u9_1203','dynclicks_u9_2427','dynclicks_u9_1197','dynclicks_u9_3072','dynclicks_u9_3302','dynclicks_u9_4453','dynclicks_u9_5032','dynclicks_u9_5728'],[1198,1200,2493,1201,1196,3306,3101,3501,1199,2484,5457,3071,5729,2483,1203,2427,1197,3072,3302,4453,5032,5728],"wbnews", 1582649655)</script>
+</div>
+      
+        <div class="box21"><div class="bar21"><em><a href="zzjs/fjs.htm"> &gt;&gt;æ´å¤</a></em>å¯ææ</div>
+            <div class="body21">
+            
+            <ul class="ulsz">
+              
+<li><a href="../info/1021/5730.htm" title="çåªåª" target="_blank">çåªåª</a></li>
+<li><a href="../info/1021/4452.htm" title="åå¿ç¿" target="_blank">åå¿ç¿</a></li>
+<li><a href="../info/1021/2486.htm" title="ææ¯å«" target="_blank">ææ¯å«</a></li>
+<li><a href="../info/1021/3305.htm" title="çå" target="_blank">çå</a></li>
+<li><a href="../info/1021/1205.htm" title="æ¨çç" target="_blank">æ¨çç</a></li>
+<li><a href="../info/1021/3074.htm" title="æç¾¤" target="_blank">æç¾¤</a></li>
+<li><a href="../info/1021/5458.htm" title="åå¨" target="_blank">åå¨</a></li>
+<li><a href="../info/1021/5731.htm" title="å­ç¥¥å" target="_blank">å­ç¥¥å</a></li>
+<li><a href="../info/1021/5517.htm" title="å®å½¬" target="_blank">å®å½¬</a></li>
+<li><a href="../info/1021/4451.htm" title="æ¹æ§é¢" target="_blank">æ¹æ§é¢</a></li>
+<li><a href="../info/1021/3502.htm" title="åæè¶" target="_blank">åæè¶</a></li>
+<li><a href="../info/1021/3503.htm" title="æä¸" target="_blank">æä¸</a></li>
+<li><a href="../info/1021/2528.htm" title="éµç¾å¦®" target="_blank">éµç¾å¦®</a></li>
+<li><a href="../info/1021/1248.htm" title="å¼ å°æ" target="_blank">å¼ å°æ</a></li>
+<li><a href="../info/1021/1229.htm" title="åé" target="_blank">åé</a></li>
+<li><a href="../info/1021/1236.htm" title="ç³çæ" target="_blank">ç³çæ</a></li>
+<li><a href="../info/1021/3303.htm" title="åç" target="_blank">åç</a></li>
+<li><a href="../info/1021/2487.htm" title="ææµ©æ" target="_blank">ææµ©æ</a></li>
+<li><a href="../info/1021/2485.htm" title="é©¬æ§" target="_blank">é©¬æ§</a></li>
+<li><a href="../info/1021/1206.htm" title="æ¨ççº¢" target="_blank">æ¨ççº¢</a></li>
+<li><a href="../info/1021/1232.htm" title="é©¬é" target="_blank">é©¬é</a></li>
+<li><a href="../info/1021/1247.htm" title="å¼ æ¥å®" target="_blank">å¼ æ¥å®</a></li>
+<li><a href="../info/1021/1249.htm" title="æ±å»¶å§" target="_blank">æ±å»¶å§</a></li>
+<li><a href="../info/1021/2495.htm" title="åº·å®å©" target="_blank">åº·å®å©</a></li>
+<li><a href="../info/1021/5459.htm" title="äºæ´" target="_blank">äºæ´</a></li>
+<li><a href="../info/1021/3304.htm" title="ç½ä¸½è" target="_blank">ç½ä¸½è</a></li>
+<li><a href="../info/1021/1217.htm" title="å¼ å®" target="_blank">å¼ å®</a></li>
+<li><a href="../info/1021/1246.htm" title="å§ç¡" target="_blank">å§ç¡</a></li>
+<li><a href="../info/1021/1213.htm" title="çæ¬¢" target="_blank">çæ¬¢</a></li>
+<li><a href="../info/1021/2424.htm" title="å§ä¹ä»" target="_blank">å§ä¹ä»</a></li>
+<li><a href="../info/1021/3073.htm" title="å­æ" target="_blank">å­æ</a></li>
+<li><a href="../info/1021/3075.htm" title="éæ­è¾" target="_blank">éæ­è¾</a></li>
+</ul>
+            <div class="clear"></div>
+            
+            </div><script>_showDynClickBatch(['dynclicks_u10_5730','dynclicks_u10_4452','dynclicks_u10_2486','dynclicks_u10_3305','dynclicks_u10_1205','dynclicks_u10_3074','dynclicks_u10_5458','dynclicks_u10_5731','dynclicks_u10_5517','dynclicks_u10_4451','dynclicks_u10_3502','dynclicks_u10_3503','dynclicks_u10_2528','dynclicks_u10_1248','dynclicks_u10_1229','dynclicks_u10_1236','dynclicks_u10_3303','dynclicks_u10_2487','dynclicks_u10_2485','dynclicks_u10_1206','dynclicks_u10_1232','dynclicks_u10_1247','dynclicks_u10_1249','dynclicks_u10_2495','dynclicks_u10_5459','dynclicks_u10_3304','dynclicks_u10_1217','dynclicks_u10_1246','dynclicks_u10_1213','dynclicks_u10_2424','dynclicks_u10_3073','dynclicks_u10_3075'],[5730,4452,2486,3305,1205,3074,5458,5731,5517,4451,3502,3503,2528,1248,1229,1236,3303,2487,2485,1206,1232,1247,1249,2495,5459,3304,1217,1246,1213,2424,3073,3075],"wbnews", 1582649655)</script>
+</div>
+      
+        <div class="box21"><div class="bar21"><em><a href="zzjs/js1.htm"> &gt;&gt;æ´å¤</a></em>è®²å¸</div>
+            <div class="body21">
+            
+            <ul class="ulsz">
+              
+<li><a href="../info/1022/2573.htm" title="å®æ¡" target="_blank">å®æ¡</a></li>
+<li><a href="../info/1022/5940.htm" title="ç¨ä½³å®" target="_blank">ç¨ä½³å®</a></li>
+<li><a href="../info/1022/5882.htm" title="äºæ°¸æ³¢" target="_blank">äºæ°¸æ³¢</a></li>
+<li><a href="../info/1022/1231.htm" title="åç½" target="_blank">åç½</a></li>
+<li><a href="../info/1022/2491.htm" title="âéæ°´æ£®" target="_blank">âéæ°´æ£®</a></li>
+<li><a href="../info/1022/3203.htm" title="é«ç¥" target="_blank">é«ç¥</a></li>
+<li><a href="../info/1022/2496.htm" title="å¼ æ¶" target="_blank">å¼ æ¶</a></li>
+<li><a href="../info/1022/3562.htm" title="å¼ æå" target="_blank">å¼ æå</a></li>
+<li><a href="../info/1022/3201.htm" title="å­å¼å" target="_blank">å­å¼å</a></li>
+<li><a href="../info/1022/5565.htm" title="å¯å¤©æ" target="_blank">å¯å¤©æ</a></li>
+<li><a href="../info/1022/5564.htm" title="éç§æ" target="_blank">éç§æ</a></li>
+<li><a href="../info/1022/5563.htm" title="åå¾®" target="_blank">åå¾®</a></li>
+<li><a href="../info/1022/1235.htm" title="å¤æ¶¦çº" target="_blank">å¤æ¶¦çº</a></li>
+<li><a href="../info/1022/1237.htm" title="å¾è³" target="_blank">å¾è³</a></li>
+<li><a href="../info/1022/1260.htm" title="æè±" target="_blank">æè±</a></li>
+<li><a href="../info/1022/2489.htm" title="å¼ ä¸½" target="_blank">å¼ ä¸½</a></li>
+<li><a href="../info/1022/1255.htm" title="å³è" target="_blank">å³è</a></li>
+<li><a href="../info/1022/1244.htm" title="å¼ æ¢" target="_blank">å¼ æ¢</a></li>
+<li><a href="../info/1022/1257.htm" title="ææ¥ " target="_blank">ææ¥ </a></li>
+<li><a href="../info/1022/1242.htm" title="å¼ è¯" target="_blank">å¼ è¯</a></li>
+<li><a href="../info/1022/2735.htm" title="äºææ¦" target="_blank">äºææ¦</a></li>
+<li><a href="../info/1022/1227.htm" title="å¼ æ" target="_blank">å¼ æ</a></li>
+<li><a href="../info/1022/1221.htm" title="è£å°å¦¹" target="_blank">è£å°å¦¹</a></li>
+<li><a href="../info/1022/1218.htm" title="é«åµ©" target="_blank">é«åµ©</a></li>
+<li><a href="../info/1022/2584.htm" title="è¡é¯æ´" target="_blank">è¡é¯æ´</a></li>
+<li><a href="../info/1022/2490.htm" title="æä¼" target="_blank">æä¼</a></li>
+</ul>
+            <div class="clear"></div>
+            
+            </div><script>_showDynClickBatch(['dynclicks_u11_2573','dynclicks_u11_5940','dynclicks_u11_5882','dynclicks_u11_1231','dynclicks_u11_2491','dynclicks_u11_3203','dynclicks_u11_2496','dynclicks_u11_3562','dynclicks_u11_3201','dynclicks_u11_5565','dynclicks_u11_5564','dynclicks_u11_5563','dynclicks_u11_1235','dynclicks_u11_1237','dynclicks_u11_1260','dynclicks_u11_2489','dynclicks_u11_1255','dynclicks_u11_1244','dynclicks_u11_1257','dynclicks_u11_1242','dynclicks_u11_2735','dynclicks_u11_1227','dynclicks_u11_1221','dynclicks_u11_1218','dynclicks_u11_2584','dynclicks_u11_2490'],[2573,5940,5882,1231,2491,3203,2496,3562,3201,5565,5564,5563,1235,1237,1260,2489,1255,1244,1257,1242,2735,1227,1221,1218,2584,2490],"wbnews", 1582649655)</script>
+</div>
+      
+    </td>
+  </tr>
+</table>
+</div>
+<div id="wrapF"><div id="footer">  
+             <div class="dbbq"><!-- çæåå®¹è¯·å¨æ¬ç»ä»¶"åå®¹éç½®-çæ"å¤å¡«å -->
+<p>çæææï¼æ²é³åä¸å¤§å­¦çç©ç§å­¦ææ¯å­¦é¢ &nbsp; &nbsp;TELï¼+86-024-88487163 &nbsp;FAXï¼+86-024-88492799&nbsp; æçå¨è¯¢ç­çº¿ï¼+86-024-88490020</p><p>ææ¯æ¯æï¼çç©ç§å­¦ææ¯å­¦é¢åå¬å®¤ &nbsp;å°å:è¾½å®çæ²é³å¸æ²æ²³åºä¸éµè·¯120å· é®ç¼:110866</p></div>
+</div>
+</div>
+</body>
+</html>

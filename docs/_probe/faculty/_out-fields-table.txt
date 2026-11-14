@@ -1,0 +1,40 @@
+det_gcxy_1058.html                                   vsb_content*     len=1457  f=8   刘庆玉 教授
+det_jgxy_6071.html                                   vsb_content*     len=1866  f=15  周密
+det_jgxy_zhoumi.html                                 None             len=0     f=0   博士生导师
+det_lin_luxiujun.html                                vsb_content*     len=1083  f=11  陆秀君
+det_lxy_1289.html                                    vsb_content*     len=439   f=3   张阚
+det_myxy_6589.html                                   vsb_content*     len=526   f=1   牛猛
+det_nxy_zhangwenzhong.html                           vsb_content*     len=847   f=8   张文忠
+det_slxy_zhengsiyu.html                              vsb_content*     len=617   f=11  郑思宇
+det_swxy_quanbo.html                                 vsb_content*     len=4155  f=12  曲波
+det_thxy_liuxiaohu.html                              vsb_content*     len=1865  f=12  刘小虎
+det_thxy_wangjingkuan.html                           vsb_content*     len=7066  f=13  汪景宽
+det_xdxy_wangjun.html                                WspDetailContent len=3981  f=12  王俊
+det_zbxy_1808.html                                   vsb_content*     len=2104  f=13  方红教授
+marx.syau.edu.cn_info_1137_3310.htm.html             vsb_content*     len=501   f=5   许晓辉
+spxy.syau.edu.cn_info_1112_2821.htm.html             vsb_content*     len=700   f=1   学术型硕士生导师（校内）
+tyb.syau.edu.cn_info_1019_1850.htm.html              vsb_content*     len=811   f=5   教授
+wyb.syau.edu.cn_info_1094_4588.htm.html              vsb_content*     len=260   f=4   马雯虹
+yyxy.syau.edu.cn_info_1127_4011.htm.html             vsb_content*     len=645   f=11  刘海涛
+
+n_pages = 18
+  职称             16/18  89%
+  论文             15/18  83%
+  科研项目           12/18  67%
+  学术兼职           12/18  67%
+  研究方向           11/18  61%
+  学位             11/18  61%
+  邮箱              9/18  50%
+  性别              8/18  44%
+  获奖              8/18  44%
+  导师资格            7/18  39%
+  主讲课程            7/18  39%
+  教育/工作经历         6/18  33%
+  办公电话            5/18  28%
+  通讯地址            5/18  28%
+  出生年月            4/18  22%
+  邮编              4/18  22%
+  办公室地点           2/18  11%
+  研究生招生方向         2/18  11%
+  手机              1/18  6%
+  照片              0/18  0%

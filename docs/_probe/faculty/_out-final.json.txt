@@ -1,0 +1,1115 @@
+{
+ "农学院": {
+  "host": "nxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍|",
+    "szdw1.htm"
+   ],
+   [
+    "11-022026关于评选沈阳农",
+    "info/1176/7671.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "nxy.syau.edu.cn_.html",
+    "title": "沈阳农业大学农学院",
+    "articles": 32,
+    "column_ids": [
+     "1002",
+     "1023",
+     "1096",
+     "1176",
+     "1217"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 7,
+     "em": 0,
+     "plain": 13,
+     "title_attr": 20
+    },
+    "container": null
+   },
+   {
+    "file": "nxy.syau.edu.cn_szdw1.htm.html",
+    "title": "师资队伍-沈阳农业大学农学院",
+    "articles": 139,
+    "column_ids": [
+     "1392",
+     "1393",
+     "1394",
+     "1396",
+     "1399",
+     "1400",
+     "1401",
+     "1403",
+     "1404",
+     "1405",
+     "1407",
+     "1408",
+     "1409",
+     "1411",
+     "1412",
+     "1415",
+     "1416",
+     "1417",
+     "1419",
+     "1428",
+     "1430",
+     "1431"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 139,
+     "title_attr": 139
+    },
+    "container": null
+   }
+  ]
+ },
+ "植物保护学院": {
+  "host": "zbxy.syau.edu.cn",
+  "nav": [
+   [
+    "学科师资",
+    "xkjs/xkjs.htm"
+   ],
+   [
+    "师资力量",
+    "xkjs/szll.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "zbxy.syau.edu.cn_.html",
+    "title": "沈阳农业大学植物保护学院",
+    "articles": 33,
+    "column_ids": [
+     "1020",
+     "1028",
+     "1036",
+     "1052",
+     "1057",
+     "1058",
+     "1144",
+     "1151",
+     "1246"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 4,
+     "em": 0,
+     "plain": 29,
+     "title_attr": 31
+    },
+    "container": null
+   },
+   {
+    "file": "zbxy.syau.edu.cn_xkjs_szll.htm.html",
+    "title": "师资力量-沈阳农业大学植物保护学院",
+    "articles": 11,
+    "column_ids": [
+     "1123",
+     "1124",
+     "1125",
+     "1151"
+    ],
+    "paging": {
+     "共N条": 1,
+     "N/M页": 1
+    },
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 20,
+     "title_attr": 11
+    },
+    "container": null
+   }
+  ]
+ },
+ "园艺学院": {
+  "host": "yyxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "xkjs/szdw.htm"
+   ],
+   [
+    "导师队伍",
+    "yjsjy1/dsdw.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "yyxy.syau.edu.cn_.html",
+    "title": "园艺学院",
+    "articles": 20,
+    "column_ids": [
+     "1002",
+     "1022",
+     "1026",
+     "1032",
+     "1047",
+     "1102",
+     "1144",
+     "1295"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 4,
+     "em": 0,
+     "plain": 18,
+     "title_attr": 2
+    },
+    "container": null
+   },
+   {
+    "file": "yyxy.syau.edu.cn_xkjs_szdw.htm.html",
+    "title": "师资队伍-园艺学院",
+    "articles": 0,
+    "column_ids": [],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 0,
+     "title_attr": 0
+    },
+    "container": "vsb_content_1391_u81"
+   }
+  ]
+ },
+ "土地与环境学院": {
+  "host": "thxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw/bssds.htm"
+   ],
+   [
+    "教学队伍",
+    "jxpy/jxdw.htm"
+   ],
+   [
+    "212026.09土地与环境学院",
+    "info/1167/8215.htm"
+   ],
+   [
+    "142026.09关于举办202",
+    "info/1167/8209.htm"
+   ],
+   [
+    "312026.10智汇青春，赋能",
+    "info/1591/8242.htm"
+   ],
+   [
+    "242026.09为文先为人，执",
+    "info/1591/8225.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "thxy.syau.edu.cn_.html",
+    "title": "土地与环境学院",
+    "articles": 29,
+    "column_ids": [
+     "1159",
+     "1167",
+     "1556",
+     "1591"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 6,
+     "em": 0,
+     "plain": 23,
+     "title_attr": 29
+    },
+    "container": null
+   },
+   {
+    "file": "thxy.syau.edu.cn_szdw_bssds.htm.html",
+    "title": "博硕士导师-土地与环境学院",
+    "articles": 3,
+    "column_ids": [
+     "1542",
+     "1543"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 3,
+     "title_attr": 0
+    },
+    "container": null
+   },
+   {
+    "file": "thxy.syau.edu.cn_szdw_jsxl_zgjzc.htm.html",
+    "title": "正高级职称-土地与环境学院",
+    "articles": 10,
+    "column_ids": [
+     "1611"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 10,
+     "em": 0,
+     "plain": 0,
+     "title_attr": 0
+    },
+    "container": null
+   }
+  ]
+ },
+ "经济管理学院": {
+  "host": "jgxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw/nljjglzy.htm"
+   ],
+   [
+    "行政-教辅人员",
+    "szdw/xz_jfry.htm"
+   ],
+   [
+    "博士生导师",
+    "szdw/bssds.htm"
+   ],
+   [
+    "农经学硕导师",
+    "szdw/njxsds.htm"
+   ],
+   [
+    "教经学硕导师",
+    "szdw/jjxsds.htm"
+   ],
+   [
+    "农业管理专硕导师",
+    "szdw/nyglzsds.htm"
+   ],
+   [
+    "会计专硕导师",
+    "szdw/hjzsds.htm"
+   ],
+   [
+    "工商管理专硕导师",
+    "szdw/gsglzsds.htm"
+   ],
+   [
+    "导师制度",
+    "rcpy/dszd.htm"
+   ],
+   [
+    "学院成功举办2026年研究生导师",
+    "info/1176/6407.htm"
+   ],
+   [
+    "北京第二外国语学院唐承财教授受聘",
+    "info/1168/6488.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "jgxy.syau.edu.cn_.html",
+    "title": "经济管理学院",
+    "articles": 66,
+    "column_ids": [
+     "1168",
+     "1170",
+     "1175",
+     "1176",
+     "1191",
+     "1192",
+     "1193",
+     "1291",
+     "1292",
+     "1293",
+     "1294"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 7,
+     "em": 0,
+     "plain": 127,
+     "title_attr": 123
+    },
+    "container": null
+   },
+   {
+    "file": "jgxy.syau.edu.cn_szdw_bssds.htm.html",
+    "title": "博士生导师-经济管理学院",
+    "articles": 20,
+    "column_ids": [
+     "1326"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 40,
+     "title_attr": 40
+    },
+    "container": null
+   },
+   {
+    "file": "jgxy.syau.edu.cn_szdw_xz_jfry.htm.html",
+    "title": "行政-教辅人员-经济管理学院",
+    "articles": 16,
+    "column_ids": [
+     "1174"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 32,
+     "title_attr": 32
+    },
+    "container": null
+   }
+  ]
+ },
+ "动物科学与医学学院": {
+  "host": "myxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw.htm"
+   ],
+   [
+    "校外博士生导师",
+    "szdw/xwbssds.htm"
+   ],
+   [
+    "校外硕士生导师",
+    "szdw/xwsssds.htm"
+   ],
+   [
+    "思政队伍",
+    "szdw/szdw1.htm"
+   ],
+   [
+    "导师招生",
+    "yjsjy/dszs.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "myxy.syau.edu.cn_.html",
+    "title": "动物科学与医学学院",
+    "articles": 44,
+    "column_ids": [
+     "1004",
+     "1157",
+     "1172",
+     "1193",
+     "1194",
+     "1195",
+     "1196",
+     "1207",
+     "1209",
+     "1210",
+     "1211",
+     "1246",
+     "1248",
+     "1249"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 11,
+     "em": 0,
+     "plain": 42,
+     "title_attr": 46
+    },
+    "container": null
+   },
+   {
+    "file": "myxy.syau.edu.cn_szdw_js.htm.html",
+    "title": "教授-动物科学与医学学院",
+    "articles": 12,
+    "column_ids": [
+     "1170"
+    ],
+    "paging": {
+     "共N条": 1,
+     "N/M页": 1
+    },
+    "anchor_family": {
+     "img": 12,
+     "em": 0,
+     "plain": 12,
+     "title_attr": 24
+    },
+    "container": null
+   },
+   {
+    "file": "myxy.syau.edu.cn_szdw_xwbssds.htm.html",
+    "title": "校外博士生导师-动物科学与医学学院",
+    "articles": 12,
+    "column_ids": [
+     "1166"
+    ],
+    "paging": {
+     "共N条": 1,
+     "N/M页": 1
+    },
+    "anchor_family": {
+     "img": 12,
+     "em": 0,
+     "plain": 12,
+     "title_attr": 24
+    },
+    "container": null
+   }
+  ]
+ },
+ "林学院": {
+  "host": "lin.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw.htm"
+   ],
+   [
+    "兼职导师",
+    "szdw/jzds.htm"
+   ],
+   [
+    "曾任师资",
+    "szdw/crsz.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "lin.syau.edu.cn_.html",
+    "title": "沈农·林学院",
+    "articles": 35,
+    "column_ids": [
+     "1003",
+     "1004",
+     "1005",
+     "1006",
+     "1007",
+     "1008",
+     "1009"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 6,
+     "em": 0,
+     "plain": 33,
+     "title_attr": 39
+    },
+    "container": null
+   },
+   {
+    "file": "lin.syau.edu.cn_szdw_zyjs.htm.html",
+    "title": "专业教师-沈农·林学院",
+    "articles": 12,
+    "column_ids": [
+     "1032"
+    ],
+    "paging": {
+     "共N条": 1
+    },
+    "anchor_family": {
+     "img": 12,
+     "em": 0,
+     "plain": 12,
+     "title_attr": 24
+    },
+    "container": null
+   }
+  ]
+ },
+ "工程学院": {
+  "host": "gcxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw1/xxmj.htm"
+   ],
+   [
+    "刘庆玉教授​刘庆玉、男、教授、博",
+    "info/1044/1058.htm"
+   ],
+   [
+    "林静教授​林静，女，教授，博士研",
+    "info/1044/1055.htm"
+   ],
+   [
+    "田素博教授田素博，沈阳农业大学工",
+    "info/1044/1053.htm"
+   ],
+   [
+    "刘德军教授​刘德军，男，汉族，辽",
+    "info/1044/1626.htm"
+   ],
+   [
+    "赵萍教授赵萍，女，教授，博士，硕",
+    "info/1044/3011.htm"
+   ],
+   [
+    "张任教授​张任，教授，硕士生导师",
+    "info/1044/4900.htm"
+   ],
+   [
+    "陈东雨教授陈东雨，女，教授，博士",
+    "info/1044/2941.htm"
+   ],
+   [
+    "李轶教授​李轶，女，博士，教授，",
+    "info/1044/3031.htm"
+   ],
+   [
+    "宋玉秋教授宋玉秋，吉林敦化人，博",
+    "info/1044/3014.htm"
+   ],
+   [
+    "孙清教授孙清，女，教授，博士，硕",
+    "info/1044/3842.htm"
+   ],
+   [
+    "邬立岩教授​邬立岩，博士/教授，",
+    "info/1044/3841.htm"
+   ],
+   [
+    "王瑞丽教授王瑞丽，女，汉族，教授",
+    "info/1044/4639.htm"
+   ],
+   [
+    "刘志侠教授刘志侠，黑龙江哈尔滨人",
+    "info/1044/4843.htm"
+   ],
+   [
+    "宁晓峰教授​宁晓峰，教授、博士、",
+    "info/1044/4976.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "gcxy.syau.edu.cn_.html",
+    "title": "工程学院",
+    "articles": 51,
+    "column_ids": [
+     "1044",
+     "1081",
+     "1082",
+     "1094",
+     "1182",
+     "1202",
+     "1203",
+     "1260"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 19,
+     "em": 0,
+     "plain": 34,
+     "title_attr": 32
+    },
+    "container": null
+   },
+   {
+    "file": "gcxy.syau.edu.cn_szdw1_jsml.htm.html",
+    "title": "教授目录-工程学院",
+    "articles": 11,
+    "column_ids": [
+     "1044",
+     "1260"
+    ],
+    "paging": {
+     "共N条": 1
+    },
+    "anchor_family": {
+     "img": 10,
+     "em": 0,
+     "plain": 2,
+     "title_attr": 0
+    },
+    "container": null
+   }
+  ]
+ },
+ "信息与电气工程学院": {
+  "host": "xdxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw.htm"
+   ],
+   [
+    "导师名录",
+    "yjspy/dsml1.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "xdxy.syau.edu.cn_.html",
+    "title": "信息与电气工程学院",
+    "articles": 34,
+    "column_ids": [
+     "1020",
+     "1029",
+     "1030",
+     "1034",
+     "1035",
+     "1036",
+     "1053",
+     "1054",
+     "1095",
+     "1096"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 6,
+     "em": 0,
+     "plain": 31,
+     "title_attr": 34
+    },
+    "container": null
+   },
+   {
+    "file": "xdxy.syau.edu.cn_szdw.htm.html",
+    "title": "师资队伍-信息与电气工程学院",
+    "articles": 60,
+    "column_ids": [
+     "1008",
+     "1009",
+     "1010"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 60,
+     "title_attr": 60
+    },
+    "container": null
+   }
+  ]
+ },
+ "水利学院": {
+  "host": "slxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw2.htm"
+   ],
+   [
+    "校外导师",
+    "szdw2/xwds.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "slxy.syau.edu.cn_.html",
+    "title": "水利学院",
+    "articles": 44,
+    "column_ids": [
+     "1011",
+     "1102",
+     "1144",
+     "1171",
+     "1172",
+     "1175",
+     "1176",
+     "1177",
+     "1203",
+     "1217",
+     "1218",
+     "1220"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 6,
+     "em": 0,
+     "plain": 40,
+     "title_attr": 44
+    },
+    "container": null
+   },
+   {
+    "file": "slxy.syau.edu.cn_szdw2.htm.html",
+    "title": "师资队伍-水利学院",
+    "articles": 10,
+    "column_ids": [
+     "1241"
+    ],
+    "paging": {
+     "共N条": 1
+    },
+    "anchor_family": {
+     "img": 10,
+     "em": 0,
+     "plain": 10,
+     "title_attr": 10
+    },
+    "container": null
+   }
+  ]
+ },
+ "食品学院": {
+  "host": "spxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw.htm"
+   ],
+   [
+    "专业师资",
+    "szdw/zysz.htm"
+   ],
+   [
+    "导师风采",
+    "szdw/dsfc.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "spxy.syau.edu.cn_.html",
+    "title": "沈阳农业大学食品学院",
+    "articles": 39,
+    "column_ids": [
+     "1023",
+     "1126",
+     "1127",
+     "1128",
+     "1129",
+     "1336"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 5,
+     "em": 0,
+     "plain": 24,
+     "title_attr": 29
+    },
+    "container": null
+   },
+   {
+    "file": "spxy.syau.edu.cn_szdw_dsfc.htm.html",
+    "title": "导师风采-沈阳农业大学食品学院",
+    "articles": 6,
+    "column_ids": [
+     "1112"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 6,
+     "title_attr": 0
+    },
+    "container": null
+   },
+   {
+    "file": "spxy.syau.edu.cn_szdw_zysz.htm.html",
+    "title": "专业师资-沈阳农业大学食品学院",
+    "articles": 7,
+    "column_ids": [
+     "1109"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 7,
+     "title_attr": 0
+    },
+    "container": null
+   }
+  ]
+ },
+ "生物科学技术学院": {
+  "host": "swxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资概况",
+    "szdw/szgk.htm"
+   ],
+   [
+    "导师队伍",
+    "yjs/dsdw.htm"
+   ],
+   [
+    "师资队伍",
+    "szdw.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "swxy.syau.edu.cn_.html",
+    "title": "生物科学技术学院",
+    "articles": 29,
+    "column_ids": [
+     "1002",
+     "1005",
+     "1026",
+     "1048",
+     "1055",
+     "1056",
+     "1057"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 6,
+     "em": 0,
+     "plain": 25,
+     "title_attr": 31
+    },
+    "container": null
+   },
+   {
+    "file": "swxy.syau.edu.cn_szdw_zzjs.htm.html",
+    "title": "在职教师-生物科学技术学院",
+    "articles": 80,
+    "column_ids": [
+     "1020",
+     "1021",
+     "1022"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 80,
+     "title_attr": 80
+    },
+    "container": null
+   }
+  ]
+ },
+ "马克思主义学院": {
+  "host": "marx.syau.edu.cn",
+  "nav": [
+   [
+    "师资力量",
+    "szll/sxddyfzjys.htm"
+   ],
+   [
+    "导师简介",
+    "xkjs/dsjj.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "marx.syau.edu.cn_.html",
+    "title": "马克思主义学院",
+    "articles": 25,
+    "column_ids": [
+     "1125",
+     "1126",
+     "1128",
+     "1130",
+     "1141",
+     "1142",
+     "1151",
+     "1152"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 25,
+     "title_attr": 25
+    },
+    "container": null
+   },
+   {
+    "file": "marx.syau.edu.cn_szll_sxddyfzjys.htm.html",
+    "title": "思想道德与法治教研室-马克思主义学院",
+    "articles": 0,
+    "column_ids": [],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 0,
+     "title_attr": 0
+    },
+    "container": "vsb_content_2_2973_u51"
+   }
+  ]
+ },
+ "理学院": {
+  "host": "lxy.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw1.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "lxy.syau.edu.cn_.html",
+    "title": "沈阳农业大学理学院",
+    "articles": 28,
+    "column_ids": [
+     "1013",
+     "1016",
+     "1031",
+     "1032",
+     "1073",
+     "1105"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 2,
+     "em": 0,
+     "plain": 30,
+     "title_attr": 28
+    },
+    "container": null
+   },
+   {
+    "file": "lxy.syau.edu.cn_szdw1.htm.html",
+    "title": "师资队伍-沈阳农业大学理学院",
+    "articles": 7,
+    "column_ids": [
+     "1025"
+    ],
+    "paging": {
+     "共N页": 1,
+     "N/M页": 1
+    },
+    "anchor_family": {
+     "img": 7,
+     "em": 0,
+     "plain": 7,
+     "title_attr": 14
+    },
+    "container": null
+   }
+  ]
+ },
+ "体育教学部": {
+  "host": "tyb.syau.edu.cn",
+  "nav": [
+   [
+    "教师队伍",
+    "bmgk/jsdw.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "tyb.syau.edu.cn_.html",
+    "title": "体育部",
+    "articles": 40,
+    "column_ids": [
+     "1003",
+     "1004",
+     "1011",
+     "1025",
+     "1026",
+     "1029",
+     "1031",
+     "1032",
+     "1039"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 5,
+     "em": 39,
+     "plain": 2,
+     "title_attr": 5
+    },
+    "container": null
+   },
+   {
+    "file": "tyb.syau.edu.cn_bmgk_jsdw.htm.html",
+    "title": "教师队伍-体育部",
+    "articles": 12,
+    "column_ids": [
+     "1019"
+    ],
+    "paging": {
+     "共N条": 1,
+     "JS跳页": 7
+    },
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 0,
+     "title_attr": 0
+    },
+    "container": null
+   }
+  ]
+ },
+ "外语教学部": {
+  "host": "wyb.syau.edu.cn",
+  "nav": [
+   [
+    "师资队伍",
+    "szdw.htm"
+   ],
+   [
+    "师资队伍",
+    "szdw/szdw.htm"
+   ]
+  ],
+  "columns": [
+   {
+    "file": "wyb.syau.edu.cn_.html",
+    "title": "外语教学部",
+    "articles": 40,
+    "column_ids": [
+     "1040",
+     "1042",
+     "1088",
+     "1106",
+     "1126"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 8,
+     "em": 32,
+     "plain": 0,
+     "title_attr": 8
+    },
+    "container": null
+   },
+   {
+    "file": "wyb.syau.edu.cn_szdw.htm.html",
+    "title": "师资队伍-外语教学部",
+    "articles": 0,
+    "column_ids": [],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 0,
+     "title_attr": 0
+    },
+    "container": null
+   },
+   {
+    "file": "wyb.syau.edu.cn_szdw_szdw.htm.html",
+    "title": "师资队伍-外语教学部",
+    "articles": 54,
+    "column_ids": [
+     "1094",
+     "1095",
+     "1096",
+     "1098"
+    ],
+    "paging": {},
+    "anchor_family": {
+     "img": 0,
+     "em": 0,
+     "plain": 54,
+     "title_attr": 0
+    },
+    "container": "vsb_content_4595_u101"
+   }
+  ]
+ }
+}

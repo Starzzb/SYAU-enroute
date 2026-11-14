@@ -1,0 +1,619 @@
+{
+ "list_pages": [
+  {
+   "file": "col_marx_szll.html",
+   "bytes": 10627,
+   "info_link_count": 0,
+   "unique_articles": 0,
+   "column_ids": [],
+   "jsp_links": 0,
+   "paging_evidence": [],
+   "date_hits": 0,
+   "anchor_samples": [],
+   "anchor_total": 0
+  },
+  {
+   "file": "col_thxy_zgjzc.html",
+   "bytes": 20788,
+   "info_link_count": 10,
+   "unique_articles": 10,
+   "column_ids": [
+    "1611"
+   ],
+   "jsp_links": 0,
+   "paging_evidence": [],
+   "date_hits": 0,
+   "anchor_samples": [
+    {
+     "href": "../../info/1611/4929.htm",
+     "title_attr": "",
+     "text": "汪景宽",
+     "has_img": true,
+     "has_em": false
+    },
+    {
+     "href": "../../info/1611/4932.htm",
+     "title_attr": "",
+     "text": "林国林",
+     "has_img": true,
+     "has_em": false
+    },
+    {
+     "href": "../../info/1611/4933.htm",
+     "title_attr": "",
+     "text": "杨丽娟",
+     "has_img": true,
+     "has_em": false
+    },
+    {
+     "href": "../../info/1611/4934.htm",
+     "title_attr": "",
+     "text": "魏忠义",
+     "has_img": true,
+     "has_em": false
+    },
+    {
+     "href": "../../info/1611/4935.htm",
+     "title_attr": "",
+     "text": "刘鸣达",
+     "has_img": true,
+     "has_em": false
+    },
+    {
+     "href": "../../info/1611/4936.htm",
+     "title_attr": "",
+     "text": "刘小虎",
+     "has_img": true,
+     "has_em": false
+    }
+   ],
+   "anchor_total": 10
+  },
+  {
+   "file": "col_tyb_jsdw.html",
+   "bytes": 19697,
+   "info_link_count": 12,
+   "unique_articles": 12,
+   "column_ids": [
+    "1019"
+   ],
+   "jsp_links": 0,
+   "paging_evidence": [
+    "共N条:1",
+    "JS翻页控件:7"
+   ],
+   "date_hits": 0,
+   "anchor_samples": [
+    {
+     "href": "../info/1019/1850.htm",
+     "title_attr": "",
+     "text": "",
+     "has_img": false,
+     "has_em": false
+    },
+    {
+     "href": "../info/1019/1851.htm",
+     "title_attr": "",
+     "text": "",
+     "has_img": false,
+     "has_em": false
+    },
+    {
+     "href": "../info/1019/1822.htm",
+     "title_attr": "",
+     "text": "",
+     "has_img": false,
+     "has_em": false
+    },
+    {
+     "href": "../info/1019/1848.htm",
+     "title_attr": "",
+     "text": "",
+     "has_img": false,
+     "has_em": false
+    },
+    {
+     "href": "../info/1019/1815.htm",
+     "title_attr": "",
+     "text": "",
+     "has_img": false,
+     "has_em": false
+    },
+    {
+     "href": "../info/1019/1816.htm",
+     "title_attr": "",
+     "text": "",
+     "has_img": false,
+     "has_em": false
+    }
+   ],
+   "anchor_total": 12
+  },
+  {
+   "file": "col_wyb_szdw.html",
+   "bytes": 13354,
+   "info_link_count": 0,
+   "unique_articles": 0,
+   "column_ids": [],
+   "jsp_links": 0,
+   "paging_evidence": [
+    "list.jsp 分页:1"
+   ],
+   "date_hits": 0,
+   "anchor_samples": [],
+   "anchor_total": 0
+  },
+  {
+   "file": "col_yyxy_szdw.html",
+   "bytes": 36250,
+   "info_link_count": 0,
+   "unique_articles": 0,
+   "column_ids": [],
+   "jsp_links": 0,
+   "paging_evidence": [],
+   "date_hits": 0,
+   "anchor_samples": [],
+   "anchor_total": 0
+  }
+ ],
+ "detail_pages": [
+  {
+   "file": "det_gcxy_1058.html",
+   "bytes": 14285,
+   "title": "刘庆玉 教授-工程学院",
+   "WspDetailTitle": "刘庆玉 教授",
+   "containers": [
+    "vsb_content_1042",
+    "v_news_content",
+    "WspDetail",
+    "WspDetailTitle"
+   ],
+   "vsb_content_exact": false,
+   "body_text_len": 1535,
+   "body_text_head": "> 刘庆玉、男、教授、博士研究生学历、博士生导师，主要从事的研究方向为：农业废弃物资源化利用、农村人居环境治理及节能技术等。 现任沈阳农业大学能源学科带头人，兼任辽宁省生物质生物转化技术重点实验室主任；农业农村部东北地区沼气科技创新研究基地",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": false,
+    "研究方向": true,
+    "主讲课程": false,
+    "研究生招生方向": false,
+    "教育/工作经历": false,
+    "论文": true,
+    "项目": true,
+    "获奖": false,
+    "出生年月": false,
+    "性别": false,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": true
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_jgxy_6071.html",
+   "bytes": 34597,
+   "title": "周密-经济管理学院",
+   "WspDetailTitle": "",
+   "containers": [
+    "vsb_content",
+    "v_news_content"
+   ],
+   "vsb_content_exact": true,
+   "body_text_len": 3822,
+   "body_text_head": "class=\"yjscontent\" style=\"margin-top:15px;min-height:300px;\"> 周密，男，满族，1984年3月生，辽宁省葫芦岛人。中共党员，博士，三级教授（破格），博士生导师，国家级青年人才，国家",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": true,
+    "研究方向": false,
+    "主讲课程": true,
+    "研究生招生方向": true,
+    "教育/工作经历": false,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": true,
+    "性别": true,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": true
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_jgxy_zhoumi.html",
+   "bytes": 30316,
+   "title": "博士生导师-经济管理学院",
+   "WspDetailTitle": "",
+   "containers": [],
+   "vsb_content_exact": false,
+   "body_text_len": 1207,
+   "body_text_head": "﻿﻿ 博士生导师-经济管理学院 Open Menu 首页 返回上一级 学院要闻 通知公告 经管快讯 报告讲座 发现经彩 学术信息 教学信息 学工信息 党建信息 学院概况 返回上一级 学院简介 学科设置 现任领导 组织机构 发展历程 历史名家",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": false,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": false,
+    "研究方向": false,
+    "主讲课程": false,
+    "研究生招生方向": true,
+    "教育/工作经历": false,
+    "论文": false,
+    "项目": false,
+    "获奖": false,
+    "出生年月": false,
+    "性别": false,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": true
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_lin_luxiujun.html",
+   "bytes": 26258,
+   "title": "陆秀君-沈农·林学院",
+   "WspDetailTitle": "陆秀君",
+   "containers": [
+    "vsb_content",
+    "v_news_content",
+    "WspDetailContent",
+    "WspDetail",
+    "WspDetailTitle"
+   ],
+   "vsb_content_exact": true,
+   "body_text_len": 1437,
+   "body_text_head": "> 陆秀君 吴秋丽 本人更新 2024-01-13 浏览量 陆秀君，女，1966年8月生，辽宁省铁岭市人，民盟盟员，博士，教授，博士生导师。辽宁省“百千万人才工程”百人层次人选，辽宁省教学名师，辽宁省普通高等学校本科教学指导委员会林学类教指",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": false,
+    "电话": false,
+    "办公地点/办公室": false,
+    "研究方向": true,
+    "主讲课程": true,
+    "研究生招生方向": false,
+    "教育/工作经历": true,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": true,
+    "性别": true,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": true
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_lxy_1289.html",
+   "bytes": 11230,
+   "title": "张阚-沈阳农业大学理学院",
+   "WspDetailTitle": "",
+   "containers": [
+    "vsb_content_501",
+    "v_news_content"
+   ],
+   "vsb_content_exact": false,
+   "body_text_len": 520,
+   "body_text_head": "> 为本科生讲授《高等数学》、《概率论与数理统计》、《线性代数》、《实变函数与泛函分析》等课程，为研究生讲授《数学物理方程》等课程。2017年被评为沈阳农业大学教学名师。 主持中华农业科教基金教材建设研究项目1项，辽宁省教育科学规划课题1项",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": false,
+    "研究方向": false,
+    "主讲课程": true,
+    "研究生招生方向": false,
+    "教育/工作经历": false,
+    "论文": true,
+    "项目": false,
+    "获奖": false,
+    "出生年月": false,
+    "性别": false,
+    "学位": false,
+    "通讯地址/邮编": true,
+    "导师资格": false
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_myxy_6589.html",
+   "bytes": 23036,
+   "title": "牛猛-动物科学与医学学院",
+   "WspDetailTitle": "牛猛",
+   "containers": [
+    "vsb_content",
+    "v_news_content",
+    "WspDetailContent",
+    "WspDetail",
+    "WspDetailTitle"
+   ],
+   "vsb_content_exact": true,
+   "body_text_len": 679,
+   "body_text_head": "class=\"WspContent14\"> 牛猛 【来源： 日期：2026/03/09 09:27:10 浏览量： 】 本人长期致力于肿瘤介入诊疗与医工交叉领域的研究，具有丰富的多学科融合研究经验。当前主要研究方向包括：介入医学与分子影像技",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": false,
+    "邮箱": false,
+    "电话": false,
+    "办公地点/办公室": false,
+    "研究方向": true,
+    "主讲课程": false,
+    "研究生招生方向": false,
+    "教育/工作经历": false,
+    "论文": false,
+    "项目": false,
+    "获奖": false,
+    "出生年月": false,
+    "性别": false,
+    "学位": false,
+    "通讯地址/邮编": true,
+    "导师资格": false
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_nxy_zhangwenzhong.html",
+   "bytes": 17280,
+   "title": "张文忠-沈阳农业大学农学院",
+   "WspDetailTitle": "",
+   "containers": [
+    "vsb_content_501",
+    "v_news_content"
+   ],
+   "vsb_content_exact": false,
+   "body_text_len": 920,
+   "body_text_head": "class=\"yjscontent\" style=\"margin-top:15px;margin-bottom:30px;\"> 张文忠，男，中共党员，博士，二级教授，博士生导师。现任农学院党委副书记、院长，主持行政全面工作。分管学科、经费、",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": false,
+    "电话": true,
+    "办公地点/办公室": false,
+    "研究方向": false,
+    "主讲课程": false,
+    "研究生招生方向": false,
+    "教育/工作经历": false,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": false,
+    "性别": true,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": true
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_slxy_zhengsiyu.html",
+   "bytes": 15237,
+   "title": "郑思宇-水利学院",
+   "WspDetailTitle": "",
+   "containers": [
+    "vsb_content_7",
+    "v_news_content"
+   ],
+   "vsb_content_exact": false,
+   "body_text_len": 695,
+   "body_text_head": "style=\"margin-top:15px;\"> 姓名：郑思宇 单位：水利学院 职称：讲师 1.个人简况 郑思宇，女，汉族，1994年9月生，辽宁宽甸满族自治县人，2019年12月加入中国共产党。主要从事农业水土资源高效利用、农田排水与盐",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": false,
+    "办公地点/办公室": false,
+    "研究方向": true,
+    "主讲课程": false,
+    "研究生招生方向": false,
+    "教育/工作经历": true,
+    "论文": true,
+    "项目": true,
+    "获奖": false,
+    "出生年月": true,
+    "性别": true,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": false
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_swxy_quanbo.html",
+   "bytes": 19817,
+   "title": "曲波-生物科学技术学院",
+   "WspDetailTitle": "曲波",
+   "containers": [
+    "vsb_content_4",
+    "v_news_content",
+    "WspDetail",
+    "WspDetailBox",
+    "WspDetailTitle"
+   ],
+   "vsb_content_exact": false,
+   "body_text_len": 4291,
+   "body_text_head": "> 曲波，博士、教授、博士和硕士生导师 沈阳农业大学生物科学技术学院 地址:沈阳市沈河区东陵路120号，110866 电话: 024-88487163 E-mail: syau_qb@163.com ●研究领域与内容 入侵植物学；生物多样性",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": true,
+    "研究方向": true,
+    "主讲课程": false,
+    "研究生招生方向": false,
+    "教育/工作经历": true,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": false,
+    "性别": false,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": true
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_thxy_liuxiaohu.html",
+   "bytes": 17955,
+   "title": "刘小虎-土地与环境学院",
+   "WspDetailTitle": "",
+   "containers": [
+    "vsb_content_2",
+    "v_news_content"
+   ],
+   "vsb_content_exact": false,
+   "body_text_len": 1923,
+   "body_text_head": "class=\"content-con clearFix\"> 刘小虎，博士，教授，博士和硕士毕业于沈阳农业大学土地与环境学院。地址：沈阳市沈河区东陵路120号。电话：024-88487155。E-mail:liuxiaohu-mail@163",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": false,
+    "研究方向": true,
+    "主讲课程": true,
+    "研究生招生方向": false,
+    "教育/工作经历": true,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": false,
+    "性别": false,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": false
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_thxy_wangjingkuan.html",
+   "bytes": 23737,
+   "title": "汪景宽-土地与环境学院",
+   "WspDetailTitle": "",
+   "containers": [
+    "vsb_content_2",
+    "v_news_content"
+   ],
+   "vsb_content_exact": false,
+   "body_text_len": 7124,
+   "body_text_head": "class=\"content-con clearFix\"> 汪景宽 博士、教授，沈阳农业大学土地与环境学院院长，主管学院学科、人事、外事及财务工作。 地址:沈阳市沈河区东陵路120号，110866 电话: 024-88487155 E-ma",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": false,
+    "研究方向": true,
+    "主讲课程": true,
+    "研究生招生方向": false,
+    "教育/工作经历": true,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": false,
+    "性别": false,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": false
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_xdxy_wangjun.html",
+   "bytes": 30567,
+   "title": "王俊-信息与电气工程学院",
+   "WspDetailTitle": "王俊",
+   "containers": [
+    "vsb_content",
+    "v_news_content",
+    "WspDetailContent",
+    "WspDetail",
+    "WspDetailBox",
+    "WspDetailTitle"
+   ],
+   "vsb_content_exact": true,
+   "body_text_len": 4088,
+   "body_text_head": "id=\"vsb_content\"> 个人简介： 王俊，男，1979年5月生，黑龙江省龙江县人，中共党员，2002年、2007年本科、硕士毕业于沈阳农业大学农业电气化与自动化专业，2013年博士毕业于哈尔滨工业大学电力系统及其自动化专业，教授",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": true,
+    "研究方向": true,
+    "主讲课程": true,
+    "研究生招生方向": false,
+    "教育/工作经历": false,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": true,
+    "性别": true,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": false
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  },
+  {
+   "file": "det_zbxy_1808.html",
+   "bytes": 22596,
+   "title": "方红教授-沈阳农业大学植物保护学院",
+   "WspDetailTitle": "方红教授",
+   "containers": [
+    "vsb_content",
+    "v_news_content",
+    "WspDetailContent",
+    "WspDetail",
+    "WspDetailBox",
+    "WspDetailTitle"
+   ],
+   "vsb_content_exact": true,
+   "body_text_len": 2201,
+   "body_text_head": "id=\"WspDetailContent\" class=\"WspContent14\"> 方红 教授 硕士生导师 办公地点：植保学科楼422室 联系方式：Email:fanghong@syau.edu.cn QQ:1147888178 电话：",
+   "fields": {
+    "职称(教授/副教授/讲师/研究员)": true,
+    "邮箱": true,
+    "电话": true,
+    "办公地点/办公室": true,
+    "研究方向": true,
+    "主讲课程": true,
+    "研究生招生方向": false,
+    "教育/工作经历": true,
+    "论文": true,
+    "项目": true,
+    "获奖": true,
+    "出生年月": false,
+    "性别": false,
+    "学位": true,
+    "通讯地址/邮编": true,
+    "导师资格": true
+   },
+   "has_iframe": false,
+   "has_pdf": false,
+   "has_tables": false
+  }
+ ]
+}

@@ -1,0 +1,53 @@
+URL=http://10.2.0.47/index
+TITLE=URP高校教学管理与服务平台（学生）
+HTML_LEN=51261
+CAS_LOGIN_PAGE=false
+LINKS=48
+  /  |  URP高校教学管理与服务平台
+  /logout  |  注销
+  /student/rollManagement/rollInfo/index  |  学生学籍信息
+  /student/rollManagement/personalInfoUpdate/index  |  个人信息修改
+  /student/rollManagement/rollChanges/index  |  学籍异动
+  /student/rollManagement/rewardsAndPenalties/index  |  奖惩信息
+  /student/rollManagement/electronicRegistration/index  |  电子注册
+  /student/rollManagement/minorProgramRegistration/index  |  辅修方案注册
+  /student/rollManagement/myRollCard/index  |  我的学籍卡片
+  /student/studentCertificatePrinting/index  |  学生证明打印
+  /student/application/index  |  个人申请
+  /student/personalManagement/personalApplication/curriculumReplacement/index  |  课程替代申请
+  /student/personalManagement/achievementDetermination/index  |  申请成绩认定
+  /student/courseSelect/courseSelectNotice/index  |  选课公告
+  /student/courseSelect/courseSelect/index  |  选课
+  /student/courseSelect/courseSelectResult/index  |  选课结果
+  /student/courseSelect/quitCourse/index  |  退课
+  /student/courseSelect/courseSelectFailed/index  |  选课失败信息
+  /student/courseSelect/thisSemesterCurriculum/index  |  本学期课表
+  /student/courseSelect/calendarSemesterCurriculum/index  |  历年学期课表
+  /student/personalSenate/giveLessonInfo/thisSemesterSchedule/weekLySchedule  |  本学期周课表
+  /student/courseSelect/books/dealBooks/index  |  选定教材
+  /student/teachingEvaluation/newEvaluation/index  |  教学评估
+  /student/teachingResources/classroomCurriculum/index  |  教室课表
+  /student/teachingResources/teacherCurriculum/index  |  教师课表
+  /student/teachingResources/classCurriculum/index  |  班级课表
+  /student/teachingResources/courseCurriculum/index  |  课程课表
+  /student/teachingResources/freeClassroom/index  |  空闲教室查询
+  /student/teachingResources/classroomUseStatus/index  |  教室使用状况查询
+  /student/integratedQuery/scoreQuery/allPassingScores/index  |  全部及格成绩
+  /student/integratedQuery/scoreQuery/coursePropertyScores/index  |  课程属性成绩
+  /student/integratedQuery/scoreQuery/schemeScores/index  |  方案成绩
+  /student/integratedQuery/scoreQuery/unpassedScores/index  |  不及格成绩
+  /student/integratedQuery/scoreQuery/thisTermScores/index  |  本学期成绩
+  /student/integratedQuery/scoreQuery/allTermScores/index  |  成绩查询
+  /student/integratedQuery/planCompletion/index  |  方案完成情况
+  /student/integratedQuery/instructionPlanQuery/detail/index  |  指导性教学计划
+  /student/integratedQuery/course/courseSchdule/index  |  本学期课程安排
+  /student/integratedQuery/course/courseBasicInformation/basicInf  |  课程基本信息
+  /student/integratedQuery/teachingMaterial/bookList/index  |  班级订书详单查询
+  /student/integratedQuery/teachingMaterial/bookList/classMatericalIndex  |  班级订书查看
+  /student/courseSelect/creditCheck/index  |  计费学分确认情况查询
+  /student/examinationManagement/examPlan/index  |  考试安排
+  /student/examinationManagement/examSignUp/index  |  考试报名
+  /student/internship/mysxzb/index  |  我的实习周报
+  /student/internship/internship/execution/planCompletion/index  |  实习执行计划填报
+  /student/internship/sxgcgl/index  |  实习过程管理
+  /student/internship/sxbggl/uploadIndex  |  实习报告

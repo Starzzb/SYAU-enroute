@@ -1,0 +1,20 @@
+[
+  {
+    "method": "GET",
+    "url": "/student/teachingResources/classroomCurriculum/index",
+    "ct": "",
+    "body": ""
+  },
+  {
+    "method": "GET",
+    "url": "/main/queryStudent/img",
+    "ct": "",
+    "body": ""
+  },
+  {
+    "method": "POST",
+    "url": "/student/teachingResources/classroomCurriculum/search",
+    "ct": "application/x-www-form-urlencoded; charset=UTF-8",
+    "body": "executiveEducationPlanNumber=2026-2027-1-1&campusNumber=&teachingBuildingNumber=&classRoomNumber=&pageNum=1&pageSize=30"
+  }
+]

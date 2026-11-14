@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>比赛报名-沈阳农业大学创新创业管理平台</title>
+    <meta name="keywords" content=",比赛报名"/>
+    <meta name="description" content="沈阳农业大学创新创业管理平台"/>
+
+    <script src="/static/js/jquery.js"></script>
+
+    <script src="/templates/system/default/static/lib/pagination/jquery.pagination.js"></script>
+    <script type="text/javascript" language="javascript" src="/static/layer/layer.js"></script>
+    <link rel="stylesheet" href="/templates/system/default/static/css/tml_main.css">
+    <link rel="stylesheet" href="/templates/system/default/static/css/tml_main_new.css">
+    <link rel="stylesheet" href="/templates/system/default/static/css/idangerous.swiper2.7.6.css">
+    <script src="/templates/system/default/static/js/idangerous.swiper2.7.6.js"></script>
+    <script src="/static/js/jquery.qrcode.min.js"></script>
+    <script src="/static/superSlider/jquery.SuperSlide.2.1.3.js"></script>
+    <style>
+        .layui-layer-btn .layui-layer-btn0 {
+            border-color: #043b72;
+            background-color: #043b72;
+            color: #fff;
+        }
+    </style>
+</head>
+<style>
+    .header a.login, .header a.user, .header a.SignOut {
+        color: #3980c6;
+    }
+
+    .header a.login:hover, .header a.user:hover, .header a.SignOut:hover {
+        color: #f00;
+    }
+.tml_header{
+
+   margin-bottom:0!important;
+}
+    .tml_header .header_top .top_left ul{
+        height:initial !important;
+    }
+</style>
+<body>
+<div class="tml_header" >
+    <div class="tml_header_new tml_headerB">
+        <div class="txt container">沈阳农业大学创新创业教育智能管控一体化平台</div>
+        <div class="top_right">
+            <script type="text/javascript" src="/static/js/ucssoclient.js?v=20190314"></script>  
+                    <style>
+                        .Warning {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            
+                            
+                        }
+                        .Warning span {
+                            background:url(/static/img/icon-warning.png) no-repeat;
+                            background-position:left 1px;
+                            padding-left:20px;
+                        }
+                        .Success {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            display:none;
+                        }
+                        .Success span {
+                            background:url(/static/img/icon-success.png) no-repeat;
+                            background-position:left 3px;
+                            padding-left:20px;
+                        }
+
+                        .TipInfo {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            display: none;
+                        }
+
+                        .TipInfo span {
+                            padding-left:20px;
+                        }
+                        .change_role_student_old_img{
+                            background:url(/static/changerole/img/page_old_btn_change_character_white.png) no-repeat;
+                            width: 14px;
+                            height: 14px;
+                            display: inline-block;
+                            margin-right: 5px;
+                            vertical-align: middle;
+                            margin-top: -2px;                 
+                        }
+                        .change_role_student_old:hover .change_role_student_old_img{
+                            background:url(/static/changerole/img/page_old_btn_change_character_yellow.png) no-repeat;
+                        }
+                    </style>
+                    <div class="Warning" style="display: none;">
+                        <span></span>
+                    </div>
+                    <div class="Success" style="display: none;z-index: 1000;">
+                        <span></span>
+                    </div>
+
+                    <div class="TipInfo" style="display: none;z-index: 1000;">
+                        <span></span>
+                    </div>
+                    <script>
+                      $(document).ready(function(){
+                        var outval = true;
+                        $(".SignOut").click(function () {
+                            if (outval) {
+                                outval=false;
+                                $(".Warning span").html("退出中...");
+                                $(".Warning").fadeIn(300);window.location.href = '/ucenter/index/signout';
+                                   return false;YC.ssoLoginOut(success,fail,error);
+                            } else{
+                                warning("请不要重复点击");
+                            }
+                        });
+                        function success () {
+                            setTimeout(function(){
+                                warning("退出登录成功");
+                                window.location.href="http://cxcy.syau.edu.cn";
+                            },5000);
+                        }
+                        function fail (data) {
+                            warning(data.message);
+                        }
+                        function error (data) {
+                            warning("退出登录失败");
+                        }
+                        //验证帐号信息
+                        function warning(msg){
+                            $(".Warning span").html(msg);
+                            $(".Warning").fadeIn(300).delay(3000).fadeOut(300);
+
+                        }
+                      });
+                        
+                    </script>
+                    <script type="text/javascript">
+                    //验证帐号信息
+                    function alertWarning(msg) {
+                        $(".Success").hide();
+                        $(".TipInfo").hide();
+                        $(".Warning span").html(msg);
+                        $(".Warning").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                    function alertSuccess(msg) {
+                        $(".Warning").hide();
+                        $(".TipInfo").hide();
+                        $(".Success span").html(msg);
+                        $(".Success").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                    function alertTipInfo(msg) {
+                        $(".Warning").hide();
+                        $(".Success").hide();
+                        $(".TipInfo span").html(msg);
+                        $(".TipInfo").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                </script>        </div>
+    </div>
+    <div class="tml_header_nav">
+        <div class="container">
+            <div class="logo" style="padding-top: 28px;">
+                <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn"><img style="" src="/static/uploads/site/20260724091656_2576.png"></a>
+            </div>
+            <div class="nav_list">
+                    <ul class="clearfix">
+                                                                            <li id="item1"  >
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/">首页</a>
+                                                                                            </li>
+                                                    <li id="item2"  class="this">
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/comp/front/comp/list">比赛信息</a>
+                                                                                            </li>
+                                                    <li id="item3"  >
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/dcplan/front/dcplan/list">大创项目</a>
+                                                                                            </li>
+                                                    <li id="item4"  >
+                                                                    <a rel="noopener noreferrer" href="https://job.syau.edu.cn/info/1025/3856.htm">建赛流程指导视频教程</a>
+                                                                                            </li>
+                                                    <li id="item5"  >
+                                                                    <a rel="noopener noreferrer" href="/ucenter/index/reg">跨校人员注册</a>
+                                                                                            </li>
+                                            </ul>
+                </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(".tml_header").slide({mainCell:".header_top ul",autoPage:true,effect:"topLoop",autoPlay:true,delayTime:1000});
+</script>
+
+                    <script src="/static/qrcodejs/qrcode.min.js"></script>
+<link rel="stylesheet" href="/static/comboselect/combo.select.css">
+<script src="/static/comboselect/jquery.combo.select.js"></script>
+<style>
+    .competition_list h2 .state{
+        width: 52px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #fff;
+        line-height: 20px;
+        text-align: center;
+        /*float: left;*/
+        margin-right: 6px;
+        border-radius: 1px;
+        display: inline-block;
+    }
+    .competition_list h2 .underway{
+        background: #f42727;
+    }
+    .competition_list h2 .finished{
+        background: #bdc1c6;
+    }
+    .competition_list h2 .not_begun{
+        background: #00ba88;
+    }
+</style>
+<div class="tml_banner bannerB">
+    <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+    <div class="second_menu container">
+        <div class="title">
+            <div class="zh">科技竞赛</div>
+            <div class="en"></div>
+            <div class="line"></div>
+        </div>
+        <div class="menu_item clearfix">
+            <a class="this" href="../comp/list">科技竞赛</a>
+            <a href="../comp/articlelist?cid=12">科技竞赛成果公示</a>
+        </div>
+    </div>
+</div>
+<div class="tml_body">
+    <div class="title container clearfix">
+        <div class="left">
+            <div class="zh">科技竞赛</div>
+            <div class="en"></div>
+            <div class="line"></div>
+        </div>
+        <div class="right">
+            <div style="display: inline-block;float: left;margin-right: 30px;">
+                <form action="list" method="get" id="doublesearchform">
+                    <div class="select comboSel">
+                        <select name="status" placeholder="按比赛状态搜索" id="">
+                            <option value="">按比赛状态搜索</option>
+                            <option value="1"  >进行中</option>
+                            <option value="2" >已结束</option>
+                            <option value="3"  >未开始</option>
+                        </select>
+                    </div>
+                    <div class="select comboSel">
+                        <select name="level" placeholder="按级别搜索" id="">
+                            <option value="">按级别搜索</option>
+                                                            <option value="1"  >校级</option>
+                                                            <option value="2"  >市级</option>
+                                                            <option value="3"  >省级</option>
+                                                            <option value="4"  >国家级</option>
+                                                    </select>
+                    </div>
+
+                    <input type="text" name="title" value="" placeholder="请输入竞赛名称" style="width: 300px;">
+                    <a type="button" id="double_search_btn" style="padding: 0 10px;
+    line-height: 32px;border-radius: 5px;float:right;border: none;width:50px;
+    color: #fff;cursor:pointer;
+    font-size: 14px;text-align: center;
+    background-color: #055bdc;">搜索</a>
+                </form>
+            </div>
+            <script>
+                $(document).ready(function(){
+                    $('#double_search_btn').on('click',function(){
+                        $('#doublesearchform').submit();
+                    });
+                });
+                $('.comboSel select').comboSelect();
+            </script>
+            <span><span class="icon position_icon"></span>当前位置：</span>
+            <a href="/">首页</a>
+            <span>. 科技竞赛</span>
+        </div>
+    </div>
+    <div class="body_box container clearfix">
+        <div class="competition_list">
+                        <ul>
+                                <li class="clearfix">
+                    <div class="left">
+                        <img src="/static/uploads/res/comp/202605/17784952383729.png" alt="沈阳农业大学第六届大学生智慧农业创新创业大赛暨2026年辽宁省大学生智慧农业创新创业大赛校园选拔赛">
+                    </div>
+                    <div class="center">
+                        <h2 class="clearfix" >
+                                                            <span class="state finished">已结束</span>
+                                                                                        <a href="../comp/info?id=1416" target="_blank" title="沈阳农业大学第六届大学生智慧农业创新创业大赛暨2026年辽宁省大学生智慧农业创新创业大赛校园选拔赛">沈阳农业大学第六届大学生智慧农业创新创业大赛暨2026年辽宁省大学生智慧农业创新创业大赛校园选拔赛</a>
+                                                    </h2>
+                        <div class="txt">
+	  
+
+
+	关于举办沈阳农业大学第六届大学生智慧农业创新创业大赛暨2026年辽宁省大学生智慧农业创新创业大赛校园选拔赛的通</div>
+                        <div class="msg"><span class="icon time_icon"></span>报名时间：2026.05.11至2026.05.26</div>
+                        <div class="msg"><span class="icon people_icon"></span>主办方：辽宁省教育厅</div>
+                    </div>
+                    <div class="right">
+                        <div class="qrcode" data-url="http://cxcy.syau.edu.cn/comp/mobile/comp/info?id=1416"></div>
+                    </div>
+                </li>
+                                <li class="clearfix">
+                    <div class="left">
+                        <img src="/static/uploads/res/comp202204/16500062301522.png" alt="中国国际大学生创新大赛（2026）沈阳农业大学校园选拔赛">
+                    </div>
+                    <div class="center">
+                        <h2 class="clearfix" >
+                                                            <span class="state finished">已结束</span>
+                                                                                        <a href="../comp/info?id=1363" target="_blank" title="中国国际大学生创新大赛（2026）沈阳农业大学校园选拔赛">中国国际大学生创新大赛（2026）沈阳农业大学校园选拔赛</a>
+                                                    </h2>
+                        <div class="txt">  
+
+	
+
+
+	
+
+
+	
+
+
+	全校各单位、全体师生及校友：
+
+
+	中国国际大学生创新大赛是由教育部联合</div>
+                        <div class="msg"><span class="icon time_icon"></span>报名时间：2026.03.06至2026.04.30</div>
+                        <div class="msg"><span class="icon people_icon"></span>主办方：学生创新创业与就业指导处</div>
+                    </div>
+                    <div class="right">
+                        <div class="qrcode" data-url="http://cxcy.syau.edu.cn/comp/mobile/comp/info?id=1363"></div>
+                    </div>
+                </li>
+                                <li class="clearfix">
+                    <div class="left">
+                        <img src="/static/uploads/res/comp202212/16704799435868.png" alt="沈阳农业大学第五届“挑战杯”大学生课外学术科技作品竞赛">
+                    </div>
+                    <div class="center">
+                        <h2 class="clearfix" >
+                                                            <span class="state finished">已结束</span>
+                                                                                        <a href="../comp/info?id=221" target="_blank" title="沈阳农业大学第五届“挑战杯”大学生课外学术科技作品竞赛">沈阳农业大学第五届“挑战杯”大学生课外学术科技作品竞赛</a>
+                                                    </h2>
+                        <div class="txt">
+	一、参赛对象
+
+
+	2023年7月1日以前在我校正式注册的全日制本科生、研究生。
+
+
+	二、竞赛内容
+
+
+	距</div>
+                        <div class="msg"><span class="icon time_icon"></span>报名时间：2022.12.09至2023.02.19</div>
+                        <div class="msg"><span class="icon people_icon"></span>主办方：校团委 创新创业学院</div>
+                    </div>
+                    <div class="right">
+                        <div class="qrcode" data-url="http://cxcy.syau.edu.cn/comp/mobile/comp/info?id=221"></div>
+                    </div>
+                </li>
+                                <li class="clearfix">
+                    <div class="left">
+                        <img src="/static/uploads/res/comp202209/16629540035148.png" alt="第二届“第嘉杯”辽宁省普通高等学校大学生中华优秀传统文化创新设计大赛竞赛">
+                    </div>
+                    <div class="center">
+                        <h2 class="clearfix" >
+                                                            <span class="state finished">已结束</span>
+                                                                                        <a href="../comp/info?id=105" target="_blank" title="第二届“第嘉杯”辽宁省普通高等学校大学生中华优秀传统文化创新设计大赛竞赛">第二届“第嘉杯”辽宁省普通高等学校大学生中华优秀传统文化创新设计大赛竞赛</a>
+                                                    </h2>
+                        <div class="txt">辽宁省大学生创新创业管理共享平台
+
+	https://cxcy.upln.cn/competitionDetails?id=13e</div>
+                        <div class="msg"><span class="icon time_icon"></span>报名时间：2022.09.12至2022.09.30</div>
+                        <div class="msg"><span class="icon people_icon"></span>主办方：辽宁省教育厅</div>
+                    </div>
+                    <div class="right">
+                        <div class="qrcode" data-url="http://cxcy.syau.edu.cn/comp/mobile/comp/info?id=105"></div>
+                    </div>
+                </li>
+                                <li class="clearfix">
+                    <div class="left">
+                        <img src="/static/uploads/res/comp/202610/17931733825705.png" alt="第四届中国研究生“美丽中国”创新设计大赛">
+                    </div>
+                    <div class="center">
+                        <h2 class="clearfix" >
+                                                            <span class="state finished">已结束</span>
+                                                                                        <a href="../comp/info?id=1578" target="_blank" title="第四届中国研究生“美丽中国”创新设计大赛">第四届中国研究生“美丽中国”创新设计大赛</a>
+                                                    </h2>
+                        <div class="txt">
+	各研究生培养单位、各参赛团队：
+
+
+	第四届中国研究生“美丽中国”创新设计大赛共提交有效作品8480件，初赛阶段评审工作已</div>
+                        <div class="msg"><span class="icon time_icon"></span>报名时间：2026.06.20至2026.11.11</div>
+                        <div class="msg"><span class="icon people_icon"></span>主办方：中国学位与研究生教育协会、</div>
+                    </div>
+                    <div class="right">
+                        <div class="qrcode" data-url="http://cxcy.syau.edu.cn/comp/mobile/comp/info?id=1578"></div>
+                    </div>
+                </li>
+                                <li class="clearfix">
+                    <div class="left">
+                        <img src="/static/uploads/res/comp/202610/17932447575593.png" alt="沈阳农业大学第四届标本绘图比赛">
+                    </div>
+                    <div class="center">
+                        <h2 class="clearfix" >
+                                                            <span class="state finished">已结束</span>
+                                                                                        <a href="../comp/info?id=1581" target="_blank" title="沈阳农业大学第四届标本绘图比赛">沈阳农业大学第四届标本绘图比赛</a>
+                                                    </h2>
+                        <div class="txt">
+	报名时请提交参赛承诺书 
+
+
+	各教学单位、学生班级： 
+
+
+	  
+
+
+	根据沈阳农业大学2026年度大学生</div>
+                        <div class="msg"><span class="icon time_icon"></span>报名时间：2026.11.02至2026.11.10</div>
+                        <div class="msg"><span class="icon people_icon"></span>主办方：沈阳农业大学</div>
+                    </div>
+                    <div class="right">
+                        <div class="qrcode" data-url="http://cxcy.syau.edu.cn/comp/mobile/comp/info?id=1581"></div>
+                    </div>
+                </li>
+                                <li class="clearfix">
+                    <div class="left">
+                        <img src="/static/uploads/res/comp/202610/17917850395429.png" alt="2027年第十五届全国高校商业精英挑战赛品牌策划竞赛校级选拔赛">
+                    </div>
+                    <div class="center">
+                        <h2 class="clearfix" >
+                                                            <span class="state finished">已结束</span>
+                                                                                        <a href="../comp/info?id=1558" target="_blank" title="2027年第十五届全国高校商业精英挑战赛品牌策划竞赛校级选拔赛">2027年第十五届全国高校商业精英挑战赛品牌策划竞赛校级选拔赛</a>
+                                                    </h2>
+                        <div class="txt">报名需提交参赛承诺书
+
+一、组织机构
+
+主办单位：中国贸促会商业行业委员会、中国国际商会商业行业商会、中国商业文化研究会、中国</div>
+                        <div class="msg"><span class="icon time_icon"></span>报名时间：2026.10.12至2026.11.10</div>
+                        <div class="msg"><span class="icon people_icon"></span>主办方：中国贸促会商业行业委员会、中国国际商会商业行业商会、中国商业文化研究会</div>
+                    </div>
+                    <div class="right">
+                        <div class="qrcode" data-url="http://cxcy.syau.edu.cn/comp/mobile/comp/info?id=1558"></div>
+                    </div>
+                </li>
+                
+            </ul>
+                    </div>
+    </div>
+    <div class="page container">
+
+    </div>
+</div>
+<script>
+
+    $('.page').pagination({
+        totalData: '993',
+        showData: '7',
+        prevContent: '上一页', //上一页内容
+        nextContent: '下一页',
+        coping: true,
+        keepShowPN: true,
+        activeCls: 'this',
+        hasLi : true,
+        isHide : true,
+        prevCls: 'pre', //上一页class
+        nextCls: 'next',
+        // toolbtn : '.page',
+        current : '3',
+        callback: function (api) {
+            window.location.href='../comp/list?page='+api.getCurrent()+'&'+$('#doublesearchform').serialize();
+        }
+    });
+    $('.qrcode').each(function(){
+        var _this = $(this);
+        var qrcode = new QRCode(_this.get(0), {
+            text: _this.data('url'),
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    });
+</script>                
+
+<!-- 底部 开始 -->
+<div class="tml_footer_bg">
+    <div class="tml_footer container">
+        <div class="footer_bottom">
+            <div class="copyright" style="text-align: center">
+                <span>   <a rel="noopener noreferrer" style="color: #ffffff;" href="http://www.syau.edu.cn/#" target="_blank">辽ICP备18018285号-1</a></span><br>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 底部 结束 -->
+<script>
+    var listBodyheight = $(".list_body").height() - 80;
+    console.log(listBodyheight);
+    $(".nav_list").css({
+        "height": listBodyheight
+    })
+</script>
+</body>
+</html>
+    <script >
+
+    //滚动通知公告
+    // (function ($) {
+    //     $.fn.extend({
+    //         "slideW": function (value) {
+    //             var docthis = this;
+    //             //默认参数
+    //             value = $.extend({
+    //                 "li_h": "39",
+    //                 "time": 2000,
+    //                 "movetime": 1000,
+    //                 "yuansu": 1
+    //             }, value);
+    //
+    //             //向上滑动动画
+    //             function autoani() {
+    //                 $("li:lt(" + value.yuansu + ")", docthis).animate({"margin-top": -value.li_h}, value.movetime, function () {
+    //                     $(this).css("margin-top", 0).appendTo(".notice_link");
+    //                 })
+    //             }
+    //
+    //             //自动间隔时间向上滑动
+    //             var anifun = setInterval(autoani, value.time);
+    //             //悬停时停止滑动，离开时继续执行
+    //             $(docthis).children("li").hover(function () {
+    //                 clearInterval(anifun);			//清除自动滑动动画
+    //             }, function () {
+    //                 anifun = setInterval(autoani, value.time);	//继续执行动画
+    //             })
+    //         }
+    //     })
+    // })(jQuery);
+    // //执行通知动画
+    // $(".notice_link").slideW();
+    //$(".tml_header").slide({mainCell:".header_top ul",autoPage:true,effect:"topLoop",autoPlay:true,delayTime:1000});
+
+
+    $('.nav li').on('click', function (e) {
+        e.stopPropagation();
+        if ($(this).find('.down_box').css('display') == 'none') {
+            $(this).find('.down_box').slideDown(200);
+            $(this).siblings('li').find('.down_box').slideUp(200);
+        } else {
+            $(this).find('.down_box').slideUp(200);
+        }
+    });
+    $(document).on('click', function () {
+        $('.nav li').find('.down_box').hide()
+    })
+
+
+    $(function(){
+        function footerPosition(){
+            $(".tml_footer_bg").removeClass("fixed-bottom");
+            var contentHeight = document.body.scrollHeight,//网页正文全文高度
+                winHeight = window.innerHeight;//可视窗口高度，不包括浏览器顶部工具栏
+            console.log(contentHeight,winHeight)
+            if(contentHeight >= winHeight){
+                $(".tml_footer_bg").removeClass("fixed-bottom");
+            } else {
+                //当网页正文高度小于可视窗口高度时，为footer添加类fixed-bottom
+                $(".tml_footer_bg").addClass("fixed-bottom");
+
+            }
+        }
+        footerPosition();
+        $(window).resize(footerPosition);
+    });
+    if($('.tml_header').siblings('.tml_banner').length==''){
+        $('.tml_header').css({
+            'background': '#043b72',
+            'height':'150px',
+            'position':'unset',
+            'margin-bottom':'30px',
+        })
+    }
+    $(function () {
+        var winWidth=$(window).width();
+
+        var liwid=$('.nav li a');
+        if(winWidth<1300){
+            liwid.css({
+                'padding-left':'10px',
+                'padding-right':'10px',
+            })
+        }else if(winWidth<1400){
+            liwid.css({
+                'padding-left':'15px',
+                'padding-right':'15px',
+            })
+        }else if(winWidth<1500){
+            liwid.css({
+                'padding-left':'20px',
+                'padding-right':'20px',
+            })
+        }
+    })
+</script>

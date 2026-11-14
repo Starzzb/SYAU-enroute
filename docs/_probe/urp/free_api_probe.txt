@@ -1,0 +1,19 @@
+### campus  /student/teachingResources/freeClassroom/queryCodeCampusList
+HTTP 200  len=270
+[{"campusName":"海城基地","campusNumber":"005","remark":""},{"campusName":"熊岳校区","campusNumber":"006","remark":""},{"campusName":"主校","campusNumber":"001","remark":""},{"campusName":"路南","campusNumber":"2","remark":""},{"campusName":"研究生部","campusNumber":"004","remark":""}]
+
+### buildings  /student/teachingResources/freeClassroom/queryCodeTeaBuildingList?&xqh=001
+HTTP 200  len=3388
+[{"id":{"campusNumber":"001","teachingBuildingNumber":"ZZZYZX"},"remark":"","teachingBuildingName":"种质资源中心"},{"id":{"campusNumber":"001","teachingBuildingNumber":"食品创新"},"remark":"","teachingBuildingName":"食品创新实践基地"},{"id":{"campusNumber":"001","teachingBuildingNumber":"28"},"remark":"","teachingBuildingName":"线上教室"},{"id":{"campusNumber":"001","teachingBuildingNumber":"333"},"remark":"","teachingBuildingName":"线上考场"},{"id":{"campusNumber":"001","teachingBuildingNumber":"1"},"remark":"","teachingBuildingName":"第一教学楼"},{"id":{"campusNumber":"001","teachingBuildingNumber":"2"},"remark":"","teachingBuildingName":"第二教学楼"},{"id":{"campusNumber":"001","teachingBuildingNumber":"22"},"remark":"","te
+
+### today_s11  /student/teachingResources/freeClassroom/today/11?dayplus=0
+HTTP 200  len=3958
+{"spareroomObjList":[{"acmcBuilding":"2","acmcBuildingName":"第二教学楼","claroom":[{"classNumberOfSeats":"72","classroom":"719","szlc":"7"},{"classNumberOfSeats":"1","classroom":"713","szlc":"7"},{"classNumberOfSeats":"30","classroom":"712","szlc":"7"},{"classNumberOfSeats":"48","classroom":"711","szlc":"7"},{"classNumberOfSeats":"30","classroom":"710","szlc":"7"},{"classNumberOfSeats":"30","classroom":"708","szlc":"7"},{"classNumberOfSeats":"28","classroom":"707","szlc":"7"},{"classNumberOfSeats":"30","classroom":"706","szlc":"7"},{"classNumberOfSeats":"97","classroom":"619","szlc":"6"},{"classNumberOfSeats":"64","classroom":"616","szlc":"6"},{"classNumberOfSeats":"71","classroom":"614","szlc":
+
+### today_s3  /student/teachingResources/freeClassroom/today/3?dayplus=0
+HTTP 200  len=496
+{"spareroomObjList":[{"acmcBuilding":"2","acmcBuildingName":"第二教学楼","claroom":[{"classNumberOfSeats":"72","classroom":"719","szlc":"7"},{"classNumberOfSeats":"1","classroom":"713","szlc":"7"},{"classNumberOfSeats":"30","classroom":"712","szlc":"7"},{"classNumberOfSeats":"28","classroom":"707","szlc":"7"},{"classNumberOfSeats":"30","classroom":"706","szlc":"7"},{"classNumberOfSeats":"162","classroom":"501","szlc":"5"},{"classNumberOfSeats":"162","classroom":"207","szlc":"2"}]}],"curxqm":"主校"}
+
+### tomorrow_s3  /student/teachingResources/freeClassroom/today/3?dayplus=1
+HTTP 200  len=3669
+{"spareroomObjList":[{"acmcBuilding":"2","acmcBuildingName":"第二教学楼","claroom":[{"classNumberOfSeats":"72","classroom":"719","szlc":"7"},{"classNumberOfSeats":"1","classroom":"713","szlc":"7"},{"classNumberOfSeats":"48","classroom":"711","szlc":"7"},{"classNumberOfSeats":"30","classroom":"710","szlc":"7"},{"classNumberOfSeats":"30","classroom":"708","szlc":"7"},{"classNumberOfSeats":"28","classroom":"707","szlc":"7"},{"classNumberOfSeats":"30","classroom":"706","szlc":"7"},{"classNumberOfSeats":"97","classroom":"619","szlc":"6"},{"classNumberOfSeats":"64","classroom":"616","szlc":"6"},{"classNumberOfSeats":"71","classroom":"614","szlc":"6"},{"classNumberOfSeats":"74","classroom":"613","szlc":

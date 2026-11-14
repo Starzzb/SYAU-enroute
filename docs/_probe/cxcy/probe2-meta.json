@@ -1,0 +1,16 @@
+﻿[
+    {
+        "url":  "http://cxcy.syau.edu.cn/comp/front/comp/articlelist?cid=12",
+        "error":  "",
+        "name":  "cxcy_articlelist_v2",
+        "bytes":  21050,
+        "status":  200
+    },
+    {
+        "url":  "http://cxcy.syau.edu.cn/comp/front/comp/list?page=3",
+        "error":  "",
+        "name":  "cxcy_comp_list_p3",
+        "bytes":  31446,
+        "status":  200
+    }
+]

@@ -1,0 +1,67 @@
+====================================================================================================
+col_marx_szll 10627
+-- href 全量样本(href=...)  (6 shown)
+    href="../style/style.css"
+    href="../_sitegray/_sitegray_d.css"
+    href="../dpzw.vsb.css"
+    href="../index.htm"
+    href="../xygk/xyjj.htm"
+    href="../xygk/xyjj.htm"
+-- 表单/检索  (1 shown)
+    <form action="../search.jsp?wbtreeid=1117" method="post" id="au0a" name="au0a" onsubmit="return _nl_ys_check()">
+-- js/ajax  (0 shown)
+-- 分页  (0 shown)
+-- iframe  (0 shown)
+
+====================================================================================================
+col_wyb_szdw 13354
+-- href 全量样本(href=...)  (6 shown)
+    href="css/style.css"
+    href="_sitegray/_sitegray_d.css"
+    href="list.vsb.css"
+    href="index.htm"
+    href="http://www.syau.edu.cn"
+    href="index.htm"
+-- 表单/检索  (2 shown)
+    <form action="ssjg.jsp?wbtreeid=1039" method="post" id="au2a" name="au2a" onsubmit="return _nl_ys_check_2()">
+    <form action="ssjg.jsp?wbtreeid=1039" method="post" id="au8a" name="au8a" onsubmit="return _nl_ys_check()" style="display: inline">
+-- js/ajax  (0 shown)
+-- 分页  (0 shown)
+-- iframe  (0 shown)
+
+====================================================================================================
+col_yyxy_szdw 36250
+-- href 全量样本(href=...)  (6 shown)
+    href="../dfiles/12984/templates/style/css.css"
+    href="../dfiles/12984/css/style.css"
+    href="../dfiles/12984/templates/default/style/webstyle.css"
+    href="../_sitegray/_sitegray_d.css"
+    href="../jjy.vsb.css"
+    href="../index.htm"
+-- 表单/检索  (1 shown)
+    <form action="../search.jsp?wbtreeid=1016" method="post" id="au2a" name="au2a" onsubmit="return _nl_ys_check()" style="display: inline">
+-- js/ajax  (0 shown)
+-- 分页  (0 shown)
+-- iframe  (0 shown)
+
+====================================================================================================
+col_tyb_jsdw 19697
+-- href 全量样本(href=...)  (6 shown)
+    href="../css/style.css"
+    href="../css/publice.css"
+    href="../_sitegray/_sitegray_d.css"
+    href="../szdwlbx.vsb.css"
+    href="../index.htm"
+    href="http://www.syau.edu.cn"
+-- 表单/检索  (2 shown)
+    <form action="../search.jsp?wbtreeid=1019" method="post" id="au2a" name="au2a" onsubmit="return _nl_ys_check_2()">
+    <form action="../search.jsp?wbtreeid=1019" method="post" id="au8a" name="au8a" onsubmit="return _nl_ys_check()" style="display: inline">
+-- js/ajax  (0 shown)
+-- 分页  (5 shown)
+    gotopage.js"
+    gopage_fun(){_simple_list_gotopage_fun(3,'a1070205GOPAGE',2)}</script
+    fanye1070205"
+    gotopagebut" name="a1070205Find" value="转到" onclick="javascript:a1070205_gopage_fun()"
+    GOPAGE" id="a1070205GOPAGE" VALUE="" style="margin-left:1px;margin-right:1px"
+-- iframe  (0 shown)
+

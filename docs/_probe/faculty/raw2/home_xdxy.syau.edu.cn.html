@@ -1,0 +1,565 @@
+﻿ï»¿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢</title><META Name="keywords" Content="ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢" />
+
+
+<meta name="Description" content="ç½ç«æ ¹ç®å½" />
+<link rel="stylesheet" type="text/css" href="dfiles/12941/_wsp_tpl/global.css" />
+<link rel="stylesheet" type="text/css" href="dfiles/12941/_wsp_tpl/cover.css" />
+<link rel="stylesheet" type="text/css" href="style/banner.css" />
+    <style>
+
+#canvas{
+    width:100%;
+    height:330px;
+    overflow: hidden;
+    top:0;
+    left:0;
+    background-color:#5290F5;}
+.canvas-wrap{
+    position:relative;}
+div.canvas-content{
+    position:relative;
+    z-index:2000;
+    color:#fff;
+    text-align:center;
+    padding-top:30px;}
+
+    </style>
+<link type="text/css" rel="stylesheet" href="dfiles/12941/_wsp_tpl/responsive.css" media="screen and (max-width:768px)" />
+<script type="text/javascript" src="dfiles/12941/_wsp_tpl/js/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="dfiles/12941/_wsp_tpl/js/jquery.wsp.js"></script>
+<script type="text/javascript" src="dfiles/12941/_wsp_tpl/js/common.js"></script>
+<script type="text/javascript" src="dfiles/12941/_wsp_tpl/js/index.js"></script>
+<script type="text/javascript" src="dfiles/12941/_wsp_tpl/js/bigpicroll.js"></script>
+<script type="text/javascript" src="dfiles/12941/_wsp_tpl/js/responsive.js"></script>
+
+<!--[if IE 6]>
+    <script type="text/javascript" src="dfiles/12941/js/dd_belatedpng.js"></script>
+    <![endif]-->
+    <script>
+$(document).ready(function(){  
+    var i = 3800;  
+    function a(){  
+            --i || (i = 3800); 
+            //++i || (i = 3000);
+            try{
+            $("#float").css("background-position",i);  
+            }catch(e){}
+        }  
+        setInterval(a,50);  
+});   
+</script>
+
+<link rel="stylesheet" type="text/css" href="_sitegray/_sitegray_d.css" />
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:7765626265723230797347545353554a03090203 -->
+<link rel="stylesheet" type="text/css" href="index.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1004,'/index.jsp',-1,1575651257)</script>
+</head>
+
+<body>
+<!--é¡¶é¨å°å¥S-->
+<div id="wrapT">
+<div id="toptool">
+<script language="javascript">
+function dosuba205193a()
+{
+    try{
+        var ua = navigator.userAgent.toLowerCase();
+        if(ua.indexOf("msie 8")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE8
+        }else if(ua.toLowerCase().indexOf("rv:")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE11+
+        }else{
+            if (document.all) 
+            {
+                window.external.addFavorite(document.location.href, document.title);
+            }else if(window.sidebar)
+            {
+                window.sidebar.addPanel( document.title, document.location.href, "");//firefox
+            }
+            else
+            {
+                alert(hotKeysa205193a());
+            }
+        }
+
+    }
+    catch (e){alert("æ æ³èªå¨æ·»å å°æ¶èå¤¹ï¼è¯·ä½¿ç¨ Ctrl + d æå¨æ·»å ");}
+}
+function hotKeysa205193a() 
+{
+    var ua = navigator.userAgent.toLowerCase(); 
+    var str = "";    
+    var isWebkit = (ua.indexOf('webkit') != - 1); 
+    var isMac = (ua.indexOf('mac') != - 1);     
+    if (ua.indexOf('konqueror') != - 1) 
+    {  
+        str = 'CTRL + B'; // Konqueror   
+    } 
+    else if (window.home || isWebkit || isMac) 
+    {        
+        str = (isMac ? 'Command/Cmd' : 'CTRL') + ' + D'; // Netscape, Safari, iCab, IE5/Mac   
+    }
+    return ((str) ? 'æ æ³èªå¨æ·»å å°æ¶èå¤¹ï¼è¯·ä½¿ç¨' + str + 'æå¨æ·»å ' : str);
+}
+function setHomepagea205193a()
+{
+    var url = document.location.href;
+    if (document.all)
+    {
+        document.body.style.behavior='url(#default#homepage)';
+        document.body.setHomePage(url);
+    }
+    else if (window.sidebar)
+    {
+        if(window.netscape)
+        {
+             try{
+                  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+             }catch (e){
+                   alert("è¯¥æä½è¢«æµè§å¨æç»ï¼å¦ææ³å¯ç¨è¯¥åè½ï¼è¯·å¨å°åæ åè¾å¥ about:config,ç¶åå°é¡¹ signed.applets.codebase_principal_support å¼è¯¥ä¸ºtrue");
+             }
+        }
+    var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components. interfaces.nsIPrefBranch);
+    prefs.setCharPref('browser.startup.homepage',url);
+    }
+    else
+    {
+        alert("æµè§å¨ä¸æ¯æèªå¨è®¾ä¸ºé¦é¡µï¼è¯·æå¨è®¾ç½®");
+    }
+}
+</script>
+
+            <A href="javascript:setHomepagea205193a()" style="TEXT-DECORATION: none;">
+               
+            </A>
+       <li><a href="https://xdxy.syau.edu.cn/xygk/xzbg.htm" )}">èç³»æä»¬</a></li> 
+           <li> <A href="https://www.syau.edu.cn/" style="TEXT-DECORATION: none;">
+               å­¦æ ¡é¦é¡µ            </A></li>
+</div>
+<div id="header">
+<span class="sj-logo">
+<!-- ç½ç«logoå¾çå°åè¯·å¨æ¬ç»ä»¶"åå®¹éç½®-ç½ç«logo"å¤å¡«å -->
+<img src="dfiles/12941/_wsp_tpl/images/sj-logo.jpg" width="100%" height="100%" /></span>
+<div class="boxso"><script type="text/javascript">
+    function _nl_ys_check(){
+        
+        var keyword = document.getElementById('showkeycode205194').value;
+        if(keyword==null||keyword==""){
+            alert("è¯·è¾å¥ä½ è¦æ£ç´¢çåå®¹ï¼");
+            return false;
+        }
+        if(window.toFF==1)
+        {
+            document.getElementById("lucenenewssearchkey205194").value = Simplized(keyword );
+        }else
+        {
+            document.getElementById("lucenenewssearchkey205194").value = keyword;            
+        }
+        var  base64 = new Base64();
+        document.getElementById("lucenenewssearchkey205194").value = base64.encode(document.getElementById("lucenenewssearchkey205194").value);
+        new VsbFormFunc().disableAutoEnable(document.getElementById("showkeycode205194"));
+        return true;
+    } 
+</script>
+<form action="ssjg.jsp?wbtreeid=1004" method="post" id="au2a" name="au2a" onsubmit="return _nl_ys_check()" style="display: inline;text-align:left;height:32px;padding:6px 0;">
+ <input type="hidden" id="lucenenewssearchkey205194" name="lucenenewssearchkey" value=""><input type="hidden" id="_lucenesearchtype205194" name="_lucenesearchtype" value="1"><input type="hidden" id="searchScope205194" name="searchScope" value="0">
+<input name="showkeycode" id="showkeycode205194" type="text" size="20" value="" placeholder="è¯·è¾å¥å³é®å­" style="width: 200px;height: 30px;border: 1px solid #CCC;padding: 0px;margin: 0px;text-indent: 32px;text-align: left;display: inline-block;vertical-align: middle;float: left;background-image: url(images/icoso.jpg);background-repeat: no-repeat;background-position: left center;">
+<input id="btnso" type="submit" value="æç´¢ä¿¡æ¯" name="btnso" style="text-align: center;color: #FFF;cursor: pointer;border: 0;width: 60px;height: 32px;line-height: 30px;margin-right: 2px;display: inline-block;vertical-align: middle;float: right;font-size: 12px;background-color:#2351AE;margin-top: 0;margin-bottom: 0;margin-left: 0;">
+</form><script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/formfunc.js"></script>
+</div>
+</div>
+    <div id="nav"><dl class="navbtns clearfix">
+
+<dd><a href="index.htm">ç½ç«é¦é¡µ</a>
+</dd>
+
+
+<dd><a href="xygk.htm">å­¦é¢æ¦åµ</a>
+<ul class="subnav">
+<li><a href="xygk/xyjj.htm">å­¦é¢ç®ä»</a></li>
+<li><a href="xygk/xrld.htm">ç°ä»»é¢å¯¼</a></li>
+<li><a href="xygk/lsyg.htm">åå²æ²¿é©</a></li>
+<li><a href="xygk/xzbg.htm">è¡æ¿åå¬</a></li>
+<li><a href="xygk/tjsj.htm">ç»è®¡æ°æ®</a></li>
+<li><a href="xygk/xyzpq.htm">æ ¡åç§çå¢</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="szdw.htm">å¸èµéä¼</a>
+<ul class="subnav">
+<li><a href="szdw/zgzc.htm">æ­£é«èç§°</a></li>
+<li><a href="szdw/fgzc.htm">å¯é«èç§°</a></li>
+<li><a href="szdw/zjzc.htm">ä¸­çº§èç§°</a></li>
+<li><a href="szdw/rcch.htm">äººæç§°å·</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="xkjs.htm">å­¦ç§å»ºè®¾</a>
+<ul class="subnav">
+<li><a href="xkjs/xkdt.htm">å­¦ç§å¨æ</a></li>
+<li><a href="xkjs/xk_xwdjian_jie.htm">å­¦ç§&amp;å­¦ä½ç¹ç®ä»</a></li>
+<li><a href="xkjs/bssqxk.htm">åç¡ææå­¦ç§</a></li>
+<li><a href="xkjs/xkpt.htm">å­¦ç§å¹³å°</a></li>
+<li><a href="xkjs/xsjl.htm">å­¦æ¯äº¤æµ</a></li>
+<li><a href="xkjs/zlxz.htm">èµæä¸è½½</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="kxyj.htm">ç§å­¦ç ç©¶</a>
+<ul class="subnav">
+<li><a href="kxyj/kydt.htm">ç§ç å¨æ</a></li>
+<li><a href="kxyj/kytd.htm">ç§ç å¢é</a></li>
+<li><a href="kxyj/kyxm.htm">ç§ç é¡¹ç®</a></li>
+<li><a href="kxyj/kycg.htm">ç§ç ææ</a></li>
+<li><a href="kxyj/kyhdjj.htm">ç§ç æ´»å¨éé¦</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="bksjy.htm">æ¬ç§çæè²</a>
+<ul class="subnav">
+<li><a href="bksjy/jxdt.htm">æå­¦å¨æ</a></li>
+<li><a href="bksjy/jxzz.htm">æå­¦ç»ç»</a></li>
+<li><a href="bksjy/zyjs.htm">ä¸ä¸ä»ç»</a></li>
+<li><a href="bksjy/jxyj.htm">æå­¦ç ç©¶</a></li>
+<li><a href="bksjy/syjxjd.htm">å®éªæå­¦åºå°</a></li>
+<li><a href="bksjy/shpg_zyrz.htm">å®¡æ ¸è¯ä¼°&amp;ä¸ä¸è®¤è¯</a></li>
+<li><a href="bksjy/jxxxfk.htm">æå­¦ä¿¡æ¯åé¦</a></li>
+<li><a href="bksjy/gjhbx1.htm">å½éååå­¦</a></li>
+<li><a href="bksjy/zlxz.htm">èµæä¸è½½</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="yjspy.htm">ç ç©¶çå¹å»</a>
+<ul class="subnav">
+<li><a href="yjspy/pydt.htm">å¹å»å¨æ</a></li>
+<li><a href="yjspy/zsxx.htm">æçä¿¡æ¯</a></li>
+<li><a href="yjspy/dsml1.htm">å¯¼å¸åå½</a></li>
+<li><a href="yjspy/pyfa.htm">å¹å»æ¹æ¡</a></li>
+<li><a href="yjspy/yxyjs.htm">ä¼ç§ç ç©¶ç</a></li>
+<li><a href="yjspy/xgzc.htm">ç¸å³æ¿ç­</a></li>
+<li><a href="yjspy/zlxz.htm">èµæä¸è½½</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="xgdt.htm">å­¦å·¥å¨æ</a>
+</dd>
+
+
+<dd><a href="zsjy.htm">æçå°±ä¸</a>
+<ul class="subnav">
+<li><a href="zsjy/zsgz.htm">æçå·¥ä½</a></li>
+<li><a href="zsjy/jyqx.htm">å°±ä¸å»å</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="dqgz.htm">åç¾¤å·¥ä½</a>
+<ul class="subnav">
+<li><a href="dqgz/dqdt.htm">åç¾¤å¨æ</a></li>
+<li><a href="dqgz/zzjg.htm">ç»ç»æºæ</a></li>
+<li><a href="dqgz/gzzd.htm">è§ç« å¶åº¦</a></li>
+</ul>
+</dd>
+
+
+<dd><a href="cxsj.htm">åæ°å®è·µ</a>
+<ul class="subnav">
+<li><a href="cxsj/tzgogn_gao.htm">éç¥å¬å</a></li>
+<li><a href="cxsj/cxsjjs.htm">åæ°å®è·µç«èµ</a></li>
+<li><a href="cxsj/cxsxs.htm">åæ°å®è®­å®¤</a></li>
+<li><a href="cxsj/cgzs.htm">ææå±ç¤º</a></li>
+</ul>
+</dd>
+</dl><div class="clear"></div></div>
+<!--WSP3.0 @2015/7/10 6:31:49-->
+
+<div class="layout">
+    <div class="header">
+          <div class="header-wp">
+              <div class="nav">
+                  <ul>
+    <li class="selected"><a href="index.htm" title="ç½ç«é¦é¡µ">ç½ç«é¦é¡µ</a></li>
+
+    <li><a href="xygk.htm" title="å­¦é¢æ¦åµ">å­¦é¢æ¦åµ</a></li>
+
+    <li><a href="szdw.htm" title="å¸èµéä¼">å¸èµéä¼</a></li>
+
+    <li><a href="xkjs.htm" title="å­¦ç§å»ºè®¾">å­¦ç§å»ºè®¾</a></li>
+
+    <li><a href="kxyj.htm" title="ç§å­¦ç ç©¶">ç§å­¦ç ç©¶</a></li>
+
+    <li><a href="bksjy.htm" title="æ¬ç§çæè²">æ¬ç§çæè²</a></li>
+
+    <li><a href="yjspy.htm" title="ç ç©¶çå¹å»">ç ç©¶çå¹å»</a></li>
+
+    <li><a href="xgdt.htm" title="å­¦å·¥å¨æ">å­¦å·¥å¨æ</a></li>
+
+    <li><a href="zsjy.htm" title="æçå°±ä¸">æçå°±ä¸</a></li>
+
+    <li><a href="dqgz.htm" title="åç¾¤å·¥ä½">åç¾¤å·¥ä½</a></li>
+
+    <li><a href="cxsj.htm" title="åæ°å®è·µ">åæ°å®è·µ</a></li>
+
+</ul>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+
+<script type="text/javascript" src="js/koala.min.1.5.js"></script>
+
+<div class="lay">
+<div id="canvas" class="gradient">
+    <!--å¤§å¾è½®æ¢-->
+<div id="banner_tabs" class="flexslider">    <script language="javascript" src="/system/resource/js/dynclicks.js"></script><div id="fsD1" class="focus">  
+<div id="D1pic1" class="fPic">  
+
+
+ <div class="fcon" style="display: none;">
+            <a title="" target="_blank" href="info/1053/3712.htm" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 74534)"><img src="images/20260403171526.png" style="opacity: 1"></a>
+        </div>
+
+ <div class="fcon" style="display: none;">
+            <a title="" target="_blank" href="info/1053/3628.htm" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 74473)"><img src="images/xyh_20251031103647.png" style="opacity: 1"></a>
+        </div>
+
+ <div class="fcon" style="display: none;">
+            <a title="" target="_blank" href="info/1053/3423.htm" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 74371)"><img src="images/0408.png" style="opacity: 1"></a>
+        </div>
+
+ <div class="fcon" style="display: none;">
+            <a title="" target="_blank" href="info/1053/3141.htm" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 73467)"><img src="images/wx_fq.png" style="opacity: 1"></a>
+        </div>
+
+ <div class="fcon" style="display: none;">
+            <a title="" target="_blank" href="info/1053/3032.htm" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 73466)"><img src="images/wx_yq.png" style="opacity: 1"></a>
+        </div>
+
+ <div class="fcon" style="display: none;">
+            <a title="" target="_blank" href="info/1020/2981.htm" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 73468)"><img src="images/wx_2023NH.png" style="opacity: 1"></a>
+        </div>
+
+
+</div>
+    <div class="fbg" style="display:none;">  
+    <div class="D1fBt" id="D1fBt">  
+        <a href="javascript:void(0)" hidefocus="true" target="_self" class=""><i>6</i></a>  
+        <a href="javascript:void(0)" hidefocus="true" target="_self" class=""><i>6</i></a>  
+        <a href="javascript:void(0)" hidefocus="true" target="_self" class=""><i>6</i></a>  
+        <a href="javascript:void(0)" hidefocus="true" target="_self" class=""><i>6</i></a>  
+        <a href="javascript:void(0)" hidefocus="true" target="_self" class=""><i>6</i></a>  
+        <a href="javascript:void(0)" hidefocus="true" target="_self" class=""><i>6</i></a>  
+    </div>  
+    </div>
+    <span class="prev"></span>   
+    <span class="next"></span>    
+</div> 
+
+
+</div>
+
+<script type="text/javascript">
+    Qfast.add('widgets', { path: "js/terminator2.2.min.js", type: "js", requires: ['fx'] });  
+    Qfast(false, 'widgets', function () {
+        K.tabs({
+            id: 'fsD1',   //ç¦ç¹å¾åè£¹id  
+            conId: "D1pic1",  //** å¤§å¾ååè£¹id  
+            tabId:"D1fBt",  
+            tabTn:"a",
+            conCn: '.fcon', //** å¤§å¾åéç½®class       
+            auto: 1,   //èªå¨æ­æ¾ 1æ0
+            effect: 'fade',   //ææéç½®
+            eType: 'click', //** é¼ æ äºä»¶
+            pageBt:true,//æ¯å¦ææé®åæ¢é¡µç 
+            bns: ['.prev', '.next'],//** ååæé®éç½®class                          
+            interval: 3000  //** åé¡¿æ¶é´  
+        }) 
+    })  
+</script>
+
+
+</div>
+
+
+    <!--ENDå¤§å¾è½®æ¢-->
+    </div></div>
+<div><marquee behavior="scroll" direction="left" scrollamount="5" scrolldelay="30" height="35" onmouseover="this.stop()" onmouseout="this.start()" align="top" style="color:#049dce;font-family:å®ä½;font-size:16px;font-weight:bold;line-height:35px;">æçå¨è¯¢çµè¯ï¼å­èå¸ï¼çµæ°å·¥ç¨åå¶èªå¨åï¼15802446563ï¼æèå¸ï¼çµå­ä¿¡æ¯å·¥ç¨ï¼13514289952ï¼å¨èå¸ï¼è®¡ç®æºç§å­¦ä¸ææ¯ï¼13304011375ï¼åèå¸ï¼å­¦çå·¥ä½èç³»äººï¼18840676788ï¼è°¢èå¸ï¼å­¦çå·¥ä½èç³»äººï¼18740045597</marquee></div>  
+
+<div id="wrap">
+        <script language="javascript" src="/system/resource/js/ajax.js"></script><div class="lay">
+<div class="top3"><h3><a href="info/1053/3773.htm" target="_blank" title="ææ ¡æ ¡åãç¾å½é¿è¯è²å¤§å­¦æå»¶æææï¼æµæ±å¤§å­¦å¾æèç ç©¶ååºéæ¥æé¢è¿è¡å­¦æ¯äº¤æµ">ææ ¡æ ¡åãç¾å½é¿è¯è²å¤§å­¦æå»¶æææï¼...</a></h3><p>2026å¹´9æ8æ¥ä¸åï¼ææ ¡1978å±ä¼ç§æ ¡åãç¾å½é¿è¯è²å¤§å­¦æå»¶æææï¼æµæ±å¤§å­¦æ­å·å½éç§åä¸­å¿/çå·¥é£åå­¦é¢å¾æèç ç©¶ååºéèä¸´...<a href="info/1053/3773.htm">[è¯¦ç»]</a>ã<a href="index/xwdt.htm">[æ´å¤]</a></p><div>2026-09-11</div></div>       
+<div class="top3"><h3><a href="info/1053/3732.htm" target="_blank" title="ä»¥è¯ä¿å»º ä»¥æ¥ä¿æ¹ââçä¿é¢é¿å¸¦éæ·±å¥å®éªå®¤æ£æ¥æå¯¼è¿è¯å·¥ä½">ä»¥è¯ä¿å»º ä»¥æ¥ä¿æ¹ââçä¿é¢é¿å¸¦éæ·±å¥...</a></h3><p>ä¸ºè¿æ¥çµæ°å·¥ç¨ä¸ä¸å·¥ç¨æè²ä¸ä¸è®¤è¯ä¸å®¶è¿æ ¡èå¯ï¼è¿ä¸æ­¥è§èå®éªå®¤ç®¡çãä¼åæå­¦ç§ç ç¯å¢ï¼2026å¹´5æ22æ¥ï¼å­¦é¢é¢é¿çä¿ææå¸¦...<a href="info/1053/3732.htm">[è¯¦ç»]</a>ã<a href="index/xwdt.htm">[æ´å¤]</a></p><div>2026-05-23</div></div>       
+<div class="top3" style="float:right;margin:10px 0 10px 0;"><h3><a href="info/1053/3730.htm" target="_blank" title="é©¬é¸£æ½å¯æ ¡é¿æ·±å¥ä¿¡çµå­¦é¢è°ç æå¯¼å·¥ä½">é©¬é¸£æ½å¯æ ¡é¿æ·±å¥ä¿¡çµå­¦é¢è°ç æå¯¼å·¥ä½</a></h3><p>â4æ1æ¥ï¼æ ¡åå§å¸¸å§ãå¯æ ¡é¿é©¬é¸£æ½çéæ·±å¥å­¦é¢å¼å±ä¸é¡¹è°ç ãåå±è§åä¸æ¿ç­æ³è§å¤å¤é¿æ±å®ãæå¡å¤å¤é¿è£è¾ï¼ä»¥åä¸¤é¨é¨å¯è...<a href="info/1053/3730.htm">[è¯¦ç»]</a>ã<a href="index/xwdt.htm">[æ´å¤]</a></p><div>2026-04-03</div></div>       
+</div><script>_showDynClickBatch(['dynclicks_u6_3773','dynclicks_u6_3732','dynclicks_u6_3730'],[3773,3732,3730],"wbnews", 1575651257)</script>
+
+</div>
+<div class="clear"></div>
+<div class="tonglan"><img src="dfiles/12941/_wsp_tpl/images/tonglan.jpg" /></div>
+<div id="wrap">
+<div class="lay">
+            <div class="box3">
+
+              <div class="bar0"><em><a href="index/tzgg.htm" target="">More</a></em>éç¥å¬å</div>
+              <div class="body1">
+                                 <ul class="ul0"><li><div><b>10 </b>2026/07</div><div class="btzy"><a title="ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢åå§å³äºå·¡å¯æ´æ¹è¿å±æåµçéæ¥" href="content.jsp?urltype=news.NewsContentUrl&wbtreeid=1054&wbnewsid=3772">ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢åå§å³äºå·¡å¯æ´æ¹è¿å±æåµçéæ¥</a></div></li>
+<li><div><b>18 </b>2026/06</div><div class="btzy"><a title="ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢2026å±ç¬¬ä¸æ¹æ¯ä¸å®¡æ ¸éè¿å­¦çååå¬ç¤º" href="info/1054/3759.htm">ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢2026å±ç¬¬ä¸æ¹æ¯ä¸å®¡æ ¸éè¿å­¦çååå¬</a></div></li>
+<li><div><b>16 </b>2026/04</div><div class="btzy"><a title="2025çº§æ¬ç§çè½¬ä¸ä¸é¢è¯èæ ¸æç»©å¬ç¤º" href="info/1054/3722.htm">2025çº§æ¬ç§çè½¬ä¸ä¸é¢è¯èæ ¸æç»©å¬ç¤º</a></div></li>
+<li><div><b>03 </b>2026/04</div><div class="btzy"><a title="æ²é³åä¸å¤§å­¦ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢2026å±æ¯ä¸çæ¥å­£æèä¼éè¯·å½" href="info/1054/3720.htm">æ²é³åä¸å¤§å­¦ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢2026å±æ¯ä¸çæ¥å­£æèä¼</a></div></li>
+<script>_showDynClickBatch(['dynclicks_u7_3772','dynclicks_u7_3759','dynclicks_u7_3722','dynclicks_u7_3720'],[3772,3759,3722,3720],"wbnews", 1575651257)</script>
+</ul>
+              </div>
+            </div>
+            
+            <div class="box3">
+
+              <div class="bar0" style="background:url(dfiles/12941/_wsp_tpl/images/bar0_bg2.jpg) 0px center no-repeat;"><em><a href="index/xydt.htm" target="">More</a></em>å­¦é¢å¨æ</div>
+              <div class="body1">
+                                 <ul class="ul0"><li><div><b>09 </b>2026/07</div><div class="btzy"><a title="å­¦æ ¡åå§å¸¸å§ãç»æé¨é¨é¿ç°ç±æ°ä¸ºä¿¡çµå­¦é¢ååå¹²é¨è®²æææ¿è¯¾" href="info/1095/3760.htm">å­¦æ ¡åå§å¸¸å§ãç»æé¨é¨é¿ç°ç±æ°ä¸ºä¿¡çµå­¦é¢ååå¹²é¨è®²æ</a></div></li>
+<li><div><b>05 </b>2026/06</div><div class="btzy"><a title="æ·±åæ ¡ä¼åä½ï¼æåå·¥ç¨å®è·µè½åââæé¢ç»ç»çµæ°å·¥ç¨åå¶èªå¨åä¸ä¸å¤§åå­¦çèµ´éå²­ä¾çµå¬å¸å¼å±èåå®ä¹ " href="info/1095/3758.htm">æ·±åæ ¡ä¼åä½ï¼æåå·¥ç¨å®è·µè½åââæé¢ç»ç»çµæ°å·¥ç¨å</a></div></li>
+<li><div><b>03 </b>2026/06</div><div class="btzy"><a title="æ±èæ ¡ååé èµè½äº§ä¸åå" href="info/1095/3752.htm">æ±èæ ¡ååé èµè½äº§ä¸åå</a></div></li>
+<li><div><b>02 </b>2026/06</div><div class="btzy"><a title="åå¿èåå¤è®¤è¯ï¼æè´¨èµè½ä¿åå± | ä¿¡çµå­¦é¢åå å­¦æ ¡ä¸ä¸å·¥ç¨æè²è®¤è¯å·¥ä½æ¨è¿ä¼" href="info/1095/3733.htm">åå¿èåå¤è®¤è¯ï¼æè´¨èµè½ä¿åå± | ä¿¡çµå­¦é¢åå å­¦æ ¡ä¸</a></div></li>
+<script>_showDynClickBatch(['dynclicks_u8_3760','dynclicks_u8_3758','dynclicks_u8_3752','dynclicks_u8_3733'],[3760,3758,3752,3733],"wbnews", 1575651257)</script>
+</ul>
+              </div>
+            </div>
+            
+            <div class="boxr3">    <a href="zsjy.htm" target="_blank" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 42586)"><img src="dfiles/12941/_wsp_tpl/images/r1.jpg" style="width:315px;height:75px;"></a>
+            
+<a href="bksjy.htm" target="_blank" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 42682)"><img src="dfiles/12941/_wsp_tpl/images/r2.jpg" style="width:315px;height:75px;"></a>
+            
+<a href="cxsj.htm" target="_blank" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 42588)"><img src="dfiles/12941/_wsp_tpl/images/r3.jpg" style="width:315px;height:75px;"></a>
+            
+<a href="bksjy.htm" target="_blank" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 42587)"><img src="dfiles/12941/_wsp_tpl/images/r4.png" style="width:315px;height:75px;"></a>
+            
+</div>
+            
+</div></div>
+
+<div class="clear20"></div>
+<div class="lay" style="background-color:#E8F6FF">
+<div id="wrap">
+
+<div class="box1"><div class="bar1"><em><a href="bksjy.htm">More</a></em>æ¬ç§çæè²</div>
+              <a href="bksjy.htm" target="_blank"><img width="100%" src="dfiles/12941/_wsp_tpl/images/b1.jpg" style="padding: 5px 0px;"></a>
+              <div class="body1">
+                <ul class="ul1">
+                 
+<li><a title="åå¿èåå¤è®¤è¯ï¼æè´¨èµè½ä¿åå± | ä¿¡çµå­¦é¢åå å­¦æ ¡ä¸ä¸å·¥ç¨æè²è®¤è¯å·¥ä½æ¨è¿ä¼" href="info/1029/3734.htm">Â· åå¿èåå¤è®¤è¯ï¼æè´¨èµè½ä¿åå± | ä¿¡</a></li>
+<li><a title="æ¬ç§ä¸ä¸è´è´£äºº" href="info/1030/1661.htm">Â· æ¬ç§ä¸ä¸è´è´£äºº</a></li>
+<li><a title="çµæ°å·¥ç¨åå¶èªå¨åä¸ä¸(æè²é¨âåä¸è®¡åâççº§ä¸æµæ¬ç§ä¸ä¸å»ºè®¾ç¹ï¼" href="info/1030/1664.htm">Â· çµæ°å·¥ç¨åå¶èªå¨åä¸ä¸(æè²é¨âåä¸</a></li>
+<li><a title="çµå­ä¿¡æ¯å·¥ç¨ä¸ä¸" href="info/1030/1663.htm">Â· çµå­ä¿¡æ¯å·¥ç¨ä¸ä¸</a></li>
+<li><a title="è®¡ç®æºç§å­¦ä¸ææ¯ä¸ä¸" href="info/1030/1662.htm">Â· è®¡ç®æºç§å­¦ä¸ææ¯ä¸ä¸</a></li>
+<li><a title="çµæ°å·¥ç¨åå¶èªå¨åä¸ä¸äººæå¹å»æ¹æ¡" href="info/1030/1970.htm">Â· çµæ°å·¥ç¨åå¶èªå¨åä¸ä¸äººæå¹å»æ¹æ¡</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u10_3734','dynclicks_u10_1661','dynclicks_u10_1664','dynclicks_u10_1663','dynclicks_u10_1662','dynclicks_u10_1970'],[3734,1661,1664,1663,1662,1970],"wbnews", 1575651257)</script>
+</div>
+<div class="box1"><div class="bar1"><em><a href="yjspy.htm">More</a></em>ç ç©¶çå¹å»</div>
+              <a href="yjspy.htm" target="_blank"><img width="100%" src="dfiles/12941/_wsp_tpl/images/b2.jpg" style="padding: 5px 0px;"></a>
+              <div class="body1">
+                <ul class="ul1">
+                 
+<li><a title="ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢é¡ºå©å®æ2026å¹´ç ç©¶çæçå¤è¯å·¥ä½" href="info/1035/3754.htm">Â· ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢é¡ºå©å®æ2026å¹´ç ç©¶</a></li>
+<li><a title="ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢é¡ºå©å®æ2026å±ç ç©¶çå­¦ä½è®ºæé¢ç­è¾©å·¥ä½" href="info/1034/3753.htm">Â· ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢é¡ºå©å®æ2026å±ç ç©¶</a></li>
+<li><a title="ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢é¡ºå©å®æ2023çº§ç¡åè¿è¯»ï¼ç¬¬ä¸æ¹ï¼ç ç©¶çå2024çº§ç ç©¶çå­¦ä½è®ºæå¼é¢å·¥ä½" href="info/1034/3627.htm">Â· ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢é¡ºå©å®æ2023çº§ç¡å</a></li>
+<li><a title="åä¸ç¡å£«åä¸å·¥ç¨ä¸ä¿¡æ¯ææ¯é¢åï¼095136ï¼ï¼éç¨äº2024ã2023ã2022ã2021çº§ï¼" href="info/1036/3522.htm">Â· åä¸ç¡å£«åä¸å·¥ç¨ä¸ä¿¡æ¯ææ¯é¢åï¼0951</a></li>
+<li><a title="ç ç©¶çæçå®£ä¼ " href="info/1035/3422.htm">Â· ç ç©¶çæçå®£ä¼ </a></li>
+<li><a title="085406-çµå­ä¿¡æ¯ç¡å£«ï¼éç¨äº2024çº§æ§å¶å·¥ç¨é¢åï¼" href="info/1036/3517.htm">Â· 085406-çµå­ä¿¡æ¯ç¡å£«ï¼éç¨äº2024çº§æ§</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u11_3754','dynclicks_u11_3753','dynclicks_u11_3627','dynclicks_u11_3522','dynclicks_u11_3422','dynclicks_u11_3517'],[3754,3753,3627,3522,3422,3517],"wbnews", 1575651257)</script>
+</div>
+
+<div class="box1" style="float:right; margin-right:0"><div class="bar1"><em><a href="xgdt/zlxz.htm">More</a></em>èµæä¸è½½</div>
+              <a href="xgdt/zlxz.htm" target="_blank"><img width="100%" src="dfiles/12941/_wsp_tpl/images/b3.jpg" style="padding: 5px 0px;"></a>
+              <div class="body1">
+                <ul class="ul1">
+                 
+<li><a title="ä¸ä¼ä¸è¯¾â1+2é¿ææºå¶" href="info/1096/1813.htm">Â· ä¸ä¼ä¸è¯¾â1+2é¿ææºå¶</a></li>
+<li><a title="è¾½å®çæ®éé«ç­å­¦æ ¡æå¸åæ¯é¨è§èåå»ºè®¾æåï¼2019å¹´ä¿®è®¢çï¼" href="info/1096/1814.htm">Â· è¾½å®çæ®éé«ç­å­¦æ ¡æå¸åæ¯é¨è§èåå»º</a></li>
+<li><a title="è¾½å®çæ®éé«ç­å­¦æ ¡å­¦çåæ¯é¨è§èåå»ºè®¾æåï¼2019å¹´ä¿®è®¢çï¼" href="info/1096/1815.htm">Â· è¾½å®çæ®éé«ç­å­¦æ ¡å­¦çåæ¯é¨è§èåå»º</a></li>
+<li><a title="ä¿¡çµå­¦é¢ç ç©¶çå¼é¢æåµè®°å½è¡¨" href="info/1096/1808.htm">Â· ä¿¡çµå­¦é¢ç ç©¶çå¼é¢æåµè®°å½è¡¨</a></li>
+<li><a title="ç¡å£«çæ ¡é¿å¥å­¦éç³è¯·è¡¨" href="info/1096/1809.htm">Â· ç¡å£«çæ ¡é¿å¥å­¦éç³è¯·è¡¨</a></li>
+<li><a title="åå£«çæ ¡é¿å¥å­¦éç³è¯·è¡¨" href="info/1096/1810.htm">Â· åå£«çæ ¡é¿å¥å­¦éç³è¯·è¡¨</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u12_1813','dynclicks_u12_1814','dynclicks_u12_1815','dynclicks_u12_1808','dynclicks_u12_1809','dynclicks_u12_1810'],[1813,1814,1815,1808,1809,1810],"wbnews", 1575651257)</script>
+</div>
+            
+            <div class="clear"></div>
+            
+</div><!--@layM-->
+</div>
+
+<div class="clear"></div>
+<div class="wrap" style="background-color:#3366CC">
+<div class="link">
+ <div>        
+       
+                
+                        <a href="http://www.nsfc.gov.cn/" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 42592)" target="_blank">
+                            <img src="dfiles/12941/upload/link3.jpg" alt="" width="182" height=" 45" />
+                        </a>  
+                
+                
+                        <a href="http://www.lnen.cn/" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 42591)" target="_blank">
+                            <img src="dfiles/12941/upload/link2.jpg" alt="" width="182" height=" 45" />
+                        </a>  
+                
+                
+                        <a href="http://nuedc.xjtu.edu.cn/" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 42593)" target="_blank">
+                            <img src="dfiles/12941/upload/image/link2.jpg" alt="" width="182" height=" 45" />
+                        </a>  
+                
+                
+                        <a href="http://ciee.cau.edu.cn/" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 43383)" target="_blank">
+                            <img src="dfiles/12941/_wsp_tpl/images/link3.jpg" alt="" width="182" height=" 45" />
+                        </a>  
+                
+                
+                        <a href="https://dzxy.scau.edu.cn/" title="" onclick="_addDynClicks(&#34;wbimage&#34;, 1575651257, 43385)" target="_blank">
+                            <img src="dfiles/12941/_wsp_tpl/images/link4.png" alt="" width="182" height=" 45" />
+                        </a>  
+                
+        
+</div>
+<div class="clear8"></div>
+<span><script language="javascript" src="/system/resource/js/openlink.js"></script><a href="http://lib.syau.edu.cn/" onclick="_addDynClicks(&#34;wburl&#34;, 1575651257, 42192)">æ°å­å¾ä¹¦</a>ã|ã
+<a href="http://kjc.syau.edu.cn/" onclick="_addDynClicks(&#34;wburl&#34;, 1575651257, 42193)">ç§æå¤</a>ã|ã
+<a href="http://jwc.syau.edu.cn/" onclick="_addDynClicks(&#34;wburl&#34;, 1575651257, 42194)">æå¡å¤</a>ã|ã
+<a href="http://grs.syau.edu.cn/" onclick="_addDynClicks(&#34;wburl&#34;, 1575651257, 42195)">ç ç©¶çé¢</a>ã|ã
+<a href="http://xsc.syau.edu.cn/" onclick="_addDynClicks(&#34;wburl&#34;, 1575651257, 42196)">å­¦çå¤</a>
+</span>
+</div>
+</div>
+<script type="text/javascript" src="dfiles/12941/_wsp_tpl/js/tzgg.js"></script>
+<div id="wrapF">
+<div id="footer"><div><!-- çæåå®¹è¯·å¨æ¬ç»ä»¶"åå®¹éç½®-çæ"å¤å¡«å -->
+<p><span style="font-size: 14px;"><span style="font-family: å®ä½,SimSun; font-size: 14px;"><span style="font-size: 12px;"></span>CopyrightÂ©2016-2020 æ²é³åä¸å¤§å­¦ä¿¡æ¯ä¸çµæ°å·¥ç¨å­¦é¢çæææ</span></span></p><p><span style="font-family: å®ä½,SimSun; font-size: 14px;">æçå¨è¯¢çµè¯ï¼&nbsp; åæ¿åå¬å®¤ï¼024-88487121&nbsp;&nbsp;&nbsp; è¾å¯¼ååå¬å®¤ï¼024-88487126</span></p><p><span style="font-family: å®ä½,SimSun; font-size: 14px;">å°å:è¾½å®çæ²é³å¸æ²æ²³åºä¸éµè·¯120å·ãé®ç¼:110866&nbsp;&nbsp;&nbsp;</span><span style="font-size: 14px;">&nbsp;&nbsp;</span></p></div>  
+</div>
+
+</div>
+<script src="dfiles/12941/_wsp_tpl/js/three.min.js"></script>
+<script src="dfiles/12941/_wsp_tpl/js/projector.js"></script>
+<script src="dfiles/12941/_wsp_tpl/js/canvas-renderer.js"></script>
+<script src="dfiles/12941/_wsp_tpl/js/3d-lines-animation.js"></script>
+<script src="dfiles/12941/_wsp_tpl/js/color.js"></script>
+</body>
+</html>

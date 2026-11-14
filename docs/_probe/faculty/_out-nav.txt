@@ -1,0 +1,43 @@
+### 1. DNS A records
+nxy.syau.edu.cn        210.47.162.3
+zbxy.syau.edu.cn       210.47.162.3
+yyxy.syau.edu.cn       210.47.162.3
+thxy.syau.edu.cn       210.47.162.3
+jgxy.syau.edu.cn       210.47.162.3
+myxy.syau.edu.cn       210.47.162.3
+lin.syau.edu.cn        210.47.162.3
+gcxy.syau.edu.cn       210.47.162.3
+xdxy.syau.edu.cn       210.47.162.3
+slxy.syau.edu.cn       210.47.162.3
+spxy.syau.edu.cn       210.47.162.3
+swxy.syau.edu.cn       210.47.162.3
+marx.syau.edu.cn       210.47.162.3
+lxy.syau.edu.cn        210.47.162.3
+tyb.syau.edu.cn        210.47.162.3
+wyb.syau.edu.cn        210.47.162.3
+
+### 2. homepage nav -> faculty columns
+=== nxy.syau.edu.cn  [200] len=37062
+=== zbxy.syau.edu.cn  [200] len=34479
+=== yyxy.syau.edu.cn  [200] len=37395
+=== thxy.syau.edu.cn  [200] len=51796
+=== jgxy.syau.edu.cn  [200] len=106950
+=== myxy.syau.edu.cn  [200] len=65823
+=== lin.syau.edu.cn  [200] len=39928
+=== gcxy.syau.edu.cn  [200] len=48795
+=== xdxy.syau.edu.cn  [200] len=31091
+=== slxy.syau.edu.cn  [200] len=51820
+=== spxy.syau.edu.cn  [200] len=48390
+=== swxy.syau.edu.cn  [200] len=35932
+=== marx.syau.edu.cn  [200] len=24280
+=== lxy.syau.edu.cn  [200] len=35130
+    NAV 师资队伍         https://lxy.syau.edu.cn/szdw1.htm
+    NAV 理学院组织教师党员同上一 https://lxy.syau.edu.cn/info/1013/2563.htm
+    NAV 我院举办教师教学创新大赛 https://lxy.syau.edu.cn/info/1013/2553.htm
+    NAV 我院举办教师教学创新大赛 https://lxy.syau.edu.cn/info/1105/2554.htm
+    NAV 我院教师在第三十届辽宁省 https://lxy.syau.edu.cn/info/1105/2542.htm
+    NAV 我院教师指导的学生在Ma https://lxy.syau.edu.cn/info/1016/2519.htm
+    NAV 理学院组织教师党员同上一 https://lxy.syau.edu.cn/info/1032/2564.htm
+    NAV 拥抱智能时代坚守育人初心 https://lxy.syau.edu.cn/info/1032/2546.htm
+=== tyb.syau.edu.cn  [200] len=33509
+=== wyb.syau.edu.cn  [200] len=22676

@@ -1,0 +1,59 @@
+=== 校区输入 ===
+  input-005 = 海城基地
+  input-006 = 熊岳校区
+  input-001 = 主校
+  input-2 = 路南
+  input-004 = 研究生部
+=== 教学楼按钮（position / 校区 / 楼名）===
+  005_n  |  海城基地  |  全部教学楼
+  005_01  |  海城基地  |  实训中心楼
+  006_n  |  熊岳校区  |  全部教学楼
+  001_n  |  主校  |  全部教学楼
+  001_1  |  主校  |  第一教学楼
+  001_10  |  主校  |  农机化楼
+  001_11  |  主校  |  能源基地
+  001_12  |  主校  |  经管楼
+  001_13  |  主校  |  动物医院
+  001_14  |  主校  |  林学楼
+  001_15  |  主校  |  牧医学科楼
+  001_16  |  主校  |  园艺学科楼
+  001_17  |  主校  |  工程楼
+  001_18  |  主校  |  体育课上课地点
+  001_19  |  主校  |  实践地点
+  001_2  |  主校  |  第二教学楼
+  001_20  |  主校  |  理学楼
+  001_21  |  主校  |  水利学科楼
+  001_22  |  主校  |  植保学科楼
+  001_23  |  主校  |  生物学科楼
+  001_24  |  主校  |  农学学科楼
+  001_25  |  主校  |  信电学科楼
+  001_26  |  主校  |  图书馆
+  001_27  |  主校  |  世纪会堂
+  001_28  |  主校  |  线上教室
+  001_29  |  主校  |  校医院
+  001_333  |  主校  |  线上考场
+  001_4  |  主校  |  综合楼
+  001_6  |  主校  |  水利馆
+  001_7  |  主校  |  土壤楼
+  001_9  |  主校  |  农机楼
+  001_ZZZYZX  |  主校  |  种质资源中心
+  001_凡舟体育场  |  主校  |  凡舟体育场
+  001_分析中心  |  主校  |  分析测试中心
+  001_食品创新  |  主校  |  食品创新实践基地
+  001_团委  |  主校  |  团委
+  001_游泳池  |  主校  |  游泳池
+  2_n  |  路南  |  全部教学楼
+  2_1  |  路南  |  路南教学楼
+  2_2  |  路南  |  实践上课地点
+  004_n  |  研究生部  |  全部教学楼
+
+=== 实测 POST today：{"position":"001_2","xqm":"主校","buildingName":"第二教学楼"} ===
+STATUS=200 LEN=153643
+TEXT: 空闲教室查询 --> @media screen and (max-width: 768px) { .span_bbzx { display: none!important; } } @media only screen and (max-width: 479px) { .navbar:not(.navbar-collapse) .navbar-header { float: right !important; display: block; } } @media (max-width: 479px){ .navbar-fixed-top + .main-container { padding-top: 45px; } } a:focus { outline: none; } .jc-back { background-color: #f0f0f0 } #drag-section { padding-bottom: 20px; } #drag-ol { list-style-type: none; margin: 0px; padding: 0; } #drag-ol .ui-selecting { background: #FECA40; } #drag-ol .ui-selected { background: #F39814 !important; color: white; } #drag-ol .border-common { float: left; text-align: center; margin: 0; padding: 0; width: 50px; height: 30px; line-height: 30px; border: 1px solid #aaa; border-right: 0; } .drag-border-right { border-right: 1px solid #aaa !important; } #drag-ul { list-style-type: none; margin: 0px; padding: 0; } #drag-ul .ui-selecting { background: #FECA40; } #drag-ul .ui-selected { background: #F39814 !important; color: white; } #drag-ul .border-common { text-align: center; margin: 0; padding: 0; width: 120px; height: 30px; line-height: 30px; border: 1px solid #aaa; background: white; } .td-selected { backg
+
+=== 前 6 行原始 HTML ===
+  <tr><td style='color:#009999;'>" + rooms[i].acmcBuildingName + "</td><td style='word-break: break-all;'>"; var list = rooms[i].claroom; for (var j = 0; j < list.length; j++) { if (j > 0) { cont += ","; } cont += list[j].classroom; } cont += "</td></tr>
+  <tr><td>" + list[i].classroom + "</td></tr>
+  <tr ><th width='100px' style='text-align: center; vertical-align: middle'>节次<br></th><th id='h6' style='min-height:50px'>空闲教室<br></th> </tr>
+  <tr id='11'>"; tbody += "<td width='100px' style='text-align: center; vertical-align: middle'>第11节<br />";//20:20-21:05 if(xxbm != "100006"){ tbody += "20:20-21:05"; } tbody += "</td><td id='h11' style='min-height:50px;word-break:break-all;'>" tbody += "<div ></div>"; lc = "7"; if (lc == "" || lc == null) { var jsm = "719"; lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1); lc = lc == "" ? jsm.subs
+  <tr id='12'>"; tbody += "<td width='100px' style='text-align: center; vertical-align: middle'>第12节<br />";//21:15-22:00 if(xxbm != "100006"){ tbody += "21:15-22:00"; } tbody += "</td><td id='h12' style='min-height:50px;word-break:break-all;'>" tbody += "<div ></div>"; lc = "7"; if (lc == "" || lc == null) { var jsm = "719"; lc = jsm.replace(/[^0-9]/ig, "").substring(0, 1); lc = lc == "" ? jsm.subs

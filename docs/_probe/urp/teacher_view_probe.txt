@@ -1,0 +1,44 @@
+URL=http://10.2.0.47/student/teachingResources/teacherCurriculum/index
+
+=== 首行 HTML ===
+<td>1</td><td><button id="td_div" title="查看" class="btn btn-info btn-xs btn-round" onclick="searchCurriculumInfo(&quot;2026-2027-1-1&quot;,&quot;1979500003&quot;,&quot;2026-2027学年秋&quot;,&quot;陈温福&quot;);return false;"><i id="td_div" class="ace-icon fa fa-eye bigger-120"></i> 查看</button></td><td>陈温福</td><td>农学</td><td>教授</td>
+
+=== 可疑控件 ===
+  {"tag":"A","txt":"本学期课表","href":"#","onclick":""}
+  {"tag":"A","txt":"本学期课表","href":"/student/courseSelect/thisSemesterCurriculum/index","onclick":""}
+  {"tag":"A","txt":"历年学期课表","href":"/student/courseSelect/calendarSemesterCurriculum/index","onclick":""}
+  {"tag":"A","txt":"本学期周课表","href":"/student/personalSenate/giveLessonInfo/thisSemesterSchedule/weekLySchedule","onclick":""}
+  {"tag":"A","txt":"教室课表","href":"/student/teachingResources/classroomCurriculum/index","onclick":""}
+  {"tag":"A","txt":"教师课表","href":"/student/teachingResources/teacherCurriculum/index","onclick":""}
+  {"tag":"A","txt":"班级课表","href":"/student/teachingResources/classCurriculum/index","onclick":""}
+  {"tag":"A","txt":"课程课表","href":"/student/teachingResources/courseCurriculum/index","onclick":""}
+  {"tag":"A","txt":"指导性教学计划","href":"/student/integratedQuery/instructionPlanQuery/detail/index","onclick":""}
+  {"tag":"A","txt":"班级订书查看","href":"/student/integratedQuery/teachingMaterial/bookList/classMatericalIndex","onclick":""}
+  {"tag":"BUTTON","txt":"查看","href":"","onclick":"searchCurriculumInfo(\"2026-2027-1-1\",\"1979500003\",\"2026-2027学年秋\",\"陈温福\");return false;"}
+  {"tag":"BUTTON","txt":"查看","href":"","onclick":"searchCurriculumInfo(\"2026-2027-1-1\",\"1979500009\",\"2026-2027学年秋\",\"王承杰\");return false;"}
+
+=== 全局函数探测: 未命中 ===
+
+=== 点击后请求 ===
+  POST /student/teachingResources/teacherCurriculum/searchCurriculumInfoLo
+      BODY=teacherNum=1979500003&teacherName=%E9%99%88%E6%B8%A9%E7%A6%8F&planCode=2026-2027-1-1&planName=2026-2027%E5%AD%A6%E5%B9%B4%E7%A7%8B
+  POST /ajax/student/getSectionAndTime
+      BODY=planNumber=&ff=f&xqh=undefined
+  GET /student/teachingResources/teacherCurriculum/searchCurriculumInfo/callback?planCode=2026-2027-1-1&teacherNum=1979500003
+
+URL_AFTER=http://10.2.0.47/student/teachingResources/teacherCurriculum/index
+
+=== 弹层文本 ===
+
+    
+        
+            
+                
+            
+        
+    
+
+
+=== 该浏览器所有标签 ===
+  http://10.2.0.47/index
+  http://10.2.0.47/student/teachingResources/teacherCurriculum/index

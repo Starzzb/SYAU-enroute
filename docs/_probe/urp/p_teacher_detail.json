@@ -1,0 +1,63 @@
+
+
+
+
+
+<html>
+<head>
+    <title>页面404错误</title>
+    <script src="/js/jQuery/jquery-3.4.1.min.js"></script>
+	<script src="/js/jQuery/jquery-migrate-3.1.0.min.js"></script>
+    <script type="text/javascript">
+        var h1;
+        $(function () {
+            changeDivHeight();
+        });
+        window.onload = function () {
+            changeDivHeight();
+        };
+        //当浏览器窗口大小改变时，设置显示内容的高度
+        window.onresize = function () {
+            changeDivHeight();
+        };
+        function changeDivHeight() {
+            var h = 0;
+            if (window.innerHeight) {
+                h = window.innerHeight;
+            } else if ((document.body) && (document.body.clientHeight)) {
+                h = document.body.clientHeight;
+            }
+
+            h1 = h - 20;
+            $("#img_error").css("height", h1 + "px");
+            //$("#a_index").css("top", h1 - 150 + "px");
+        }
+        function submitExceptionInfo() {
+            document.getElementById("exceptionInfo").submit();
+        }
+
+        function toSelect(obj) {
+            $.cookie('selectionBar', obj.id, {
+                path: '/'
+            });
+        }
+
+    </script>
+</head>
+<body>
+<div style="text-align: center;width: 100%;" id="backgroundShow">
+    <!--
+        返回首页
+    </a> -->
+    
+    <input type="hidden" value="404" id="statusCode">
+
+    
+    <a href="/" title="主页" id='a_index' onclick="toSelect(this);">
+        <img src="/img/404.jpg" width="100%" id="img_error"/>
+    </a>
+    
+    
+</div>
+</body>
+</html>

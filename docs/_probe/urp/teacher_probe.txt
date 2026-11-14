@@ -1,0 +1,49 @@
+=== 教师课表页 表单控件 ===
+  {"tag":"INPUT","name":"kszc","id":"kszc","type":"text","ph":""}
+  {"tag":"INPUT","name":"jszc","id":"jszc","type":"text","ph":""}
+  {"tag":"INPUT","name":"zcms","id":"","type":"radio","ph":""}
+  {"tag":"INPUT","name":"zcms","id":"","type":"radio","ph":""}
+  {"tag":"INPUT","name":"zcms","id":"","type":"radio","ph":""}
+  {"tag":"INPUT","name":"xxbm","id":"xxbm","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"","id":"search-input","type":"text","ph":"查找功能..."}
+  {"tag":"INPUT","name":"","id":"userId","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"param_value","id":"param_value","type":"hidden","ph":""}
+  {"tag":"SELECT","name":"executiveEducationPlanNumber","id":"","type":"select-one","ph":""}
+  {"tag":"SELECT","name":"departmentNum","id":"departmentNum","type":"select-one","ph":""}
+  {"tag":"INPUT","name":"teacherName","id":"","type":"text","ph":""}
+  {"tag":"INPUT","name":"teacherNum","id":"teacherNum","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"teacherName","id":"teacherName","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"planCode","id":"planCode","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"planName","id":"planName","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"","id":"endflag_urppagebar","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"","id":"turnpageto_urppagebar","type":"text","ph":""}
+  {"tag":"INPUT","name":"","id":"btn_turnpageto_urppagebar","type":"button","ph":""}
+  {"tag":"SELECT","name":"","id":"pagination_pageSize_urppagebar","type":"select-one","ph":""}
+  {"tag":"INPUT","name":"","id":"planCodec","type":"hidden","ph":""}
+  {"tag":"INPUT","name":"","id":"teacherNumc","type":"hidden","ph":""}
+filled field = null
+clicked = 自习查询
+
+=== 待评教 queryAll === HTTP 405 len=199
+<html>
+<head><title>405 Request method 'GET' not supported</title></head>
+<body>
+<h1>405 Request method 'GET' not supported</h1>
+<p /><hr />
+<small>
+Resin/4.0.55
+Server: 'xs'
+</small>
+</body></html>
+
+
+=== 期间请求 ===
+  GET /student/teachingResources/teacherCurriculum/index
+      ct=
+      body=
+  GET /main/queryStudent/img
+      ct=
+      body=
+  POST /student/teachingResources/teacherCurriculum/search
+      ct=application/x-www-form-urlencoded; charset=UTF-8
+      body=executiveEducationPlanNumber=2026-2027-1-1&departmentNum=&teacherName=&pageNum=1&pageSize=30

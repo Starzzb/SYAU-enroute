@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>沈农在途 · 前端方案 v3 原型（A 仪表舱 / B 校报头版 / C 黏土校园）</title>
+<style>
+/* ============================================================
+   沈农在途 · 前端设计方向 v3 原型
+   纯静态 HTML/CSS，零外部依赖，双击即开。
+   基准视口 360 × 720 dp（screen 元素即手机视口）。
+   配套文档：docs/评审-前端设计方案-v3.md
+   ⚠️ 本文件内所有数值均为「原型示意数据」，不是真实教务数据。
+   ============================================================ */
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#2A2721;color:#EDE8DF;
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif}
+body{padding:0 0 48px}
+
+/* ---------- 方向切换器（CSS-only，无 JS） ---------- */
+.dsel{position:absolute;width:0;height:0;opacity:0;pointer-events:none}
+
+.topbar{position:sticky;top:0;z-index:50;background:#1C1A16;border-bottom:1px solid #3A342B;
+  padding:14px 20px 12px;display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.brand{font-size:14px;font-weight:800;letter-spacing:.2px}
+.brand small{display:block;font-size:10.5px;font-weight:500;color:#9A9384;letter-spacing:.6px;margin-top:3px}
+.sw{display:flex;gap:8px;flex-wrap:wrap}
+.sw label{cursor:pointer;border:1px solid #4A4237;border-radius:999px;padding:8px 14px;
+  font-size:12.5px;font-weight:600;color:#C6BEB2;transition:.12s}
+.sw label:hover{border-color:#8A8375;color:#EDE8DF}
+.sw label.cmpbtn{border-style:dashed}
+#dirA:checked ~ .topbar label[for="dirA"],
+#dirB:checked ~ .topbar label[for="dirB"],
+#dirC:checked ~ .topbar label[for="dirC"]{background:#EDE8DF;border-color:#EDE8DF;color:#1A1611}
+#cmp:checked ~ .topbar label[for="cmp"]{background:#8A8375;border-color:#8A8375;color:#12100D}
+.note{font-size:11px;color:#9A9384;line-height:1.55;max-width:640px}
+.note b{color:#E8B4A6;font-weight:700}
+
+/* ---------- 舞台 ---------- */
+.stage{display:flex;gap:26px;padding:26px 20px;overflow-x:auto;align-items:flex-start}
+.pane{display:none;gap:26px;align-items:flex-start}
+#dirA:checked ~ .stage .paneA{display:flex}
+#dirB:checked ~ .stage .paneB{display:flex}
+#dirC:checked ~ .stage .paneC{display:flex}
+/* 并排对比：三方向学业主页同时出现（规则放最后以覆盖上面的方向规则） */
+#cmp:checked ~ .stage .pane{display:flex}
+#cmp:checked ~ .stage .phone + .phone{display:none}
+
+.phone{flex:0 0 360px;width:360px}
+.cap{font-size:11px;font-weight:700;letter-spacing:.4px;color:#9A9384;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px}
+.cap i{width:5px;height:5px;border-radius:50%;background:#6B6355;font-style:normal}
+.screen{width:360px;height:720px;position:relative;overflow:hidden;border-radius:26px;
+  box-shadow:0 14px 34px rgba(0,0,0,.42);display:flex;flex-direction:column}
+.scroll{overflow-y:auto;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+/* ============================================================
+   A 仪表舱 Bento Console
+   bg #F4F1EA · surface #FFF · accent #0F6B4F · radius 18 · soft shadow
+   ============================================================ */
+.paneA .screen{background:#F4F1EA;color:#1A1712}
+.a-wrap{display:flex;height:100%;min-height:0}
+.a-rail{width:56px;flex:0 0 56px;display:flex;flex-direction:column;align-items:center;
+  padding:14px 0;gap:6px;border-right:1px solid #E4DED2;background:#F4F1EA}
+.a-logo{width:32px;height:32px;border-radius:10px;background:#0F6B4F;color:#fff;
+  display:grid;place-items:center;font-size:12.5px;font-weight:800;margin-bottom:12px;letter-spacing:-.5px}
+.a-rr{position:relative;width:44px;height:52px;border-radius:14px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:3px;color:#55504A}
+.a-rr.on{background:#0F6B4F;color:#fff}
+.a-rr .ic{font-size:14px;font-weight:800;line-height:1}
+.a-rr .lb{font-size:9.5px;font-weight:600;letter-spacing:.4px}
+.a-rr .bd{position:absolute;top:3px;right:3px;background:#B02418;color:#fff;border-radius:6px;
+  font:800 8.5px/1 ui-monospace,Consolas,monospace;padding:2px 3px}
+.a-body{flex:1;min-width:0;overflow-y:auto;padding:16px 12px 18px;scrollbar-width:none}
+.a-body::-webkit-scrollbar{display:none}
+.a-k{font-size:11px;font-weight:600;letter-spacing:.8px;color:#55504A}
+.a-name{font-size:20px;font-weight:800;letter-spacing:-.4px;margin:3px 0 9px}
+.a-pills{display:flex;gap:6px;margin-bottom:13px;flex-wrap:wrap}
+.a-pill{height:26px;padding:0 10px;border-radius:999px;font-size:11.5px;font-weight:600;
+  display:inline-flex;align-items:center;background:#fff;border:1px solid #DDD6C8;color:#55504A}
+.a-pill.on{background:#0F6B4F;border-color:#0F6B4F;color:#fff}
+.a-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.a-t{border-radius:18px;padding:12px;background:#fff;box-shadow:0 2px 10px rgba(26,23,18,.07);
+  display:flex;flex-direction:column;min-height:104px}
+.a-t.s2{grid-column:span 2;min-height:132px}
+.a-t.g{background:#E7F0E9}.a-t.b{background:#E6EBF1}
+.a-t.o{background:#F7EEDA}.a-t.p{background:#EEE9F4}
+.a-big{font:800 40px/44px ui-monospace,"IBM Plex Mono",Consolas,monospace;letter-spacing:-1px;
+  display:flex;align-items:baseline;gap:6px;margin-top:4px}
+.a-big em{font:500 12px/16px ui-monospace,Consolas,monospace;font-style:normal;
+  color:#55504A;letter-spacing:0}
+.a-mid{font:800 28px/32px ui-monospace,Consolas,monospace;letter-spacing:-.6px;margin-top:6px}
+.a-f{font-size:11px;line-height:16px;color:#6E6862;margin-top:auto}
+.a-bar{height:8px;border-radius:4px;background:rgba(15,107,79,.16);margin:9px 0 7px;overflow:hidden}
+.a-bar i{display:block;height:100%;border-radius:4px;background:#0F6B4F}
+.a-row2{display:flex;gap:10px;align-items:center;margin-top:6px}
+.a-cd{font:800 34px/34px ui-monospace,Consolas,monospace;letter-spacing:-1.2px;
+  display:flex;align-items:baseline;gap:3px;color:#8F5F0B}
+.a-cd small{font:600 10px/1 ui-monospace,monospace;letter-spacing:0}
+.a-t1{font-size:15px;font-weight:700;line-height:20px;letter-spacing:-.2px}
+.a-t2{font-size:11px;line-height:16px;color:#55504A;margin-top:2px}
+.a-hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.a-hd h1{font-size:20px;font-weight:800;letter-spacing:-.4px}
+.a-hd .sb{font-size:10.5px;color:#6E6862;margin-top:4px}
+.a-hd .sb b{color:#1A1712;font-weight:700}
+.a-alert{display:flex;align-items:center;gap:8px;margin:12px 0;background:#fff;border-radius:14px;
+  padding:9px 11px;box-shadow:0 2px 10px rgba(26,23,18,.07);font-size:11.5px;font-weight:600;color:#8F5F0B}
+.a-alert s{width:4px;height:16px;border-radius:2px;background:#8F5F0B;text-decoration:none;flex:0 0 4px}
+.a-chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 4px;scrollbar-width:none}
+.a-chips::-webkit-scrollbar{display:none}
+.a-chip{flex:0 0 auto;height:28px;padding:0 11px;border-radius:999px;font-size:11.5px;font-weight:600;
+  display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #DDD6C8;color:#55504A}
+.a-chip.on{background:#0F6B4F;border-color:#0F6B4F;color:#fff}
+.a-chip u{font:700 9.5px/1 ui-monospace,monospace;text-decoration:none;
+  color:#B02418;background:#F8E6E3;border-radius:5px;padding:2px 4px}
+.a-chip.on u{background:rgba(255,255,255,.2);color:#fff}
+.a-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  font-size:10px;color:#6E6862;margin:8px 0 10px}
+.a-meta b{color:#1A1712;font-weight:700}
+.a-meta span.act{font-size:11px;font-weight:700;color:#0F6B4F}
+.a-wf{columns:2;column-gap:10px}
+.a-card{break-inside:avoid;margin-bottom:10px;border-radius:16px;background:#fff;padding:11px;
+  box-shadow:0 2px 10px rgba(26,23,18,.07);display:block}
+.a-card .src{font-size:10px;font-weight:600;letter-spacing:.4px;color:#6E6862;
+  display:flex;align-items:center;gap:5px}
+.a-card .src i{width:6px;height:6px;border-radius:50%;background:#0F6B4F;font-style:normal;flex:0 0 6px}
+.a-card .src i.off{background:#DDD6C8}
+.a-card h3{font-size:13px;font-weight:700;line-height:18px;margin:5px 0 0;letter-spacing:-.1px}
+.a-card.dim h3{font-weight:500;color:#55504A}
+.a-card p{font-size:11px;line-height:16px;color:#6E6862;margin-top:4px}
+.a-card .ft{margin-top:8px;display:flex;align-items:center;justify-content:space-between;
+  font-size:10px;color:#6E6862}
+.a-card .ft b{font-weight:700;color:#8F5F0B}
+.a-xrow{display:flex;gap:10px;align-items:flex-start}
+.a-date{flex:0 0 44px;height:44px;border-radius:12px;background:rgba(15,107,79,.12);
+  display:grid;place-items:center;font:800 12px/1 ui-monospace,monospace;color:#0F6B4F}
+.a-t.o .a-date{background:rgba(143,95,11,.12);color:#8F5F0B}
+.a-gapf{grid-column:span 2;text-align:center;font-size:11px;font-weight:600;color:#6E6862;
+  border-radius:14px;border:1px dashed #CFC7B8;padding:11px}
+.a-skel{background:#EDE8DE;box-shadow:none}
+.a-skel span{display:block;height:9px;border-radius:5px;background:#DCD5C7;margin-bottom:7px}
+.a-skel span:nth-child(1){width:38%}.a-skel span:nth-child(2){width:82%}.a-skel span:nth-child(3){width:58%}
+.a-empty{border-radius:18px;background:#EDE8DE;padding:14px;text-align:center}
+.a-empty b{display:block;font-size:12.5px;font-weight:700;margin-bottom:4px}
+.a-empty p{font-size:11px;color:#55504A;line-height:16px}
+.a-empty .btn{display:inline-flex;margin-top:9px;height:32px;padding:0 14px;border-radius:999px;
+  background:#0F6B4F;color:#fff;font-size:11.5px;font-weight:700;align-items:center}
+
+/* ============================================================
+   B 校报头版 Editorial
+   bg #F7F4EC · ink #12100D · accent #8C1D18 · 无容器，只有版面线
+   ============================================================ */
+.paneB .screen{background:#F7F4EC;color:#12100D}
+.b-body{flex:1;overflow-y:auto;scrollbar-width:none;padding:0 16px 20px}
+.b-body::-webkit-scrollbar{display:none}
+.b-mast{display:flex;align-items:baseline;justify-content:space-between;padding:16px 0 10px}
+.b-mast h1{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  font-size:26px;font-weight:700;letter-spacing:-.3px;line-height:32px}
+.b-mast span{font-size:10.5px;font-weight:600;letter-spacing:1.2px;color:#5C574F;
+  font-family:ui-monospace,Consolas,monospace}
+.b-dbl{border-top:2px solid #12100D;border-bottom:1px solid #12100D;height:5px}
+.b-nav{display:flex;border-bottom:1px solid #C9C2B2}
+.b-nav a{flex:1;text-align:center;padding:12px 0 10px;font-size:14px;font-weight:700;
+  color:#5C574F;text-decoration:none;position:relative}
+.b-nav a.on{color:#12100D}
+.b-nav a.on::after{content:"";position:absolute;left:50%;transform:translateX(-50%);
+  bottom:-1px;width:34px;height:2px;background:#8C1D18}
+.b-lead{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  font-size:22px;font-weight:600;line-height:30px;letter-spacing:-.2px;padding:16px 0 8px}
+.b-sub{font-size:12px;line-height:18px;color:#3E3A34;padding-bottom:14px}
+.b-cols{display:flex;border-top:1px solid #C9C2B2;border-bottom:1px solid #C9C2B2}
+.b-col{flex:1;padding:12px 0;min-width:0}
+.b-col + .b-col{border-left:1px solid #C9C2B2;padding-left:12px}
+.b-col .lb{font-size:11px;font-weight:600;letter-spacing:1.2px;color:#5C574F}
+.b-col .num{font-family:Georgia,"Times New Roman",serif;font-size:26px;font-weight:700;
+  line-height:32px;letter-spacing:-.5px;font-feature-settings:"tnum";margin-top:2px}
+.b-col .ft{font-size:11px;color:#5C574F;margin-top:2px;line-height:16px}
+.b-sec{display:flex;gap:8px;align-items:flex-start;padding:14px 0 0}
+.b-sec .bar{flex:0 0 4px;width:4px;height:16px;background:#8C1D18;margin-top:3px}
+.b-sec h2{font-size:14px;font-weight:700;line-height:20px;letter-spacing:.2px}
+.b-h2{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  font-size:17px;font-weight:700;line-height:24px;padding:6px 0 0}
+.b-mono{font-family:ui-monospace,Consolas,monospace;font-size:12px;line-height:18px;
+  color:#3E3A34;font-feature-settings:"tnum"}
+.b-hr{height:1px;background:#C9C2B2;margin:12px 0}
+.b-entry{padding:12px 0;border-bottom:1px solid #C9C2B2}
+.b-entry .meta{font-size:10.5px;font-weight:600;letter-spacing:1.2px;color:#5C574F;
+  display:flex;gap:8px;align-items:center}
+.b-entry .meta u{text-decoration:none;color:#8C1D18}
+.b-entry .meta i{width:4px;height:11px;background:#8C1D18;display:inline-block}
+.b-entry h3{font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  font-size:17px;font-weight:700;line-height:23px;padding:5px 0 0;letter-spacing:-.1px}
+.b-entry.read h3{font-weight:400;color:#3E3A34}
+.b-entry p{font-size:12px;line-height:20px;color:#3E3A34;padding-top:4px}
+.b-entry .tail{font-size:11px;color:#8C1D18;font-weight:700;padding-top:5px;letter-spacing:.2px}
+.b-quote{border-left:3px solid #C9C2B2;padding-left:10px;margin:8px 0 0;
+  font-family:"Songti SC","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  font-size:14px;font-style:italic;line-height:21px;color:#3E3A34}
+.b-inv{background:#8C1D18;color:#FFFDF7;padding:9px 12px;display:flex;justify-content:space-between;
+  align-items:center;font-size:12px;font-weight:700;letter-spacing:.3px;margin:12px 0 0}
+.b-inv b{font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.b-nav2{display:flex;gap:14px;overflow-x:auto;padding:10px 0 12px;border-bottom:1px solid #C9C2B2;
+  scrollbar-width:none;font-size:12px}
+.b-nav2::-webkit-scrollbar{display:none}
+.b-nav2 a{flex:0 0 auto;color:#5C574F;text-decoration:none;letter-spacing:.4px;font-weight:600}
+.b-nav2 a.on{color:#12100D;font-weight:700;border-bottom:2px solid #8C1D18;padding-bottom:2px}
+.b-nav2 a u{text-decoration:none;font-family:ui-monospace,monospace;font-size:11px;color:#8C1D18}
+.b-table{width:100%;border-collapse:collapse;font-size:12px}
+.b-table thead th{font-size:10px;font-weight:700;letter-spacing:1.2px;color:#5C574F;
+  text-align:left;padding:9px 0 7px;border-bottom:2px solid #12100D}
+.b-table td{padding:11px 0;border-bottom:1px solid #C9C2B2;vertical-align:top;
+  font-feature-settings:"tnum"}
+.b-table td.d{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:#3E3A34;width:56px}
+.b-table td.t{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:#3E3A34;width:64px}
+.b-table td.c{font-size:13px;font-weight:600;line-height:19px}
+.b-table td.p{font-size:11.5px;color:#3E3A34;width:78px;line-height:17px}
+.b-table tr.next td{background:#8C1D18;color:#FFFDF7;padding:11px 6px;border-bottom:none}
+.b-table tr.next td.d,.b-table tr.next td.t,.b-table tr.next td.p{color:#FFFDF7}
+.b-table tr.next td.c{color:#FFFDF7;font-weight:700}
+.b-emptybox{border:1px solid #8A8375;padding:16px;margin-top:14px}
+.b-emptybox b{font-size:13px;font-weight:700}
+.b-emptybox p{font-size:12px;line-height:19px;color:#3E3A34;margin-top:5px}
+.b-emptybox a{display:inline-block;margin-top:9px;font-size:13px;font-weight:700;color:#8C1D18;
+  text-decoration:none;letter-spacing:.3px}
+.b-fold{display:flex;justify-content:space-between;align-items:center;padding:12px 0;
+  border-bottom:1px solid #C9C2B2;font-size:13px;font-weight:700}
+.b-fold span{font-size:11px;color:#5C574F;font-weight:600;letter-spacing:.6px}
+
+/* ============================================================
+   C 黏土校园 Clay
+   bg #FDF9F3 · 粉彩块 · accent #8A3B0E · radius 24 · 双击阴影
+   ============================================================ */
+.paneC .screen{background:
+  radial-gradient(120% 60% at 12% 0%, #FFEFE2 0%, rgba(255,239,226,0) 60%),
+  radial-gradient(100% 50% at 92% 6%, #E7EEF9 0%, rgba(231,238,249,0) 62%),
+  #FDF9F3;color:#2A2320}
+.c-body{flex:1;overflow-y:auto;scrollbar-width:none;padding:16px 16px 108px}
+.c-body::-webkit-scrollbar{display:none}
+.c-blk{border-radius:24px;padding:14px;background:#fff;margin-bottom:12px;
+  border:3px solid #fff;
+  box-shadow:inset -2px -2px 6px rgba(0,0,0,.06), 4px 6px 14px rgba(42,35,32,.10)}
+.c-blk.ap{background:#FFE0CC}.c-blk.sg{background:#DCEBDA}
+.c-blk.bl{background:#E3E7F5}.c-blk.cr{background:#FBEFC9}
+.c-id{display:flex;align-items:center;gap:12px}
+.c-av{width:48px;height:48px;border-radius:50%;background:#FFE0CC;display:grid;place-items:center;
+  font-size:17px;font-weight:800;box-shadow:inset -2px -2px 6px rgba(0,0,0,.08)}
+.c-id .nm{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.c-id .sb{font-size:12.5px;color:#5A5048;margin-top:3px;letter-spacing:.2px}
+.c-id .gear{margin-left:auto;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;
+  background:#F2ECE2;font-size:14px;color:#5A5048}
+.c-head{display:flex;align-items:baseline;justify-content:space-between}
+.c-k{font-size:12.5px;font-weight:600;letter-spacing:.6px;color:#5A5048}
+.c-dial{width:76px;height:76px;border-radius:50%;background:#FFD3B6;display:grid;place-items:center;
+  box-shadow:inset -2px -2px 6px rgba(0,0,0,.10);text-align:center;flex:0 0 76px}
+.c-dial b{font:800 26px/26px ui-monospace,Consolas,monospace;letter-spacing:-1px;
+  font-feature-settings:"tnum"}
+.c-dial span{font-size:10px;font-weight:700;color:#5A5048;letter-spacing:.6px}
+.c-prog{height:12px;border-radius:6px;background:rgba(255,255,255,.62);overflow:hidden;margin:10px 0 7px}
+.c-prog i{display:block;height:100%;border-radius:6px;background:#8A3B0E}
+.c-num{font:800 26px/30px ui-monospace,Consolas,monospace;letter-spacing:-.8px;
+  font-feature-settings:"tnum";margin-top:2px}
+.c-f{font-size:12px;line-height:17px;color:#5A5048;margin-top:4px}
+.c-2{display:flex;gap:12px}
+.c-2 .c-blk{flex:1;min-width:0;margin-bottom:12px}
+.c-em{display:flex;align-items:center;gap:12px}
+.c-em .ic{width:44px;height:44px;border-radius:16px;background:rgba(255,255,255,.66);
+  display:grid;place-items:center;font-size:15px;flex:0 0 44px;
+  box-shadow:inset -2px -2px 5px rgba(0,0,0,.07)}
+.c-em .cd{font:800 26px/26px ui-monospace,Consolas,monospace;letter-spacing:-1px;color:#8A3B0E}
+.c-em .cd small{font:700 10px/1 inherit;letter-spacing:0}
+.c-t1{font-size:17px;font-weight:700;line-height:23px;letter-spacing:-.2px}
+.c-h1{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.c-chips{display:flex;gap:8px;overflow-x:auto;padding:2px 0 12px;scrollbar-width:none}
+.c-chips::-webkit-scrollbar{display:none}
+.c-chip{flex:0 0 auto;height:32px;padding:0 13px;border-radius:999px;font-size:12.5px;font-weight:700;
+  display:inline-flex;align-items:center;gap:6px;background:#fff;color:#5A5048;
+  border:3px solid #fff;box-shadow:0 3px 8px rgba(42,35,32,.08)}
+.c-chip.on{background:#FFE0CC;color:#8A3B0E}
+.c-chip u{text-decoration:none;font:800 11px ui-monospace,monospace}
+.c-badge{display:inline-flex;align-items:center;gap:6px;height:34px;padding:0 13px;border-radius:999px;
+  background:#E3E7F5;font-size:12.5px;font-weight:700;color:#5A5048;
+  box-shadow:inset -2px -2px 5px rgba(0,0,0,.06)}
+.c-badge b{font:800 13px ui-monospace,monospace;color:#8A3B0E}
+.c-card{display:flex;gap:12px;align-items:flex-start}
+.c-src{width:36px;height:36px;border-radius:50%;flex:0 0 36px;display:grid;place-items:center;
+  font-size:11px;font-weight:800;background:rgba(255,255,255,.7);color:#5A5048;
+  box-shadow:inset -2px -2px 5px rgba(0,0,0,.07)}
+.c-card .tx{min-width:0;flex:1}
+.c-card .mt{font-size:11.5px;font-weight:600;color:#5A5048;letter-spacing:.3px}
+.c-card h3{font-size:15px;font-weight:700;line-height:21px;margin-top:3px;letter-spacing:-.1px}
+.c-card.read{opacity:.78}
+.c-card.read h3{font-weight:600}
+.c-card p{font-size:12.5px;line-height:18px;color:#5A5048;margin-top:4px}
+.c-tag{display:inline-flex;align-items:center;height:24px;padding:0 9px;border-radius:999px;
+  background:rgba(255,255,255,.72);font-size:11px;font-weight:700;color:#8A3B0E;margin-top:8px}
+.c-dock{position:absolute;left:24px;right:24px;bottom:20px;height:64px;border-radius:32px;
+  background:#FFFDF9;border:3px solid #fff;display:flex;align-items:center;justify-content:space-around;
+  box-shadow:inset -2px -2px 8px rgba(0,0,0,.05), 0 8px 22px rgba(42,35,32,.16)}
+.c-dk{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700;
+  color:#7A6E62;width:52px}
+.c-dk .ii{width:30px;height:30px;border-radius:12px;display:grid;place-items:center;font-size:12px;
+  font-weight:800;background:#F2ECE2;color:#5A5048}
+.c-dk.on .ii{background:#FFE0CC;color:#8A3B0E}
+.c-dk.on{color:#8A3B0E}
+.c-fab{width:56px;height:56px;border-radius:50%;background:#8A3B0E;color:#FFF6ED;display:grid;
+  place-items:center;font-size:22px;font-weight:800;margin-top:-26px;
+  box-shadow:inset -2px -3px 7px rgba(0,0,0,.20), 0 8px 18px rgba(138,59,14,.34)}
+.c-empty{background:#F2ECE2;border:2px solid rgba(138,59,14,.14);border-radius:24px;
+  padding:18px;text-align:center}
+.c-empty b{display:block;font-size:14px;font-weight:800}
+.c-empty p{font-size:12.5px;line-height:18px;color:#5A5048;margin-top:5px}
+.c-empty .btn{display:inline-flex;align-items:center;height:38px;padding:0 18px;border-radius:999px;
+  background:#8A3B0E;color:#FFF6ED;font-size:13px;font-weight:800;margin-top:11px}
+.c-lab{font-size:11.5px;font-weight:700;letter-spacing:.6px;color:#5A5048;padding:2px 2px 8px}
+</style>
+</head>
+<body>
+
+<!-- 状态开关：必须排在 .topbar / .stage 之前（CSS 兄弟选择器） -->
+<input class="dsel" type="radio" name="dir" id="dirA" checked>
+<input class="dsel" type="radio" name="dir" id="dirB">
+<input class="dsel" type="radio" name="dir" id="dirC">
+<input class="dsel" type="checkbox" id="cmp">
+
+<header class="topbar">
+  <div class="brand">沈农在途 · 前端方案 v3 原型
+    <small>A 仪表舱 / B 校报头版 / C 黏土校园 · 基准 360×720dp</small>
+  </div>
+  <div class="sw">
+    <label for="dirA">A 仪表舱 Bento</label>
+    <label for="dirB">B 校报头版 Editorial</label>
+    <label for="dirC">C 黏土校园 Clay</label>
+    <label for="cmp" class="cmpbtn">并排对比（3 方向 · 学业主页）</label>
+  </div>
+  <p class="note"><b>本页所有数值均为「原型示意数据」，不是真实教务数据。</b>
+    字段名与真实模型一致（需修/已得学分、加权绩点、通过门数、开考时间、座位号、报名截止）；
+    正式实现中缺失一律显示「暂缺 / —」，分母缺失不画进度条，空态不编数字。
+    规格见 <code>docs/评审-前端设计方案-v3.md</code>。</p>
+</header>
+
+<main class="stage">
+
+<!-- ══════════════════════════════════════════════════════════
+     方向 A · 仪表舱 Bento Console
+     ══════════════════════════════════════════════════════════ -->
+<section class="pane paneA">
+
+  <!-- ① 学业主页 -->
+  <article class="phone">
+    <div class="cap"><i></i>① 学业主页 · 原型示意数据</div>
+    <div class="screen">
+      <div class="a-wrap">
+        <nav class="a-rail">
+          <div class="a-logo">途</div>
+          <div class="a-rr on"><span class="ic">课</span><span class="lb">课表</span></div>
+          <div class="a-rr"><span class="ic">资</span><span class="lb">资讯</span><span class="bd">86</span></div>
+          <div class="a-rr"><span class="ic">我</span><span class="lb">我的</span></div>
+          <div style="flex:1"></div>
+          <div class="a-rr"><span class="ic">刷</span></div>
+        </nav>
+        <div class="a-body">
+          <div class="a-k">2026-2027 秋 · 第 12 周</div>
+          <div class="a-name">陈雨桐</div>
+          <div class="a-pills">
+            <span class="a-pill on">24土管1</span>
+            <span class="a-pill">校园网</span>
+            <span class="a-pill">已登录</span>
+          </div>
+
+          <div class="a-grid">
+            <div class="a-t g s2">
+              <div class="a-k">培养方案进度 · 64%</div>
+              <div class="a-big">106<em>/ 165 学分</em></div>
+              <div class="a-bar"><i style="width:64%"></i></div>
+              <div class="a-f">还差 59 学分 · 通过 55 门 · 数据来自培养方案</div>
+            </div>
+
+            <div class="a-t b">
+              <div class="a-k">加权绩点</div>
+              <div class="a-mid">3.42</div>
+              <div class="a-f">按学校绩点加权 · 覆盖 128 / 142 学分</div>
+            </div>
+
+            <div class="a-t o">
+              <div class="a-k">通过门数</div>
+              <div class="a-mid">55</div>
+              <div class="a-f">未通过 0 门</div>
+            </div>
+
+            <div class="a-t o s2">
+              <div class="a-k">下一场考试</div>
+              <div class="a-row2">
+                <div class="a-cd">3<small>天后</small></div>
+                <div style="width:1px;height:34px;background:rgba(143,95,11,.25)"></div>
+                <div>
+                  <div class="a-t1">高等数学（下）</div>
+                  <div class="a-t2">11-15 10:00 开考 · 第二教学楼 B203 · 座位 27</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="a-t p">
+              <div class="a-k">空闲教室 · 3F</div>
+              <div class="a-mid">B301</div>
+              <div class="a-f">42 座 · 第二教学楼 · 第 5 小节</div>
+            </div>
+
+            <div class="a-t b">
+              <div class="a-k">竞赛报名</div>
+              <div class="a-mid">剩 6 天</div>
+              <div class="a-f">全国大学生数学建模竞赛</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ② 资讯流 -->
+  <article class="phone">
+    <div class="cap"><i></i>② 资讯流 · 原型示意数据</div>
+    <div class="screen">
+      <div class="a-wrap">
+        <nav class="a-rail">
+          <div class="a-logo">途</div>
+          <div class="a-rr"><span class="ic">课</span><span class="lb">课表</span></div>
+          <div class="a-rr on"><span class="ic">资</span><span class="lb">资讯</span></div>
+          <div class="a-rr"><span class="ic">我</span><span class="lb">我的</span></div>
+          <div style="flex:1"></div>
+          <div class="a-rr"><span class="ic">刷</span></div>
+        </nav>
+        <div class="a-body">
+          <div class="a-hd">
+            <div>
+              <h1>资讯</h1>
+              <div class="sb"><b>86 未读</b> · 342 条 · 14:32 更新</div>
+            </div>
+            <div class="a-k">⋯</div>
+          </div>
+
+          <div class="a-alert"><s></s>竞赛报名 6 天后截止 · 全国大学生数学建模竞赛</div>
+
+          <div class="a-chips">
+            <span class="a-chip on">全部 <u>86</u></span>
+            <span class="a-chip">竞赛 <u>12</u></span>
+            <span class="a-chip">教务 <u>9</u></span>
+            <span class="a-chip">就业 <u>41</u></span>
+            <span class="a-chip">通知 <u>15</u></span>
+            <span class="a-chip">学工 <u>6</u></span>
+            <span class="a-chip">新闻 <u>3</u></span>
+          </div>
+
+          <div class="a-meta">
+            <span>竞赛 · 15 条 · <b>12 未读</b> · 按截止排序</span>
+            <span class="act">全部已读</span>
+          </div>
+
+          <div class="a-wf">
+            <div class="a-card">
+              <div class="src"><i></i>竞赛 · 11-11</div>
+              <h3>关于举办 2026 年全国大学生数学建模竞赛校内选拔的通知</h3>
+              <p>各学院：现将校内选拔报名、培训与赛程安排通知如下…</p>
+              <div class="ft"><span>竞赛</span><b>剩 6 天</b></div>
+            </div>
+
+            <div class="a-card">
+              <div class="src"><i></i>教务 · 11-10</div>
+              <h3>关于下学期选课的通知</h3>
+              <div class="ft"><span>教务</span><b>剩 2 天</b></div>
+            </div>
+
+            <div class="a-card dim">
+              <div class="src"><i class="off"></i>就业 · 11-09</div>
+              <h3>中储粮 2027 届校园招聘公告</h3>
+            </div>
+
+            <div class="a-card">
+              <div class="src"><i></i>通知 · 11-08</div>
+              <h3>期末考试安排的通知</h3>
+            </div>
+
+            <div class="a-card dim">
+              <div class="src"><i class="off"></i>新闻 · 11-07</div>
+              <h3>我校 3 项成果获省科技进步奖</h3>
+            </div>
+
+            <div class="a-card">
+              <div class="src"><i></i>学工 · 11-06</div>
+              <h3>冬季宿舍安全隐患排查</h3>
+            </div>
+
+            <div class="a-card dim">
+              <div class="src"><i class="off"></i>教务 · 11-05</div>
+              <h3>关于教学评估填写的提醒</h3>
+            </div>
+
+            <div class="a-card">
+              <div class="src"><i></i>竞赛 · 11-04</div>
+              <h3>“挑战杯”课外学术科技作品竞赛报名</h3>
+              <div class="ft"><span>竞赛</span><b>剩 21 天</b></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ③ 考试安排 -->
+  <article class="phone">
+    <div class="cap"><i></i>③ 考试安排 · 原型示意数据</div>
+    <div class="screen">
+      <div class="a-wrap">
+        <nav class="a-rail">
+          <div class="a-logo">途</div>
+          <div class="a-rr on"><span class="ic">课</span><span class="lb">课表</span></div>
+          <div class="a-rr"><span class="ic">资</span><span class="lb">资讯</span></div>
+          <div class="a-rr"><span class="ic">我</span><span class="lb">我的</span></div>
+          <div style="flex:1"></div>
+          <div class="a-rr"><span class="ic">刷</span></div>
+        </nav>
+        <div class="a-body">
+          <div class="a-hd">
+            <div>
+              <h1>考试安排</h1>
+              <div class="sb">共 9 场 · 已考 2 场 · 14:32 更新</div>
+            </div>
+            <div class="a-k">刷新</div>
+          </div>
+
+          <div class="a-grid" style="margin-top:12px">
+            <div class="a-t o s2">
+              <div class="a-k">下一场 · 本学期第 12 周</div>
+              <div class="a-row2">
+                <div class="a-cd">3<small>天后</small></div>
+                <div style="width:1px;height:38px;background:rgba(143,95,11,.25)"></div>
+                <div>
+                  <div class="a-t1">高等数学（下）</div>
+                  <div class="a-t2">11-15 10:00–11:40 · 100 分钟</div>
+                  <div class="a-t2">第二教学楼 B203 · 座位 27</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="a-t">
+              <div class="a-xrow">
+                <div class="a-date">11-18</div>
+                <div style="min-width:0">
+                  <div class="a-t1" style="font-size:13px">大学英语Ⅳ</div>
+                  <div class="a-t2">09:00–10:40</div>
+                  <div class="a-t2">A108 · 座位 12</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="a-t">
+              <div class="a-xrow">
+                <div class="a-date">11-20</div>
+                <div style="min-width:0">
+                  <div class="a-t1" style="font-size:13px">土地资源学</div>
+                  <div class="a-t2">14:00–15:40</div>
+                  <div class="a-t2">B305 · 座位 8</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="a-t">
+              <div class="a-xrow">
+                <div class="a-date">11-24</div>
+                <div style="min-width:0">
+                  <div class="a-t1" style="font-size:13px">马克思主义基本原理</div>
+                  <div class="a-t2">09:00–10:40</div>
+                  <div class="a-t2">C201 · 座位 31</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="a-t">
+              <div class="a-xrow">
+                <div class="a-date">11-27</div>
+                <div style="min-width:0">
+                  <div class="a-t1" style="font-size:13px">测量学</div>
+                  <div class="a-t2">14:00–15:40</div>
+                  <div class="a-t2">B101 · 座位 5</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="a-gapf">已结束 2 场 · 点击查看 ›</div>
+
+            <div class="a-t" style="border:1px dashed #CFC7B8;box-shadow:none;background:transparent">
+              <div class="a-k">时间暂缺</div>
+              <div class="a-f" style="margin-top:6px">
+                有 1 场考试日期解析失败，显示为「—」，不猜测日期
+              </div>
+            </div>
+            <div class="a-t" style="border:1px dashed #CFC7B8;box-shadow:none;background:transparent">
+              <div class="a-k">接口诊断</div>
+              <div class="a-f" style="margin-top:6px">
+                若多场显示「—」，点此跑一次诊断
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     方向 B · 校报头版 Editorial
+     ══════════════════════════════════════════════════════════ -->
+<section class="pane paneB">
+
+  <!-- ① 学业主页 -->
+  <article class="phone">
+    <div class="cap"><i></i>① 学业主页 · 原型示意数据</div>
+    <div class="screen">
+      <div class="b-body">
+        <div class="b-mast">
+          <h1>沈农在途</h1>
+          <span>2026-11-13 周四</span>
+        </div>
+        <div class="b-dbl"></div>
+        <nav class="b-nav">
+          <a class="on" href="#">课表</a>
+          <a href="#">资讯</a>
+          <a href="#">我的</a>
+        </nav>
+
+        <div class="b-lead">学分 106 / 165，还差 59</div>
+        <div class="b-sub">本学期第 12 周 · 9 场考试待考 · 下周二开考第一场</div>
+
+        <div class="b-cols">
+          <div class="b-col">
+            <div class="lb">加权绩点</div>
+            <div class="num">3.42</div>
+            <div class="ft">按学校绩点加权<br>覆盖 128 / 142 学分</div>
+          </div>
+          <div class="b-col">
+            <div class="lb">通过门数</div>
+            <div class="num">55</div>
+            <div class="ft">未通过 0 门<br>通过率 100%</div>
+          </div>
+        </div>
+
+        <div class="b-sec">
+          <div class="bar"></div>
+          <div>
+            <h2>下一场考试</h2>
+            <div class="b-h2">高等数学（下）</div>
+            <div class="b-mono">11-15 10:00–11:40 · 100 分钟</div>
+            <div class="b-mono">第二教学楼 B203 · 座位 27</div>
+          </div>
+        </div>
+
+        <div class="b-hr"></div>
+
+        <div class="b-sec">
+          <div class="bar"></div>
+          <div style="min-width:0">
+            <h2>空闲教室 · 第二教学楼 · 47 间</h2>
+            <div style="padding-top:2px">
+              <div class="b-fold" style="padding:9px 0;font-weight:600">
+                <span style="font-size:12.5px;color:#12100D;font-weight:600">B301</span>
+                <span>42 座 · 3F · 第 5 小节</span>
+              </div>
+              <div class="b-fold" style="padding:9px 0;font-weight:600">
+                <span style="font-size:12.5px;color:#12100D;font-weight:600">B303</span>
+                <span>38 座 · 3F · 第 5 小节</span>
+              </div>
+              <div class="b-fold" style="padding:9px 0;font-weight:600">
+                <span style="font-size:12.5px;color:#12100D;font-weight:600">C405</span>
+                <span>56 座 · 4F · 第 5 小节</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="b-hr"></div>
+
+        <div class="b-sec">
+          <div class="bar"></div>
+          <div>
+            <h2>竞赛报名</h2>
+            <div class="b-h2">全国大学生数学建模竞赛（校内选拔）</div>
+            <div class="b-quote">报名开放至 11-19，逾期系统关闭。校内选拔通过者进入省赛培训名单。</div>
+            <div class="b-mono" style="color:#8C1D18;font-weight:700">剩 6 天 · 来源：创新创业学院</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ② 资讯流 -->
+  <article class="phone">
+    <div class="cap"><i></i>② 资讯流 · 原型示意数据</div>
+    <div class="screen">
+      <div class="b-body">
+        <div class="b-mast">
+          <h1>资讯</h1>
+          <span>342 条 · 14:32</span>
+        </div>
+        <div class="b-dbl"></div>
+        <nav class="b-nav">
+          <a href="#">课表</a>
+          <a class="on" href="#">资讯</a>
+          <a href="#">我的</a>
+        </nav>
+
+        <div class="b-lead" style="font-size:19px">我校在 2026 年全国大学生数学建模竞赛校内选拔中开放报名</div>
+        <div class="b-sub">竞赛 · 11-11 发布 · 报名 6 天后截止</div>
+
+        <div class="b-cols">
+          <div class="b-col">
+            <div class="lb">未读</div>
+            <div class="num">86</div>
+            <div class="ft">全部频道合计</div>
+          </div>
+          <div class="b-col">
+            <div class="lb">总条数</div>
+            <div class="num">342</div>
+            <div class="ft">7 个频道</div>
+          </div>
+        </div>
+
+        <div class="b-inv"><span>竞赛报名 · 剩 6 天</span><b>全部已读 ›</b></div>
+
+        <div class="b-nav2">
+          <a class="on" href="#">全部 <u>86</u></a>
+          <a href="#">竞赛 <u>12</u></a>
+          <a href="#">教务 <u>9</u></a>
+          <a href="#">就业 <u>41</u></a>
+          <a href="#">通知 <u>15</u></a>
+          <a href="#">学工 <u>6</u></a>
+          <a href="#">新闻 <u>3</u></a>
+        </div>
+
+        <div class="b-entry">
+          <div class="meta"><i></i><span>竞赛</span><span>11-11</span></div>
+          <h3>关于举办 2026 年全国大学生数学建模竞赛校内选拔的通知</h3>
+          <p>各学院：现将校内选拔报名、培训与赛程安排通知如下，请有意参赛的同学按学院统一报名。</p>
+          <div class="tail">剩 6 天 · 创新创业学院</div>
+        </div>
+
+        <div class="b-entry">
+          <div class="meta"><i></i><span>教务</span><span>11-10</span></div>
+          <h3>关于下学期选课的通知</h3>
+          <p>各学院：现将下学期选课安排通知如下，选课系统将于下周开放，请注意各轮次时间。</p>
+          <div class="tail">剩 2 天</div>
+        </div>
+
+        <div class="b-entry read">
+          <div class="meta"><span>就业</span><span>11-09</span></div>
+          <h3>中储粮 2027 届校园招聘公告</h3>
+          <p>招聘专业涵盖粮食工程、土地资源管理、财务管理等，网申截止 12-05。</p>
+        </div>
+
+        <div class="b-entry read">
+          <div class="meta"><span>通知</span><span>11-08</span></div>
+          <h3>关于 2026-2027 学年第一学期期末考试安排的通知</h3>
+        </div>
+
+        <div class="b-entry read">
+          <div class="meta"><span>新闻</span><span>11-07</span></div>
+          <h3>我校 3 项成果获省科技进步奖</h3>
+        </div>
+
+        <div class="b-emptybox">
+          <b>这个频道还没有内容</b>
+          <p>「学工」频道本轮刷新返回 0 条 —— 不是加载失败。可以换个频道，或稍后刷新。</p>
+          <a href="#">去看「全部」›</a>
+        </div>
+      </div>
+    </div>
+  </article>
+
+  <!-- ③ 考试安排 -->
+  <article class="phone">
+    <div class="cap"><i></i>③ 考试安排 · 原型示意数据</div>
+    <div class="screen">
+      <div class="b-body">
+        <div class="b-mast">
+          <h1>考试安排</h1>
+          <span>共 9 场</span>
+        </div>
+        <div class="b-dbl"></div>
+        <nav class="b-nav">
+          <a href="#">课表</a>
+          <a href="#">资讯</a>
+          <a class="on" href="#">我的</a>
+        </nav>
+
+        <div class="b-sub" style="padding:12px 0 4px">
+          已考 2 场 · 待考 7 场 · 时间以教务系统为准
+        </div>
+
+        <table class="b-table">
+          <thead>
+            <tr><th>日期</th><th>时间</th><th>课程</th><th>地点</th></tr>
+          </thead>
+          <tbody>
+            <tr class="next">
+              <td class="d">11-15</td><td class="t">10:00</td>
+              <td class="c">高等数学（下）</td><td class="p">B203 座27</td>
+            </tr>
+            <tr>
+              <td class="d">11-18</td><td class="t">09:00</td>
+              <td class="c">大学英语Ⅳ</td><td class="p">A108 座12</td>
+            </tr>
+            <tr>
+              <td class="d">11-20</td><td class="t">14:00</td>
+              <td class="c">土地资源学</td><td class="p">B305 座8</td>
+            </tr>
+            <tr>
+              <td class="d">11-24</td><td class="t">09:00</td>
+              <td class="c">马克思主义基本原理</td><td class="p">C201 座31</td>
+            </tr>
+            <tr>
+              <td class="d">11-27</td><td class="t">14:00</td>
+              <td class="c">测量学</td><td class="p">B101 座5</td>
+            </tr>
+            <tr>
+              <td class="d">12-02</td><td class="t">09:00</td>
+              <td class="c">地理信息系统</td><td class="p">B402 座19</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="b-fold" style="margin-top:4px">
+          已结束 2 场 <span>▸ 展开</span>
+        </div>
+
+        <div class="b-sub" style="padding:10px 0 0;font-size:11.5px;color:#5C574F">
+          ▍有 1 场日期未能解析，显示为「—」并归入「时间待定」，不猜测日期。
+        </div>
+
+        <div class="b-hr"></div>
+        <div class="b-sec">
+          <div class="bar"></div>
+          <div>
+            <h2>下一场考试的准备</h2>
+            <div class="b-mono">考场：第二教学楼 B203 · 座位 27</div>
+            <div class="b-mono">开考 10:00 · 提前 15 分钟入场</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════
+     方向 C · 黏土校园 Clay
+     ══════════════════════════════════════════════════════════ -->
+<section class="pane paneC">
+
+  <!-- ① 学业主页 -->
+  <article class="phone">
+    <div class="cap"><i></i>① 学业主页 · 原型示意数据</div>
+    <div class="screen">
+      <div class="c-body">
+        <div class="c-blk">
+          <div class="c-id">
+            <div class="c-av">陈</div>
+            <div>
+              <div class="nm">陈雨桐</div>
+              <div class="sb">24土管1 · 土地资源管理 · 2024级</div>
+            </div>
+            <div class="gear">⚙</div>
+          </div>
+        </div>
+
+        <div class="c-blk ap">
+          <div class="c-head"><span class="c-k">培养方案进度</span><span class="c-k">64%</span></div>
+          <div style="display:flex;gap:14px;align-items:center;margin-top:10px">
+            <div class="c-dial"><b>106</b><span>学分</span></div>
+            <div style="min-width:0;flex:1">
+              <div class="c-t1">已得 106 / 需修 165</div>
+              <div class="c-prog"><i style="width:64%"></i></div>
+              <div class="c-f">还差 59 学分 · 通过 55 门</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-2">
+          <div class="c-blk sg">
+            <div class="c-k">加权绩点</div>
+            <div class="c-num">3.42</div>
+            <div class="c-f">按学校绩点加权</div>
+          </div>
+          <div class="c-blk cr">
+            <div class="c-k">通过门数</div>
+            <div class="c-num">55</div>
+            <div class="c-f">未通过 0 门</div>
+          </div>
+        </div>
+
+        <div class="c-blk bl">
+          <div class="c-em">
+            <div class="ic">⏰</div>
+            <div style="min-width:0">
+              <div class="c-k">下一场考试</div>
+              <div class="c-t1">高等数学（下）</div>
+              <div class="c-f">11-15 10:00 · 第二教学楼 B203 · 座位 27</div>
+            </div>
+            <div style="margin-left:auto;text-align:right">
+              <div class="c-em"><div class="cd">3<small>天后</small></div></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-2">
+          <div class="c-blk">
+            <div class="c-k">空闲教室</div>
+            <div class="c-t1" style="margin-top:4px">B301</div>
+            <div class="c-f">42 座 · 3F · 第 5 小节</div>
+          </div>
+          <div class="c-blk ap">
+            <div class="c-k">竞赛报名</div>
+            <div class="c-t1" style="margin-top:4px">剩 6 天</div>
+            <div class="c-f">全国大学生数学建模</div>
+          </div>
+        </div>
+      </div>
+
+      <nav class="c-dock">
+        <div class="c-dk on"><div class="ii">课</div>课表</div>
+        <div class="c-dk"><div class="ii">资</div>资讯</div>
+        <div class="c-fab">＋</div>
+        <div class="c-dk"><div class="ii">教</div>教室</div>
+        <div class="c-dk"><div class="ii">我</div>我的</div>
+      </nav>
+    </div>
+  </article>
+
+  <!-- ② 资讯流 -->
+  <article class="phone">
+    <div class="cap"><i></i>② 资讯流 · 原型示意数据</div>
+    <div class="screen">
+      <div class="c-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 2px 12px">
+          <div class="c-h1">资讯</div>
+          <div class="c-badge">未读 <b>86</b></div>
+        </div>
+
+        <div class="c-blk ap" style="padding:12px 14px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:20px">🔔</div>
+            <div style="min-width:0">
+              <div class="c-t1" style="font-size:15px">竞赛报名 6 天后截止</div>
+              <div class="c-f">全国大学生数学建模竞赛 · 校内选拔</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-chips">
+          <span class="c-chip on">全部 <u>86</u></span>
+          <span class="c-chip">竞赛 <u>12</u></span>
+          <span class="c-chip">教务 <u>9</u></span>
+          <span class="c-chip">就业 <u>41</u></span>
+          <span class="c-chip">通知 <u>15</u></span>
+        </div>
+
+        <div class="c-lab">竞赛 · 15 条 · 12 未读 · 按截止排序</div>
+
+        <div class="c-blk">
+          <div class="c-card">
+            <div class="c-src">竞赛</div>
+            <div class="tx">
+              <div class="mt">竞赛 · 11-11</div>
+              <h3>关于举办 2026 年全国大学生数学建模竞赛校内选拔的通知</h3>
+              <p>各学院：现将校内选拔报名、培训与赛程安排通知如下…</p>
+              <span class="c-tag">剩 6 天</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-blk cr">
+          <div class="c-card">
+            <div class="c-src">教务</div>
+            <div class="tx">
+              <div class="mt">教务 · 11-10</div>
+              <h3>关于下学期选课的通知</h3>
+              <span class="c-tag">剩 2 天</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-blk" style="opacity:.96">
+          <div class="c-card read">
+            <div class="c-src">就业</div>
+            <div class="tx">
+              <div class="mt">就业 · 11-09 · 已读</div>
+              <h3>中储粮 2027 届校园招聘公告</h3>
+              <p>招聘专业涵盖粮食工程、土地资源管理、财务管理等。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-empty">
+          <b>「学工」频道本轮 0 条</b>
+          <p>不是加载中，是真的没有新内容。可以换个频道看看。</p>
+          <span class="btn">去看「全部」</span>
+        </div>
+      </div>
+
+      <nav class="c-dock">
+        <div class="c-dk"><div class="ii">课</div>课表</div>
+        <div class="c-dk on"><div class="ii">资</div>资讯</div>
+        <div class="c-fab">＋</div>
+        <div class="c-dk"><div class="ii">教</div>教室</div>
+        <div class="c-dk"><div class="ii">我</div>我的</div>
+      </nav>
+    </div>
+  </article>
+
+  <!-- ③ 考试安排 -->
+  <article class="phone">
+    <div class="cap"><i></i>③ 考试安排 · 原型示意数据</div>
+    <div class="screen">
+      <div class="c-body">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:2px 2px 12px">
+          <div class="c-h1">考试安排</div>
+          <div class="c-badge">共 <b>9</b> 场</div>
+        </div>
+
+        <div class="c-blk bl">
+          <div class="c-k">下一场 · 本学期第 12 周</div>
+          <div style="display:flex;align-items:center;gap:14px;margin-top:8px">
+            <div class="c-dial" style="background:#C9D6EE"><b>3</b><span>天后</span></div>
+            <div style="min-width:0">
+              <div class="c-t1">高等数学（下）</div>
+              <div class="c-f">11-15 10:00–11:40 · 100 分钟</div>
+              <div class="c-f">第二教学楼 B203 · 座位 27</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="c-2">
+          <div class="c-blk cr">
+            <div class="c-k">11-18 · 周三</div>
+            <div class="c-t1" style="margin-top:4px;font-size:15px">大学英语Ⅳ</div>
+            <div class="c-f">09:00–10:40 · A108 · 座 12</div>
+          </div>
+          <div class="c-blk cr">
+            <div class="c-k">11-20 · 周五</div>
+            <div class="c-t1" style="margin-top:4px;font-size:15px">土地资源学</div>
+            <div class="c-f">14:00–15:40 · B305 · 座 8</div>
+          </div>
+        </div>
+
+        <div class="c-2">
+          <div class="c-blk sg">
+            <div class="c-k">11-24 · 周二</div>
+            <div class="c-t1" style="margin-top:4px;font-size:15px">马克思主义基本原理</div>
+            <div class="c-f">09:00–10:40 · C201 · 座 31</div>
+          </div>
+          <div class="c-blk sg">
+            <div class="c-k">11-27 · 周五</div>
+            <div class="c-t1" style="margin-top:4px;font-size:15px">测量学</div>
+            <div class="c-f">14:00–15:40 · B101 · 座 5</div>
+          </div>
+        </div>
+
+        <div class="c-blk" style="padding:12px 14px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div class="c-t1" style="font-size:15px">已结束 2 场</div>
+              <div class="c-f">10-28 土壤学 · 11-01 植物营养学</div>
+            </div>
+            <div style="font-size:16px;color:#8A3B0E">›</div>
+          </div>
+        </div>
+
+        <div class="c-empty">
+          <b>另有 1 场日期未解析</b>
+          <p>教务返回的日期格式不完整，显示为「—」并归入时间待定，不猜测日期。</p>
+          <span class="btn">跑一次接口诊断</span>
+        </div>
+      </div>
+
+      <nav class="c-dock">
+        <div class="c-dk"><div class="ii">课</div>课表</div>
+        <div class="c-dk"><div class="ii">资</div>资讯</div>
+        <div class="c-fab">＋</div>
+        <div class="c-dk on"><div class="ii">教</div>教室</div>
+        <div class="c-dk"><div class="ii">我</div>我的</div>
+      </nav>
+    </div>
+  </article>
+</section>
+
+</main>
+
+</body>
+</html>

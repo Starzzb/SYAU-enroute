@@ -1,0 +1,72 @@
+col_marx_szll.html len 10627
+   ids: _lucenesearchtype1070262 au0a c1070263 lucenenewssearchkey1070262 searchScope1070262 showkeycode1070262 vsb_content_2 vsb_content_2_2973_u51
+   hits: vsb_content(id2/cls0) content(id2/cls6) show(id1/cls0)
+
+col_thxy_zgjzc.html len 20788
+   ids: _lucenesearchtype205156 au2a line_u7_0 line_u7_1 line_u7_2 line_u7_3 line_u7_4 line_u7_5 line_u7_6 line_u7_7 line_u7_8 line_u7_9 lucenenewssearchkey205156 menu searchScope205156 showkeycode205156
+   hits: content(id0/cls1) show(id1/cls0)
+
+col_tyb_jsdw.html len 19697
+   ids: 1070110 2 _lucenesearchtype1070163 _lucenesearchtype1070177 a1070205GOPAGE au2a au8a change_32 fanye1070205 gotopagebut lucenenewssearchkey1070163 lucenenewssearchkey1070177 searchScope1070163 searchScope1070177 showkeycode1070163_2 showkeycode1070177 u_u9_1812_a u_u9_1815_a u_u9_1816_a u_u9_1822_a u_u9_1832_a u_u9_1833_a u_u9_1834_a u_u9_1840_a u_u9_1843_a u_u9_1848_a u_u9_1850_a u_u9_1851_a u_u9_imgcontent
+   hits: content(id1/cls1) text(id0/cls2) show(id2/cls0)
+
+col_wyb_szdw.html len 13354
+   ids: 1 _lucenesearchtype204926 _lucenesearchtype204934 au2a au8a change_32 lucenenewssearchkey204926 lucenenewssearchkey204934 searchScope204926 searchScope204934 showkeycode204926_2 showkeycode204934
+   hits: text(id0/cls2) show(id2/cls0)
+
+col_yyxy_szdw.html len 36250
+   ids: _lucenesearchtype249375 au2a left lucenenewssearchkey249375 nav right searchScope249375 showkeycode249375 vsb_content vsb_content_1391_u81
+   hits: vsb_content(id2/cls0) content(id2/cls2) text(id0/cls3) show(id1/cls0)
+
+det_gcxy_1058.html len 14285
+   ids: WspDetail WspDetailTitle WspListLocation _lucenesearchtype206278 au2a div_vote_id footer layoutmain lucenenewssearchkey206278 searchScope206278 showkeycode206278 vsb_content_1042 wrapper
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id1/cls4) show(id1/cls0)
+
+det_jgxy_6071.html len 34597
+   ids: _lucenesearchtype1069412 au1a c1069413 div_vote_id dl-menu dl-menu-button lucenenewssearchkey1069412 searchScope1069412 showkeycode1069412 vsb_content
+   hits: vsb_content(id2/cls2) v_news_content(id0/cls2) content(id2/cls9) show(id1/cls0)
+
+det_jgxy_zhoumi.html len 30316
+   ids: _lucenesearchtype1069412 au1a c1069413 dl-menu dl-menu-button lucenenewssearchkey1069412 searchScope1069412 showkeycode1069412
+   hits: content(id0/cls5) show(id1/cls0)
+
+det_lin_luxiujun.html len 26258
+   ids: WspDetail WspDetailContent WspDetailTitle WspDetailTools _lucenesearchtype205524 au1a dl-menu dl-menu-button hits jsID lucenenewssearchkey205524 nav outputu8 qr_box qr_container2 searchScope205524 showkeycode205524 vsb_content wrap wrapF wrapT
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id2/cls3) show(id1/cls0)
+
+det_lxy_1289.html len 11230
+   ids: _lucenesearchtype205489 au2a lucenenewssearchkey205489 nav post-724 searchScope205489 showkeycode205489 vsb_content_501
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id1/cls5) text(id0/cls2) show(id1/cls0)
+
+det_myxy_6589.html len 23036
+   ids: WspDetail WspDetailContent WspDetailTitle WspDetailTools _lucenesearchtype248727 au1a dl-menu dl-menu-button hits jsID lucenenewssearchkey248727 nav outputu9 qr_box qr_container2 searchScope248727 showkeycode248727 vsb_content wrap wrapF wrapT
+   hits: vsb_content(id1/cls0) v_news_content(id0/cls1) content(id2/cls2) show(id1/cls0)
+
+det_nxy_zhangwenzhong.html len 17280
+   ids: 2 _lucenesearchtype204551 _vsbscreen au2a div_vote_id lucenenewssearchkey204551 menu outputu8 searchScope204551 showkeycode204551 vsb_content_501
+   hits: vsb_content(id1/cls0) v_news_content(id0/cls1) content(id1/cls9) show(id1/cls0)
+
+det_slxy_zhengsiyu.html len 15237
+   ids: _lucenesearchtype249036 au2a c250106 div_vote_id lucenenewssearchkey249036 outputu9 searchScope249036 showkeycode249036 vsb_content_7
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id1/cls7) text(id0/cls1) show(id1/cls0)
+
+det_swxy_quanbo.html len 19817
+   ids: WspDetail WspDetailBox WspDetailTitle WspDetailTools _lucenesearchtype205591 au3a barCrumb btnso c_lunar205587 footer header hits logo lucenenewssearchkey205591 nav searchScope205591 showkeycode205591 toptool vsb_content_4 wrap wrapF wrapNT
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id1/cls5) show(id1/cls0)
+
+det_thxy_liuxiaohu.html len 17955
+   ids: _lucenesearchtype205156 au2a div_vote_id lucenenewssearchkey205156 menu searchScope205156 showkeycode205156 vsb_content_2
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id1/cls7) show(id1/cls0)
+
+det_thxy_wangjingkuan.html len 23737
+   ids: _lucenesearchtype205156 au2a div_vote_id lucenenewssearchkey205156 menu searchScope205156 showkeycode205156 vsb_content_2
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id1/cls7) show(id1/cls0)
+
+det_xdxy_wangjun.html len 30567
+   ids: WspDetail WspDetailBox WspDetailContent WspDetailTitle WspDetailTools _lucenesearchtype205194 au2a barCrumb btnso footer header hits lucenenewssearchkey205194 nav searchScope205194 showkeycode205194 toptool vsb_content wrap wrapF wrapT
+   hits: vsb_content(id1/cls0) v_news_content(id0/cls1) content(id2/cls2) show(id1/cls0)
+
+det_zbxy_1808.html len 22596
+   ids: WspDetail WspDetailBox WspDetailContent WspDetailTitle WspDetailTools _lucenesearchtype205464 au1a barCrumb footer header hits lucenenewssearchkey205464 nav outputu8 searchScope205464 showkeycode205464 vsb_content wrap wrapF wrapT
+   hits: vsb_content(id1/cls1) v_news_content(id0/cls1) content(id2/cls3) show(id1/cls0)
+

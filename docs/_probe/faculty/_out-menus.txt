@@ -1,0 +1,125 @@
+==========================================================================================
+home_gcxy.syau.edu.cn.html hrefs: 103 | faculty-ish: 4
+   FAC szdw1/xxmj.htm
+   FAC szdw1/msmf.htm
+   FAC szdw1/jsml.htm
+   FAC szdw1/jzyg.htm
+   menus(first 20): 
+==========================================================================================
+home_jgxy.syau.edu.cn.html hrefs: 134 | faculty-ish: 13
+   FAC szdw/nljjglzy.htm
+   FAC szdw/jrxzy.htm
+   FAC szdw/scyxzy.htm
+   FAC szdw/hjxzy.htm
+   FAC szdw/lyglzy.htm
+   FAC szdw/xz_jfry.htm
+   FAC szdw/rcxm.htm
+   FAC szdw/bssds.htm
+   FAC szdw/njxsds.htm
+   FAC szdw/jjxsds.htm
+   menus(first 20): 
+==========================================================================================
+home_lin.syau.edu.cn.html hrefs: 113 | faculty-ish: 7
+   FAC szdw.htm
+   FAC szdw/zyjs.htm
+   FAC szdw/xzjf.htm
+   FAC szdw/jzds.htm
+   FAC szdw/crsz.htm
+   FAC szdw/xbxs.htm
+   FAC https://lin.syau.edu.cn/szdw/zyjs.htm
+   menus(first 20): 
+==========================================================================================
+home_lxy.syau.edu.cn.html hrefs: 69 | faculty-ish: 3
+   FAC szdw1.htm
+   FAC szdw1/js.htm
+   FAC szdw1/fjs.htm
+   menus(first 20): 学校主页->https://www.syau.edu.cn | 网站首页->index.jsp | 学院概况->xygk.htm | 学院简介->xygk/xyjj.htm | 现任领导->xygk/xrld.htm | 机构设置->xygk/jgsz.htm | 师资队伍->szdw1.htm | 教授->szdw1/js.htm | 副教授->szdw1/fjs.htm | 教育教学->jyjx.htm | 教学动态->jyjx/jxdt.htm | 教材建设->jyjx/jcjs.htm | 教学获奖->jyjx/jxhj.htm | 教学名师->jyjx/jxms.htm | 教研项目->jyjx/jyxm.htm | 课程建设->jyjx/kcjs.htm | 科学研究->kxyj.htm | 学术动态->kxyj/xsdt.htm | 学生竞赛->kxyj/xsjs.htm | 党群工作->dqgz.htm | 组织机构->dqgz/zzjg.htm | 理论学习->dqgz/llxx.htm | 党建动态->dqgz/djdt.htm | 工会活动->dqgz/ghhd.htm | 【详细】->info/1105/2562.htm | 【详细】->info/1016/2557.htm
+==========================================================================================
+home_marx.syau.edu.cn.html hrefs: 59 | faculty-ish: 7
+   FAC szll/sxddyfzjys.htm
+   FAC szll/zgjxdsjys.htm
+   FAC szll/mkszyjbyljys.htm
+   FAC szll/mzdsxhzgtsshzylltxgljys.htm
+   FAC szll/xjpxsdzgtsshzysxgljys.htm
+   FAC szll/xsyzcjys.htm
+   FAC szll/yjssxzzllkjys.htm
+   menus(first 20): 
+==========================================================================================
+home_myxy.syau.edu.cn.html hrefs: 132 | faculty-ish: 10
+   FAC szdw.htm
+   FAC szdw/gccrc.htm
+   FAC szdw/js.htm
+   FAC szdw/fjs.htm
+   FAC szdw/js2.htm
+   FAC szdw/xwbssds.htm
+   FAC szdw/xwsssds.htm
+   FAC szdw/szdw1.htm
+   FAC szdw/xzjf.htm
+   FAC szdw/rxjs.htm
+   menus(first 20): 
+==========================================================================================
+home_nxy.syau.edu.cn.html hrefs: 60 | faculty-ish: 1
+   FAC szdw1.htm
+   menus(first 20): 
+==========================================================================================
+home_slxy.syau.edu.cn.html hrefs: 105 | faculty-ish: 9
+   FAC szdw2.htm
+   FAC szdw2/gccrc.htm
+   FAC szdw2/js.htm
+   FAC szdw2/fjs.htm
+   FAC szdw2/js1.htm
+   FAC szdw2/syjs.htm
+   FAC szdw2/xwds.htm
+   FAC szdw2/lrjs.htm
+   FAC szdw2/rxjs.htm
+   menus(first 20): 
+==========================================================================================
+home_spxy.syau.edu.cn.html hrefs: 89 | faculty-ish: 6
+   FAC szdw.htm
+   FAC szdw/zysz.htm
+   FAC szdw/cxrc.htm
+   FAC szdw/dsfc.htm
+   FAC szdw/jsml1.htm
+   FAC szdw/rxjs.htm
+   menus(first 20): 
+==========================================================================================
+home_swxy.syau.edu.cn.html hrefs: 101 | faculty-ish: 5
+   FAC szdw/szgk.htm
+   FAC szdw/yxrc.htm
+   FAC szdw/zzjs.htm
+   FAC szdw/rxjs1.htm
+   FAC szdw.htm
+   menus(first 20): 
+==========================================================================================
+home_thxy.syau.edu.cn.html hrefs: 94 | faculty-ish: 4
+   FAC szdw/bssds.htm
+   FAC szdw/jsxl/zgjzc.htm
+   FAC szdw/xzjf/xzxl.htm
+   FAC szdw/lsmj.htm
+   menus(first 20): 
+==========================================================================================
+home_tyb.syau.edu.cn.html hrefs: 73 | faculty-ish: 1
+   FAC bmgk/jsdw.htm
+   menus(first 20): 
+==========================================================================================
+home_wyb.syau.edu.cn.html hrefs: 68 | faculty-ish: 3
+   FAC szdw.htm
+   FAC szdw/jxms.htm
+   FAC szdw/szdw.htm
+   menus(first 20): 
+==========================================================================================
+home_xdxy.syau.edu.cn.html hrefs: 116 | faculty-ish: 5
+   FAC szdw.htm
+   FAC szdw/zgzc.htm
+   FAC szdw/fgzc.htm
+   FAC szdw/zjzc.htm
+   FAC szdw/rcch.htm
+   menus(first 20): 
+==========================================================================================
+home_yyxy.syau.edu.cn.html hrefs: 81 | faculty-ish: 1
+   FAC xkjs/szdw.htm
+   menus(first 20): 
+==========================================================================================
+home_zbxy.syau.edu.cn.html hrefs: 90 | faculty-ish: 1
+   FAC xkjs/szll.htm
+   menus(first 20): 
