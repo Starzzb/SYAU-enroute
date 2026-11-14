@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +40,7 @@ import cn.dkarbon.enroute.ui.theme.primaryInk
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
+
 
 /**
  * 设置页的「检查更新」区块（票 15）。
@@ -187,7 +187,7 @@ internal fun UpdateSection() {
                 if (s.total > 0) {
                     LinearProgressIndicator(
                         progress = { frac },
-                        modifier = Modifier.fillMaxWidth().height(3.dp).clip(RoundedCornerShape(999.dp)),
+                        modifier = Modifier.fillMaxWidth().height(3.dp).clip(Form.current.shapes.pill),
                         color = t.ink,
                         trackColor = t.rule,
                     )
@@ -250,11 +250,12 @@ private fun StatusLine(text: String, color: androidx.compose.ui.graphics.Color) 
 
 @Composable
 private fun Badge(text: String, color: androidx.compose.ui.graphics.Color) {
+    val badgeShape = Form.current.shapes.badge
     Box(
         Modifier
-            .clip(RoundedCornerShape(999.dp))
+            .clip(badgeShape)
             .background(color.copy(alpha = 0.10f))
-            .border(1.dp, color.copy(alpha = 0.5f), RoundedCornerShape(999.dp))
+            .border(1.dp, color.copy(alpha = 0.5f), badgeShape)
             .padding(horizontal = 6.dp, vertical = 1.dp),
     ) {
         Text(text, fontSize = 9.sp, fontWeight = FontWeight.Medium, color = color)
@@ -274,7 +275,7 @@ private fun PillButton(
 ) {
     val t = InkTokens.current
     val f = Form.current
-    val shape = RoundedCornerShape(999.dp)
+    val shape = f.shapes.control
     Box(
         Modifier
             .heightIn(min = Space.minTouch)

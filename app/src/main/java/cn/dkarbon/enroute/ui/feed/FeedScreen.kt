@@ -37,8 +37,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -341,6 +339,7 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
 @Composable
 private fun FeedHeader(ui: FeedUiState, onRefresh: () -> Unit, onMore: () -> Unit) {
     val t = InkTokens.current
+    val f = Form.current
     Row(
         Modifier.fillMaxWidth().padding(start = Space.l, end = Space.s, top = Space.s),
         verticalAlignment = Alignment.CenterVertically,
@@ -350,7 +349,7 @@ private fun FeedHeader(ui: FeedUiState, onRefresh: () -> Unit, onMore: () -> Uni
             Spacer(Modifier.height(2.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (ui.unread > 0) {
-                    Box(Modifier.size(6.dp).clip(CircleShape).background(t.primary))
+                    Box(Modifier.size(6.dp).clip(f.shapes.circle).background(t.primary))
                     Spacer(Modifier.width(Space.xs))
                     Text(
                         "${ui.unread} 未读",
@@ -628,7 +627,7 @@ private fun ChannelChip(
     // 账页：频道 chip 是**胶囊**，选中态不再用分类色填充（分类色里含主色派生值，
     // 壁纸取色会把它换掉）—— 改成「淡底 + 墨色描边 + 墨色文字」，
     // 层级由字重/字距承担，颜色只在未读计数上出现。
-    val pill = RoundedCornerShape(if (ed) 999.dp else 0.dp)
+    val pill = f.shapes.pill
     Row(
         Modifier
             .height(if (ed) 32.dp else 30.dp)
@@ -901,7 +900,7 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
     val dl = if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
     val urgent = dl?.tone == DeadlineTone.HOT
     val haptic = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(if (ed) f.radiusCard else 0.dp)
+    val shape = f.shapes.card
 
     Row(
         Modifier
@@ -935,9 +934,9 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
                     Modifier
                         .size(32.dp)
                         // 账页：分类徽是一枚「小印章」（6dp 圆角），不是方块
-                        .then(if (ed) Modifier.clip(RoundedCornerShape(6.dp)) else Modifier)
+                        .then(if (ed) Modifier.clip(f.shapes.badge) else Modifier)
                         .background(cat.copy(alpha = if (t.isDark) 0.22f else 0.10f))
-                        .border(Stroke.hairline, cat.copy(alpha = 0.45f), RoundedCornerShape(if (ed) 6.dp else 0.dp)),
+                        .border(Stroke.hairline, cat.copy(alpha = 0.45f), f.shapes.badge),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text(
@@ -976,7 +975,7 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
                             Spacer(Modifier.width(Space.xs))
                         }
                         if (unread) {
-                            Box(Modifier.size(6.dp).clip(CircleShape).background(if (ed) primaryInk() else t.primary))
+                            Box(Modifier.size(6.dp).clip(f.shapes.circle).background(if (ed) primaryInk() else t.primary))
                         }
                     }
                     Spacer(Modifier.height(Space.xs))
@@ -1060,7 +1059,7 @@ private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () 
     val dl = if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
     val barColor = if (dl?.tone == DeadlineTone.HOT) t.brick else cat
     val haptic = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(if (ed) f.radiusCard else 0.dp)
+    val shape = f.shapes.card
 
     Row(
         Modifier
@@ -1127,7 +1126,7 @@ private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () 
                     Spacer(Modifier.width(Space.xs))
                 }
                 if (unread) {
-                    Box(Modifier.size(6.dp).clip(CircleShape).background(if (ed) primaryInk() else t.primary))
+                    Box(Modifier.size(6.dp).clip(f.shapes.circle).background(if (ed) primaryInk() else t.primary))
                 }
             }
         }

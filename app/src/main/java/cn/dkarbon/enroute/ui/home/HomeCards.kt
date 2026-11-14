@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -29,6 +28,7 @@ import cn.dkarbon.enroute.data.UrpHomeApi.CreditProgress
 import cn.dkarbon.enroute.data.UrpHomeApi.ScoreStats
 import cn.dkarbon.enroute.data.UrpHomeApi.StudentProfile
 import cn.dkarbon.enroute.ui.SessionText
+import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
@@ -110,7 +110,7 @@ fun IdentityCard(
     HomeCard(onClick = if (SessionText.identityClickable(sessionState)) onLogin else null) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(
-                Modifier.size(46.dp).clip(CircleShape).background(t.cardAlt),
+                Modifier.size(46.dp).clip(Form.current.shapes.circle).background(t.cardAlt),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

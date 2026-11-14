@@ -265,6 +265,15 @@ data class FormSpec(
     /** 触区下限 —— 三套主题都不许低于这个值 */
     val minTouch: Dp = 48.dp,
 
+    /**
+     * **形状语义档**（票 31，账页重构 v2 批次 1）。
+     *
+     * 业务代码只读这里：`Form.current.shapes.card` / `.control` / `.pill` …
+     * **禁止**再写 `RoundedCornerShape(...)` / `CircleShape` —— 源码扫描测试会红。
+     * 详见 [ShapeSet] 文件头（为什么只导出 Shape、不导出 Dp）。
+     */
+    val shapes: ShapeSet = ShapeSet.Hard,
+
     // ── 账页专有开关（默认值 = 老主题现状，故对 HARD 无副作用）──
     /** 行与行之间**不画**横贯横线（改由留白 + 交错底色分节） */
     val noRowRules: Boolean = false,
@@ -312,6 +321,7 @@ data class FormSpec(
             pillAxis = true,
             cellInset = 3.dp,
             pillSize = 20.dp,
+            shapes = ShapeSet.Ledger,
         )
 
         /** 旧符号名，`Theme.kt` 仍引用；语义 = 第二套主题 */

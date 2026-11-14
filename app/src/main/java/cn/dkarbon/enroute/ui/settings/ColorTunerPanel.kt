@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -36,6 +35,7 @@ import cn.dkarbon.enroute.ui.theme.ContrastCheck
 import cn.dkarbon.enroute.ui.theme.ContrastRules
 import cn.dkarbon.enroute.ui.theme.CustomPalette
 import cn.dkarbon.enroute.ui.theme.HslTune
+import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.PaletteGate
 import cn.dkarbon.enroute.ui.theme.PaletteParams
@@ -233,7 +233,7 @@ private fun SlotChip(label: String, on: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
             .height(30.dp)
-            .clip(RoundedCornerShape(0.dp))
+            .clip(Form.current.shapes.control)
             .background(if (on) t.primary else t.card)
             .border(1.dp, if (on) t.primary else t.outline)
             .clickable(onClick = onClick)
@@ -272,7 +272,7 @@ private fun SwatchRow(
                 Box(
                     Modifier
                         .size(if (on) 28.dp else 24.dp)
-                        .clip(RoundedCornerShape(0.dp))
+                        .clip(Form.current.shapes.badge)
                         .background(p.color)
                         .border(
                             if (on) 2.dp else 1.dp,
@@ -351,7 +351,7 @@ private fun SaveButton(enabled: Boolean, onClick: () -> Unit) {
     Box(
         Modifier
             .height(34.dp)
-            .clip(RoundedCornerShape(0.dp))
+            .clip(Form.current.shapes.control)
             .background(if (enabled) t.primary else t.cardAlt)
             .border(1.dp, if (enabled) t.primary else t.outline)
             .clickable(enabled = enabled, onClick = onClick)
