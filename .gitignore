@@ -52,3 +52,6 @@ null*.txt
 compile-out.txt
 build-compile-log.txt
 build-release-log.txt
+build-verify-log.txt
+build-log.txt
+build-verify-done.txt
