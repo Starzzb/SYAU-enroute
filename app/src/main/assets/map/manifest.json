@@ -1,0 +1,66 @@
+{
+  "schema": 1,
+  "version": "2026.11.14-1",
+  "crs": "local",
+  "bbox": [
+    0,
+    0,
+    1024,
+    648
+  ],
+  "yAxis": "up",
+  "origin": "校园规划示意图矢量化（校园图块.shp，90 面）",
+  "idReview": {
+    "duplicates": 0,
+    "note": ""
+  },
+  "generated": "2026-11-14",
+  "base": {
+    "file": "base@1x.webp",
+    "width": 1024,
+    "height": 648
+  },
+  "style": {
+    "mode": "overlay",
+    "fill": "#000000",
+    "fillAlpha": 0.03,
+    "stroke": "#1A1611",
+    "strokeAlpha": 0.22,
+    "strokeWidth": 1.0,
+    "selected": {
+      "fillAlpha": 0.3,
+      "strokeAlpha": 1.0,
+      "strokeWidth": 2.0
+    }
+  },
+  "layers": [
+    {
+      "name": "campus",
+      "file": "campus.geojson",
+      "geom": "polygon",
+      "label": "校园要素",
+      "filter": {}
+    }
+  ],
+  "kindLabels": {
+    "teach": "教学楼",
+    "lab": "实验楼",
+    "library": "图书馆",
+    "dorm": "宿舍",
+    "office": "办公楼",
+    "gym": "体育场馆",
+    "hall": "会堂",
+    "hospital": "校医院",
+    "food": "食堂",
+    "canteen": "小卖/报亭",
+    "wc": "卫生间",
+    "park": "停车场",
+    "gate": "校门",
+    "bus": "校车站",
+    "sport": "运动场",
+    "green": "绿地",
+    "water": "水面",
+    "road": "道路/广场",
+    "other": "其他"
+  }
+}
