@@ -170,6 +170,31 @@ class DebugLogFile(private val root: File) {
             Regex("""(?i)\b(access_token|refresh_token|token|secret|api_key)\s*=\s*[^;&\s"']+"""),
             // 请求头形式：Authorization 整段抹掉（值里常带 bearer token，没有可读的结构）
             Regex("""(?i)\bAuthorization\s*:\s*[^\r\n]+"""),
+            // 响应体 JSON 里的**已知敏感键**：抹值留键（`"studentId":"***"`）。
+            // 真机实证：成绩接口响应体里 `"studentId":"2024156048"` 直接进了日志，
+            // 而这份日志的主要用途就是「导出成文档发我」—— 等于每次反馈都把学号发出去。
+            Regex(
+                """(?i)"(studentId|studentid|student_id|studentNo|studentno|xh|sid|userName|username|realName|realname|idCard|idcard|sfzh)"\s*:\s*"[^"]*"""",
+            ),
+            // 学号形态兜底：10 位、以 20 开头的纯数字（学号口径固定）。
+            // 特意卡 `(?<!\d)…(?!\d)` 与 9/8 位长度边界 —— 不能误伤 `courseNumber`（9 位）与 `20250101`（8 位日期）。
+            Regex("""(?<!\d)20\d{8}(?!\d)"""),
+        )
+
+        /**
+         * URL 路径段里的随机 token（真机实证 B：`Academic.kt` 每次加载随机生成，出现在路径里）。
+         *
+         * 两条规则，先点名后通用：
+         * 1. 已知的「会挂随机段」的接口 → 该段无条件抹（不管内容长什么样）；
+         * 2. 通用：6–24 位、**同时含字母和数字**的路径段 → 抹。
+         *    这条特意要求「混合」，所以 `allPassingScores` / `callback`（纯字母）、
+         *    `901040351`（纯数字）都不会被误伤。
+         */
+        private val NAMED_RANDOM_SEGMENT = Regex(
+            """(?i)/(scoreQuery|courseQuery|examQuery|gradeQuery|calendarQuery)/[^/\s"']+/""",
+        )
+        private val MIXED_ALNUM_SEGMENT = Regex(
+            """/(?=[A-Za-z0-9]{6,24}/)(?=[A-Za-z0-9]*[0-9])(?=[A-Za-z0-9]*[A-Za-z])[A-Za-z0-9]+/""",
         )
 
         /** `Set-Cookie:` / `Cookie:` 头：**保留 cookie 名**，只抹每个 `name=value` 的值 */
@@ -186,17 +211,32 @@ class DebugLogFile(private val root: File) {
             for (p in PATTERNS) {
                 out = p.replace(out) { m ->
                     val full = m.value
-                    val sep = full.indexOfFirst { it == '=' || it == ':' }
-                    if (sep <= 0) {
-                        "***"
-                    } else {
-                        // 保留键名与分隔符（等号两侧空格按原样）
-                        val key = full.substring(0, sep).trimEnd()
-                        val mark = full[sep]
-                        if (mark == '=') "$key=***" else "$key: ***"
+                    when {
+                        // JSON 形态：`"studentId":"2024156048"` → `"studentId":"***"`（键留、值抹）
+                        full.startsWith("\"") -> {
+                            val sep = full.indexOf(':')
+                            if (sep <= 0) "\"***\"" else full.substring(0, sep + 1) + "\"***\""
+                        }
+                        // 纯学号兜底
+                        full.all { it.isDigit() } -> "***"
+
+                        else -> {
+                            val sep = full.indexOfFirst { it == '=' || it == ':' }
+                            if (sep <= 0) {
+                                "***"
+                            } else {
+                                // 保留键名与分隔符（等号两侧空格按原样）
+                                val key = full.substring(0, sep).trimEnd()
+                                val mark = full[sep]
+                                if (mark == '=') "$key=***" else "$key: ***"
+                            }
+                        }
                     }
                 }
             }
+            // 路径段 token（先点名后通用）
+            out = NAMED_RANDOM_SEGMENT.replace(out) { m -> "/" + m.groupValues[1] + "/***/" }
+            out = MIXED_ALNUM_SEGMENT.replace(out) { "/***/" }
             // cookie 头：抹值、留名 —— 「知道有这么个 cookie」对排查有用，
             // 但未知的新 cookie 名也必须被挡住（所以是逐对抹，而不是白名单）
             out = COOKIE_HEADER.replace(out) { m ->

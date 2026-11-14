@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.map.MapEdits
+import cn.dkarbon.enroute.data.map.MapDataset
 import cn.dkarbon.enroute.data.map.MapEditsOps
 import cn.dkarbon.enroute.data.map.MapFeature
 import cn.dkarbon.enroute.data.map.MapGeometry
@@ -139,6 +140,24 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     val pkg = ui.mapPackage
     val manifest = pkg?.manifest
     val selected = pkg?.features?.firstOrNull { it.id == ui.mapSelectedId }
+
+    // ── 共享数据集（票 22）：进页面时按 5 分钟窗口静默拉增量 ──
+    // 只有 `rev` 变了才会落盘并触发重组；304 / 无变化什么都不做（界面不闪）。
+    val appCtx = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val datasetClient = remember { cn.dkarbon.enroute.data.map.MapDatasetClient(appCtx) }
+    var dataset by remember { mutableStateOf(datasetClient.current()) }
+    var syncing by remember { mutableStateOf(false) }
+    var syncNote by remember { mutableStateOf("") }
+    val syncScope = androidx.compose.runtime.rememberCoroutineScope()
+
+    LaunchedEffect(manifest?.version) {
+        val ver = manifest?.version.orEmpty()
+        if (ver.isNotBlank()) {
+            datasetClient.syncAsync(ver) { ds -> dataset = ds }
+            dataset = datasetClient.current()
+            datasetClient.lastError().takeIf { it.isNotBlank() }?.let { syncNote = it }
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().imePadding()) {
@@ -549,6 +568,7 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 kindOptions = manifest.kindOptions(),
                 // 官方基线字段名（票 13 B 路）：只读层，来自 asset 的 manifest.customFields
                 officialFields = manifest.customFields,
+                dataset = dataset,
                 onChangeName = { vm.setMapFeatureName(selected.id, it) },
                 onChangeKind = { vm.setMapFeatureKind(selected.id, it) },
                 onChangeField = { f, v -> vm.setMapFeatureField(selected.id, f, v) },
@@ -571,11 +591,40 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 SmallButton("另存 CSV") { saveCsv.launch(ui.mapExportCsvName) }
             }
             Spacer(Modifier.weight(1f))
+            // 手动同步（票 22）：平时靠 5 分钟窗口自动拉，这个按钮给「我就是想现在看」
+            Text(
+                if (syncing) "同步中…" else "同步",
+                fontSize = 9.sp,
+                color = if (syncing) t.inkFaint else t.inkSoft,
+                modifier = Modifier
+                    .heightIn(min = 32.dp)
+                    .clickable(enabled = !syncing) {
+                        val ver = manifest?.version.orEmpty()
+                        if (ver.isBlank()) return@clickable
+                        syncing = true
+                        syncScope.launch {
+                            val ds = runCatching { datasetClient.sync(ver, force = true) }.getOrNull()
+                            if (ds != null) dataset = ds
+                            syncNote = datasetClient.lastError()
+                            syncing = false
+                        }
+                    }
+                    .padding(horizontal = 6.dp, vertical = 6.dp),
+            )
+            Spacer(Modifier.width(Space.s))
             Text(
                 "已标注 ${ui.mapEdits.features.size} 个面",
                 fontSize = 9.sp,
                 color = t.inkFaint,
                 fontFamily = NumericFont,
+            )
+        }
+        if (syncNote.isNotBlank()) {
+            Text(
+                "共享数据同步：$syncNote",
+                fontSize = 8.5.sp,
+                color = t.inkFaint,
+                modifier = Modifier.padding(horizontal = Space.l).padding(bottom = 4.dp),
             )
         }
         if (ui.mapExportMsg.isNotBlank()) {
@@ -634,6 +683,8 @@ private fun PropertyPanel(
     kindOptions: List<Pair<String, String>>,
     /** 官方基线自带的字段名（`manifest.customFields`）；空表＝这一版没有官方标注 */
     officialFields: List<String> = emptyList(),
+    /** 服务器共享数据集（票 22）：三档来源里的「共建」层 */
+    dataset: MapDataset.Dataset? = null,
     onChangeName: (String) -> Unit,
     onChangeKind: (String) -> Unit,
     onChangeField: (String, String) -> Unit,
@@ -694,30 +745,26 @@ private fun PropertyPanel(
         }
 
         // 自定义字段（全局共享）：长按字段名可删
-        // 票 13「B 路」：这里除了用户自己加的字段，还会列出**官方基线**带的字段（只读层）。
-        // 同一个字段两边都有值 → 用户的值优先（不再标「官方」）；用户清空 → 退回显示官方值。
-        val views = MapEditsOps.fieldViews(feature, edits, officialFields)
-        val hasOfficial = views.any { it.official }
-        views.forEach { view ->
-            val mine = !view.official
-            Column(Modifier.fillMaxWidth()) {
-                LabeledInput(
-                    label = view.name,
-                    value = view.value,
-                    singleLine = view.name.length > 6,
-                    onLongPressLabel = if (mine) ({ onDeleteField(view.name) }) else null,
-                    onChange = { if (mine) onChangeField(view.name, it) },
-                    // 官方字段：可读、不可直接改（改它要先「＋ 添加字段」变成自己的一列，
-                    // 这样「谁填的」永远是清楚的，不会把官方数据悄悄变成用户标注）
-                    readOnly = !mine,
-                    badge = if (view.official) "官方" else null,
-                )
-            }
+        // 票 22：三档来源（待上传 / 共建 / 内置），**每一行都标出来** ——
+        // 用户必须能一眼看出「这条是谁的数据」，这是主人接受共享风险后的最低限度。
+        val rows = MapDataset.rows(feature, edits, dataset, officialFields)
+        val hasNonLocal = rows.any { it.source != MapDataset.Source.PENDING }
+        rows.forEach { row ->
+            LabeledInput(
+                label = row.name,
+                value = row.value,
+                singleLine = row.name.length > 6,
+                onLongPressLabel = if (row.editable) ({ onDeleteField(row.name) }) else null,
+                onChange = { if (row.editable) onChangeField(row.name, it) },
+                // 只有「待上传」可编辑；共建/内置是只读层（要改就「＋ 添加字段」用同名列覆盖）
+                readOnly = !row.editable,
+                badge = MapDataset.label(row.source),
+            )
         }
-        if (hasOfficial) {
+        if (hasNonLocal) {
             Text(
-                "标「官方」的是随地图包下发的基线，不是你填的 —— 不会被「清除数据」删掉，也不计入「已标注」。\n" +
-                    "要改成自己的值：点「＋ 添加字段」用同名字段覆盖（用户值优先）。",
+                "「待上传」= 你填的、还没生效到服务器；「共建」= 服务器共享数据；" +
+                    "「内置」= 安装包里的基线。\n服务器有同名字段时以服务器为准；要覆盖共建值，点「＋ 添加字段」用同名列。",
                 fontSize = 8.5.sp,
                 lineHeight = 12.sp,
                 color = t.inkFaint,

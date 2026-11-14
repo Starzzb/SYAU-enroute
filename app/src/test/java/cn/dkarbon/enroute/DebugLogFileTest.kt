@@ -57,6 +57,33 @@ class DebugLogFileTest {
     }
 
     @Test
+    fun `学号与路径段随机token也要抹掉`() {
+        // 真机实证 A：成绩接口响应体里的学号
+        val json = DebugLogFile.redact(
+            """{"lnList":[{"cjList":[{"id":{"courseNumber":"901040351","studentId":"2024156048","startTime":"20250101"}}]}]}""",
+        )
+        assertFalse("学号还在：$json", json.contains("2024156048"))
+        assertTrue(json.contains("\"studentId\":\"***\""))
+        // 不能误伤：9 位课程号、8 位日期照旧
+        assertTrue("课程号被误伤：$json", json.contains("901040351"))
+        assertTrue("日期被误伤：$json", json.contains("20250101"))
+        // 键值对形态也挡
+        assertFalse(DebugLogFile.redact("studentId=2024156048").contains("2024156048"))
+        // 裸学号（10 位、20 开头）兜底
+        assertFalse(DebugLogFile.redact("学号 2024156048 已登录").contains("2024156048"))
+
+        // 真机实证 B：URL 路径段里的随机 token（Academic.kt 每次加载随机生成）
+        val url = DebugLogFile.redact(
+            "→ GET /student/integratedQuery/scoreQuery/Ob67Fhu5HY/allPassingScores/callback",
+        )
+        assertFalse("路径 token 还在：$url", url.contains("Ob67Fhu5HY"))
+        assertTrue(url.contains("scoreQuery/***/"))
+        // 普通路径不许被抹
+        val plain = DebugLogFile.redact("GET jwc.syau.edu.cn/index/jwtz.htm")
+        assertEquals("GET jwc.syau.edu.cn/index/jwtz.htm", plain)
+    }
+
+    @Test
     fun `脱敏保留键名仍然可读`() {
         val out = DebugLogFile.redact("JSESSIONID=SECRET1; CASTGC=SECRET2")
         assertTrue(out.contains("JSESSIONID="))

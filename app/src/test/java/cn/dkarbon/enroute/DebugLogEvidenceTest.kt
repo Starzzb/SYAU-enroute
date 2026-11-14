@@ -21,7 +21,7 @@ import java.io.File
  *
  * ```powershell
  * Select-String -Path app\build\debuglog-evidence\* `
- *   -Pattern 'JSESSIONID=[^*.\s]|CASTGC=[^*.\s]|ticket=[^*.\s]|token=[^*.\s]|password=[^*.\s]'
+ *   -Pattern 'JSESSIONID=[^*.\s]|CASTGC=[^*.\s]|ticket=[^*.\s]|token=[^*.\s]|password=[^*.\s]|studentId":\d|scoreQuery/[A-Za-z0-9]{6,}/'
  * ```
  *
  * 期望 **0 命中**。
@@ -57,12 +57,23 @@ class DebugLogEvidenceTest {
         DebugLog.http(
             "FEED", "GET", "https://jwc.syau.edu.cn/index/jwtz.htm?ticket=ST-EVIDENCE-HTTP", 200, 12_600, elapsedMs = 820,
         )
+        // 真机实证 A：响应体里的真实学号
+        DebugLog.http(
+            "URP", "GET", "/student/integratedQuery/scoreQuery/Ob67Fhu5HY/allPassingScores/callback", 200, 64_000,
+            elapsedMs = 500,
+            preview = """{"lnList":[{"cjList":[{"id":{"courseNumber":"901040351","studentId":"2024156048","startTime":"20250101"}}]}]}""",
+        )
+        // 真机实证 B：URL 路径段里的随机 token（上面那条 URL 已含 Ob67Fhu5HY）
+        DebugLog.log("URP", "→ GET /student/integratedQuery/scoreQuery/Ob67Fhu5HY/allPassingScores/callback")
         sink.flush()
 
         val secrets = listOf(
             "ST-EVIDENCE-270WFt4Yi1VkhaY3Dd53vC", "EVIDENCEJSESSIONID123", "EVIDENCECASTGC456",
             "EVIDENCEPASSWORD789", "EVIDENCETOKENabc", "EVIDENCEAT2", "ST-EVIDENCE-HTTP",
             "EVIDENCEEXEC1",
+            // 本轮新增两类（真机复测抓到的）
+            "2024156048",     // A. 学号
+            "Ob67Fhu5HY",     // B. 路径段随机 token
         )
 
         // ── 路径 ①：屏幕（调试页渲染的就是 DebugLog.entries）──
@@ -80,13 +91,21 @@ class DebugLogEvidenceTest {
             assertFalse("复制/导出文档还有 $s\n$dump", dump.contains(s))
             assertFalse("落盘文件还有 $s\n$disk", disk.contains(s))
         }
-        // 脱敏不能误杀：正常内容必须完整保留
+        // 脱敏不能误杀：正常内容必须完整保留（9 位课程号、8 位日期都不许被抹）
+        assertTrue(screen.contains("901040351"))
+        assertTrue(screen.contains("20250101"))
+        assertTrue(screen.contains("scoreQuery/***/"))
         assertTrue(screen.contains("jwc.syau.edu.cn/index/jwtz.htm"))
         assertTrue(screen.contains("820ms"))
         assertTrue(disk.contains("jwc.syau.edu.cn/index/jwtz.htm"))
         // 键名保留（还能看出「有个票据」）
         assertTrue(screen.contains("ticket=***"))
-        // 落盘行数 = 内存条数（单消费者 + 同一 formatLine）
-        assertEquals(DebugLog.entries.value.size, disk.trim().lines().size)
+        // 落盘行数 = 内存条数（单消费者 + 同一 formatLine）；
+        // 注意一条日志里可能带换行的 preview，所以按「以时间戳开头的行」计数，不按裸行数
+        val stamped = Regex("""^\d{2}:\d{2}:\d{2}\.\d{3}\s+\[""")
+        assertEquals(
+            DebugLog.entries.value.size,
+            disk.lines().count { stamped.containsMatchIn(it) },
+        )
     }
 }

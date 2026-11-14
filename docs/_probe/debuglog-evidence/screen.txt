@@ -1,0 +1,9 @@
+18:35:11.623  [URP] ← 302 0B  GET 10.2.0.47/login?errorCode=invalidSession&ticket=***
+18:35:11.646  [SESSION] Set-Cookie: JSESSIONID=***; Path=***; HttpOnly
+18:35:11.649  [SESSION] Set-Cookie: CASTGC=***; Path=***
+18:35:11.649  [CRED] POST body password=***&execution=***
+18:35:11.649  [API] GET api/score?token=***&access_token=***
+18:35:11.650  [FEED] ← 200 12.3KB  820ms  GET jwc.syau.edu.cn/index/jwtz.htm?ticket=***
+18:35:11.652  [URP] ← 200 62.5KB  500ms  GET /student/integratedQuery/scoreQuery/***/allPassingScores/callback
+      {"lnList":[{"cjList":[{"id":{"courseNumber":"901040351","studentId":"***","startTime":"20250101"}}]}]}
+18:35:11.653  [URP] → GET /student/integratedQuery/scoreQuery/***/allPassingScores/callback

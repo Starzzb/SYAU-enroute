@@ -182,3 +182,23 @@ Select-String -Path app\build\debuglog-evidence\* `
 
 **单测**：`DebugLogFileTest` 14 条（新增 `内存与导出文档里也搜不到凭证明文`）+ `DebugLogEvidenceTest` 1 条。
 **当前：454 条 / 36 类 / 0 失败**（含另一个代理新增的类）；`compile-check.bat` BUILD SUCCESSFUL / EXIT=0。
+
+### 2026-11-14 第二轮真机复测：两类新泄漏封堵
+
+| # | 泄漏（真机原文） | 修法 |
+|---|---|---|
+| A | `"studentId":"2024156048"` 响应体里的真实学号 | 敏感 JSON 键逐键抹（`studentId/student_no/xh/sid/userName/realName/idCard/sfzh` → `"studentId":"***"`）+ 学号形态兜底 `(?<!\d)20\d{8}(?!\d)`；**不误伤** 9 位 `courseNumber`、8 位日期 |
+| B | `/scoreQuery/Ob67Fhu5HY/…` 路径段随机 token | `NAMED_RANDOM_SEGMENT`（scoreQuery 等接口段无条件抹）+ `MIXED_ALNUM_SEGMENT`（6–24 位、字母数字混合的路径段 → `/***/`；纯字母的 `allPassingScores`/`callback` 与纯数字的 `901040351` 不动） |
+
+**新的命令级证据**（三条路径一起搜，含两类新模式）：
+```
+$ Select-String -Path app\build\debuglog-evidence\* `
+    -Pattern 'JSESSIONID=[^*.\s]|CASTGC=[^*.\s]|ticket=[^*.\s]|token=[^*.\s]|password=[^*.\s]|studentId":\d|studentId=|scoreQuery/[A-Za-z0-9]{6,}/|2024156048|Ob67Fhu5HY'
+→ 0 matches
+```
+产物见 `docs/调试日志-实测记录.md` §8（`screen.txt` / `dump.txt` / `*.log` 三份一致）。
+
+**关于兜底+白名单建议**：采纳「敏感键名逐键抹」；不做「只留白名单字段」——教务字段无稳定契约，
+白名单会把诊断信息砍光。现在是四层叠加（具体模式 + 键名表 + 学号形态 + 路径段形态）+ 180 字符预览截断。
+
+**单测**：`DebugLogFileTest` 15 条（新增 1 条含不误伤断言）+ EvidenceTest 1 条；**455 条 / 36 类 / 0 失败**。

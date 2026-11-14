@@ -6,7 +6,7 @@
 
 **Blocked by:** 12（属性编辑与导出必须先有）
 
-**Status:** ready-for-agent（**建议分两阶段：A 先做，B 等服务器**）
+**Status:** ready-for-human（阶段 A、B 均已实现；下行同步**明确不做**，见票底 Comments 与票 21）
 
 ---
 
@@ -93,3 +93,53 @@ map_patch(id TEXT PRIMARY KEY, map_version TEXT, feature_id TEXT, field TEXT,
 - 只上传属性补丁，不上传几何/底图/截图
 - 不动教务相关代码
 - 写盘范围：`data/map/`（同步与队列）、`ui/map/`、`ui/settings/`、`tools/map/merge_edits.py`、测试
+
+---
+
+## Comments
+
+### 2026-11-14 · 阶段 A + 阶段 B 实现完成
+
+**改了什么**
+
+| 位置 | 内容 |
+|---|---|
+| `tools/map/merge_edits.py`（新） | 多来源合并：`--edits` / `--export` / `--csv` / `--patches` / `--base`；粒度 `(featureId, field)`，取最新 `ts`；字段与要素 id 取**并集不丢**；孤儿保留；值 ≤200 字截断并点名；输出 `merged_edits.json` / `merged_campus.geojson` / `merged_attributes.csv`（**UTF-8 BOM**）/ `conflicts.txt` |
+| `tools/map/test_merge_edits.py`（新） | 8 条断言，含**幂等（两次输出逐字节相同）**与**不动点（输出再当输入合一次不变）** |
+| `tools/map/pack.py`（改） | 新增 `--from-geojson`：合并结果可直接重新出包（该路径**不需要 geopandas**）；顺带统计 `manifest.customFields` |
+| `data/map/MapContribute.kt`（新） | 纯逻辑：生成补丁 / 校验 / 分批 / **组装请求体** / 预览文案 / 响应解析 / 退避表 |
+| `data/map/MapContributeStore.kt`（新） | 开关（**默认关**）、匿名键（随机 UUID，可重置）、待传队列 `filesDir/map/pending.json`、退避状态 |
+| `data/map/MapUploader.kt`（新） | POST `18082` → 回落 `18081`；≤200 条/批；成功出队；失败退避 1→5→15→60→180 分钟；错误全说人话 |
+| `ui/settings/ContributeSection.kt`（新） | 开关 + **首次确认（会传什么/不会传什么）** + 预览 + 立即上传 + 待传数 + 重置身份；唯一重试触发点＝进设置页 |
+| `res/xml/network_security_config.xml`（改 1 条） | 放行 `47.95.12.198`（Android 默认禁明文，不放行则上传与更新回落都被系统拦）。**只此一条，无通配** |
+| `docs/校园地图-补丁服务部署.md` | 按实现改正 5 处（见下） |
+
+**怎么验证**
+
+- Python：`python tools/map/test_merge_edits.py` → 8/8（含幂等与不动点）
+- 真实资产冒烟：两份导出 + 真 `campus.geojson`/tif → 合并 → `pack.py --from-geojson` 出包：**90 面、bbox 与现网一致 (0,0,1024,648)**、自定义字段进入 `campus.geojson` 与 `manifest.customFields`
+- JVM：`MapContributeTest` 13 条（**隐私逐键断言**：请求体整段匹配 `client:{did,appVer}`，`sid`/`model`/`userKey`/定位/硬件标识一律不出现）+ `MapOfficialBaselineTest` 8 条；`compile-check` 绿
+- 真机 8 条手工验证见代理回报（待放行装机）
+
+**五处「文档 ≠ 实现」（已按代码改文档）**
+
+1. 「按主键去重（幂等）」**不成立**：`id = sha1(mv|fid|field|value|ch|now)`，`now` 是服务器时间 → 重复提交会新增记录；去重责任在客户端
+2. `reasons` 是**数组** `[{featureId, field, reasons:[…]}]`，不是 map
+3. 校验规则补全：`featureId ^f\d{1,6}$`（**不接受 `f0_1`**）、`field` ≤20 字无白名单、`op ∈ set/delete/addField`、`value ≤200`、单批 ≤200、body ≤256KB、限流 400/小时
+4. **没有 `GET /map/api/patches`**；`client.model` **明文落盘**、`client.sid` 加密存 `sid_enc`
+5. 客户端 `did` 是**本地随机 UUID**（不是 ANDROID_ID/IMEI），设置页可重置
+
+**遗留 / 验收项调整**
+
+- 验收项「拉回远端补丁后能正确合并显示」**本轮不做** → 见下文决定，另开票 21（wontfix）
+- 验收项「关闭时一个字节都不上传」：代码层成立（`upload()` / `uploadAsync()` 首行判 `isEnabled()`），**真机需抓包确认**（待装机）
+- 服务端「明文 0 命中」grep：**等真机上传成功后再查**（现在库里空的，0 命中说明不了问题）
+- `CMAP_API_KEY` 走 `BuildConfig.CMAP_API_KEY`（`local.properties` 注入）。⚠️ 它不是安全边界 —— 真正的防护是限流 + 人工审核 + 匿名上报
+
+**下行同步：明确不做（设计决定，不是缺接口）**
+
+1. 服务端没有 `GET /map/api/patches`；只加路由不够，还要 `reviewed` 过滤、`since` 游标、分页
+2. **未经审核的众包数据不能直接展示给其他用户**：别人随手填的「层数=99」若实时下行，会让一批用户的地图上出现错误信息。众包的价值在覆盖，风险在质量，唯一可靠的门是**人**
+3. 现有链路已能跑，且每一步都有人参与：
+   `客户端上报 → patches.jsonl → merge_edits.py（幂等/不动点有单测）→ conflicts.txt 人工过一眼 → pack.py --from-geojson → 随版本发布 → 用户更新后看到`
+   好处是**每一次数据进入产品都经过一次人的判断**
