@@ -1,4 +1,6 @@
 import java.io.FileInputStream
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Properties
 
 plugins {
@@ -30,6 +32,25 @@ android {
         targetSdk = 35
         versionCode = 19
         versionName = "0.1.0-m19"
+
+        // 「关于」页要显示构建来源：commit 短哈希 + 构建日期。
+        // 开源软件的 About 页惯例是把「这一版到底是哪份代码」写清楚，方便反馈问题时对照。
+        // 取不到 git（比如拷了源码但没有 .git）时留空，页面会自动省略，不显示假信息。
+        val gitCommit = runCatching {
+            val p = ProcessBuilder("git", "rev-parse", "--short=7", "HEAD")
+                .directory(rootProject.projectDir)
+                .redirectErrorStream(true)
+                .start()
+            val out = p.inputStream.bufferedReader().readText().trim()
+            p.waitFor()
+            out
+        }.getOrDefault("")
+        buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
+        buildConfigField(
+            "String",
+            "BUILD_TIME",
+            "\"" + SimpleDateFormat("yyyy-MM-dd").format(Date()) + "\"",
+        )
     }
 
     signingConfigs {

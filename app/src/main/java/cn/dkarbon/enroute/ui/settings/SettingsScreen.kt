@@ -1,5 +1,9 @@
 package cn.dkarbon.enroute.ui.settings
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,6 +47,7 @@ import cn.dkarbon.enroute.ui.SessionText
 import cn.dkarbon.enroute.ui.TimetableViewModel
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
+import cn.dkarbon.enroute.ui.theme.Space
 
 /**
  * 设置（从「我的」页右上齿轮进入）。
@@ -58,6 +63,7 @@ fun SettingsScreen(
     ui: AppState,
     vm: TimetableViewModel,
     onOpenDebug: () -> Unit,
+    onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val t = InkTokens.current
@@ -94,17 +100,18 @@ fun SettingsScreen(
             }
         }
 
-        // 风格：管语汇（农业硬朗 / 学院纸本），与上面的明暗正交
+        // 风格：管语汇（农业硬朗 / 学院纸本 / 校报头版），与上面的明暗正交
         Spacer(Modifier.height(10.dp))
         Text(
-            "学院纸本是给考试、成绩这类长读页面准备的：强调色收敛成一种，纸白 + 石墨 + 细格线。",
+            "硬朗农业＝黑土＋农械橘的方角网格；学院纸本＝同一套版式换成纸白＋墨，长读更省眼；" +
+                "校报头版＝去掉卡片，用版面线和衬线标题分区（纸纹、字距、小圆角本套专属）。",
             fontSize = 10.5.sp,
             lineHeight = 15.sp,
             color = t.inkFaint,
         )
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(0 to "硬朗农业", 1 to "学院纸本").forEach { (style, label) ->
+            listOf(0 to "硬朗农业", 1 to "学院纸本", 2 to "校报头版").forEach { (style, label) ->
                 val on = ui.styleSet == style
                 Box(
                     Modifier
@@ -385,6 +392,27 @@ fun SettingsScreen(
             lineHeight = 15.sp,
             color = t.inkFaint,
         )
+        Spacer(Modifier.height(10.dp))
+        // 开源信息（源码地址 / 许可证 / 依赖致谢 / 数据来源 / 免责）单独一页，
+        // 与其它开源软件的习惯一致：这里只留入口，细节不挤在设置页
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(min = Space.minTouch)
+                .clickable(onClick = onOpenAbout)
+                .padding(vertical = 10.dp),
+        ) {
+            Image(
+                painter = painterResource(cn.dkarbon.enroute.R.drawable.ic_github),
+                contentDescription = "GitHub",
+                colorFilter = ColorFilter.tint(t.ink),
+                modifier = Modifier.size(18.dp),
+            )
+            Spacer(Modifier.size(10.dp))
+            Text("源码 · 许可证 · 数据来源", fontSize = 12.5.sp, color = t.ink, modifier = Modifier.weight(1f))
+            Text("查看 ›", fontSize = 12.sp, color = t.accent)
+        }
         Spacer(Modifier.height(30.dp))
     }
 }

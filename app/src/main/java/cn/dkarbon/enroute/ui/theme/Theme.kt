@@ -148,8 +148,18 @@ object InkTokens {
  * 注意：**关掉了 dynamicColor**。动态取色会把我们的农业色板整个换掉
  * （Android 12+ 从壁纸取色），那样「硬朗农业」就白设计了。
  *
- * @param styleSet 风格语汇（[StyleSet.HARD] 硬朗农业 / [StyleSet.SCHOLAR] 学院纸本）。
- *   与明暗正交 —— 深色纸本是合法组合，所以刻意不塞进 [ThemeMode]。
+ * @param styleSet 风格语汇（[StyleSet.HARD] 硬朗农业 / [StyleSet.SCHOLAR] 学院纸本 /
+ *   [StyleSet.EDITORIAL] 校报头版）。与明暗正交 —— 深色纸本是合法组合，所以刻意不塞进 [ThemeMode]。
+ *
+ * ## 三套主题的差异层次（票 17）
+ * | 层 | HARD / SCHOLAR | EDITORIAL |
+ * |---|---|---|
+ * | 颜色 | `InkTokenSet` / `Scholar*` | `Editorial*` |
+ * | 形态（圆角/阴影/描边/字族/是否用卡片容器） | [FormSpec.Hard]（现状值） | [FormSpec.Editorial] |
+ * | 排版 | [EnRouteTypography] + [NumericFont] | [EditorialTypography] + 衬线数字 |
+ *
+ * ⚠️ `HARD` / `SCHOLAR` 的渲染必须逐像素不变：两者仍然拿 `EnRouteTypography` + `HardShapes`，
+ * 且 `FormSpec.Hard` 的取值就是现状值。只有 EDITORIAL 走新分支。
  */
 @Composable
 fun EnRouteTheme(
@@ -162,25 +172,36 @@ fun EnRouteTheme(
         ThemeMode.Dark -> true
         else -> isSystemInDarkTheme()
     }
+    val editorial = styleSet == StyleSet.EDITORIAL
     val scholar = styleSet == StyleSet.SCHOLAR
     val tokens = when {
+        editorial && darkTheme -> EditorialDarkTokens
+        editorial -> EditorialLightTokens
         scholar && darkTheme -> ScholarDarkTokens
         scholar -> ScholarLightTokens
         darkTheme -> InkTokenSet.Dark
         else -> InkTokenSet.Light
     }
     val scheme = when {
+        editorial && darkTheme -> EditorialDarkScheme
+        editorial -> EditorialLightScheme
         scholar && darkTheme -> ScholarDarkScheme
         scholar -> ScholarLightScheme
         darkTheme -> HardDarkScheme
         else -> HardLightScheme
     }
+    // 旧两套继续用 EnRouteTypography + HardShapes（零回归）；编辑版换字族与字号阶梯
+    val typography = if (editorial) EditorialTypography else EnRouteTypography
+    val shapes = if (editorial) EditorialShapes else HardShapes
 
-    CompositionLocalProvider(LocalInkTokens provides tokens) {
+    CompositionLocalProvider(
+        LocalInkTokens provides tokens,
+        LocalForm provides FormSpec.of(styleSet),
+    ) {
         MaterialTheme(
             colorScheme = scheme,
-            typography = EnRouteTypography,
-            shapes = HardShapes,
+            typography = typography,
+            shapes = shapes,
             content = content,
         )
     }

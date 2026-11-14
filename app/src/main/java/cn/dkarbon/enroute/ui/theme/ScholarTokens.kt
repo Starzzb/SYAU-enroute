@@ -71,9 +71,22 @@ object StyleSet {
     const val HARD = 0
     /** 学院纸本 / E-Ink */
     const val SCHOLAR = 1
+    /**
+     * 校报头版 / Editorial（票 17，2026-11-14）。
+     *
+     * 前两套只差配色；这一套换的是**结构语言**（去卡片容器、版面线分区、衬线标题、
+     * 数字离开等宽）。token 见 [EditorialTokens][cn.dkarbon.enroute.ui.theme.Editorial]，
+     * 形态见 [FormSpec]，页面侧通过 `Form.current.editorial` 走另一条渲染分支。
+     */
+    const val EDITORIAL = 2
 
-    fun isValid(v: Int): Boolean = v == HARD || v == SCHOLAR
-    fun name(v: Int): String = if (v == SCHOLAR) "学院纸本" else "硬朗农业"
+    fun isValid(v: Int): Boolean = v == HARD || v == SCHOLAR || v == EDITORIAL
+
+    fun name(v: Int): String = when (v) {
+        SCHOLAR -> "学院纸本"
+        EDITORIAL -> "校报头版"
+        else -> "硬朗农业"
+    }
 }
 
 // ── 两套 token 实例（字段与 [InkTokenSet] 完全对齐，业务代码零改动）──

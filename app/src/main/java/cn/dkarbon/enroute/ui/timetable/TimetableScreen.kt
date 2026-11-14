@@ -70,9 +70,11 @@ import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.Course
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.TimetableViewModel
+import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Stroke
+import cn.dkarbon.enroute.ui.theme.paperGrain
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.util.Calendar
@@ -192,8 +194,23 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
         week = w.coerceIn(minWeek, maxOf(minWeek, maxWeek))
     }
 
+    // 编辑版（票 17）：整页铺一层极低对比度纸纹，替代「卡片+描边」的空间感。
+    // 老主题不铺 —— 这一段是新分支，HARD / SCHOLAR 渲染不变。
+    val form = Form.current
+    val tone = InkTokens.current
+
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
+        Column(
+            Modifier
+                .fillMaxSize()
+                .then(
+                    if (form.editorial) {
+                        Modifier.paperGrain(color = tone.ink, gap = 26.dp, alpha = 0.030f)
+                    } else {
+                        Modifier
+                    },
+                ),
+        ) {
             WeekHeader(
                 week = week,
                 minWeek = minWeek,
@@ -330,6 +347,10 @@ internal fun GridArea(
     readOnly: Boolean = false,
 ) {
     val t = InkTokens.current
+    // 票 17：编辑版分支。ed = false 时下面每处 `if (ed) ... else <原值>` 都取原值，
+    // 所以 HARD / SCHOLAR 的绘制指令与改造前完全一致。
+    val f = Form.current
+    val ed = f.editorial
     val allBigs = BigSession.entries
 
     // 网格是「固定列宽 + 固定字宽」的表格，字号放到 1.3 会把 8 字课名挤成省略号。
@@ -356,8 +377,10 @@ internal fun GridArea(
                     ) {
                         Text(
                             listOf("", "一", "二", "三", "四", "五", "六", "日")[day],
-                            fontSize = 12.sp,
-                            lineHeight = 15.sp,
+                            fontSize = if (ed) 13.sp else 12.sp,
+                            lineHeight = if (ed) 17.sp else 15.sp,
+                            letterSpacing = if (ed) 0.5.sp else 0.sp,
+                            fontFamily = if (ed) f.displayFamily else null,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
                             color = when {
                                 isToday -> t.primary
@@ -370,25 +393,39 @@ internal fun GridArea(
                         if (!readOnly) {
                             Text(
                                 monday.plusDays((day - 1).toLong()).dayOfMonth.toString(),
-                                fontSize = 9.5.sp,
+                                fontSize = if (ed) 10.sp else 9.5.sp,
                                 lineHeight = 12.sp,
-                                fontFamily = NumericFont,
+                                fontFamily = if (ed) f.numberFamily else NumericFont,
                                 color = if (isToday) t.primary else t.inkFaint,
                             )
                         }
                         Spacer(Modifier.height(2.dp))
-                        // 今天：一根主色短线（不是满填色块）
+                        // 今天：一根主色短线（不是满填色块）。
+                        // 编辑版拉长到 18dp 且压到 1dp —— 更像版面上的「标记线」。
                         Box(
                             Modifier
-                                .width(if (isToday) 10.dp else 0.dp)
-                                .height(1.5.dp)
+                                .width(
+                                    when {
+                                        !isToday -> 0.dp
+                                        ed -> 18.dp
+                                        else -> 10.dp
+                                    },
+                                )
+                                .height(if (ed) 1.dp else 1.5.dp)
                                 .background(if (isToday) t.primary else Color.Transparent),
                         )
                     }
                 }
             }
         }
-        HorizontalDivider(color = Tt.gridRule(t.isDark), thickness = Stroke.hairline)
+        // 表头下的分隔：编辑版是**双线**（粗 1.5dp + 细 0.75dp，中间留 1dp）——报纸刊头的语言
+        if (ed) {
+            Box(Modifier.fillMaxWidth().height(1.5.dp).background(t.ink))
+            Box(Modifier.fillMaxWidth().height(1.dp))
+            Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.ink))
+        } else {
+            HorizontalDivider(color = Tt.gridRule(t.isDark), thickness = Stroke.hairline)
+        }
 
         // ── 网格主体：数学底纹 → 格线 → 卡片 → 小幽灵 ──
         BoxWithConstraints(
@@ -423,25 +460,35 @@ internal fun GridArea(
                 Canvas(Modifier.width(metrics.gridW).height(metrics.totalH)) {
                     val colW = metrics.colW.toPx()
                     val axisW = metrics.axisW.toPx()
-                    val ruleColor = Tt.gridRule(t.isDark)
-                    val washColor = Tt.todayWash(t.isDark)
-                    val todayColor = Tt.todayRule(t.isDark)
+                    // 编辑版：横线用实心版面线（跨到左轴，像报纸表格），竖线更淡更细
+                    val ruleColor = if (ed) t.rule else Tt.gridRule(t.isDark)
+                    val vRuleColor = if (ed) t.rule.copy(alpha = 0.40f) else ruleColor
+                    val hStroke = (if (ed) 1.dp else 0.75.dp).toPx()
+                    val vStroke = 0.75.dp.toPx()
+                    val washColor = if (ed) t.primary.copy(alpha = 0.045f) else Tt.todayWash(t.isDark)
+                    val todayColor = if (ed) t.primary else Tt.todayRule(t.isDark)
 
                     if (isThisWeek) {
                         val x = axisW + colW * (todayWeekday - 1)
                         drawRect(washColor, Offset(x, 0f), Size(colW, size.height))
-                        drawLine(todayColor, Offset(x, 0f), Offset(x, size.height), 0.75.dp.toPx())
-                        drawLine(todayColor, Offset(x + colW, 0f), Offset(x + colW, size.height), 0.75.dp.toPx())
+                        if (ed) {
+                            // 编辑版：今天只压一条左边界红线（不框两条竖线，避免像「选中卡片」）
+                            drawLine(todayColor, Offset(x, 0f), Offset(x, size.height), 1.5.dp.toPx())
+                        } else {
+                            drawLine(todayColor, Offset(x, 0f), Offset(x, size.height), 0.75.dp.toPx())
+                            drawLine(todayColor, Offset(x + colW, 0f), Offset(x + colW, size.height), 0.75.dp.toPx())
+                        }
                     }
 
                     for (i in 0..7) {
                         val x = axisW + colW * i
-                        drawLine(ruleColor, Offset(x, 0f), Offset(x, size.height), 0.75.dp.toPx())
+                        drawLine(vRuleColor, Offset(x, 0f), Offset(x, size.height), vStroke)
                     }
                     // 每个大节底部一条横格线（时段条处不画，条本身就是分隔）
+                    val hStart = if (ed) 0f else axisW
                     for (i in 0..5) {
                         val y = metrics.yOfRowBottom(i).toPx()
-                        drawLine(ruleColor, Offset(axisW, y), Offset(size.width, y), 0.75.dp.toPx())
+                        drawLine(ruleColor, Offset(hStart, y), Offset(size.width, y), hStroke)
                     }
                 }
 
@@ -458,10 +505,21 @@ internal fun GridArea(
                                 ) {
                                     Text(
                                         big.part.label,
-                                        fontSize = 9.sp,
+                                        fontSize = if (ed) 9.5.sp else 9.sp,
                                         lineHeight = 12.sp,
-                                        letterSpacing = 0.8.sp,
-                                        color = t.inkFaint,
+                                        letterSpacing = if (ed) 2.sp else 0.8.sp,
+                                        fontFamily = if (ed) f.displayFamily else null,
+                                        color = if (ed) t.inkSoft else t.inkFaint,
+                                    )
+                                }
+                                // 编辑版：时段条右侧拖一条细线，让「上午/下午/晚上」读成版面分节
+                                if (ed) {
+                                    Box(
+                                        Modifier
+                                            .weight(1f)
+                                            .height(1.dp)
+                                            .background(t.rule)
+                                            .align(Alignment.CenterVertically),
                                     )
                                 }
                             }
@@ -488,6 +546,18 @@ internal fun GridArea(
                                 ) {
                                     when {
                                         course == null -> Unit
+                                        // 票 17：编辑版走「去卡片化」渲染（纸面排字 + 2dp 竖脊）
+                                        ed -> if (prog >= 0.999f) {
+                                            EditorialResidue(course)
+                                        } else {
+                                            EditorialCourseCell(
+                                                course = course,
+                                                progress = prog,
+                                                isNow = isTodayCol && prog > 0f,
+                                                onClick = { onCourseClick(course) },
+                                                onLongClick = { onCourseLongClick(course) },
+                                            )
+                                        }
                                         prog >= 0.999f -> EatenResidue()
                                         else -> CourseCard(
                                             course = course,
@@ -552,17 +622,20 @@ internal fun GridArea(
 @Composable
 private fun AxisRowLabel(sections: String, startTime: String) {
     val t = InkTokens.current
+    val f = Form.current
+    val ed = f.editorial
     Column(
         Modifier.fillMaxSize().padding(top = 3.dp, end = 3.dp),
         horizontalAlignment = Alignment.End,
     ) {
         Text(
             sections,
-            fontSize = 10.sp,
+            fontSize = if (ed) 10.5.sp else 10.sp,
             lineHeight = 13.sp,
             maxLines = 1,
             fontWeight = FontWeight.Bold,
-            fontFamily = NumericFont,
+            letterSpacing = if (ed) 0.3.sp else 0.sp,
+            fontFamily = if (ed) f.numberFamily else NumericFont,
             color = t.inkSoft,
         )
         Text(
@@ -570,7 +643,7 @@ private fun AxisRowLabel(sections: String, startTime: String) {
             fontSize = 8.5.sp,
             lineHeight = 11.sp,
             maxLines = 1,
-            fontFamily = NumericFont,
+            fontFamily = if (ed) f.numberFamily else NumericFont,
             color = t.inkFaint,
         )
     }
@@ -730,15 +803,34 @@ private fun nowMinutes(): Int {
 @Composable
 private fun UnscheduledHeader(n: Int) {
     val t = InkTokens.current
+    val f = Form.current
+    val ed = f.editorial
     Row(
         Modifier.fillMaxWidth().padding(start = 14.dp, top = 14.dp, bottom = 6.dp, end = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text("未排课 / 冲突", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = t.inkSoft)
+        Text(
+            "未排课 / 冲突",
+            fontSize = if (ed) 13.sp else 12.sp,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = if (ed) f.titleTracking else 0.sp,
+            fontFamily = if (ed) f.displayFamily else null,
+            color = t.inkSoft,
+        )
         Spacer(Modifier.width(6.dp))
-        Text("$n 门", fontSize = 9.5.sp, fontFamily = NumericFont, color = t.inkFaint)
+        Text(
+            "$n 门",
+            fontSize = 9.5.sp,
+            letterSpacing = if (ed) 0.8.sp else 0.sp,
+            fontFamily = if (ed) f.numberFamily else NumericFont,
+            color = t.inkFaint,
+        )
         Spacer(Modifier.width(8.dp))
-        Box(Modifier.weight(1f).height(Stroke.hairline).background(t.rule))
+        // 编辑版：小标题右侧是**实心重线**（2dp 墨），替掉 1dp 淡线
+        Box(
+            Modifier.weight(1f).height(if (ed) 2.dp else Stroke.hairline)
+                .background(if (ed) t.ink.copy(alpha = 0.72f) else t.rule),
+        )
     }
 }
 
@@ -746,6 +838,14 @@ private fun UnscheduledHeader(n: Int) {
 @Composable
 private fun UnscheduledRow(c: Course, onClick: () -> Unit) {
     val t = InkTokens.current
+    // 票 17：编辑版**没有卡片**，整行只有下沿版面线 + 竖脊
+    if (Form.current.editorial) {
+        Column {
+            EditorialUnscheduledRow(c, onClick)
+            Box(Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 14.dp).background(t.rule))
+        }
+        return
+    }
     val fam = Tt.famOf(c.courseNo.ifBlank { c.name })
     val spine = Tt.spineOf(fam, t.isDark)
     val food = Food.of(c.courseNo.ifBlank { c.name })
@@ -796,16 +896,23 @@ private fun FootNote(
     isThisWeek: Boolean,
 ) {
     val t = InkTokens.current
+    val f = Form.current
+    val ed = f.editorial
     Column(Modifier.fillMaxWidth().padding(start = 14.dp, top = 10.dp, end = 14.dp)) {
         if (weekTotal == 0) {
-            Text("这一周没有课。", fontSize = 11.sp, color = t.inkSoft)
+            Text(
+                "这一周没有课。",
+                fontSize = if (ed) 12.sp else 11.sp,
+                color = t.inkSoft,
+            )
             Spacer(Modifier.height(3.dp))
         }
         if (isThisWeek && todayTotal > 0) {
             Text(
                 "今日已消化 $eaten 节 · 还剩 ${(todayTotal - eaten).coerceAtLeast(0)} 节",
                 fontSize = 10.5.sp,
-                fontFamily = NumericFont,
+                letterSpacing = if (ed) 0.4.sp else 0.sp,
+                fontFamily = if (ed) f.numberFamily else NumericFont,
                 color = t.inkSoft,
             )
             Spacer(Modifier.height(3.dp))
@@ -818,7 +925,8 @@ private fun FootNote(
                 append("\n点卡片看详情 · 长按卡片复制/跳周")
             },
             fontSize = 9.5.sp,
-            lineHeight = 14.sp,
+            lineHeight = if (ed) 15.sp else 14.sp,
+            letterSpacing = if (ed) 0.3.sp else 0.sp,
             color = t.inkFaint,
         )
     }
@@ -841,58 +949,93 @@ private fun WeekHeader(
     onRecalibrate: () -> Unit,
 ) {
     val t = InkTokens.current
-    Row(
-        Modifier.fillMaxWidth().height(72.dp).padding(horizontal = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        IconButton(onClick = onPrev, modifier = Modifier.size(32.dp), enabled = week > minWeek) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack, "上一周",
-                Modifier.size(16.dp),
-                tint = if (week > minWeek) t.inkSoft else t.outline,
-            )
-        }
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.weight(1f).combinedClickable(onClick = onRecalibrate, onLongClick = onRecalibrate),
+    val f = Form.current
+    val ed = f.editorial
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                // 编辑版把标题行压到 69dp，余下的 3dp 给「报头双线」——
+                // 总高仍是 72dp，网格可用高度不变（几何一行没动）。
+                .height(if (ed) 69.dp else 72.dp)
+                .padding(horizontal = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    "第 $week 周",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontFamily = NumericFont,
-                    color = t.ink,
+            IconButton(onClick = onPrev, modifier = Modifier.size(32.dp), enabled = week > minWeek) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack, "上一周",
+                    Modifier.size(16.dp),
+                    tint = if (week > minWeek) t.inkSoft else t.outline,
                 )
-                if (isThisWeek) {
-                    Spacer(Modifier.width(7.dp))
-                    Box(Modifier.background(t.primary).padding(horizontal = 5.dp, vertical = 1.dp)) {
-                        Text(
-                            "本周",
-                            fontSize = 8.5.sp,
-                            fontWeight = FontWeight.Bold,
-                            letterSpacing = 1.sp,
-                            color = if (t.isDark) androidx.compose.ui.graphics.Color(0xFF100E0B) else Color.White,
-                        )
+            }
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.weight(1f).combinedClickable(onClick = onRecalibrate, onLongClick = onRecalibrate),
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "第 $week 周",
+                        fontSize = if (ed) 24.sp else 22.sp,
+                        lineHeight = if (ed) 30.sp else 26.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        letterSpacing = if (ed) f.titleTracking else 0.sp,
+                        fontFamily = if (ed) f.displayFamily else NumericFont,
+                        color = t.ink,
+                    )
+                    if (isThisWeek) {
+                        Spacer(Modifier.width(7.dp))
+                        if (ed) {
+                            // 编辑版：「本周」是**印章**（细红框 + 大字距），不是实心色块
+                            Box(
+                                Modifier
+                                    .border(1.dp, t.primary)
+                                    .padding(horizontal = 5.dp, vertical = 1.dp),
+                            ) {
+                                Text(
+                                    "本周",
+                                    fontSize = 8.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.5.sp,
+                                    color = t.primary,
+                                )
+                            }
+                        } else {
+                            Box(Modifier.background(t.primary).padding(horizontal = 5.dp, vertical = 1.dp)) {
+                                Text(
+                                    "本周",
+                                    fontSize = 8.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    letterSpacing = 1.sp,
+                                    color = if (t.isDark) androidx.compose.ui.graphics.Color(0xFF100E0B) else Color.White,
+                                )
+                            }
+                        }
                     }
                 }
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    (term.ifBlank { "本学期" }) + " · $courseCount 门",
+                    fontSize = 9.5.sp,
+                    letterSpacing = if (ed) 1.5.sp else 0.sp,
+                    color = t.inkFaint,
+                )
             }
-            Spacer(Modifier.height(2.dp))
-            Text(
-                (term.ifBlank { "本学期" }) + " · $courseCount 门",
-                fontSize = 9.5.sp,
-                color = t.inkFaint,
-            )
+            IconButton(onClick = onNext, modifier = Modifier.size(32.dp), enabled = week < maxWeek) {
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowForward, "下一周",
+                    Modifier.size(16.dp),
+                    tint = if (week < maxWeek) t.inkSoft else t.outline,
+                )
+            }
+            IconButton(onClick = onToday, modifier = Modifier.size(32.dp)) {
+                Icon(Icons.Default.Today, "回到本周", Modifier.size(16.dp), tint = t.primary)
+            }
         }
-        IconButton(onClick = onNext, modifier = Modifier.size(32.dp), enabled = week < maxWeek) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowForward, "下一周",
-                Modifier.size(16.dp),
-                tint = if (week < maxWeek) t.inkSoft else t.outline,
-            )
-        }
-        IconButton(onClick = onToday, modifier = Modifier.size(32.dp)) {
-            Icon(Icons.Default.Today, "回到本周", Modifier.size(16.dp), tint = t.primary)
+        // 报头双线：粗 1.5dp + 留白 1dp + 细 0.75dp
+        if (ed) {
+            Box(Modifier.fillMaxWidth().height(1.5.dp).background(t.ink))
+            Box(Modifier.fillMaxWidth().height(1.dp))
+            Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.ink))
         }
     }
 }
