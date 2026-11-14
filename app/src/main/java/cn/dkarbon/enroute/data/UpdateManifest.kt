@@ -1,7 +1,6 @@
 package cn.dkarbon.enroute.data
 
 import java.net.URI
-import java.security.MessageDigest
 
 /**
  * 应用内更新的**纯逻辑层**（票 15）。
@@ -70,7 +69,18 @@ object UpdatePolicy {
         "github-releases.githubusercontent.com",
     )
 
-    /** 下载地址是否合法：**https** + 主机在白名单里（按 [URI.host] 精确比对，不看字符串包含） */
+    /**
+     * **APK 只许来自本仓库的 Releases**（`AboutScreen` 里的仓库地址就是这个）。
+     *
+     * 301 之后会跳到 `objects.githubusercontent.com/...`，那条是**下载过程中的跳转**，
+     * 由 [UpdateCenter] 在每一跳单独校验主机白名单；这里的「前缀钉死」只约束
+     * `latest.json` 里写的那条**入口地址**。
+     *
+     * ⚠️ 换仓库 / 换组织时**必须改这里**，否则 App 会拒绝更新（这是故意的：宁可拒绝，不可装错）。
+     */
+    const val PINNED_RELEASE_PREFIX = "https://github.com/Starzzb/SYAU-enroute/releases/download/"
+
+    /** 下载地址是否合法：**https** + 主机在白名单里 + **路径前缀钉死在本仓库** */
     fun isAllowedApkUrl(url: String): Boolean {
         val u = runCatching { URI(url.trim()) }.getOrNull() ?: return false
         if (!u.scheme.equals("https", ignoreCase = true)) return false
@@ -78,12 +88,29 @@ object UpdatePolicy {
         if (host.isBlank()) return false
         // 精确等于白名单主机；子域**不放行**（`github.com.evil.com` 这种必须被拒）
         if (host !in ALLOWED_APK_HOSTS) return false
+        // ★ 真正兜底的一条：必须是**本仓库的 Releases 下载前缀**。
+        // 为什么光有主机白名单不够：`latest.json` 目前还有一条明文 http 的回落地址，
+        // 中间人能在路上把 url 和 sha256 **一起**改掉 —— 那样主机是 github.com、sha256 也“自洽”，
+        // 白名单挡不住。钉死仓库前缀之后，攻击者只能指到别人的仓库，而那个仓库他传不了包。
+        if (!url.trim().startsWith(PINNED_RELEASE_PREFIX)) return false
         return u.path.orEmpty().isNotBlank()
     }
 
     /** sha256 字符串看起来合法吗（64 位十六进制，大小写不敏感） */
     fun looksLikeSha256(s: String): Boolean =
         s.length == 64 && s.all { it in "0123456789abcdefABCDEF" }
+
+    /**
+     * **下载过程中的跳转目标**（GitHub 302 → `objects.githubusercontent.com`）：
+     * 只要求 https + 主机在白名单。前缀钉死只针对 `latest.json` 里那条入口地址，
+     * 否则正常的 Releases 跳转会被自己拒掉。
+     */
+    fun isAllowedRedirect(url: String): Boolean {
+        val u = runCatching { URI(url.trim()) }.getOrNull() ?: return false
+        if (!u.scheme.equals("https", ignoreCase = true)) return false
+        val host = u.host?.lowercase() ?: return false
+        return host.isNotBlank() && host in ALLOWED_APK_HOSTS
+    }
 }
 
 object UpdateParse {
@@ -177,24 +204,5 @@ object UpdateSchedule {
         if (lastMs == null || lastMs <= 0L) return true
         if (nowMs < lastMs) return true
         return nowMs - lastMs >= windowMs
-    }
-}
-
-object UpdateDigest {
-
-    /** 流式计算 sha256（大文件不整包读进内存）；返回小写十六进制 */
-    fun sha256Hex(readChunk: (ByteArray) -> Int, close: () -> Unit = {}): String {
-        val md = MessageDigest.getInstance("SHA-256")
-        val buf = ByteArray(64 * 1024)
-        try {
-            while (true) {
-                val n = readChunk(buf)
-                if (n <= 0) break
-                md.update(buf, 0, n)
-            }
-        } finally {
-            close()
-        }
-        return md.digest().joinToString("") { "%02x".format(it) }
     }
 }

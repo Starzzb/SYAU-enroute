@@ -118,6 +118,8 @@ class UpdateCenter(private val ctx: Context) {
      * 中途被杀进程也绝不会在目标路径留下半个包。
      *
      * @param onProgress (已下载字节, 总字节；总字节未知时传 -1)
+     *   ——回调在 **IO 线程**被调用。UI 层直接写 Compose state 是安全的（快照写入线程安全，
+     *   重组在主线程读），但**别在回调里做重活**（每 64KB 一次，会很频繁）。
      */
     suspend fun download(
         info: UpdateInfo,
@@ -135,7 +137,7 @@ class UpdateCenter(private val ctx: Context) {
             while (true) {
                 if (hops++ > 5) return@withContext DownloadResult.Failed("下载地址跳转太多次，已放弃")
                 // 每一跳都重新过白名单：GitHub Releases 会 302 到 objects.githubusercontent.com
-                if (!UpdatePolicy.isAllowedApkUrl(current)) {
+                if (!UpdatePolicy.isAllowedRedirect(current)) {
                     return@withContext DownloadResult.Failed(
                         "下载地址跳到了不允许的域名，已中断（${hostOf(current)}）",
                     )
@@ -262,11 +264,17 @@ class UpdateCenter(private val ctx: Context) {
 
     companion object {
         /**
-         * `latest.json` 只放**这两台自己的机器**（文件 <2KB，不占带宽）：
-         * 18082 主用、18081 回落 —— 与地图补丁服务同一套
-         * （见 `docs/校园地图-补丁服务部署.md`）。真正的 APK 在 GitHub Releases。
+         * `latest.json` 的三个候选地址，按顺序试（第一个拿到就用）。
+         *
+         * **为什么首选 GitHub raw**：明文 http 上的 `latest.json` 可以被中间人连同 `sha256`
+         * 一起改掉 —— 那样「校验通过」就失去意义了。走 https 的 raw 文件没有这个洞；
+         * 自己的机器只作回落，且 APK 入口地址还**钉死了本仓库前缀**
+         * （[UpdatePolicy.PINNED_RELEASE_PREFIX]），最坏情况只是「下载失败」。
          */
         val MANIFEST_URLS = listOf(
+            // ① 首选：GitHub raw（https，手机链路上 TLS 不会被 RST）
+            "https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
+            // ② 回落：自己的机器（<2KB，明文，只在 raw 拉不到时用）
             "http://47.95.12.198:18082/app/latest.json",
             "http://47.95.12.198:18081/app/latest.json",
         )

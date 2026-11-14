@@ -438,6 +438,10 @@ fun SettingsScreen(
             color = t.inkFaint,
         )
         Spacer(Modifier.height(10.dp))
+        // 应用内更新（票 15）：查 latest.json → 下载 → sha256 校验 → 交系统安装器。
+        // 只在用户点「检查」时联网；启动时的静默检查每天最多一次（见 EnRouteApp）。
+        UpdateSection()
+        Spacer(Modifier.height(10.dp))
         // 开源信息（源码地址 / 许可证 / 依赖致谢 / 数据来源 / 免责）单独一页，
         // 与其它开源软件的习惯一致：这里只留入口，细节不挤在设置页
         Row(

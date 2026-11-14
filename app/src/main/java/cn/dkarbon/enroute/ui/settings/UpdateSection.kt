@@ -1,9 +1,8 @@
 package cn.dkarbon.enroute.ui.settings
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LinearProgressIndicator
@@ -27,6 +25,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -34,7 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.BuildConfig
 import cn.dkarbon.enroute.data.UpdateCenter
-import cn.dkarbon.enroute.data.UpdateDigestPlaceholder
+import cn.dkarbon.enroute.data.UpdateInfo
 import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Space
@@ -296,6 +295,10 @@ private fun PillButton(
     }
 }
 
-/** 一个小组件：clickable + 短按涟漪（这里不需要长按） */
-private fun Modifier.clickableCompat(onClick: () -> Unit): Modifier =
-    this.then(androidx.compose.foundation.clickable(onClick = onClick))
+/** 字节数 → 人话体积（下载进度用）；数据诚实：0/未知不编成 0.0 MB */
+private fun fmt(bytes: Long): String = when {
+    bytes <= 0L -> "0 B"
+    bytes >= 1024L * 1024L -> "%.1f MB".format(bytes / 1024.0 / 1024.0)
+    bytes >= 1024L -> "%d KB".format(bytes / 1024L)
+    else -> "$bytes B"
+}
