@@ -46,3 +46,9 @@ log-convert-done.txt
 # _work 里是脚本草稿与 txt 转储，用 tools/curriculum/pack.py 即可重跑
 在途/curriculum/_work/
 在途/curriculum/__pycache__/
+# ── 构建/调试重定向垃圾（代理跑命令时留下的）──────────
+null.txt
+null*.txt
+compile-out.txt
+build-compile-log.txt
+build-release-log.txt

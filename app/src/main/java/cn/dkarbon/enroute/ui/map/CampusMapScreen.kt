@@ -6,6 +6,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +43,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -76,6 +79,7 @@ import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke as StrokeTokens
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /**
  * 校园地图 v1（票 12）—— Compose Canvas 自绘，**不引地图库**、不打网络、不做 GPS。
@@ -216,6 +220,9 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 MapProjection.fit(manifest?.bbox.orEmpty(), cw, ch, padding = 2f)
             }
             val transform = MapProjection.withUser(base, zoom.toDouble(), panX, panY, cw, ch)
+            // 命中/双击回调里读「最新」的变换与要素：不能进 pointerInput 的 key（否则每帧重建，见下）
+            val transformNow = androidx.compose.runtime.rememberUpdatedState(transform)
+            val featuresNow = androidx.compose.runtime.rememberUpdatedState(pkg?.features.orEmpty())
             val features = pkg?.features.orEmpty()
             // 提示条的三个数字必须从**合并后的实际数据**算（标注也算进去，票 12 §8.1）
             val mergedRows = remember(pkg, ui.mapEdits) {
@@ -224,69 +231,214 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             val paths = remember(pkg) { features.map { it to buildPath(it) } }
             val groups = remember(manifest, pkg) { manifest?.let { MapLayers.split(it, features) } }
 
-            val maxPanX = cw * (zoom - 1f) / 2f
-            val maxPanY = ch * (zoom - 1f) / 2f
+            // 可拖边界 = (缩放后内容 − 画布)/2 + **视野余量 35%**
+            //   · 前半段旧公式 cw*(zoom-1)/2 只在「内容正好铺满画布」时才对（fit 是留边居中的）
+            //   · 后半段是 pan padding：让四角地块也能被拖到视野中部（主人 2026-11-14 的建议）
+            val bboxW = (manifest?.bbox?.let { it[2] - it[0] } ?: 1024.0).toFloat()
+            val bboxH = (manifest?.bbox?.let { it[3] - it[1] } ?: 648.0).toFloat()
+            val limitX = MapViewRules.panLimit(
+                bboxW * base.scale.toFloat() * zoom, cw, MapViewRules.viewMargin(cw),
+            )
+            val limitY = MapViewRules.panLimit(
+                bboxH * base.scale.toFloat() * zoom, ch, MapViewRules.viewMargin(ch),
+            )
+
+            /** 越界衰减（拖过头只留 35%，松手再弹回） */
+            fun overdrag() {
+                panX = MapViewRules.applyOverdrag(panX, limitX)
+                panY = MapViewRules.applyOverdrag(panY, limitY)
+            }
+
+            /** 立刻夹回边界（双击 / 重置视图用） */
             fun clampPan() {
-                panX = panX.coerceIn(-maxPanX, maxPanX)
-                panY = panY.coerceIn(-maxPanY, maxPanY)
+                panX = MapViewRules.clampToBounds(panX, limitX)
+                panY = MapViewRules.clampToBounds(panY, limitY)
+            }
+
+            // 回弹**只在所有手指抬起后**发生（见下面的 awaitEachGesture）：
+            // 以前用「停手 140ms 近似手势结束」，慢速拖动会被误判 → 画面被拉回（主人报的"会回弹"）。
+            val limitsNow = androidx.compose.runtime.rememberUpdatedState(limitX to limitY)
+
+            // 点击门控（票 18 复测：双击会顺带选中地块、弹出属性面板）。
+            // `detectTapGestures` 与我们自管的手势流同时存在时，第一下抬手就被判成单击 ——
+            // 现在改成**自己判**：抬手后先等 300ms，期间有第二下 → 双击缩放且**不选中**。
+            val tapLastAt = remember { androidx.compose.runtime.mutableLongStateOf(0L) }
+            val tapLastPos = remember {
+                androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero)
+            }
+            val tapPending = remember {
+                androidx.compose.runtime.mutableStateOf<kotlinx.coroutines.Job?>(null)
+            }
+            val tapSlopPx = with(density) { MapViewRules.TAP_SLOP_DP.dp.toPx() }
+            val doubleTapSlopPx = with(density) { MapViewRules.DOUBLE_TAP_SLOP_DP.dp.toPx() }
+
+            // 回弹动画必须跑在普通协程里：`awaitEachGesture` 的受限挂起作用域不能直接调 animate
+            val uiScope = androidx.compose.runtime.rememberCoroutineScope()
+
+            /** 松手回弹：把越界的那点位移用 200ms 动画夹回边界（**只在所有手指抬起后调用**） */
+            fun snapBack() {
+                val (lx, ly) = limitsNow.value
+                val tx = MapViewRules.snapBackTarget(panX, lx)
+                val ty = MapViewRules.snapBackTarget(panY, ly)
+                if (tx == panX && ty == panY) return
+                val sx = panX
+                val sy = panY
+                uiScope.launch {
+                    androidx.compose.animation.core.animate(
+                        initialValue = 0f,
+                        targetValue = 1f,
+                        animationSpec = androidx.compose.animation.core.tween(MapViewRules.SNAP_BACK_MS),
+                    ) { v, _ ->
+                        panX = sx + (tx - sx) * v
+                        panY = sy + (ty - sy) * v
+                    }
+                }
             }
 
             Column(Modifier.fillMaxWidth()) {
-                Box(Modifier.fillMaxWidth().height(mapH)) {
+                // clipToBounds：放大后画面会超出地图块（Canvas 默认不裁剪，会溢到图例上）
+                Box(Modifier.fillMaxWidth().height(mapH).clipToBounds()) {
                     Canvas(
                         Modifier.fillMaxSize().background(t.paper)
+                            // 自己接管手势：`detectTransformGestures` **没有 onEnd 回调**，
+                            // 而回弹必须只在「所有手指抬起」时发生。这里照它的实现抄一份，
+                            // 把结束点变成确定事件（票 18 复测问题①）。
                             .pointerInput(pkg) {
-                                detectTransformGestures { _, pan, zoomChange, _ ->
-                                    zoom = (zoom * zoomChange).coerceIn(1f, 8f)
-                                    panX += pan.x
-                                    panY += pan.y
-                                    clampPan()
+                                awaitEachGesture {
+                                    val down = awaitFirstDown(requireUnconsumed = false)
+                                    var lastCentroid = androidx.compose.ui.geometry.Offset.Zero
+                                    var lastDistance = 0f
+                                    var started = false
+                                    var moved = 0f          // 累计位移：判「这是拖动还是点击」
+                                    var maxPointers = 1     // 出现过多指就不可能是点击
+                                    while (true) {
+                                        val event = awaitPointerEvent()
+                                        val pressed = event.changes.filter { it.pressed }
+                                        if (pressed.size > maxPointers) maxPointers = pressed.size
+                                        if (pressed.isEmpty()) break      // ← 全部抬起 = 真正的手势结束
+                                        // 质心与双指间距（只有一根手指时 distance=0 → 纯平移）
+                                        var cx = 0f
+                                        var cy = 0f
+                                        pressed.forEach { cx += it.position.x; cy += it.position.y }
+                                        val centroid = androidx.compose.ui.geometry.Offset(
+                                            cx / pressed.size, cy / pressed.size,
+                                        )
+                                        val distance = if (pressed.size >= 2) {
+                                            (pressed[1].position - pressed[0].position).getDistance()
+                                        } else 0f
+
+                                        if (!started) {
+                                            lastCentroid = centroid
+                                            lastDistance = distance
+                                            started = true
+                                        } else {
+                                            val pan = centroid - lastCentroid
+                                            moved += pan.getDistance()
+                                            val zoomChange =
+                                                if (lastDistance > 1f && distance > 1f) distance / lastDistance
+                                                else 1f
+                                            val oldZoom = zoom
+                                            val newZoom = (oldZoom * zoomChange)
+                                                .coerceIn(MapViewRules.MIN_ZOOM, MapViewRules.MAX_ZOOM)
+                                            val k = newZoom / oldZoom
+                                            // 以**质心**为锚点缩放：质心下的内容不许跑掉
+                                            val ax = centroid.x - cw / 2f
+                                            val ay = centroid.y - ch / 2f
+                                            panX = MapViewRules.panAfterZoomAt(ax, panX, k) + pan.x
+                                            panY = MapViewRules.panAfterZoomAt(ay, panY, k) + pan.y
+                                            zoom = newZoom
+                                            overdrag()
+                                            lastCentroid = centroid
+                                            if (distance > 1f) lastDistance = distance
+                                        }
+                                    }
+                                    snapBack()                        // ← 只有这里会回弹
+
+                                    // ── 点击 / 双击判定（**绝不在拖动或双击时选中**）──
+                                    if (!MapViewRules.isTap(maxPointers, moved, tapSlopPx)) {
+                                        // 拖动 / 缩放：保持原选中不变，什么也不做
+                                        tapLastAt.longValue = 0L
+                                        return@awaitEachGesture
+                                    }
+                                    val now = System.currentTimeMillis()
+                                    val lastPos = tapLastPos.value
+                                    val isDouble = MapViewRules.isDoubleTap(
+                                        nowMs = now,
+                                        lastTapMs = tapLastAt.longValue,
+                                        dx = down.position.x - lastPos.x,
+                                        dy = down.position.y - lastPos.y,
+                                        slopScreen = doubleTapSlopPx,
+                                    )
+                                    if (isDouble) {
+                                        // 第二下：取消挂起的单击、按点击点放大、**不选中**
+                                        tapPending.value?.cancel()
+                                        tapPending.value = null
+                                        tapLastAt.longValue = 0L
+                                        val oldZoom = zoom
+                                        val newZoom = (oldZoom * 2f)
+                                            .coerceIn(MapViewRules.MIN_ZOOM, MapViewRules.MAX_ZOOM)
+                                        val k = newZoom / oldZoom
+                                        panX = MapViewRules.panAfterZoomAt(
+                                            down.position.x - cw / 2f, panX, k,
+                                        )
+                                        panY = MapViewRules.panAfterZoomAt(
+                                            down.position.y - ch / 2f, panY, k,
+                                        )
+                                        zoom = newZoom
+                                        clampPan()
+                                    } else {
+                                        // 第一下：记下来，300ms 内没有第二下才真的算单击
+                                        tapLastAt.longValue = now
+                                        tapLastPos.value = down.position
+                                        tapPending.value?.cancel()
+                                        tapPending.value = uiScope.launch {
+                                            kotlinx.coroutines.delay(MapViewRules.DOUBLE_TAP_MS)
+                                            val tf = transformNow.value
+                                            val visible = featuresNow.value.filter {
+                                                MapGeometry.visibleInScreen(it, tf, cw, ch)
+                                            }
+                                            val hit = MapHit.pickOrNearest(
+                                                candidates = visible,
+                                                x = tf.sourceX(down.position.x),
+                                                y = tf.sourceY(down.position.y),
+                                                transform = tf,
+                                                maxScreenDistance = (24.dp.value * density.density).toDouble(),
+                                            )
+                                            vm.selectMapFeature(hit?.id.orEmpty())   // 空白 → 清空
+                                        }
+                                    }
                                 }
                             }
-                            .pointerInput(pkg, zoom, panX, panY) {
-                                detectTapGestures(
-                                    onTap = { pos ->
-                                        val visible = features.filter {
-                                            MapGeometry.visibleInScreen(it, transform, cw, ch)
-                                        }
-                                        val hit = MapHit.pickOrNearest(
-                                            candidates = visible,
-                                            x = transform.sourceX(pos.x),
-                                            y = transform.sourceY(pos.y),
-                                            transform = transform,
-                                            maxScreenDistance = with(density) { 24.dp.toPx().toDouble() },
-                                        )
-                                        vm.selectMapFeature(hit?.id.orEmpty())   // 空白 → 清空选中
-                                    },
-                                    onDoubleTap = {
-                                        zoom = (zoom * 2f).coerceAtMost(8f)
-                                        clampPan()
-                                    },
-                                )
-                            },
                     ) {
-                        // ① 底图（B 模式）；缩放 >2.5× 淡出到 0.35，避免糊
+                        // ① 底图（B 模式）：2.2×→3.0× 线性淡出，**=0 就根本不画**
+                        //    以前是 `if (zoom > 2.5f) 0.35f` —— 半透明位图压在纸白上就是那层「灰色模糊遮罩」，
+                        //    而且是突变台阶（票 18 问题 B 的根因）。
                         val bmp = baseBitmap
-                        if (bmp != null && !vectorOnly) {
-                            val alpha = if (zoom > 2.5f) 0.35f else 1f
+                        val bitmapAlpha =
+                            if (bmp != null && !vectorOnly) MapViewRules.bitmapAlpha(zoom) else 0f
+                        if (bmp != null && bitmapAlpha > 0f) {
                             val w = (manifest?.bbox?.let { it[2] - it[0] } ?: 1.0) * transform.scale
                             val h = (manifest?.bbox?.let { it[3] - it[1] } ?: 1.0) * transform.scale
                             drawImage(
                                 image = bmp,
                                 dstOffset = IntOffset(transform.offsetX.roundToInt(), transform.offsetY.roundToInt()),
                                 dstSize = IntSize(w.roundToInt().coerceAtLeast(1), h.roundToInt().coerceAtLeast(1)),
-                                alpha = alpha,
+                                alpha = bitmapAlpha,
+                                // Low 比 None 少锯齿、比 Medium/High 少振铃，且更快
+                                filterQuality = androidx.compose.ui.graphics.FilterQuality.Low,
                             )
                         }
-                        // ② 矢量层：热区 / 选中 / 洞都由 EvenOdd 路径处理
+                        // ② 矢量层：位图淡到一半以下时**自己上色**（A 模式配色），
+                        //    否则只剩 3% 填充的灰白线框
                         drawFeatures(
                             paths = paths,
                             groups = groups,
                             selectedId = ui.mapSelectedId,
-                            hasBitmap = bmp != null && !vectorOnly,
+                            hasBitmap = !MapViewRules.vectorTakesOver(bitmapAlpha),
                             transform = transform,
                             theme = t,
                             style = manifest?.style ?: cn.dkarbon.enroute.data.map.MapStyle(),
+                            layerFill = groups?.groups?.firstOrNull()?.layer?.fill.orEmpty(),
                         )
                     }
 
@@ -672,6 +824,8 @@ private fun DrawScope.drawFeatures(
     transform: MapTransform,
     theme: InkTokenSet,
     style: cn.dkarbon.enroute.data.map.MapStyle,
+    /** 逻辑层自带配色（真数据没给，靠要素自身的 color / colorGroup 兜底） */
+    layerFill: String = "",
 ) {
     val minX = transform.bbox[0]
     val maxY = transform.bbox[3]
@@ -708,8 +862,9 @@ private fun DrawScope.drawFeatures(
                     )
                 }
             } else {
-                // A 模式：按要素自己的颜色（真数据每条都带 #RRGGBB）
-                val baseColor = parseColor(f.color.ifBlank { layerFill }, theme.cardAlt)
+                // A 模式：按要素自己的颜色（真数据每条都带 #RRGGBB）；
+                // 缺色时用层配色，再缺按 colorGroup 兜底（票 18 问题 B 第 2 步）
+                val baseColor = parseColor(MapViewRules.vectorFillHex(f, layerFill), theme.cardAlt)
                 if (isSel) {
                     drawPath(path, color = baseColor)
                     drawPath(path, color = parseColor(style.stroke, theme.outline), style = Stroke(width = strokeSel))

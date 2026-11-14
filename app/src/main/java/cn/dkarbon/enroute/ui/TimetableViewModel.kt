@@ -78,15 +78,18 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 // 一次批量读 prefs，不逐个 getXxx（每次都是一次 XML 查找）
                 val week = prefs.timetableWeek
                 val theme = prefs.themeMode
-                val style = prefs.styleSet
+                // 风格读盘即归一：学院纸本已下线，老用户存量值平滑回落到硬朗农业（票 16）
+                val style = cn.dkarbon.enroute.ui.theme.StyleSet.normalize(prefs.styleSet)
+                val colorSource = cn.dkarbon.enroute.ui.theme.ColorSource.normalize(prefs.colorSource)
                 val remind = prefs.remindersEnabled
-                Loaded(store.load(), week, theme, style, remind)
+                Loaded(store.load(), week, theme, style, remind, colorSource)
             }
             _ui.value = _ui.value.copy(
                 timetable = saved.tt,
                 timetableWeek = saved.week,
                 themeMode = saved.theme,
                 styleSet = saved.style,
+                colorSource = saved.colorSource,
                 remindersEnabled = saved.remind,
                 timetableMsg = if (saved.tt == null) "" else "已载入 ${saved.tt.courses.size} 门课",
             )
@@ -112,6 +115,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val theme: Int,
         val style: Int,
         val remind: Boolean,
+        val colorSource: Int = 0,
     )
 
     // ── 登录态：冷启动恢复 + 验活（票 04）──────────────────
@@ -862,9 +866,22 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
 
     /** 切视觉风格（硬朗农业 / 学院纸本）；与明暗正交，不改 themeMode */
     fun setStyleSet(style: Int) {
-        val s = if (cn.dkarbon.enroute.ui.theme.StyleSet.isValid(style)) style else 0
+        // 学院纸本（1）已下线：传进来也归一到硬朗农业，避免界面拿一套没人认识的语汇渲染
+        val s = cn.dkarbon.enroute.ui.theme.StyleSet.normalize(style)
         prefs.styleSet = s
         _ui.value = _ui.value.copy(styleSet = s)
+    }
+
+    /**
+     * 切取色来源（票 16 追加项②）。
+     *
+     * 低版本机型上不显示这个开关，但**存值仍然照存**：换机/升级后意图还在。
+     * 主题层会自己判断能不能用（`DynamicColorRules.available`），不能用就退回固定色板。
+     */
+    fun setColorSource(source: Int) {
+        val s = cn.dkarbon.enroute.ui.theme.ColorSource.normalize(source)
+        prefs.colorSource = s
+        _ui.value = _ui.value.copy(colorSource = s)
     }
 
     /**

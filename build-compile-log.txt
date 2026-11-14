@@ -4,9 +4,6 @@ Daemon will be stopped at the end of the build
 
 > Configure project :app
 Unable to initialize metrics, ensure C:\Users\28759\.android is writable, details: C:\Users\28759\.android\analytics.settings (¾Ü¾ø·ÃÎÊ¡£)
-WARNING: The following problems were found when resolving the SDK location:
-Where: sdk.dir property in local.properties file. Problem: Directory does not exist
-
 
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :app:preBuild UP-TO-DATE
@@ -25,9 +22,8 @@ Where: sdk.dir property in local.properties file. Problem: Directory does not ex
 > Task :app:processDebugManifest UP-TO-DATE
 > Task :app:processDebugManifestForPackage UP-TO-DATE
 > Task :app:processDebugResources UP-TO-DATE
-> Task :app:compileDebugKotlin
-w: Detected multiple Kotlin daemon sessions at 
+> Task :app:compileDebugKotlin UP-TO-DATE
 
-BUILD SUCCESSFUL in 1m 8s
-15 actionable tasks: 1 executed, 14 up-to-date
+BUILD SUCCESSFUL in 12s
+15 actionable tasks: 15 up-to-date
 EXIT=0 

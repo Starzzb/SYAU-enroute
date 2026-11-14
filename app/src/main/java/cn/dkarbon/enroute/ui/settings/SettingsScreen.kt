@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,18 +101,21 @@ fun SettingsScreen(
             }
         }
 
-        // 风格：管语汇（农业硬朗 / 学院纸本 / 校报头版），与上面的明暗正交
+        // 风格：管语汇（硬朗农业 / 账页），与上面的明暗正交
+        // 学院纸本已于 2026-11-14 按主人要求下线（token 代码留着，UI 不再露出）
         Spacer(Modifier.height(10.dp))
         Text(
-            "硬朗农业＝黑土＋农械橘的方角网格；学院纸本＝同一套版式换成纸白＋墨，长读更省眼；" +
-                "校报头版＝去掉卡片，用版面线和衬线标题分区（纸纹、字距、小圆角本套专属）。",
+            "硬朗农业＝黑土＋农械橘的方角网格；" +
+                "账页＝没有格线，用填充色带与隔行底色分区；衬线承担标题与数字，课程是浮起的便签（圆角、软阴影本套专属）。",
             fontSize = 10.5.sp,
             lineHeight = 15.sp,
             color = t.inkFaint,
         )
         Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            listOf(0 to "硬朗农业", 1 to "学院纸本", 2 to "校报头版").forEach { (style, label) ->
+            cn.dkarbon.enroute.ui.theme.StyleSet.SELECTABLE.map { style ->
+                style to cn.dkarbon.enroute.ui.theme.StyleSet.name(style)
+            }.forEach { (style, label) ->
                 val on = ui.styleSet == style
                 Box(
                     Modifier
@@ -130,6 +134,47 @@ fun SettingsScreen(
             }
         }
 
+        // ── 取色（Material You，票 16 追加项②）──
+        // 只有 Android 12+ 才显示这一行；低版本**整块不出现**（不给灰色不可用项）
+        if (android.os.Build.VERSION.SDK_INT >= 31) {
+            Spacer(Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("壁纸取色", fontSize = 12.5.sp, color = t.ink)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        "只把主色与强调色换成壁纸色；纸白底、墨色正文、砖红警示不变。" +
+                            "当前取色：" + cn.dkarbon.enroute.ui.theme.ColorSource.name(ui.colorSource),
+                        fontSize = 10.sp,
+                        lineHeight = 15.sp,
+                        color = t.inkFaint,
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf(
+                        cn.dkarbon.enroute.ui.theme.ColorSource.FIXED to "固定",
+                        cn.dkarbon.enroute.ui.theme.ColorSource.WALLPAPER to "壁纸",
+                    ).forEach { (src, label) ->
+                        val on = ui.colorSource == src
+                        Box(
+                            Modifier
+                                .clip(RectangleShape)
+                                .background(if (on) t.cardAlt else t.card)
+                                .border(if (on) 1.5.dp else 0.dp, if (on) t.primary else t.card)
+                                .clickable { vm.setColorSource(src) }
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                        ) {
+                            Text(
+                                label,
+                                fontSize = 11.sp,
+                                color = if (on) t.ink else t.inkFaint,
+                                fontWeight = if (on) FontWeight.Medium else FontWeight.Normal,
+                            )
+                        }
+                    }
+                }
+            }
+        }
         // ── 上课提醒 ──
         SectionTitle("上课提醒")
         Row(verticalAlignment = Alignment.CenterVertically) {

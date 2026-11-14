@@ -245,11 +245,7 @@ private fun UserRoot(
         // 登录动作本身只在身份卡上（门禁 B3），这里不再多一条登录行。
         GroupHead(
             title = "教务",
-            premise = when (ui.sessionState) {
-                SessionState.None -> "未登录"
-                SessionState.Active -> "已登录"
-                SessionState.Expired -> "会话已过期"
-            } + if (ui.homeLoading) " · 读取中" else "",
+            premise = MyPageModel.sessionPremiseLabel(ui.sessionState) + if (ui.homeLoading) " · 读取中" else "",
             premiseColor = when (ui.sessionState) {
                 SessionState.Expired -> t.brick
                 SessionState.None -> t.inkFaint
@@ -401,7 +397,7 @@ private fun UserRoot(
             color = t.inkFaint,
         )
         Spacer(Modifier.height(18.dp))
-        WoodenFish()
+        WoodenFish(studentNo = ui.profile.studentNo)
         Spacer(Modifier.height(28.dp))
     }
 }

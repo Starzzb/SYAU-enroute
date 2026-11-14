@@ -82,9 +82,24 @@ object StyleSet {
 
     fun isValid(v: Int): Boolean = v == HARD || v == SCHOLAR || v == EDITORIAL
 
+    /**
+     * 归一化：**学院纸本（SCHOLAR）已从设置里下线**（主人 2026-11-14：「设置的学院纸本可以去除了」）。
+     *
+     * token 代码保留（类没删），但 UI 不再露出；老用户存量的 `styleSet = SCHOLAR`
+     * 在读设置时要**平滑回落到 HARD**，否则会拿一套谁也不认识的语汇渲染，界面像坏了一样。
+     */
+    fun normalize(v: Int): Int = when (v) {
+        SCHOLAR -> HARD
+        EDITORIAL -> EDITORIAL
+        else -> HARD
+    }
+
+    /** 设置页可选的风格（学院纸本不上架；新主题做好再往里加） */
+    val SELECTABLE: List<Int> = listOf(HARD, EDITORIAL)
+
     fun name(v: Int): String = when (v) {
         SCHOLAR -> "学院纸本"
-        EDITORIAL -> "校报头版"
+        EDITORIAL -> "账页"
         else -> "硬朗农业"
     }
 }

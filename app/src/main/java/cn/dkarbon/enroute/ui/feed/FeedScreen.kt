@@ -37,6 +37,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
@@ -60,6 +61,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -71,6 +75,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.feed.FeedItem
 import cn.dkarbon.enroute.data.feed.SourceResult
+import cn.dkarbon.enroute.ui.theme.Form
+import cn.dkarbon.enroute.ui.theme.cardFloat
+import cn.dkarbon.enroute.ui.theme.primaryInk
 import cn.dkarbon.enroute.ui.theme.InkTokenSet
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Motion
@@ -603,21 +610,45 @@ private fun ChannelChip(
     onLongClick: () -> Unit,
 ) {
     val t = InkTokens.current
+    val f = Form.current
+    val ed = f.editorial
     val onAccentText = if (t.isDark) Soil.n950 else Color.White
+    // 账页：频道 chip 是**胶囊**，选中态不再用分类色填充（分类色里含主色派生值，
+    // 壁纸取色会把它换掉）—— 改成「淡底 + 墨色描边 + 墨色文字」，
+    // 层级由字重/字距承担，颜色只在未读计数上出现。
+    val pill = RoundedCornerShape(if (ed) 999.dp else 0.dp)
     Row(
         Modifier
-            .height(30.dp)
-            .background(if (selected) accent else Color.Transparent)
-            .border(Stroke.hairline, if (selected) accent else t.outline)
+            .height(if (ed) 32.dp else 30.dp)
+            .then(if (ed) Modifier.clip(pill) else Modifier)
+            .background(
+                when {
+                    ed && selected -> t.cardAlt
+                    selected -> accent
+                    else -> Color.Transparent
+                },
+            )
+            .border(
+                if (ed && selected) 1.dp else Stroke.hairline,
+                when {
+                    ed && selected -> t.ink.copy(alpha = 0.55f)
+                    ed -> t.outline.copy(alpha = 0.55f)
+                    selected -> accent
+                    else -> t.outline
+                },
+                pill,
+            )
             .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = "$label 全部已读")
-            .padding(horizontal = Space.m),
+            .padding(horizontal = if (ed) 14.dp else Space.m),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             label,
             fontSize = 12.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) onAccentText else t.inkSoft,
+            letterSpacing = if (ed) 0.3.sp else 0.sp,
+            fontFamily = if (ed) f.displayFamily else null,
+            color = if (selected && !ed) onAccentText else if (selected) t.ink else t.inkSoft,
         )
         if (unread > 0) {
             Spacer(Modifier.width(Space.xs))
@@ -625,8 +656,12 @@ private fun ChannelChip(
                 unread.toString(),
                 fontSize = 9.5.sp,
                 fontWeight = FontWeight.Bold,
-                fontFamily = NumericFont,
-                color = if (selected) onAccentText.copy(alpha = 0.75f) else t.primary,
+                fontFamily = if (ed) f.numberFamily else NumericFont,
+                color = when {
+                    ed -> primaryInk()
+                    selected -> onAccentText.copy(alpha = 0.75f)
+                    else -> t.primary
+                },
             )
         }
     }
@@ -679,7 +714,8 @@ private fun ChannelMetaRow(
                 "全部已读",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                color = t.primary,
+                // 14sp 也算小字：品牌橙在纸底只有 4.15:1，改用小字主色（5.63:1）
+                color = primaryInk(),
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
                     .heightIn(min = Space.minTouch)
@@ -753,6 +789,8 @@ private fun FeedPage(
 @Composable
 private fun GroupHeader(row: FeedRow.Header, onToggle: (() -> Unit)?) {
     val t = InkTokens.current
+    val f = Form.current
+    val ed = f.editorial
     Row(
         Modifier
             .fillMaxWidth()
@@ -762,24 +800,54 @@ private fun GroupHeader(row: FeedRow.Header, onToggle: (() -> Unit)?) {
                 if (onToggle != null) Modifier.clickable(onClickLabel = "展开或折叠 ${row.label}", onClick = onToggle)
                 else Modifier,
             )
-            .padding(top = Space.xs),
+            .padding(
+                top = Space.xs,
+                start = if (ed) 14.dp else 0.dp,
+                end = if (ed) 14.dp else 0.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             row.label,
             fontSize = 10.sp,
             fontWeight = FontWeight.Bold,
-            letterSpacing = 1.sp,
+            // 账页：分组名走衬线 + 大字距（账本的「抬头」），HARD 保持 1sp 无衬线
+            letterSpacing = if (ed) 1.6.sp else 1.sp,
+            fontFamily = if (ed) f.displayFamily else null,
             color = t.inkFaint,
         )
         Spacer(Modifier.width(Space.xs))
-        Text(row.count.toString(), fontSize = 10.sp, fontFamily = NumericFont, color = t.inkFaint)
+        Text(
+            row.count.toString(),
+            fontSize = 10.sp,
+            fontFamily = if (ed) f.numberFamily else NumericFont,
+            color = t.inkFaint,
+        )
         if (onToggle != null) {
             Spacer(Modifier.width(Space.xs))
             Text(if (row.collapsed) "▸" else "▾", fontSize = 10.sp, color = t.inkFaint)
         }
         Spacer(Modifier.width(Space.s))
-        Box(Modifier.weight(1f).height(Stroke.hairline).background(t.rule))
+        if (ed) {
+            // 账页：导引线用**点线**（2/4 间隔）—— 与「能不用线就不用线」的语汇一致，
+            // 实线在这里会把分组名读成「表格标题行」，那就退回 HARD 的语言了
+            Box(
+                Modifier
+                    .weight(1f)
+                    .height(1.dp)
+                    .drawBehind {
+                        drawLine(
+                            color = t.rule.copy(alpha = 0.85f),
+                            start = Offset(0f, size.height / 2f),
+                            end = Offset(size.width, size.height / 2f),
+                            strokeWidth = 1f,
+                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(2f, 4f)),
+                        )
+                    },
+            )
+        } else {
+            Box(Modifier.weight(1f).height(Stroke.hairline).background(t.rule))
+        }
     }
 }
 
@@ -811,18 +879,30 @@ private fun PageFooter(shown: Int, total: Int) {
 @Composable
 private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: () -> Unit, onLongClick: () -> Unit) {
     val t = InkTokens.current
+    val f = Form.current
+    val ed = f.editorial
     val unread = item.readAt == null
     val cat = categoryColor(item.category, t)
     // 查表级计算，不值得 remember 的槽位开销（评审 B10）
     val dl = if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
     val urgent = dl?.tone == DeadlineTone.HOT
     val haptic = LocalHapticFeedback.current
+    val shape = RoundedCornerShape(if (ed) f.radiusCard else 0.dp)
 
     Row(
         Modifier
             .fillMaxWidth()
+            // 账页：卡片是「贴在账页上的一张便签」—— 两侧留白 + 圆角 + 软阴影。
+            // HARD 走原路径（满宽、方角、1dp 实线），一像素都没动。
+            .then(if (ed) Modifier.padding(horizontal = 14.dp) else Modifier)
+            .then(if (ed) Modifier.cardFloat(f, if (t.isDark) Color.Black else t.ink) else Modifier)
+            .then(if (ed) Modifier.clip(shape) else Modifier)
             .background(t.card)
-            .border(Stroke.hairline, t.outline)
+            .border(
+                if (ed) f.ruleWidth else Stroke.hairline,
+                if (ed) t.outline.copy(alpha = 0.30f) else t.outline,
+                shape,
+            )
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -840,11 +920,20 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
                 Box(
                     Modifier
                         .size(32.dp)
+                        // 账页：分类徽是一枚「小印章」（6dp 圆角），不是方块
+                        .then(if (ed) Modifier.clip(RoundedCornerShape(6.dp)) else Modifier)
                         .background(cat.copy(alpha = if (t.isDark) 0.22f else 0.10f))
-                        .border(Stroke.hairline, cat.copy(alpha = 0.45f)),
+                        .border(Stroke.hairline, cat.copy(alpha = 0.45f), RoundedCornerShape(if (ed) 6.dp else 0.dp)),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(item.category.take(2), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = cat, maxLines = 1)
+                    Text(
+                        item.category.take(2),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        fontFamily = if (ed) f.displayFamily else null,
+                        color = cat,
+                        maxLines = 1,
+                    )
                 }
                 Spacer(Modifier.width(Space.m))
                 Column(Modifier.weight(1f)) {
@@ -852,7 +941,8 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
                         Text(
                             item.sourceName,
                             fontSize = 10.5.sp,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = if (ed) FontWeight.Normal else FontWeight.Medium,
+                            letterSpacing = if (ed) 0.4.sp else 0.sp,
                             color = t.inkSoft,
                             maxLines = 1,
                             modifier = Modifier.weight(1f, fill = false),
@@ -860,23 +950,31 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
                         Spacer(Modifier.width(Space.xs))
                         Text("·", fontSize = 10.sp, color = t.rule)
                         Spacer(Modifier.width(Space.xs))
-                        Text(shortDate(item.publishedAt), fontSize = 9.5.sp, color = t.inkFaint, fontFamily = NumericFont)
+                        Text(
+                            shortDate(item.publishedAt),
+                            fontSize = 9.5.sp,
+                            color = t.inkFaint,
+                            fontFamily = if (ed) f.numberFamily else NumericFont,
+                        )
                         Spacer(Modifier.weight(1f))
                         if (item.starred) {
                             StarMark()
                             Spacer(Modifier.width(Space.xs))
                         }
                         if (unread) {
-                            Box(Modifier.size(6.dp).clip(CircleShape).background(t.primary))
+                            Box(Modifier.size(6.dp).clip(CircleShape).background(if (ed) primaryInk() else t.primary))
                         }
                     }
                     Spacer(Modifier.height(Space.xs))
                     Text(
                         if (item.titleTruncated) item.title.trimEnd('.', '…') + "…" else item.title,
+                        // 账页：条目标题走衬线（与课表里的课名同一族），靠字族 + 字重做层级
                         fontSize = 15.sp,
                         lineHeight = 21.sp,
                         color = if (unread) t.ink else t.inkSoft,
                         fontWeight = if (unread) FontWeight.Bold else FontWeight.Medium,
+                        letterSpacing = if (ed) f.titleTracking else 0.sp,
+                        fontFamily = if (ed) f.displayFamily else null,
                         maxLines = 2,
                     )
                     val s = sanitizeSummary(item.summary)
@@ -886,12 +984,24 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
                     }
                 }
             }
-            Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.outline.copy(alpha = 0.7f)))
+            // 账页：卡片内部**不画分隔线**（与网格同一条规矩：能不用线就不用线），
+            // 靠 4dp 间距 + 底部那行小字的位置来分区。HARD 保留原来的 1dp 实线。
+            if (ed) {
+                Spacer(Modifier.height(Space.xs))
+            } else {
+                Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.outline.copy(alpha = 0.7f)))
+            }
             Row(
                 Modifier.fillMaxWidth().heightIn(min = 28.dp).padding(horizontal = Space.m, vertical = Space.xs),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(item.category, fontSize = 9.5.sp, fontWeight = FontWeight.Medium, color = cat)
+                Text(
+                    item.category,
+                    fontSize = 9.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = if (ed) 1.2.sp else 0.sp,
+                    color = cat,
+                )
                 dl?.let {
                     Spacer(Modifier.width(Space.s))
                     Text("·", fontSize = 9.sp, color = t.rule)
@@ -900,7 +1010,7 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
                         it.text,
                         fontSize = 9.5.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = NumericFont,
+                        fontFamily = if (ed) f.numberFamily else NumericFont,
                         color = when (it.tone) {
                             DeadlineTone.HOT -> t.brick
                             DeadlineTone.WARM -> t.amber
@@ -929,17 +1039,27 @@ private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: ()
 @Composable
 private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () -> Unit, onLongClick: () -> Unit) {
     val t = InkTokens.current
+    val f = Form.current
+    val ed = f.editorial
     val unread = item.readAt == null
     val cat = categoryColor(item.category, t)
     val dl = if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
     val barColor = if (dl?.tone == DeadlineTone.HOT) t.brick else cat
     val haptic = LocalHapticFeedback.current
+    val shape = RoundedCornerShape(if (ed) f.radiusCard else 0.dp)
 
     Row(
         Modifier
             .fillMaxWidth()
+            .then(if (ed) Modifier.padding(horizontal = 14.dp) else Modifier)
+            .then(if (ed) Modifier.cardFloat(f, if (t.isDark) Color.Black else t.ink) else Modifier)
+            .then(if (ed) Modifier.clip(shape) else Modifier)
             .background(t.card)
-            .border(Stroke.hairline, t.outline)
+            .border(
+                if (ed) f.ruleWidth else Stroke.hairline,
+                if (ed) t.outline.copy(alpha = 0.30f) else t.outline,
+                shape,
+            )
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = {
@@ -949,13 +1069,16 @@ private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () 
                 onLongClickLabel = "${item.title} 更多操作",
             ),
     ) {
-        Box(Modifier.width(Stroke.accentBar).fillMaxHeight().background(barColor))
+        // 频道色条：账页里改成 4dp（更宽的「书签边」），靠 clip 自动带圆角
+        Box(Modifier.width(if (ed) 4.dp else Stroke.accentBar).fillMaxHeight().background(barColor))
         Column(Modifier.weight(1f).padding(start = Space.m, end = Space.m, top = Space.s, bottom = Space.s)) {
             Text(
                 if (item.titleTruncated) item.title.trimEnd('.', '…') + "…" else item.title,
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 fontWeight = if (unread) FontWeight.Bold else FontWeight.Medium,
+                letterSpacing = if (ed) f.titleTracking else 0.sp,
+                fontFamily = if (ed) f.displayFamily else null,
                 color = if (unread) t.ink else t.inkSoft,
                 maxLines = 2,
             )
@@ -966,7 +1089,7 @@ private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () 
                     fontSize = 9.5.sp,
                     lineHeight = 13.sp,
                     color = t.inkFaint,
-                    fontFamily = NumericFont,
+                    fontFamily = if (ed) f.numberFamily else NumericFont,
                     maxLines = 1,
                     modifier = Modifier.weight(1f, fill = false),
                 )
@@ -975,7 +1098,7 @@ private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () 
                         " · " + it.text,
                         fontSize = 9.5.sp,
                         fontWeight = FontWeight.Bold,
-                        fontFamily = NumericFont,
+                        fontFamily = if (ed) f.numberFamily else NumericFont,
                         color = when (it.tone) {
                             DeadlineTone.HOT -> t.brick
                             DeadlineTone.WARM -> t.amber
@@ -990,7 +1113,7 @@ private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () 
                     Spacer(Modifier.width(Space.xs))
                 }
                 if (unread) {
-                    Box(Modifier.size(6.dp).clip(CircleShape).background(t.primary))
+                    Box(Modifier.size(6.dp).clip(CircleShape).background(if (ed) primaryInk() else t.primary))
                 }
             }
         }

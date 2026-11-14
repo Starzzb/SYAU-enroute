@@ -5,7 +5,7 @@
 
 **Blocked by:** 无
 
-**Status:** needs-triage（**等主人拍板选哪套布局**；§A 的缺陷修复可立即开工）
+**Status:** ready-for-human（方案二已实现；§A 8 条已修）
 
 ---
 
@@ -122,3 +122,103 @@
 - 只改「我的」页与其数据派生，不动 `ui/feed/`、`ui/timetable/` 网格几何、`ui/map/` 渲染
 - 若要改分组模型（组/行/badge 状态），**先写 JVM 单测**再改 UI
 - 写盘范围：`ui/user/UserScreen.kt`、`ui/home/HomeCards.kt`、`ui/AppState.kt`（必要时）、测试
+
+## Comments
+
+### 2026-11-14 交付（agent）—— 方案二「学业磁贴 2 列」+ A 段 8 条 + 追加两项
+
+主人拍板**方案二**。**364 条 / 27 类 / 0 失败**（基线 346/25）；`assembleDebug` 成功；APK 21.78MB。
+真机（10AE1H1PYJ005ED，Android 16）逐屏看过，结论在文末。
+
+---
+
+#### A 段：8 条缺陷逐条
+
+| # | 缺陷 | 修法 | 位置 |
+|---|---|---|---|
+| A1 | 培养方案进度卡点进去是成绩页 | 「培养方案」磁贴 `onClick = onOpenCurriculum` | `ui/user/UserScreen.kt:291-296` |
+| A2 | 课表为空显示「0 门课」 | `MyPageModel.courseCountLabel(null) = "—"`，只有**同步过且真 0 门**才写「0 门课」 | `ui/user/MyPageModel.kt:27`、`UserScreen.kt:387` |
+| A3 | 行高 ~40dp | `NavRow` 加 `heightIn(min = Space.minTouch)` | `UserScreen.kt:536` |
+| A4 | 箭头朝左 | 改 `AutoMirrored.KeyboardArrowRight` | `UserScreen.kt:547` |
+| A5 | `Divider()` 0.6dp | 收敛到 `Stroke.hairline`（`HardTokens` 的 1dp 下限） | `UserScreen.kt:507` |
+| A6 | 子页栈切 tab 重置 | `rememberSaveable` + `listSaver`（存页面名） | `UserScreen.kt:104-110` |
+| A7 | 登录行条件插入导致整列位移 | **永不占行**（走票里给的第二选项）：登录动作只在身份卡上；教务组头右侧常驻状态前提 | `UserScreen.kt:246-252`、`MyPageModel.kt:89` |
+| A8 | 徽标语义混乱 | 删掉 `相对位置`／专业名／`N 位` 三个噪声徽标；只留真实状态（`3 场`/`21 条`/`166 门`/学期名），未知一律空 | `MyPageModel.kt:99-121` |
+
+> A7 选的是「**永不占行**」而不是「常驻一行」：身份卡本身就是三态登录入口（票 04 定的），
+> 再加一行会踩门禁 B3「同一目的地不得有两个入口」。组头 premise 满足门禁 B2「每组第 1 行是状态前提」。
+
+#### B 段：方案二实现
+
+```
+教务（组头 premise=会话态：未登录 / 已登录 / 会话已过期）
+  身份卡（唯一登录入口）
+  下一场考试  span2 · 倒计时 26sp 等宽数字
+  培养方案 64% │ 加权绩点 3.42      ← 两个 1×1
+  空闲教室 · 第 5 节 · 67 间        ← span2
+  查教师 │ 课程大纲                 ← 工具格 2×2（76dp）
+  历年课表 │ 成绩查询
+校园（组头 premise=离线可用 · 不申请定位）
+  校园地图
+本机（组头 premise=第 N 周）
+  本机状态（折叠头 50/56dp）        ← 摘要：课表 10 门 · 第 12 周
+```
+
+- 组件：`ui/user/UserTiles.kt` —— `WideTile:94`（span2）、`TileRow:115`、`RowScope.HalfTile:134`（1×1，26sp 数字）、
+  `RowScope.ToolTile:164`（76dp，**无图标**，门禁 A4）、`GroupHead:188`（组标题 + 状态前提）、
+  `FoldSection:216`（`animateDpAsState(180ms)`，头 50→56dp）、`FoldRow:269`（每行 ≥48dp）。
+- 只借**布局轴**：0 圆角（`RectangleShape`）+ `Stroke.hairline` 描边 + 无 `elevation`/渐变/阴影、
+  **无四色分区**、**没新增任何 token**；层级只靠尺寸/字号/描边轻重。
+- 分组锚定**数据来源**（教务=URP 登录态 / 校园=离线图·不申请定位 / 本机=本地存储）——
+  把三组标题换成「常用功能/学习工具/其他」，`查教师`（要登录）就会和`校园地图`（不要登录）混在一组，
+  页面**不成立**，门禁 A1 过。
+- 设置只剩右上齿轮（组内那行已删），「关于」页仍从齿轮进（lead 的入口保留）。
+- 「下一场考试」的三种空态分开写（`ExamTileBody` `UserScreen.kt:415`）：读取中 / 还没有安排 / 已考完 N 场。
+
+#### 追加①：学院纸本（SCHOLAR）下线（主人：设置的学院纸本可以去除了）
+
+- `StyleSet.normalize(v)`（`ui/theme/ScholarTokens.kt:91`）：`SCHOLAR → HARD`，`EDITORIAL` 保留，垃圾值也回落 HARD。
+- **读盘与写入两处都归一**：`TimetableViewModel:82`（init 读 prefs 时）+ `:870`（setStyleSet 时）——
+  老用户存量 `styleSet=1` 不会拿一套已下线语汇渲染（那会像界面坏了）。
+- 设置页风格行改为**从 `StyleSet.SELECTABLE` 驱动**（`SettingsScreen.kt:116`），当前 = `HARD + EDITORIAL`；
+  **等 theme 代理定下新主题枚举名后，只改 `SELECTABLE` 这一行**（`ScholarTokens.kt:98`），设置页不用再动。
+- token 代码**保留不删**（`ScholarTokens.kt` 仍在），只是 UI 不再露出。
+
+#### 追加②：壁纸取色（Material You）
+
+- `ui/theme/DynamicColors.kt`（新）：`DynamicColorRules.available:31`（API≥31）、`shades:41`（亮 600/400、暗 200/300）、
+  `override:49`、`systemRes:53`（`system_accent1_100..1000` 全档映射，表外返回 null）、`systemColor:68`；
+  `ColorSource:76`（FIXED/WALLPAPER + `normalize:83`）。
+- `EnRouteTheme` 加 `colorSource` 参数（`Theme.kt:169`）：仅「SDK≥31 且选了壁纸」时覆盖（`:195-208`），
+  **只换 `primary` / `accent`**；`baseTokens`（`:179`）的纸白/墨色/砖红/橄榄/琥珀/描边/`isDark` 原样透传。
+  读不到系统色 → 静默退回固定色板，不抛不崩。
+- 设置页（`SettingsScreen.kt:139`）：**只有 Android 12+ 才渲染这一块**（低版本整块不出现，不给灰色不可用项），
+  `固定 / 壁纸` 两档 + 「当前取色：固定／跟随壁纸取色」（`:143-165`）。
+- 偏好 `Prefs.colorSource`（`Prefs.kt:46`）存的是**用户意图**（换到低版本机型意图还在，主题层自己忽略）；
+  `MainActivity.kt:138` 传入。
+- **没引** material3 `dynamicColorScheme`（那会连带换掉 surface/onSurface 一整包语义）。
+
+#### 单测（新增 18 条，总 364/27）
+- `MyPageModelTest`（11 条）：课表空→`—` 且与真 0 区分、周次未校准、折叠摘要三种组合、
+  培养方案百分比缺失/需修 0、绩点缺失不给 0.00、空闲教室未查、三态状态行、组头短状态（≤6 字）、
+  徽标未知留空、三个噪声徽标恒空。
+- `ThemeDynamicTest`（6 条）：学院纸本回落/垃圾值回落、SELECTABLE 不含 SCHOLAR、
+  低版本不可用、**取色只覆盖 primary/accent 且砖红等语义色逐字段不变**、亮暗档位、取色来源归一化。
+
+#### 真机截图结论（10AE1H1PYJ005ED / Android 16）
+1. **我的页**：首屏五个数字全在（倒计时占位、绩点 3.37、培养方案进度、空闲教室、课表门数），
+   组头状态前提「已登录」、`培养方案｜加权绩点` 两列对齐、工具格 2×2、`校园`/`本机`分组与折叠头正常；
+2. **A1 实测**：点「培养方案」磁贴 → 进的是**培养方案页**（「2024 级 · 土地资源管理」），不再是成绩页；
+3. **数据联动**：进过一次空闲教室（67 间/第 5 节）后返回，磁贴立刻变成「第 5 节 · 67 间」；
+   折叠头摘要显示「课表 10 门 · 第 12 周」；未取数时显示 `—` / 「点进去查一次」（不是 0）；
+4. **设置页**：风格行只剩`硬朗农业 / 校报头版`（学院纸本已消失）；「壁纸取色」行显示「当前取色：固定」；
+5. **取色切换 + 持久化**：切到`壁纸` → 显示「跟随壁纸取色」→ **杀进程重开仍是壁纸**（`Prefs.colorSource` 生效）。
+6. **诚实说明**：本机壁纸的 `system_accent1_*` 与农械橘很接近，肉眼差异极小；映射正确性靠单测锁，
+   视觉差异要等主人换一张冷色壁纸才明显。**低版本隐藏**没有低版本真机可截，属 SDK 判断 + 单测
+   （`available(30)==false`）覆盖 —— 若需要，可以在模拟器 API 29 上补一张。
+
+#### 遗留
+1. **四组合截图（E1）只拍了浅色系**：`硬朗农业亮` 与 `校报头版亮` 各看过；`学院纸本`已下线不必拍；
+   深色两套没逐屏截（theme 代理正在改渲染，等他们定版后一起看）。
+2. **字体 2.0× 与 360dp 窄屏**（E3）本轮没专门验（本机就是 360dp 宽）；等新主题定版时一起过。
+3. `SESSION` 相关：本机现在「已登录 + 保持登录已开启」，说明票 14 的 L1/L2 已在实际使用中生效（顺带佐证）。

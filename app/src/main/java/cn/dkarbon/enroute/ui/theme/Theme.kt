@@ -145,8 +145,8 @@ object InkTokens {
 /**
  * 主题入口。
  *
- * 注意：**关掉了 dynamicColor**。动态取色会把我们的农业色板整个换掉
- * （Android 12+ 从壁纸取色），那样「硬朗农业」就白设计了。
+ * 注意：**不做整包 dynamicColor**（Material 的 dynamicColorScheme 会把纸墨体系整个换掉）。
+ * 壁纸取色只作为**第三选项**存在，且只接 primary / accent 两个色（见 [DynamicColorRules]）。
  *
  * @param styleSet 风格语汇（[StyleSet.HARD] 硬朗农业 / [StyleSet.SCHOLAR] 学院纸本 /
  *   [StyleSet.EDITORIAL] 校报头版）。与明暗正交 —— 深色纸本是合法组合，所以刻意不塞进 [ThemeMode]。
@@ -165,6 +165,8 @@ object InkTokens {
 fun EnRouteTheme(
     themeMode: Int = ThemeMode.System,
     styleSet: Int = StyleSet.HARD,
+    /** 取色来源（[ColorSource.FIXED] / [ColorSource.WALLPAPER]）；壁纸取色仅 Android 12+ 生效 */
+    colorSource: Int = ColorSource.FIXED,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when (themeMode) {
@@ -174,13 +176,35 @@ fun EnRouteTheme(
     }
     val editorial = styleSet == StyleSet.EDITORIAL
     val scholar = styleSet == StyleSet.SCHOLAR
-    val tokens = when {
+    val baseTokens = when {
         editorial && darkTheme -> EditorialDarkTokens
         editorial -> EditorialLightTokens
         scholar && darkTheme -> ScholarDarkTokens
         scholar -> ScholarLightTokens
         darkTheme -> InkTokenSet.Dark
         else -> InkTokenSet.Light
+    }
+    /*
+     * 壁纸取色（Material You，票 16 追加项②）：**只覆盖 primary / accent**。
+     *
+     * 纸白底、墨色正文、砖红/橄榄/琥珀这些语义色必须保持固定 ——
+     * 砖红被壁纸染成蓝色，「不及格/已过期」的表达就失真了（数据诚实红线）。
+     * 低版本（< API 31）或读不到系统色时**原样返回** base token，不抛不崩。
+     */
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    val tokens = if (colorSource == ColorSource.WALLPAPER &&
+        DynamicColorRules.available(android.os.Build.VERSION.SDK_INT)
+    ) {
+        val (primaryShade, accentShade) = DynamicColorRules.shades(darkTheme)
+        val primary = DynamicColorRules.systemColor(ctx, primaryShade)
+        val accent = DynamicColorRules.systemColor(ctx, accentShade)
+        if (primary != null && accent != null) {
+            DynamicColorRules.override(baseTokens, primary, accent)
+        } else {
+            baseTokens
+        }
+    } else {
+        baseTokens
     }
     val scheme = when {
         editorial && darkTheme -> EditorialDarkScheme

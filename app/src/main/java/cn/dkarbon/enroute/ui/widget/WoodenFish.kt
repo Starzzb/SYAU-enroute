@@ -66,15 +66,59 @@ import kotlinx.coroutines.withTimeoutOrNull
  * 一旦真调课了，承担后果（走错楼、迟到、记名）的是用户。
  */
 @Composable
-fun WoodenFish(modifier: Modifier = Modifier) {
+fun WoodenFish(
+    /** 学号（未登录传空）—— 功德按它分账，未登录时挂到 `anon` 上 */
+    studentNo: String = "",
+    modifier: Modifier = Modifier,
+) {
     val t = InkTokens.current
     val ctx = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
     val prefs = remember { Prefs(ctx.applicationContext) }
 
-    var merit by rememberSaveable { mutableIntStateOf(prefs.merit) }
+    // 账户键：登录了用学号，没登录用 anon（换账号各算各的，不合并）
+    val accountKey = cn.dkarbon.enroute.data.MeritRules.accountKey(studentNo)
+    // 老 key `merit` 一次性迁移到当前账户（老用户不该发现功德归零）
+    remember(accountKey) { prefs.migrateLegacyMerit(accountKey) }
+    // 首次登录：把 anon 的累计并进学号，然后清空 anon（只并一次，幂等）
+    remember(accountKey) {
+        if (!cn.dkarbon.enroute.data.MeritRules.isAnonymous(accountKey)) {
+            val anon = prefs.meritTotal(cn.dkarbon.enroute.data.MeritRules.ANON)
+            if (anon > 0) {
+                prefs.setMeritTotal(
+                    accountKey,
+                    cn.dkarbon.enroute.data.MeritRules.mergeAnon(prefs.meritTotal(accountKey), anon),
+                )
+                prefs.clearAnonMerit()
+            }
+        }
+    }
+
+    val today = cn.dkarbon.enroute.data.MeritRules.today()
+    var merit by rememberSaveable(accountKey) { mutableIntStateOf(prefs.meritTotal(accountKey)) }
+    var todayCount by rememberSaveable(accountKey) {
+        mutableIntStateOf(
+            cn.dkarbon.enroute.data.MeritRules
+                .rollDay(prefs.meritDay(accountKey), today, prefs.meritToday(accountKey))
+                .second,
+        )
+    }
     var soundOn by rememberSaveable { mutableStateOf(prefs.meritSound) }
+
+    /**
+     * 跨天滚动：**挂在页面重组上也要判**（否则挂着页面过了午夜，显示还是昨天的数）。
+     * 日期口径与 `SchoolClock` 一致：本地时区的 `LocalDate.now()`。
+     */
+    fun rollIfNewDay() {
+        val (d, c) = cn.dkarbon.enroute.data.MeritRules
+            .rollDay(prefs.meritDay(accountKey), cn.dkarbon.enroute.data.MeritRules.today(), todayCount)
+        if (d != prefs.meritDay(accountKey) || c != todayCount) {
+            todayCount = c
+            prefs.setMeritToday(accountKey, d, c)
+        }
+    }
+    androidx.compose.runtime.LaunchedEffect(accountKey) { rollIfNewDay() }
 
     // 敲击：整只鱼轻微一缩（原版 scale3d 0.93 的做法）
     val strike = remember { Animatable(0f) }
@@ -82,8 +126,14 @@ fun WoodenFish(modifier: Modifier = Modifier) {
     val float = remember { Animatable(0f) }
 
     fun knock() {
-        merit += 1
-        prefs.merit = merit
+        val todayNow = cn.dkarbon.enroute.data.MeritRules.today()
+        val (day, tc) = cn.dkarbon.enroute.data.MeritRules
+            .rollDay(prefs.meritDay(accountKey), todayNow, todayCount)
+        val (nt, ntc) = cn.dkarbon.enroute.data.MeritRules.afterStrike(merit, tc)
+        merit = nt
+        todayCount = ntc
+        prefs.setMeritTotal(accountKey, nt)
+        prefs.setMeritToday(accountKey, day, ntc)
         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
         if (soundOn) MeritSound.play(ctx)
         scope.launch {
@@ -98,13 +148,15 @@ fun WoodenFish(modifier: Modifier = Modifier) {
     }
 
     Column(
-        modifier
-            .fillMaxWidth()
-            .background(t.card)
-            .border(Stroke.hairline, t.outline)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
+        modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        // 不画卡片底、不画框：木鱼直接坐在页面底色上（主人 2026-11-14：「就像原本就在背景里面一样」）。
+        // 去掉框以后和上方「本机」折叠区失去边界，所以先用一条同款 hairline 分隔线划开，
+        // 再给足纵向留白（12dp → 18dp）让它有呼吸。
+        Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
+        Spacer(Modifier.size(18.dp))
+
         // 抬头：功德数 + 声音开关
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("功德", fontSize = 10.5.sp, color = t.inkSoft)
@@ -116,6 +168,19 @@ fun WoodenFish(modifier: Modifier = Modifier) {
                 fontFamily = NumericFont,
                 color = t.primary,
             )
+            Spacer(Modifier.size(6.dp))
+            // 今日小字：主数字永远是**累计**（功德是累计的笑点），今日只作补充
+            Text(
+                "今日 $todayCount",
+                fontSize = 9.5.sp,
+                color = t.inkFaint,
+                fontFamily = NumericFont,
+            )
+            // 没绑账号时诚实标一句：这份计数不分账号（换个号还是这一份）
+            if (cn.dkarbon.enroute.data.MeritRules.isAnonymous(accountKey)) {
+                Spacer(Modifier.size(4.dp))
+                Text("本机", fontSize = 8.sp, color = t.inkFaint)
+            }
             Spacer(Modifier.weight(1f))
             Box(
                 Modifier

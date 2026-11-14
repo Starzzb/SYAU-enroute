@@ -100,6 +100,15 @@ class MyPageModelTest {
         assertTrue(MyPageModel.sessionRowNeedsAction(SessionState.Expired))
     }
 
+    @Test
+    fun `组头短状态三态齐全`() {
+        // 组头空间只有几个字：必须是短词，不能是整句
+        assertEquals("未登录", MyPageModel.sessionPremiseLabel(SessionState.None))
+        assertEquals("已登录", MyPageModel.sessionPremiseLabel(SessionState.Active))
+        assertEquals("会话已过期", MyPageModel.sessionPremiseLabel(SessionState.Expired))
+        SessionState.entries.forEach { assertTrue(MyPageModel.sessionPremiseLabel(it).length <= 6) }
+    }
+
     // ── A8：徽标只放真实状态，噪声留空 ──────────────────
 
     @Test

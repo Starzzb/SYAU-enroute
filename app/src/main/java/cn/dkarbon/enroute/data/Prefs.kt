@@ -38,6 +38,16 @@ class Prefs(ctx: Context) {
         set(v) = sp.edit().putInt("style_set", v).apply()
 
     /**
+     * 取色来源（票 16 追加项②）：0 = 固定农业色板；1 = 跟随壁纸取色（仅 Android 12+ 生效）。
+     *
+     * 存的是**用户意图**，不是「本机能不能」—— 换到低版本机型时意图还在，
+     * 但主题层会自己忽略（见 `DynamicColorRules.available`）。
+     */
+    var colorSource: Int
+        get() = sp.getInt("color_source", 0)
+        set(v) = sp.edit().putInt("color_source", v).apply()
+
+    /**
      * 上课提醒总开关。
      *
      * 默认**开**：这功能就是主诉求之一，让人再去翻设置打开不现实。
@@ -58,10 +68,49 @@ class Prefs(ctx: Context) {
         sp.edit().putLong("last_reschedule", System.currentTimeMillis()).apply()
     }
 
-    /** 电子木鱼的「功德」累计数（纯玩具，只存本机） */
-    var merit: Int
-        get() = sp.getInt("merit", 0)
-        set(v) = sp.edit().putInt("merit", v).apply()
+    // ── 电子木鱼「功德」（纯玩具，只存本机，不联网不上传）────────────────
+    //
+    // 2026-11-14 改：从「全设备一个整数」改成**按学号分开记 + 今日/累计两栏**。
+    // 键都带账户前缀隔离，互不污染：
+    //   merit_total_<key> / merit_day_<key> / merit_today_<key>
+    // <key> = 已登录时的学号；未登录固定 "anon"。
+
+    /** 累计功德（该账户） */
+    fun meritTotal(key: String): Int = sp.getInt("merit_total_$key", 0)
+
+    fun setMeritTotal(key: String, v: Int) {
+        sp.edit().putInt("merit_total_$key", v).apply()
+    }
+
+    /** 存档里记的「今天」是哪天（`yyyy-MM-dd`；空 = 没存过） */
+    fun meritDay(key: String): String = sp.getString("merit_day_$key", "").orEmpty()
+
+    /** 今日功德 */
+    fun meritToday(key: String): Int = sp.getInt("merit_today_$key", 0)
+
+    fun setMeritToday(key: String, day: String, todayCount: Int) {
+        sp.edit().putString("merit_day_$key", day).putInt("merit_today_$key", todayCount).apply()
+    }
+
+    /** `anon` 的累计（首次登录迁移用）；迁完置 0，避免重复并入 */
+    fun clearAnonMerit() {
+        sp.edit().putInt("merit_total_anon", 0).putInt("merit_today_anon", 0).apply()
+    }
+
+    /**
+     * 老 key `merit`（全设备一整数）的一次性迁移。
+     *
+     * 迁到 [key] 的累计上并删掉旧 key —— 老用户打开不该发现功德归零。
+     * 用 `merit_migrated` 防重复（万一旧 key 又被谁写回来）。
+     */
+    fun migrateLegacyMerit(key: String) {
+        if (sp.getBoolean("merit_migrated", false)) return
+        val legacy = sp.getInt("merit", 0)
+        if (legacy > 0) {
+            sp.edit().putInt("merit_total_$key", MeritRules.migrateLegacy(meritTotal(key), legacy)).apply()
+        }
+        sp.edit().remove("merit").putBoolean("merit_migrated", true).apply()
+    }
 
     /** 木鱼敲击声开关 */
     var meritSound: Boolean

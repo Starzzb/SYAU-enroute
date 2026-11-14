@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ripple
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
@@ -52,13 +55,19 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,6 +84,7 @@ import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Stroke
 import cn.dkarbon.enroute.ui.theme.paperGrain
+import cn.dkarbon.enroute.ui.theme.primaryInk
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.util.Calendar
@@ -328,7 +338,8 @@ private data class GridMetrics(
 /**
  * 周网格本体。**几何逻辑（[GridMetrics] / [gridRowTop] / yOfRow）不在本参数里做任何开关**，
  * 只加一个 [readOnly] 给「历年课表」用：
- * - eadOnly = true 时不显示**日期的号数**（历史学期我们不知道那一周的真实公历日期，
+ * - 
+eadOnly = true 时不显示**日期的号数**（历史学期我们不知道那一周的真实公历日期，
  *   硬显示一个号数就是编数据）；同时调用方传 isThisWeek = false，
  *   于是今天竖带 / 当前时刻推进条 / 侵蚀进度 / 小幽灵全部自然不出现。
  */
@@ -351,6 +362,7 @@ internal fun GridArea(
     // 所以 HARD / SCHOLAR 的绘制指令与改造前完全一致。
     val f = Form.current
     val ed = f.editorial
+    val accentText = primaryInk()
     val allBigs = BigSession.entries
 
     // 网格是「固定列宽 + 固定字宽」的表格，字号放到 1.3 会把 8 字课名挤成省略号。
@@ -383,7 +395,8 @@ internal fun GridArea(
                             fontFamily = if (ed) f.displayFamily else null,
                             fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium,
                             color = when {
-                                isToday -> t.primary
+                                // 「今天」的日名是小字：用 primaryInk（5.63:1），不用品牌橙原色（4.15:1）
+                                isToday -> accentText
                                 day >= 6 -> t.amber
                                 else -> t.ink
                             },
@@ -396,7 +409,7 @@ internal fun GridArea(
                                 fontSize = if (ed) 10.sp else 9.5.sp,
                                 lineHeight = 12.sp,
                                 fontFamily = if (ed) f.numberFamily else NumericFont,
-                                color = if (isToday) t.primary else t.inkFaint,
+                                color = if (isToday) accentText else t.inkFaint,
                             )
                         }
                         Spacer(Modifier.height(2.dp))
@@ -418,11 +431,10 @@ internal fun GridArea(
                 }
             }
         }
-        // 表头下的分隔：编辑版是**双线**（粗 1.5dp + 细 0.75dp，中间留 1dp）——报纸刊头的语言
+        // 表头下的分隔：账页用**一条** 1.5dp 墨线（旧编辑版是双线；双线在真机上会被读成
+        // 「两行格线」，与网格横线的间隔不一致，是错位观感的次要来源之一，已弃用）
         if (ed) {
-            Box(Modifier.fillMaxWidth().height(1.5.dp).background(t.ink))
-            Box(Modifier.fillMaxWidth().height(1.dp))
-            Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.ink))
+            Box(Modifier.fillMaxWidth().height(f.ruleHeavy).background(t.ink.copy(alpha = 0.88f)))
         } else {
             HorizontalDivider(color = Tt.gridRule(t.isDark), thickness = Stroke.hairline)
         }
@@ -443,6 +455,11 @@ internal fun GridArea(
 
             // 矮屏兜底：网格比可视区高时纵向滚动，而不是把卡片压扁
             val vScroll = rememberScrollState()
+            // 账页竖点线的 PathEffect：只在这里 remember 一次，
+            // 不在 Canvas 的 draw 循环里每列 new 一个（draw 阶段零分配是硬要求）
+            val dottedRule = remember(ed) {
+                if (ed) cn.dkarbon.enroute.ui.theme.ledgerDottedColumns(Color.Black) else null
+            }
             Box(
                 Modifier
                     .fillMaxSize()
@@ -472,7 +489,7 @@ internal fun GridArea(
                         val x = axisW + colW * (todayWeekday - 1)
                         drawRect(washColor, Offset(x, 0f), Size(colW, size.height))
                         if (ed) {
-                            // 编辑版：今天只压一条左边界红线（不框两条竖线，避免像「选中卡片」）
+                            // 账页：今天只压一条左边界轨（不框两条竖线，避免像「选中卡片」）
                             drawLine(todayColor, Offset(x, 0f), Offset(x, size.height), 1.5.dp.toPx())
                         } else {
                             drawLine(todayColor, Offset(x, 0f), Offset(x, size.height), 0.75.dp.toPx())
@@ -480,15 +497,45 @@ internal fun GridArea(
                         }
                     }
 
-                    for (i in 0..7) {
-                        val x = axisW + colW * i
-                        drawLine(vRuleColor, Offset(x, 0f), Offset(x, size.height), vStroke)
-                    }
-                    // 每个大节底部一条横格线（时段条处不画，条本身就是分隔）
-                    val hStart = if (ed) 0f else axisW
-                    for (i in 0..5) {
-                        val y = metrics.yOfRowBottom(i).toPx()
-                        drawLine(ruleColor, Offset(hStart, y), Offset(size.width, y), hStroke)
+                    if (ed) {
+                        // ── 账页：**零横线** ──────────────────────────────
+                        // ① 交错行带：隔行一层 45% 的 cardAlt。它承担「横向网格线」的职责，
+                        //    但因为是面而不是线，永远不会被读成「偏了几 dp 的格线」。
+                        val zebra = t.cardAlt.copy(alpha = if (t.isDark) 0.55f else 0.45f)
+                        for (i in 0..5) {
+                            if (i % 2 == 1) {
+                                drawRect(
+                                    color = zebra,
+                                    topLeft = Offset(axisW, metrics.yOfRow(i).toPx()),
+                                    size = Size(size.width - axisW, metrics.rowH.toPx()),
+                                )
+                            }
+                        }
+                        // ② 竖格线：0.6dp 点线（比 HARD 的 0.75dp 实线弱一档，课卡不被切碎）
+                        //    PathEffect 在外层 remember 一次，不在 draw 循环里每列新建
+                        for (i in 0..7) {
+                            val x = axisW + colW * i
+                            drawLine(
+                                color = t.rule.copy(alpha = 0.80f),
+                                start = Offset(x, 0f),
+                                end = Offset(x, size.height),
+                                strokeWidth = 0.6.dp.toPx(),
+                                pathEffect = dottedRule,
+                            )
+                        }
+                        // ③ 这里**故意不画任何横线**。
+                        //    旧编辑版画了 6 条行线 + 3 条「时段条垂直居中」的 1dp 线，
+                        //    后者实测比真实行边界高 24.5px（7.00dp）—— 就是「网格没对齐」的来源。
+                    } else {
+                        for (i in 0..7) {
+                            val x = axisW + colW * i
+                            drawLine(vRuleColor, Offset(x, 0f), Offset(x, size.height), vStroke)
+                        }
+                        // 每个大节底部一条横格线（时段条处不画，条本身就是分隔）
+                        for (i in 0..5) {
+                            val y = metrics.yOfRowBottom(i).toPx()
+                            drawLine(ruleColor, Offset(axisW, y), Offset(size.width, y), hStroke)
+                        }
                     }
                 }
 
@@ -497,39 +544,42 @@ internal fun GridArea(
                     allBigs.forEach { big ->
                         if (big.part != lastPart) {
                             lastPart = big.part
-                            // 时段标签只占轴宽，不侵入课程列
-                            Row(Modifier.fillMaxWidth().height(bandH)) {
-                                Box(
-                                    Modifier.width(metrics.axisW).fillMaxHeight().padding(end = 3.dp),
-                                    contentAlignment = Alignment.CenterEnd,
-                                ) {
-                                    Text(
-                                        big.part.label,
-                                        fontSize = if (ed) 9.5.sp else 9.sp,
-                                        lineHeight = 12.sp,
-                                        letterSpacing = if (ed) 2.sp else 0.8.sp,
-                                        fontFamily = if (ed) f.displayFamily else null,
-                                        color = if (ed) t.inkSoft else t.inkFaint,
-                                    )
-                                }
-                                // 编辑版：时段条右侧拖一条细线，让「上午/下午/晚上」读成版面分节
-                                if (ed) {
+                            if (ed) {
+                                // 账页：分节 = **填充色带**（14dp），不是线。
+                                // 旧编辑版在这里画了一条垂直居中的 1dp 横线 —— 实测偏 7.00dp，
+                                // 是「网格没对齐」的直接来源，已彻底删除。
+                                LedgerBand(metrics.axisW, bandH, big.part.label)
+                            } else {
+                                // 时段标签只占轴宽，不侵入课程列
+                                Row(Modifier.fillMaxWidth().height(bandH)) {
                                     Box(
-                                        Modifier
-                                            .weight(1f)
-                                            .height(1.dp)
-                                            .background(t.rule)
-                                            .align(Alignment.CenterVertically),
-                                    )
+                                        Modifier.width(metrics.axisW).fillMaxHeight().padding(end = 3.dp),
+                                        contentAlignment = Alignment.CenterEnd,
+                                    ) {
+                                        Text(
+                                            big.part.label,
+                                            fontSize = 9.sp,
+                                            lineHeight = 12.sp,
+                                            letterSpacing = 0.8.sp,
+                                            color = t.inkFaint,
+                                        )
+                                    }
                                 }
                             }
                         }
                         Row(Modifier.fillMaxWidth().height(rowH)) {
                             Box(Modifier.width(metrics.axisW).fillMaxHeight()) {
-                                AxisRowLabel(
-                                    sections = big.label.replace(" 节", ""),
-                                    startTime = SchoolClock.labelOf(big, summer),
-                                )
+                                if (ed) {
+                                    LedgerAxisRow(
+                                        sections = big.label.replace(" 节", ""),
+                                        startTime = SchoolClock.labelOf(big, summer),
+                                    )
+                                } else {
+                                    AxisRowLabel(
+                                        sections = big.label.replace(" 节", ""),
+                                        startTime = SchoolClock.labelOf(big, summer),
+                                    )
+                                }
                             }
                             (1..7).forEach { day ->
                                 val course = cells[day to big.index]
@@ -542,15 +592,18 @@ internal fun GridArea(
                                     Modifier
                                         .weight(1f)
                                         .fillMaxHeight()
-                                        .padding(vertical = 1.5.dp, horizontal = 2.dp),
+                                        .padding(
+                                            vertical = if (ed) f.cellInset else 1.5.dp,
+                                            horizontal = 2.dp,
+                                        ),
                                 ) {
                                     when {
                                         course == null -> Unit
-                                        // 票 17：编辑版走「去卡片化」渲染（纸面排字 + 2dp 竖脊）
+                                        // 票 17 重做：账页走「浮起便签」渲染（顶帽 + 圆角 + 软阴影）
                                         ed -> if (prog >= 0.999f) {
-                                            EditorialResidue(course)
+                                            LedgerResidue(course)
                                         } else {
-                                            EditorialCourseCell(
+                                            LedgerCourseCell(
                                                 course = course,
                                                 progress = prog,
                                                 isNow = isTodayCol && prog > 0f,
@@ -838,12 +891,9 @@ private fun UnscheduledHeader(n: Int) {
 @Composable
 private fun UnscheduledRow(c: Course, onClick: () -> Unit) {
     val t = InkTokens.current
-    // 票 17：编辑版**没有卡片**，整行只有下沿版面线 + 竖脊
+    // 票 17 重做：账页的未排课行是「便签条」（圆角 + 描边，无阴影），不是无容器的版面线
     if (Form.current.editorial) {
-        Column {
-            EditorialUnscheduledRow(c, onClick)
-            Box(Modifier.fillMaxWidth().height(1.dp).padding(horizontal = 14.dp).background(t.rule))
-        }
+        LedgerUnscheduledRow(c, onClick)
         return
     }
     val fam = Tt.famOf(c.courseNo.ifBlank { c.name })
@@ -952,22 +1002,22 @@ private fun WeekHeader(
     val f = Form.current
     val ed = f.editorial
     Column(Modifier.fillMaxWidth()) {
+        // ⚠️ 表头布局**逐 dp 冻结**：三枚图标按钮各占 32dp，标题列 weight(1f) 吃掉剩余。
+        // 48dp 触区靠 [HeaderTapPad] 叠在 Row **之上**（不参与布局）实现，
+        // 所以 HARD 与账页的表头元素一个像素都不会移动（2026-11-14 主人要求）。
+        Box(Modifier.fillMaxWidth().height(if (ed) 69.dp else 72.dp)) {
         Row(
             Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 // 编辑版把标题行压到 69dp，余下的 3dp 给「报头双线」——
                 // 总高仍是 72dp，网格可用高度不变（几何一行没动）。
-                .height(if (ed) 69.dp else 72.dp)
                 .padding(horizontal = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            IconButton(onClick = onPrev, modifier = Modifier.size(32.dp), enabled = week > minWeek) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack, "上一周",
-                    Modifier.size(16.dp),
-                    tint = if (week > minWeek) t.inkSoft else t.outline,
-                )
-            }
+            HeaderIcon(
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                tint = if (week > minWeek) t.inkSoft else t.outline,
+            )
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.weight(1f).combinedClickable(onClick = onRecalibrate, onLongClick = onRecalibrate),
@@ -975,8 +1025,9 @@ private fun WeekHeader(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         "第 $week 周",
-                        fontSize = if (ed) 24.sp else 22.sp,
-                        lineHeight = if (ed) 30.sp else 26.sp,
+                        // 账页：页级标题走到 26sp（HARD 22sp / 旧编辑版 24sp），靠**跨级**而不是靠颜色分层
+                        fontSize = if (ed) 26.sp else 22.sp,
+                        lineHeight = if (ed) 32.sp else 26.sp,
                         fontWeight = FontWeight.ExtraBold,
                         letterSpacing = if (ed) f.titleTracking else 0.sp,
                         fontFamily = if (ed) f.displayFamily else NumericFont,
@@ -985,20 +1036,8 @@ private fun WeekHeader(
                     if (isThisWeek) {
                         Spacer(Modifier.width(7.dp))
                         if (ed) {
-                            // 编辑版：「本周」是**印章**（细红框 + 大字距），不是实心色块
-                            Box(
-                                Modifier
-                                    .border(1.dp, t.primary)
-                                    .padding(horizontal = 5.dp, vertical = 1.dp),
-                            ) {
-                                Text(
-                                    "本周",
-                                    fontSize = 8.5.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    letterSpacing = 1.5.sp,
-                                    color = t.primary,
-                                )
-                            }
+                            // 账页：「本周」是**胶囊**（淡底 + 细边 + 大字距）
+                            LedgerWeekStamp(isThisWeek = true)
                         } else {
                             Box(Modifier.background(t.primary).padding(horizontal = 5.dp, vertical = 1.dp)) {
                                 Text(
@@ -1020,16 +1059,36 @@ private fun WeekHeader(
                     color = t.inkFaint,
                 )
             }
-            IconButton(onClick = onNext, modifier = Modifier.size(32.dp), enabled = week < maxWeek) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowForward, "下一周",
-                    Modifier.size(16.dp),
-                    tint = if (week < maxWeek) t.inkSoft else t.outline,
-                )
-            }
-            IconButton(onClick = onToday, modifier = Modifier.size(32.dp)) {
-                Icon(Icons.Default.Today, "回到本周", Modifier.size(16.dp), tint = t.primary)
-            }
+            HeaderIcon(
+                icon = Icons.AutoMirrored.Filled.ArrowForward,
+                tint = if (week < maxWeek) t.inkSoft else t.outline,
+            )
+            HeaderIcon(icon = Icons.Default.Today, tint = t.primary)
+        }
+
+            // ── 48dp 触区（透明，不参与布局）────────────────────
+            // 位置常量由「Row 左右各 6dp 内边距 + 图标按钮 32dp」推出，与上面 Row 严格对齐：
+            //   左箭头中心 = 6+16 = 22dp  → 相对 CenterStart 偏 -2dp（48/2=24）
+            //   右箭头中心 = 右-6-32-16    → 相对 CenterEnd 偏 -30dp
+            //   日历  中心 = 右-6-16       → 相对 CenterEnd 偏 +2dp
+            HeaderTapPad(
+                modifier = Modifier.align(Alignment.CenterStart).offset(x = (-2).dp),
+                label = "上一周",
+                enabled = week > minWeek,
+                onClick = onPrev,
+            )
+            HeaderTapPad(
+                modifier = Modifier.align(Alignment.CenterEnd).offset(x = (-30).dp),
+                label = "下一周",
+                enabled = week < maxWeek,
+                onClick = onNext,
+            )
+            HeaderTapPad(
+                modifier = Modifier.align(Alignment.CenterEnd).offset(x = 2.dp),
+                label = "回到本周",
+                enabled = true,
+                onClick = onToday,
+            )
         }
         // 报头双线：粗 1.5dp + 留白 1dp + 细 0.75dp
         if (ed) {
@@ -1038,6 +1097,52 @@ private fun WeekHeader(
             Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.ink))
         }
     }
+}
+
+/**
+ * 表头图标：**只有画，没有点击**（点击与语义由盖在上面的 [HeaderTapPad] 负责）。
+ * 占位 32dp，与改造前的 `IconButton(size = 32.dp)` 完全一致 —— 表头不会位移。
+ */
+@Composable
+private fun HeaderIcon(
+    icon: ImageVector,
+    tint: Color,
+) {
+    Box(Modifier.size(32.dp), contentAlignment = Alignment.Center) {
+        Icon(icon, null, Modifier.size(16.dp), tint = tint)
+    }
+}
+
+/**
+ * 48dp 触区补丁：透明、圆形涟漪、带无障碍标签。
+ *
+ * 为什么单独一层：需求是「触区 48dp，但表头元素一个都不许移动」。
+ * 把 32dp 的按钮直接放大到 48dp 会让标题列少 48dp、图标各移 8dp；
+ * 而 `requiredSize` 撑破父容器又会和标题列抢 8dp 的点击。
+ * 唯一两全的做法是**让补丁叠在 Row 之上**（Box 里后声明 = 画在最上层 = 命中优先），
+ * 布局尺寸仍由下面那层 32dp 的 Row 决定。
+ */
+@Composable
+private fun HeaderTapPad(
+    modifier: Modifier,
+    label: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val interaction = remember { MutableInteractionSource() }
+    Box(
+        modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(
+                interactionSource = interaction,
+                indication = ripple(),
+                enabled = enabled,
+                onClickLabel = label,
+                onClick = onClick,
+            )
+            .semantics { contentDescription = label; role = Role.Button },
+    )
 }
 
 // ── 校准 / 导入 ───────────────────────────────────────────

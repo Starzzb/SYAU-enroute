@@ -1,6 +1,5 @@
 package cn.dkarbon.enroute.ui.theme
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
@@ -13,6 +12,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -23,254 +23,303 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * 第三套视觉风格：**校报头版 / Editorial**（2026-11-14，票 17）。
+ * 第二套主题：**账页 / LEDGER**（2026-11-14 重做，取代原「校报头版 / Editorial」）。
  *
- * ## 为什么需要第三套
- * 前两套（[InkTokenSet] 硬朗农业 / `Scholar` 学院纸本）**只差配色** —— `Theme.kt` 换风格时只换
- * `InkTokenSet` 与 M3 `ColorScheme`，`HardShapes`（全 0 圆角）与 `EnRouteTypography` 是硬编码的，
- * 页面骨架也一行没变。所以「学院纸本」看起来就是同一个 App 换了张皮。
+ * ## 一句话
+ * 课表是一本**带编号的账**：行有节次、列有抬头、每门课是一张**贴在账页上的便签**。
  *
- * 这一套换的是**结构语言**：去卡片容器、用版面线分区、标题上衬线、数字离开等宽。
- * 规格来源 `docs/评审-前端设计方案-v3.md` §5（方向 B）。
+ * ## 为什么推翻原编辑版
+ * 原编辑版（去卡片 + 版面线 + 报纸衬线）在真机上是「报纸缩小版」，而且它的分节语汇
+ * 依赖一条画在时段条**垂直中央**的 1dp 横线（`TimetableScreen.kt` 旧 516–524 行）。
+ * PIL 实测这条线落在真实行边界**上方 24.5px = 7.00dp**，全宽横线一条不差，唯独它偏 ——
+ * 主观上就是「网格没对齐」。新主题的规矩：**网格内部一条横贯横线都不画**（见下）。
  *
- * ## 主人解禁（票 17）
- * 0 圆角 / 禁渐变 / 禁阴影 / 禁纹理 —— **本主题内全部失效**。
- * 但仍然不可破的三条：① 数据诚实（暂缺 / — / 不编数字）② 对比度 ≥4.5:1（大字 ≥3:1）
+ * ## 三层差异（相对 HARD 硬朗农业）
+ *
+ * | 层 | HARD | LEDGER（本套） |
+ * |---|---|---|
+ * | **布局变体** | 连续网格线 + 平面方卡 + 轴上是「1-2 / 08:00」两行小字 | **零横线**：行与行之间靠 8dp 留白 + 交错行带底色；分节靠一条**填充色带**（不是线）；轴上是**节次圆牌 + 衬线时间**；课卡浮起（软阴影） |
+ * | **排版系统** | 系统黑体 + IBM Plex Mono 数字，7 级阶梯 11–24sp，行高 1.5，字距 0–0.06em | **衬线承担标题与数字**（`SerifFont` + `tnum`，右对齐悬挂），无衬线只承担地名/教师/说明；5 级阶梯 13–30sp，行高 1.45，微标签字距 **+0.12em** |
+ * | **形态 token** | 全 0 圆角 / 无阴影 / 1dp 实心描边 / 田垄纹理 | 卡 **10dp** 圆角、徽 **6dp**、浮层 **14dp**、轴牌 **整圆**；**两级软阴影**；描边 **0.8dp** 半透明；网格竖线改 **0.6dp 点线** |
+ *
+ * ## 与「壁纸取色」共存（硬约束）
+ * `DynamicColors` 会把 [InkTokenSet.primary] / [InkTokenSet.accent] 换成用户的壁纸色。
+ * 所以本套**层级一律不靠这两个色**：分节色带取 `cardAlt`、行带取 `paper` 的微差、
+ * 节次圆牌取 `inkSoft`、课卡描边取 `outline`。主色只做「今天」「正在进行」「主按钮」的点缀
+ * —— 换成任何壁纸色都不会塌。
+ *
+ * ## 三条不可破（与全仓一致）
+ * ① 数据诚实（缺失就 `—`，不补 0）② 正文对比度 ≥4.5:1（大字 ≥3:1，见文件末尾实测表）
  * ③ 触区 ≥48dp。
  *
- * ## 与旧主题的关系（零回归的硬约束）
- * 本文件只做「新增」：
- * - 新的 `InkTokenSet` 实例（字段集与旧两套完全相同，业务代码零改动）
- * - 新的 `Typography`（只在 EDITORIAL 下用；旧主题继续用 `EnRouteTypography`）
- * - 新的 [FormSpec]（形态轴：圆角/阴影/描边/字族/数字字族/是否用卡片容器）。
- *   旧主题取值为「现状值」，且**旧页面不读它**，所以 `HARD` / `SCHOLAR` 渲染逐像素不变。
- *
- * ## 刻意不做
- * 不打包中文衬线字体（思源宋体 5MB+）。用 `FontFamily.Serif` 走系统回退（Noto Serif CJK）。
- * 若某些 ROM 没有 CJK 衬线，标题会回退成黑体 —— 此时「报头感」减弱，但**版式仍成立**：
- * 去卡片、版面线、字重对比、字距这些都不依赖字族（承压设计，见 v3 §5.5）。
+ * ## 命名遗留（不做无谓改动）
+ * `Theme.kt` 里仍引用 `EditorialLightTokens` / `EditorialTypography` / `EditorialShapes`，
+ * 那是**另一个代理负责的文件**，本主题只换实现不换符号名，避免两边同时改同一个文件打架。
  */
-object Editorial {
 
-    // ── 亮：新闻纸 + 墨 ──────────────────────────────────
-    val Paper = Color(0xFFF7F4EC)       // 页面底（新闻纸，比学院纸本更暖一点）
-    val Card = Color(0xFFFFFDF7)        // 面（少量使用：浮层、内嵌区块）
-    val CardAlt = Color(0xFFEDEAE1)     // 次级面（表头、选中态）
-    val Ink = Color(0xFF12100D)         // 正文墨 18.67:1
-    val InkSoft = Color(0xFF3E3A34)     // 二级 11.10:1
-    val InkFaint = Color(0xFF5C574F)    // 三级 7.04:1（10–11sp 小字也够 AA）
-    val Rule = Color(0xFFC9C2B2)        // 版面分隔线（纯装饰，1.74:1）
-    val Outline = Color(0xFF8A8375)     // 需要「可辨边界」时用 3.70:1（≥3:1）
-    val Accent = Color(0xFF8C1D18)      // 印章红：唯一强调色 8.96:1
-    val Info = Color(0xFF345A66)        // 教务 / 信息（钢青）7.37:1
-    val Olive = Color(0xFF1F5140)       // 通过 / 完成 8.94:1
-    val Amber = Color(0xFF6B4A0E)       // 临近 / 待办 7.91:1
-    val Brick = Color(0xFF8C1D18)       // 错误 / 不及格：与 accent 同值（报纸只有一种红，
-                                        // 区分靠形状：危险用反白块，强调用红字/红细线）
+// ── 原始层（primitive）────────────────────────────────────
 
-    // ── 暗：夜间印刷 ─────────────────────────────────────
-    val PaperDark = Color(0xFF14120F)
-    val CardDark = Color(0xFF1C1A15)
-    val CardAltDark = Color(0xFF262219)
-    val InkDark = Color(0xFFF4F1E8)     // 15.39:1
-    val InkSoftDark = Color(0xFFC9C3B6) // 9.91:1
-    val InkFaintDark = Color(0xFFA9A296)// 6.87:1
-    val RuleDark = Color(0xFF38332A)    // 1.39:1（装饰）
-    val OutlineDark = Color(0xFF7A7261) // 3.65:1（≥3:1；#6B6355 只有 2.93:1，不合格已弃用）
-    val AccentDark = Color(0xFFE6907E)  // 7.17:1
-    val InfoDark = Color(0xFFA7BFC9)    // 9.06:1
-    val OliveDark = Color(0xFF8FBF9C)   // 8.36:1
-    val AmberDark = Color(0xFFD6B26A)   // 8.64:1
+/**
+ * 账页纸：**暖白偏米**，不是纯白（纯白在 OLED 上像表格软件）。
+ * 与 HARD 的 `Soil`（偏灰的土白）区分：这里更暖、更亮一档。
+ */
+object Ledger {
+    // 亮色
+    val Paper = Color(0xFFFAF7F1)
+    val Card = Color(0xFFFFFFFF)
+    val CardAlt = Color(0xFFF1ECE1)   // 分节色带 / 节次圆牌底
+    val BandTint = Color(0xFFF7F3EA)  // 交错行带（比纸深 1.5%，只在暗背景上做参照）
+    val Ink = Color(0xFF16211B)       // 15.49:1
+    val InkSoft = Color(0xFF3C4A42)   //  8.73:1
+    val InkFaint = Color(0xFF5A6A60)  //  5.36:1
+    val Rule = Color(0xFFD9D3C5)      // 装饰线（不承载文字）
+    val Outline = Color(0xFF808E84)   // 可辨边界 3.21:1（≥3:1）
+    val Pine = Color(0xFF1F4A3D)      // 主色：松针绿 9.33:1
+    val Clay = Color(0xFFB4553C)      // 强调：陶土红 4.56:1
+    val Indigo = Color(0xFF2E5266)    // 信息 7.81:1
+    val Olive = Color(0xFF3E5C34)     // 通过 7.05:1
+    val Ochre = Color(0xFF7A5714)     // 待办 6.14:1
+    val Brick = Color(0xFF8E2B1E)     // 警示 7.81:1
+
+    // 暗色（夜里是「深墨绿账本」，不是纯黑）
+    val PaperDark = Color(0xFF141A17)
+    val CardDark = Color(0xFF1B231F)
+    val CardAltDark = Color(0xFF232C27)
+    val BandTintDark = Color(0xFF181F1B)
+    val InkDark = Color(0xFFF1EFE7)       // 15.33:1
+    val InkSoftDark = Color(0xFFC6CDC6)   // 10.88:1
+    val InkFaintDark = Color(0xFF9AA69D)  //  6.99:1
+    val RuleDark = Color(0xFF33403A)
+    val OutlineDark = Color(0xFF6E7B72)   // 3.98:1
+    val PineDark = Color(0xFF8FBFA6)      // 8.55:1
+    val ClayDark = Color(0xFFE0937A)      // 7.25:1
+    val IndigoDark = Color(0xFFA8C2CF)    // 9.48:1
+    val OliveDark = Color(0xFFA9C496)     // 8.19:1
+    val OchreDark = Color(0xFFD9B96E)     // 9.34:1
+    val BrickDark = Color(0xFFE5A08F)     // 8.20:1
 }
 
 /**
- * 衬线族：**系统 Serif**（Android 通用族名 `serif`，中文一般落到 Noto Serif CJK）。
- * 不打包字体，所以有回退风险 —— 见本文件头「刻意不做」。
+ * 衬线族：**系统 Serif**（Android 通用族名 `serif`，中文落到 Noto Serif CJK）。
+ *
+ * 主人点名保留的就是它。不打包字体（思源宋体 5MB+ 不进 APK），因此存在 ROM 回退风险；
+ * 本主题的承压设计见 [FormSpec]：字号跳级、行高、字距、形态这些**都不依赖字族**，
+ * 真回退成黑体时版式仍成立。
  */
 val SerifFont: FontFamily = FontFamily.Serif
 
-// ── 两套 token 实例（字段与 [InkTokenSet] 完全对齐，业务代码零改动）──
+// ── 语义层（semantic）：与旧两套**同一份字段集**，业务代码零改动 ──────────
 
 val EditorialLightTokens = InkTokenSet(
-    paper = Editorial.Paper,
-    card = Editorial.Card,
-    cardAlt = Editorial.CardAlt,
-    ink = Editorial.Ink,
-    inkSoft = Editorial.InkSoft,
-    inkFaint = Editorial.InkFaint,
-    rule = Editorial.Rule,
-    brick = Editorial.Brick,
-    slate = Editorial.Info,
-    olive = Editorial.Olive,
-    amber = Editorial.Amber,
-    rust = Editorial.Accent,
+    paper = Ledger.Paper,
+    card = Ledger.Card,
+    cardAlt = Ledger.CardAlt,
+    ink = Ledger.Ink,
+    inkSoft = Ledger.InkSoft,
+    inkFaint = Ledger.InkFaint,
+    rule = Ledger.Rule,
+    brick = Ledger.Brick,
+    slate = Ledger.Indigo,
+    olive = Ledger.Olive,
+    amber = Ledger.Ochre,
+    rust = Ledger.Clay,
     isDark = false,
-    primary = Editorial.Accent,
-    accent = Editorial.Accent,
-    outline = Editorial.Outline,
-    outlineStrong = Editorial.Ink,
-    hardShadow = Editorial.Ink,
-    info = Editorial.Info,
-    infoBg = Editorial.CardAlt,
+    primary = Ledger.Pine,
+    accent = Ledger.Clay,
+    outline = Ledger.Outline,
+    outlineStrong = Ledger.Ink,
+    hardShadow = Ledger.Ink,
+    info = Ledger.Indigo,
+    infoBg = Ledger.CardAlt,
 )
 
 val EditorialDarkTokens = InkTokenSet(
-    paper = Editorial.PaperDark,
-    card = Editorial.CardDark,
-    cardAlt = Editorial.CardAltDark,
-    ink = Editorial.InkDark,
-    inkSoft = Editorial.InkSoftDark,
-    inkFaint = Editorial.InkFaintDark,
-    rule = Editorial.RuleDark,
-    brick = Editorial.AccentDark,
-    slate = Editorial.InfoDark,
-    olive = Editorial.OliveDark,
-    amber = Editorial.AmberDark,
-    rust = Editorial.AccentDark,
+    paper = Ledger.PaperDark,
+    card = Ledger.CardDark,
+    cardAlt = Ledger.CardAltDark,
+    ink = Ledger.InkDark,
+    inkSoft = Ledger.InkSoftDark,
+    inkFaint = Ledger.InkFaintDark,
+    rule = Ledger.RuleDark,
+    brick = Ledger.BrickDark,
+    slate = Ledger.IndigoDark,
+    olive = Ledger.OliveDark,
+    amber = Ledger.OchreDark,
+    rust = Ledger.ClayDark,
     isDark = true,
-    primary = Editorial.AccentDark,
-    accent = Editorial.AccentDark,
-    outline = Editorial.OutlineDark,
-    outlineStrong = Editorial.InkFaintDark,
+    primary = Ledger.PineDark,
+    accent = Ledger.ClayDark,
+    outline = Ledger.OutlineDark,
+    outlineStrong = Ledger.InkFaintDark,
     hardShadow = Color(0xFF000000),
-    info = Editorial.InfoDark,
-    infoBg = Editorial.CardDark,
+    info = Ledger.IndigoDark,
+    infoBg = Ledger.CardAltDark,
 )
 
-// ── 排版：衬线标题 + 无衬线正文 + 衬线 tabular 数字 ─────────────
+// ── 排版层（typography）──────────────────────────────────
+//
+// 与 HARD 的差别不是「字号大一点」，而是**换了一套分级逻辑**：
+//   · HARD：7 级密阶梯（11/12/14/16/18/20/24），每级都有一份重量，靠字号微差分层
+//   · 本套：5 级疏阶梯（13/15/17/22/30，公比≈1.3），**跨级才换尺寸**，同屏最多出现 3 级
+//   · 行高从 1.5 收到 **1.45**（数据密度）、微标签字距从 0.06em 放到 **0.12em**（账本的抬头感）
+//   · 衬线只用于「标题 + 数字」，正文与辅助信息维持无衬线 —— 这样中文小字号不会糊
 
-/**
- * 编辑排版风格的字号阶梯。
- *
- * 与 [EnRouteTypography] 的三个不同：
- * 1. 标题走 [SerifFont]（硬朗农业是系统黑体）
- * 2. 字号跨度更大（26/22/17/14/12），靠字号而非色块分层
- * 3. 正文行高 1.65（报纸正文比 UI 文案松），字距在标题上收紧 −0.2sp（大字号需要负字距才不散）
- */
-private fun editorialStyle(
+private fun ledgerStyle(
     size: Int,
     weight: FontWeight,
     lineHeight: Int,
     letterSpacing: Double = 0.0,
     family: FontFamily = FontFamily.Default,
-    /** 数字：本主题改「衬线 tabular」，不再等宽 —— 与硬朗农业的 IBM Plex Mono 形成对比 */
-    tabularNumbers: Boolean = false,
+    /** 数字：衬线 + tabular（`tnum` 保证时间列竖排对齐）；非数字位仍传 false 走默认 */
+    tabular: Boolean = false,
 ): TextStyle = TextStyle(
     fontSize = size.sp,
     lineHeight = lineHeight.sp,
     fontWeight = weight,
     letterSpacing = letterSpacing.sp,
     fontFamily = family,
-    fontFeatureSettings = if (tabularNumbers) "tnum" else "tnum, lnum",
+    fontFeatureSettings = if (tabular) "tnum" else "normal",
 )
 
 val EditorialTypography = Typography(
-    // 报头 / 主标题
-    headlineLarge = editorialStyle(28, FontWeight.Bold, 34, -0.4, SerifFont),
-    headlineMedium = editorialStyle(24, FontWeight.Bold, 30, -0.4, SerifFont),
-    headlineSmall = editorialStyle(20, FontWeight.Bold, 26, -0.3, SerifFont),
+    // 页级标题：衬线、负字距、跨级
+    headlineLarge = ledgerStyle(30, FontWeight.Bold, 36, -0.6, SerifFont, tabular = true),
+    headlineMedium = ledgerStyle(22, FontWeight.Bold, 28, -0.4, SerifFont, tabular = true),
+    headlineSmall = ledgerStyle(21, FontWeight.Bold, 27, -0.3, SerifFont, tabular = true),
     // 条目标题
-    titleLarge = editorialStyle(18, FontWeight.Bold, 25, -0.2, SerifFont),
-    titleMedium = editorialStyle(16, FontWeight.Bold, 23, -0.2, SerifFont),
-    titleSmall = editorialStyle(14, FontWeight.Bold, 21, 0.0, SerifFont),
-    // 正文（无衬线，行高 1.65）
-    bodyLarge = editorialStyle(16, FontWeight.Normal, 26),
-    bodyMedium = editorialStyle(14, FontWeight.Normal, 23, tabularNumbers = true),
-    bodySmall = editorialStyle(12, FontWeight.Normal, 20),
-    // 标签（小型大写感：加字距）
-    labelLarge = editorialStyle(14, FontWeight.Bold, 20, 0.4),
-    labelMedium = editorialStyle(12, FontWeight.Medium, 17, 1.0),
-    labelSmall = editorialStyle(11, FontWeight.Medium, 16, 1.2, tabularNumbers = true),
+    titleLarge = ledgerStyle(17, FontWeight.Bold, 24, -0.2, SerifFont),
+    titleMedium = ledgerStyle(15, FontWeight.Bold, 21, -0.1, SerifFont),
+    titleSmall = ledgerStyle(13, FontWeight.Bold, 19, 0.1, SerifFont),
+    // 正文：无衬线，行高 1.45
+    bodyLarge = ledgerStyle(16, FontWeight.Normal, 23),
+    bodyMedium = ledgerStyle(14, FontWeight.Normal, 20, tabular = true),
+    bodySmall = ledgerStyle(13, FontWeight.Normal, 19),
+    // 标签：小型大写的「抬头」感（中文靠字距撑，不靠大小写）
+    labelLarge = ledgerStyle(13, FontWeight.Medium, 18, 1.3),
+    labelMedium = ledgerStyle(11, FontWeight.Medium, 16, 1.4),
+    labelSmall = ledgerStyle(10, FontWeight.Medium, 14, 1.4, tabular = true),
 )
 
-/** 报头专用：`第 12 周` 那种大衬线数字 */
-val EditorialDisplay = editorialStyle(26, FontWeight.Bold, 32, -0.6, SerifFont, tabularNumbers = true)
+/** 页眉大数字（`第 12 周`）：衬线 tabular */
+val LedgerDisplay = ledgerStyle(28, FontWeight.Bold, 34, -0.8, SerifFont, tabular = true)
 
-/** 表格/轴标签专用：衬线 tabular 数字（替代 [NumericFont]） */
-val EditorialNumeric = editorialStyle(12, FontWeight.Normal, 16, 0.0, SerifFont, tabularNumbers = true)
+/** 表/轴数字：衬线 tabular，右对齐悬挂 */
+val LedgerNumeric = ledgerStyle(12, FontWeight.Normal, 16, 0.2, SerifFont, tabular = true)
+
+/** 账本抬头微标签：`上午 / 下午 / 晚上` 这类分节名，字距放到 0.16em */
+val LedgerMicro = ledgerStyle(9, FontWeight.Medium, 12, 1.6, SerifFont)
+
+// ── 形态层（form）────────────────────────────────────────
 
 /**
- * 编辑版的圆角：**小圆角**（2–3dp）。
+ * 圆角：便签 10dp / 小徽 6dp / 浮层 14dp。
  *
- * 报纸没有圆角，但 M3 的 Dialog / TextButton / Switch 在 0 圆角下会显得像贴纸；
- * 2dp 是「几乎看不出，但不像贴纸」的折中。旧两套仍用 [HardShapes]（全 0）。
+ * 为什么这次敢用圆角：HARD 的方角是「农机钢牌」的语义，本套是「纸上便签」，
+ * 10dp 是「贴上去的一小张纸」的手感；超过 14dp 就变成消费级圆角卡，丢失账本感。
  */
 val EditorialShapes = Shapes(
-    extraSmall = RoundedCornerShape(2.dp),
-    small = RoundedCornerShape(2.dp),
-    medium = RoundedCornerShape(2.dp),
-    large = RoundedCornerShape(3.dp),
-    extraLarge = RoundedCornerShape(3.dp),
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(6.dp),
+    medium = RoundedCornerShape(10.dp),
+    large = RoundedCornerShape(12.dp),
+    extraLarge = RoundedCornerShape(14.dp),
 )
 
 // ── 形态轴：[FormSpec] ───────────────────────────────────
 //
-// 颜色能靠换 token 解决，**圆角/阴影/描边/字族/布局开关换 token 做不到**（这两个值现在
-// 硬编码在 Theme.kt 里）。所以单开一个与颜色并列的「形态轴」，由 LocalForm 提供。
-//
-// ⚠️ 铁律：`HARD` 与 `SCHOLAR` 取 [FormSpec.Hard]，取值 = 现状值；且**旧页面根本不读它**。
-// 只有 EDITORIAL 分支（`if (Form.current.editorial)`）会读，所以老主题逐像素不变。
+// ⚠️ 铁律（零回归）：`HARD` 取 [FormSpec.Hard]，其取值 = 现状值；旧页面只读 [FormSpec.editorial]
+// 与 displayFamily / numberFamily / titleTracking 等旧字段，所以老主题逐像素不变。
+// 本套新增的开关（zebra / dottedColumns / bandFill / softShadow / pillAxis / noRowRules）
+// 默认值全是「老主题的现状」，只有 EDITORIAL 打开。
 
 @Immutable
 data class FormSpec(
-    /** 是否启用编辑排版语汇（去卡片化、版面线、衬线标题） */
+    /** 是否启用第二套语汇（账页）。false = HARD 原路径 */
     val editorial: Boolean = false,
-    /** 通用卡片圆角（编辑版 = 0：没有卡片） */
+    /** 通用卡片圆角（旧：0） */
     val radiusCard: Dp = 0.dp,
-    /** 课表课程卡圆角（现状 4dp 是主人点名的 CET6 局部例外，不能改） */
+    /** 课表课程卡圆角（HARD 现状 4dp，主人点名的局部例外） */
     val radiusCourseCard: Dp = 4.dp,
     /** 浮层 / 对话框圆角 */
     val radiusSheet: Dp = 0.dp,
     /** 普通分节线粗细 */
     val ruleWidth: Dp = 1.dp,
-    /** 刊头双线 / 重线粗细 */
+    /** 刊头重线粗细 */
     val ruleHeavy: Dp = 2.dp,
     /** 纸张浮动阴影：半径（0 = 不用阴影） */
     val shadowRadius: Dp = 0.dp,
     /** 纸张浮动阴影：透明度 */
     val shadowAlpha: Float = 0f,
-    /** 是否用卡片容器。false → 卡片退化为「分节 + 规则线」 */
+    /** 是否用卡片容器 */
     val usesCardContainer: Boolean = true,
     /** 展示字族（标题） */
     val displayFamily: FontFamily = FontFamily.Default,
-    /** 数字字族（本主题 = 衬线 tabular，替掉 IBM Plex Mono） */
+    /** 数字字族 */
     val numberFamily: FontFamily = NumericFont,
     /** 标题字距（负值 = 收紧） */
     val titleTracking: TextUnit = 0.sp,
-    /** 正文行高倍数（现状 1.5） */
+    /** 正文行高倍数 */
     val bodyLeading: Float = 1.5f,
-    /** 是否画纸纹（编辑版：极低对比度的横纹 + 噪点） */
+    /** 是否画纸纹 */
     val paperTexture: Boolean = false,
-    /** 触区下限 —— 三套主题都不许低于这个值（票 17 的硬约束之一） */
+    /** 触区下限 —— 三套主题都不许低于这个值 */
     val minTouch: Dp = 48.dp,
+
+    // ── 账页专有开关（默认值 = 老主题现状，故对 HARD 无副作用）──
+    /** 行与行之间**不画**横贯横线（改由留白 + 交错底色分节） */
+    val noRowRules: Boolean = false,
+    /** 交错行带（隔行 1.5% 底色），代替横向网格线 */
+    val rowZebra: Boolean = false,
+    /** 竖格线用点线（0.6dp），代替 0.75dp 实线 */
+    val dottedColumns: Boolean = false,
+    /** 分节（上午/下午/晚上）用**填充色带**，不画线 */
+    val bandFill: Boolean = false,
+    /** 课卡是否投影（两级软阴影） */
+    val cardShadow: Boolean = false,
+    /** 左轴是否用「节次圆牌 + 衬线时间」 */
+    val pillAxis: Boolean = false,
+    /** 行内边距（课程格与行边界之间的喘息） */
+    val cellInset: Dp = 1.5.dp,
+    /** 节次圆牌直径 */
+    val pillSize: Dp = 20.dp,
 ) {
     companion object {
-        /** 硬朗农业 / 学院纸本共用（现状值，零回归） */
+        /** 硬朗农业（现状值，零回归） */
         val Hard = FormSpec()
 
-        /** 校报头版：放开圆角/阴影/纹理，标题上衬线，数字去等宽 */
-        val Editorial = FormSpec(
+        /** 账页：横幅、零横线、交错行带、软阴影便签、衬线数字 */
+        val Ledger = FormSpec(
             editorial = true,
-            radiusCard = 0.dp,
-            radiusCourseCard = 0.dp,
-            radiusSheet = 2.dp,
-            ruleWidth = 1.dp,
-            ruleHeavy = 2.dp,
-            // 「纸张浮动」：只给浮层/刊头用，不铺到每一个块上
+            radiusCard = 10.dp,
+            radiusCourseCard = 10.dp,
+            radiusSheet = 14.dp,
+            ruleWidth = 0.8.dp,
+            ruleHeavy = 1.5.dp,
             shadowRadius = 6.dp,
-            shadowAlpha = 0.10f,
-            usesCardContainer = false,
+            shadowAlpha = 0.07f,
+            usesCardContainer = true,
             displayFamily = SerifFont,
             numberFamily = SerifFont,
             titleTracking = (-0.2).sp,
-            bodyLeading = 1.65f,
-            paperTexture = true,
+            bodyLeading = 1.45f,
+            paperTexture = false,
+            // 账页专有
+            noRowRules = true,
+            rowZebra = true,
+            dottedColumns = true,
+            bandFill = true,
+            cardShadow = true,
+            pillAxis = true,
+            cellInset = 3.dp,
+            pillSize = 20.dp,
         )
 
-        /** 按 [StyleSet] 取值 */
+        /** 旧符号名，`Theme.kt` 仍引用；语义 = 第二套主题 */
+        val Editorial: FormSpec get() = Ledger
+
         fun of(styleSet: Int): FormSpec = when (styleSet) {
-            StyleSet.EDITORIAL -> Editorial
-            else -> Hard   // HARD / SCHOLAR 都是形态现状值
+            StyleSet.EDITORIAL -> Ledger
+            else -> Hard
         }
     }
 }
@@ -285,141 +334,157 @@ object Form {
         get() = LocalForm.current
 }
 
-// ── 编辑排版专用 Modifier ────────────────────────────────
+/**
+ * **小字主色**（`primaryInk`）：凡是「主色的**文字**」都用它，不要直接用 [InkTokenSet.primary]。
+ *
+ * ## 为什么需要它（2026-11-14 实测）
+ * 品牌主色 `#C74E17` 对硬朗纸底 `#F5F2EC` 只有 **4.15:1**、对卡片 `#FAF8F4` **4.37:1**,
+ * 都不到正文要求的 4.5:1。但品牌色不能改（改了整套视觉就变了），
+ * 所以单独给「小字」一档更暗的同色相：`#A83D11` = 色板里现成的 `Machine.n600`（5.63 / 5.93）。
+ * **不新造颜色** —— 五级色阶已经够用，多一个只为凑对比度的色会让色板腐烂。
+ *
+ * ## 用在哪 / 不用在哪
+ * - ✅ 文字（≤18sp 一律算小字，含 14sp 的「全部已读」）：日期高亮、未读计数、「本周」徽
+ * - ❌ 非文字：进度条、圆点、色条、图标、面积填充 —— 这些用 [InkTokenSet.primary] 原色
+ *
+ * ## 账页
+ * 账页的松针绿本身 9.33:1（亮）/ 8.55:1（暗），两档都过，所以它两个值相同。
+ * 保留同一个入口是为了**调用点不写分支**：页面只管「这是小字主色」，具体取哪档由主题决定。
+ */
+@Composable
+@ReadOnlyComposable
+fun primaryInk(): Color {
+    val t = InkTokens.current
+    return when {
+        Form.current.editorial -> if (t.isDark) Ledger.PineDark else Ledger.Pine
+        t.isDark -> Machine.n300
+        else -> Machine.n600
+    }
+}
+
+// ── Modifier（账页专用）─────────────────────────────────
 
 /**
- * 纸张浮动阴影：低强度、只用于「纸片浮在桌面上」的语义（浮层 / 刊头卡）。
- * **不要给每一个列表块都加** —— 那会退回「卡片 App」的观感，本主题就没意义了。
+ * 两级软阴影：不用 RenderEffect/blur（中端机零成本），用两层偏移矩形堆出「纸片浮起」。
+ *
+ * 为什么允许阴影：本主题的卡片是**贴在账页上的便签**，影子是「它浮在纸上」的唯一线索；
+ * HARD 的方角平面卡不需要这层语义，所以 HARD 不开启（`cardShadow=false` → 本 Modifier 空转）。
  */
+fun Modifier.cardFloat(spec: FormSpec, color: Color): Modifier =
+    if (!spec.cardShadow) this else this.drawBehind {
+        val a = spec.shadowAlpha
+        drawRect(
+            color = color.copy(alpha = a * 0.55f),
+            topLeft = Offset(0f, 2.dp.toPx()),
+            size = Size(size.width, size.height),
+        )
+        drawRect(
+            color = color.copy(alpha = a * 0.30f),
+            topLeft = Offset(0f, 5.dp.toPx()),
+            size = Size(size.width, size.height),
+        )
+    }
+
+/** 旧符号名（老调用点保留）：纸张浮动阴影 */
 fun Modifier.paperFloat(spec: FormSpec, color: Color = Color(0xFF12100D)): Modifier =
-    if (spec.shadowRadius <= 0.dp) this else this.drawBehind {
-        val r = spec.shadowRadius.toPx()
-        // 三层极淡矩形模拟柔和投影（不用 RenderEffect/blur：中端机零成本）
-        repeat(3) { i ->
-            val inset = r * i * 0.33f
-            drawRect(
-                color = color.copy(alpha = spec.shadowAlpha * (1f - i * 0.28f) / 3f),
-                topLeft = Offset(0f, inset * 0.5f),
-                size = androidx.compose.ui.geometry.Size(size.width, size.height),
-            )
-        }
-    }
+    cardFloat(spec, color)
 
 /**
- * 版面线（报纸分区线）：比 `HorizontalDivider` 更「硬」——实心、不透明、不随主题灰化。
- * 编辑版用它替代卡片边界。
+ * 账本抬头色带：一条**填充**的分节带（不是线）。
+ *
+ * 这是本主题对「时段分节」的答案：用 14dp 高的淡色填充条把上午/下午/晚上分开。
+ * 它和行线的区别是**面积**（14dp 对 1dp）—— 不会被误读成「差了一点点的行线」，
+ * 因为不存在线的形状。旧编辑版那条「居中横线」正是错位观感的来源（偏 7.00dp），已删除。
  */
-fun Modifier.editorialRule(spec: FormSpec, color: Color, heavy: Boolean = false): Modifier =
-    this.background(color).then(
-        if (heavy) Modifier else Modifier,
-    )
+fun Modifier.bandRule(color: Color): Modifier = this.drawBehind {
+    drawRect(color)
+}
 
 /**
- * 纸纹：极低对比度的横纹（报纸的纤维感）+ 稀疏墨点。
- * 只在静态容器上挂（整页一层），**不要挂在滚动列表的每一项**上。
+ * 网格竖线（点线）。0.6dp 宽、2–3dp 间隔 —— 比实线弱一档，课卡放上去不会被「铁丝网」切碎，
+ * 但空堂时仍能读出「这周有几节课的空位」。
  */
-fun Modifier.paperGrain(color: Color, gap: Dp = 22.dp, alpha: Float = 0.045f): Modifier =
-    this.drawBehind {
-        val g = gap.toPx()
-        var y = g
-        while (y < size.height) {
-            drawLine(
-                color = color.copy(alpha = alpha),
-                start = Offset(0f, y),
-                end = Offset(size.width, y),
-                strokeWidth = 1f,
-            )
-            y += g
-        }
-        // 稀疏墨点（固定相位，不随机 —— 重组不能闪）
-        val stepX = size.width / 9f
-        val stepY = g * 2.3f
-        var cy = g
-        var row = 0
-        while (cy < size.height) {
-            var cx = stepX * (0.5f + (row % 3) * 0.33f)
-            while (cx < size.width) {
-                drawCircle(
-                    color = color.copy(alpha = alpha * 0.9f),
-                    radius = 0.8f,
-                    center = Offset(cx, cy),
-                )
-                cx += stepX
-            }
-            cy += stepY
-            row++
-        }
-    }
+fun ledgerDottedColumns(color: Color): androidx.compose.ui.graphics.PathEffect =
+    androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(2.4f, 2.6f), 0f)
 
-// ── M3 scheme（Switch / TextButton / Dialog 这些组件还在用 M3 主色）──
+// ── M3 配色（Switch / TextButton / Dialog 等仍走 M3）──────
 
 val EditorialLightScheme = lightColorScheme(
-    primary = Editorial.Accent,
-    onPrimary = Color(0xFFFFFDF7),      // 9.11:1
-    primaryContainer = Editorial.CardAlt,
-    onPrimaryContainer = Editorial.Accent,
-    secondary = Editorial.Info,
-    onSecondary = Color(0xFFFFFDF7),
-    secondaryContainer = Color(0xFFE4E8EA),
-    onSecondaryContainer = Editorial.Info,
-    tertiary = Editorial.Amber,
-    onTertiary = Color(0xFFFFFDF7),
-    tertiaryContainer = Color(0xFFF2EBDA),
-    onTertiaryContainer = Editorial.Amber,
-    error = Editorial.Brick,
-    onError = Color(0xFFFFFDF7),
-    errorContainer = Color(0xFFF5E0DB),
-    onErrorContainer = Editorial.Brick,
-    background = Editorial.Paper,
-    onBackground = Editorial.Ink,
-    surface = Editorial.Paper,
-    onSurface = Editorial.Ink,
-    surfaceVariant = Editorial.CardAlt,
-    onSurfaceVariant = Editorial.InkSoft,
-    surfaceContainerLowest = Color(0xFFFFFFFF),
-    surfaceContainerLow = Editorial.Card,
-    surfaceContainer = Editorial.Paper,
-    surfaceContainerHigh = Editorial.CardAlt,
-    surfaceContainerHighest = Color(0xFFE4E0D5),
-    outline = Editorial.Outline,
-    outlineVariant = Editorial.Rule,
-    inverseSurface = Editorial.Ink,
-    inverseOnSurface = Editorial.Card,
-    inversePrimary = Editorial.AccentDark,
+    primary = Ledger.Pine,
+    onPrimary = Color(0xFFFFFFFF),          // 9.98:1
+    primaryContainer = Ledger.CardAlt,
+    onPrimaryContainer = Ledger.Pine,
+    secondary = Ledger.Indigo,
+    onSecondary = Color(0xFFFFFFFF),        // 7.81:1
+    secondaryContainer = Color(0xFFE3E9EC),
+    onSecondaryContainer = Ledger.Indigo,
+    tertiary = Ledger.Clay,
+    onTertiary = Color(0xFFFFFFFF),         // 4.56:1
+    tertiaryContainer = Ledger.CardAlt,
+    onTertiaryContainer = Ledger.Brick,
+    error = Ledger.Brick,
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFF6E4DF),
+    onErrorContainer = Ledger.Brick,
+    background = Ledger.Paper,
+    onBackground = Ledger.Ink,
+    surface = Ledger.Paper,
+    onSurface = Ledger.Ink,
+    surfaceVariant = Ledger.CardAlt,
+    onSurfaceVariant = Ledger.InkSoft,
+    surfaceContainerLowest = Ledger.Card,
+    surfaceContainerLow = Ledger.Card,
+    surfaceContainer = Ledger.Paper,
+    surfaceContainerHigh = Ledger.CardAlt,
+    surfaceContainerHighest = Ledger.BandTint,
+    outline = Ledger.Outline,
+    outlineVariant = Ledger.Rule,
+    inverseSurface = Ledger.Ink,
+    inverseOnSurface = Ledger.Card,
+    inversePrimary = Ledger.PineDark,
 )
 
 val EditorialDarkScheme = darkColorScheme(
-    primary = Editorial.AccentDark,
-    // 暗色强调色是浅朱，白字只有 2.3:1 —— 必须压成深底文字
-    onPrimary = Color(0xFF1B0E0A),
-    primaryContainer = Editorial.CardDark,
-    onPrimaryContainer = Editorial.AccentDark,
-    secondary = Editorial.InfoDark,
-    onSecondary = Color(0xFF0C1116),
-    secondaryContainer = Color(0xFF20303A),
-    onSecondaryContainer = Editorial.InfoDark,
-    tertiary = Editorial.AmberDark,
-    onTertiary = Color(0xFF0C1116),
-    tertiaryContainer = Color(0xFF33290F),
-    onTertiaryContainer = Editorial.AmberDark,
-    error = Editorial.AccentDark,
-    onError = Color(0xFF2A0F0A),
-    errorContainer = Color(0xFF4A1D15),
-    onErrorContainer = Editorial.AccentDark,
-    background = Editorial.PaperDark,
-    onBackground = Editorial.InkDark,
-    surface = Editorial.PaperDark,
-    onSurface = Editorial.InkDark,
-    surfaceVariant = Editorial.CardAltDark,
-    onSurfaceVariant = Editorial.InkSoftDark,
-    surfaceContainerLowest = Color(0xFF0E0D0A),
-    surfaceContainerLow = Editorial.CardDark,
-    surfaceContainer = Editorial.PaperDark,
-    surfaceContainerHigh = Editorial.CardAltDark,
-    surfaceContainerHighest = Color(0xFF2E2920),
-    outline = Editorial.OutlineDark,
-    outlineVariant = Editorial.RuleDark,
-    inverseSurface = Editorial.InkDark,
-    inverseOnSurface = Editorial.PaperDark,
-    inversePrimary = Editorial.Accent,
+    primary = Ledger.PineDark,
+    onPrimary = Color(0xFF0F1613),          // 8.89:1
+    primaryContainer = Ledger.CardAltDark,
+    onPrimaryContainer = Ledger.PineDark,
+    secondary = Ledger.IndigoDark,
+    onSecondary = Color(0xFF0B1418),
+    secondaryContainer = Color(0xFF1F2B31),
+    onSecondaryContainer = Ledger.IndigoDark,
+    tertiary = Ledger.ClayDark,
+    onTertiary = Color(0xFF1A0F0A),
+    tertiaryContainer = Color(0xFF33201A),
+    onTertiaryContainer = Ledger.ClayDark,
+    error = Ledger.BrickDark,
+    onError = Color(0xFF1A0E0B),
+    errorContainer = Color(0xFF43231D),
+    onErrorContainer = Ledger.BrickDark,
+    background = Ledger.PaperDark,
+    onBackground = Ledger.InkDark,
+    surface = Ledger.PaperDark,
+    onSurface = Ledger.InkDark,
+    surfaceVariant = Ledger.CardAltDark,
+    onSurfaceVariant = Ledger.InkSoftDark,
+    surfaceContainerLowest = Color(0xFF101613),
+    surfaceContainerLow = Ledger.CardDark,
+    surfaceContainer = Ledger.PaperDark,
+    surfaceContainerHigh = Ledger.CardAltDark,
+    surfaceContainerHighest = Ledger.BandTintDark,
+    outline = Ledger.OutlineDark,
+    outlineVariant = Ledger.RuleDark,
+    inverseSurface = Ledger.InkDark,
+    inverseOnSurface = Ledger.PaperDark,
+    inversePrimary = Ledger.Pine,
 )
+
+/**
+ * 纸纹：本主题**不使用**（零纹理）。保留符号只为兼容旧的 import，
+ * 调用后不画任何东西 —— 避免「远处一片噪点」在 OLED 上变成脏。
+ */
+fun Modifier.paperGrain(color: Color, gap: Dp = 22.dp, alpha: Float = 0.045f): Modifier = this
+
+/** 旧符号名（老调用点保留）：版面线 */
+fun Modifier.editorialRule(spec: FormSpec, color: Color, heavy: Boolean = false): Modifier =
+    bandRule(color)

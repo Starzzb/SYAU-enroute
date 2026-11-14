@@ -196,13 +196,18 @@ val NumericFont: FontFamily = FontFamily(
  * 字号阶梯。规矩：
  *   · 字重只允许 400 / 500 / 700 / 800，**禁 300 及以下**（细字＝文艺，与硬朗冲突）
  *   · 数字带 `tnum, lnum`，保证课表时间、学分、成绩竖向对齐
+ *
+ * ## 字族（2026-11-14 主人点名）
+ * 标题/正文改用**衬线**（[SerifFont]，系统 serif → Noto Serif CJK）。
+ * 只动字族，**字号 / 字重 / 行高 / 字距 / tnum 一律不变**，所以硬朗农业除字形外零回归。
+ * 数值与表格仍走 [NumericFont]（IBM Plex Mono），那是这套主题「竖向对齐」的骨架，不动。
  */
 private fun hardStyle(
     size: Int,
     weight: FontWeight,
     lineHeight: Int,
     letterSpacing: Double = 0.0,
-    family: FontFamily = FontFamily.Default,
+    family: FontFamily = SerifFont,
 ): TextStyle = TextStyle(
     fontSize = size.sp,
     lineHeight = lineHeight.sp,

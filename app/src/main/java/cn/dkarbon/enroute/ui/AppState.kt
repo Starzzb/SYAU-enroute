@@ -227,8 +227,10 @@ data class AppState(
     // ── 设置 ──
     /** 主题模式：0 跟随系统 / 1 浅色 / 2 深色 */
     val themeMode: Int = 0,
-    /** 视觉风格：0 硬朗农业 / 1 学院纸本（与 themeMode 正交） */
+    /** 视觉风格：0 硬朗农业 / 2 校报头版（1 学院纸本已下线，仅做老数据回落）；与 themeMode 正交 */
     val styleSet: Int = 0,
+    /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效） */
+    val colorSource: Int = 0,
     /** 上课提醒总开关（默认开） */
     val remindersEnabled: Boolean = true,
 

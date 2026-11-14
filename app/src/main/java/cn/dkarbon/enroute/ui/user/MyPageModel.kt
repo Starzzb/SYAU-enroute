@@ -85,6 +85,13 @@ object MyPageModel {
         SessionState.Expired -> "会话已过期 · 点此续期"
     }
 
+    /** 组头右侧的**短**状态（空间只有几个字，不能放整句） */
+    fun sessionPremiseLabel(state: SessionState): String = when (state) {
+        SessionState.None -> "未登录"
+        SessionState.Active -> "已登录"
+        SessionState.Expired -> "会话已过期"
+    }
+
     /** 该行现在是不是「用户该动手」（未登录 / 过期）—— 决定用主色还是弱色 */
     fun sessionRowNeedsAction(state: SessionState): Boolean = state != SessionState.Active
 
