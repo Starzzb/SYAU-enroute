@@ -44,3 +44,12 @@
 
 单上下文（根目录 `GLOSSARY.md` + `docs/adr/`，两者目前尚未创建，按需由 `/domain-modeling` 懒生成）。
 详见 `docs/agents/domain.md`。
+
+## 并发构建（血泪教训）
+
+**同一时间只允许一个 Gradle 构建**。两个进程同时写 `app/build/intermediates` 会出现
+`dexBuilderDebug` 失败、报 `desugar_graph/.../graph.bin` 找不到 —— 那不是代码问题。
+
+- 迭代期用 `:app:compileDebugKotlin`（`compile-check.bat`），快且锁争小
+- 完整 `build-test.bat` 前先确认没有别人在构建
+- 撞上了先删 `app/build/intermediates/desugar_graph` 再重试，**不要 kill 别人的进程**

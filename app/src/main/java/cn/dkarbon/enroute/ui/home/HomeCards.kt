@@ -46,8 +46,7 @@ import java.time.LocalDate
 
 /** 卡片底子：面 + 1dp 边线 + 16dp 内边距，可点 */
 @Composable
-/** 卡片底子（`internal` 供「关于」页复用同一套面/线/内边距，避免第二次手搓风格） */
-internal fun HomeCard(
+private fun HomeCard(
     onClick: (() -> Unit)? = null,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
 ) {
