@@ -1,0 +1,9 @@
+{
+  "versionCode": 200,
+  "versionName": "0.2.0+m19",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m19/app-release.apk",
+  "sha256": "d467154d227109a9db6d2195ef75ad2552d3fc7d5492b0eb6dc1b70860de5bec",
+  "size": 5537192,
+  "notes": "地图属性共建、自定义课程、2023 级培养方案、账页主题、调试日志；修复教师搜索崩溃、空闲教室查不出结果、登录态反复失效、地图拖动回弹",
+  "minSupported": 0
+}
