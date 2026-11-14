@@ -1,98 +1,69 @@
 # 沈农在途 · SYAU En Route
 
-沈阳农业大学学生的随身工具。包名 `cn.dkarbon.enroute`。
+沈阳农业大学学生用的 Android 应用，包名 `cn.dkarbon.enroute`。
 
-**它不是教务系统的替代品，是「今天要干嘛」的那一层。**
+课表、空闲教室、考试、成绩、培养方案、课程大纲、校园地图、校内资讯都在一个 App 里。日常真正会用到的动作大概两个，早上出门前看今天几节课在哪上，晚上翻一眼这周还有什么事没做完。别的功能都是围着这两件事长出来的。
 
----
+界面有两套语汇可以切，一套是硬朗农业风的方角网格，一套是账页风的衬线排版。两套共用同一个 token 层，数据和交互完全一样。
 
-## 现在有什么
+## 用什么零件搭的
 
-| 模块 | 状态 | 数据来源 |
-|---|---|---|
-| 课程表 | 可用 | URP 登录（校内网）／JSON 导入；CET6 同款普通网格（6 大节×7 列 + 数学底纹） |
-| 登录态持久化 | 可用 | 会话 cookie 以 Android Keystore 里的 AES-256/GCM 密钥加密后存本机；冷启动恢复 → 只读接口验活 → 三态（未登录／有效／已过期）；**密码不保存** |
-| 上课提醒 | 可用 | 本地（课前 60 / 30 分钟） |
-| 桌面小组件 | 可用 | 本地（今日课程） |
-| 考试安排 | 可用 | URP（需先预热考试页，见下） |
-| 成绩查询 | 可用 | URP |
-| 资讯聚合 | 可用 | 14 个校内/省级/全国源，按需抓正文并永久缓存；三层漏斗 + 红点可消除 |
-| 竞赛日历 | 可用 | 创新创业平台（报名窗口结构化）+ 大创项目 + 成果公示 + 挑战杯/省教育厅/高教学会/我爱竞赛网 |
-| 电子木鱼 | 可用 | 纯本地，不联网 |
+| | |
+|---|---|
+| 语言与工具链 | Kotlin 2.0.21、AGP 8.7.3、Gradle 8.11.1、JDK 17 |
+| 界面 | Jetpack Compose（BOM 2024.10.01）、Material 3、material-icons-extended |
+| 最低与目标版本 | minSdk 26、targetSdk 35 |
+| 版本 | `0.2.0+m19`／versionCode 200 |
+| 协程与并发 | kotlinx-coroutines 1.9.0 |
+| 序列化 | kotlinx-serialization-json 1.7.3 |
+| 生命周期 | lifecycle 2.8.7（runtime／viewmodel-compose／runtime-compose） |
+| 后台任务 | work-runtime-ktx 2.9.1 |
+| 桌面小组件 | Glance AppWidget 1.1.1 |
+| 基础库 | core-ktx 1.13.1、activity-compose 1.9.3 |
 
-## 怎么编
+没有用 Room，本地数据是 SharedPreferences 加 JSON 文件。没有引依赖注入框架，ViewModel 手工构造。地图没有用任何地图 SDK，只是一张底图叠上 GeoJSON 矢量层和自绘的命中测试。
 
-```bash
-# JDK 17 必需
-export JAVA_HOME=/path/to/jdk-17
-
-./gradlew :app:assembleDebug          # 调试包
-./gradlew :app:testDebugUnitTest      # 单测（当前 228 条 / 17 个类）
-```
-
-Release 包需要自己签名（仓库里只有 `debug.keystore`）：
-
-```bash
-apksigner sign --ks debug.keystore --ks-pass pass:android \
-  --key-pass pass:android --ks-key-alias androiddebugkey \
-  --out enroute-release.apk app/build/outputs/apk/release/app-release-unsigned.apk
-```
-
-`local.properties` 里的 `sdk.dir` 要指向本机 Android SDK，这个文件**不进仓库**。
-
-## 目录
+## 代码分成这些块
 
 ```
 app/src/main/java/cn/dkarbon/enroute/
-├── MainActivity.kt          启动入口（onCreate 只做 setContent）
-├── EnRouteRoot.kt           三个 Tab：课表 / 资讯 / 我的
-├── data/
-│   ├── UrpClient.kt         SSO 登录 + 课表解析（timeAndPlaceList 是关键）
-│   ├── Academic.kt          考试 / 成绩接口
-│   ├── feed/                资讯：多源抓取 + 三种解析族 + 正文缓存
-│   ├── Reminders.kt         上课提醒
-│   └── DataWiper.kt         一键清空本地数据
+├── MainActivity.kt         启动入口
+├── EnRouteRoot.kt          三个 Tab：课表 / 资讯 / 我的
+├── data/                   抓取、解析、存储
+│   ├── UrpClient.kt        教务登录与会话
+│   ├── UrpHomeApi.kt       课表 / 空闲教室 / 教师 / 历年课表
+│   ├── Academic.kt         考试与成绩
+│   ├── SessionCrypto.kt    Keystore 密钥与 AES-GCM 加解密
+│   ├── curriculum/         培养方案与课程大纲（读内置资产）
+│   ├── custom/             自定义课程（本机）
+│   ├── map/                地图解析、投影、命中、标注
+│   ├── feed/               资讯多源抓取与正文缓存
+│   ├── faculty/            学院官网教师公开信息
+│   └── DebugLog*.kt        调试日志（内存 + 落盘）
 ├── ui/
-│   ├── theme/HardTokens.kt  硬朗农业风设计系统（0 圆角 / 实线 / 等宽数字）
-│   ├── timetable/           CET6 同款普通网格（6 大节×7 列 + 时段条 + 侵蚀卡 + 数学底纹）
-│   ├── feed/                资讯：三层漏斗（截止提醒→未读分流→分组阅读）+ 密度分级 + 渲染分页
-│   └── user/                我的：登录 / 设置 / 调试
-└── widget/TodayWidget.kt    Glance 桌面小组件
-
-app/src/test/resources/feed/  真实抓包样本（学号已脱敏为 0000000000）
-docs/                         方案、信息源清单、平台评估、评审规格、探测证据（_probe/）
+│   ├── theme/              两套主题的 token 与形态开关
+│   ├── timetable/          课表网格与卡片
+│   ├── academic/           考试、成绩
+│   ├── curriculum/         培养方案、课程大纲
+│   ├── map/                校园地图
+│   ├── feed/               资讯三层漏斗
+│   ├── user/               我的
+│   └── settings/           设置（含取色与更新）
+└── widget/TodayWidget.kt   Glance 桌面小组件
 ```
 
-## 几条不能破的规矩
+## 数据来源
 
-设计（`ui/theme/HardTokens.kt` 有完整说明）：
+三类。第一类是学校教务系统，通过网页表单登录后读页面；第二类是教务处和学院发的 PDF，离线解析成 JSON 打进安装包，不需要网络；第三类是校内各站点的公开页面，按源抓取并缓存正文。
 
-1. **圆角一律 0**（例外：头像圆、5–6dp 状态点、**课表侵蚀卡 4dp**——2026-11-13 主人点名回退 CET6 普通样式的局部例外）
-2. **不用渐变、不用 elevation 阴影**（要阴影用 `hardShadow`，偏移 2dp 模糊 0；课表侵蚀掉色层是既有机制，不算装饰渐变）
-3. **数字全部等宽 + tabular**——课表时间、学分、成绩必须能竖向对齐
+培养方案的资产是 2023 到 2025 三个年级共 156 个专业，课程大纲是土地与环境学院的 166 门课。地图是校园规划示意图矢量化出来的 90 个多边形。
 
-实现：
+## 规模
 
-4. **启动不等网络**：`onCreate` 只做 `enableEdgeToEdge` + `setContent`，网络在首帧之后
-5. **密码只在内存里用**，不落盘、不进日志
-6. **抓取只读**，只发 GET，不写学校系统
-7. **不编数据**：没拿到的就显示「没有」，绝不用假数字填版面
+Kotlin 源码 27392 行，单测 440 条分布在 35 个测试类里。R8 之后的 release 包 5.27 MB，内置资产占 10.4 MB（培养方案 337 个 JSON 加地图包）。debug 包没裁剪，体积是四倍多。
 
-## 依赖的接口（都会变，改版时先看这里）
+## 第三方资源
 
-| 用途 | 路径 | 坑 |
-|---|---|---|
-| SSO 登录 | `pass.syau.edu.cn/tpass/login` | 账号密码要 RSA 加密（先 POST `/tpass/rsa` 取公钥） |
-| 课表 | `/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback` | `timeAndPlaceList` 是**数组**，`classWeek` 是 24 位周次位图 |
-| 考试 | `/student/examinationManagement/examPlan/detail` | **必须先 GET `/examPlan/index`**，否则恒返回 `status:203` |
-| 成绩 | `/student/integratedQuery/scoreQuery/allTermScores/index` → `/{token}/allTermScores/data` | token 每次加载都变，要先正则抠出来 |
-| 竞赛平台 | `cxcy.syau.edu.cn/comp/front/comp/list?page=N` | 列表自带报名窗口/主办方/状态；每页 7 条正序翻页；成果公示在 `…/articlelist?cid=12`（**根路由 404**） |
-| 大创项目 | `cxcy.syau.edu.cn/dcplan/front/dcplan/list` | 只有 front 路由；一年一条立项通知 |
+木鱼图形来自 IvanHanloth/wooden-fish，MIT。食物图标来自 Twemoji，CC-BY 4.0，转成了 VectorDrawable。主题字体用了 IBM Plex Mono（OFL）和 Noto Serif SC（OFL）。
 
-## 许可与合规
-
-- 木鱼图形：IvanHanloth/wooden-fish（MIT）
-- 食物图标：Twemoji `jdecked/twemoji`（**CC-BY 4.0**，转成 VectorDrawable）
-- 字体：IBM Plex Mono（OFL）
-- 校内各站 `robots.txt` 是 `Allow: /$` + `Disallow: /`。**当前仅供个人测试**，
-  要分发给同学用之前，`jwc` / `xsc` / `job` / `cxcy` / `jobsyau` 这几个源需要学校授权。
+项目本身以 MIT 许可发布，见仓库根目录的 `LICENSE`。
