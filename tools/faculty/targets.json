@@ -1,0 +1,24 @@
+{
+  "note": "每个学院的「师资/教师」候选列表页 —— 全部来自各站首页导航（tools/faculty/probe.py 的 sources.json），没有一个是猜的。list 里第一个是主入口，其余是分类子页。",
+  "generatedAt": "2026-11-14T20:35:00+08:00",
+  "colleges": [
+    { "code": "nxy",   "name": "农学院",              "list": ["https://nxy.syau.edu.cn/szdw1.htm"] },
+    { "code": "zbxy",  "name": "植物保护学院",        "list": ["https://zbxy.syau.edu.cn/xkjs/szll.htm"] },
+    { "code": "yyxy",  "name": "园艺学院",            "list": ["https://yyxy.syau.edu.cn/xkjs/szdw.htm"] },
+    { "code": "thxy",  "name": "土地与环境学院",      "list": ["https://thxy.syau.edu.cn/szdw/jsxl/zgjzc.htm", "https://thxy.syau.edu.cn/szdw/bssds.htm"] },
+    { "code": "jgxy",  "name": "经济管理学院",        "list": ["https://jgxy.syau.edu.cn/szdw/nljjglzy.htm"] },
+    { "code": "myxy",  "name": "动物科学与医学学院",  "list": ["https://myxy.syau.edu.cn/szdw/js.htm", "https://myxy.syau.edu.cn/szdw/fjs.htm"] },
+    { "code": "lin",   "name": "林学院",              "list": ["https://lin.syau.edu.cn/szdw/zyjs.htm", "https://lin.syau.edu.cn/szdw/jzds.htm"] },
+    { "code": "gcxy",  "name": "工程学院",            "list": ["https://gcxy.syau.edu.cn/szdw1/jsml.htm"] },
+    { "code": "xdxy",  "name": "信息与电气工程学院",  "list": ["https://xdxy.syau.edu.cn/szdw.htm"] },
+    { "code": "slxy",  "name": "水利学院",            "list": ["https://slxy.syau.edu.cn/szdw2/js.htm", "https://slxy.syau.edu.cn/szdw2/fjs.htm"] },
+    { "code": "spxy",  "name": "食品学院",            "list": ["https://spxy.syau.edu.cn/szdw/jsml1.htm", "https://spxy.syau.edu.cn/szdw/dsfc.htm"] },
+    { "code": "swxy",  "name": "生物科学技术学院",    "list": ["https://swxy.syau.edu.cn/szdw/zzjs.htm"] },
+    { "code": "marx",  "name": "马克思主义学院",      "list": ["https://marx.syau.edu.cn/szll/sxddyfzjys.htm"] },
+    { "code": "jxjy",  "name": "继续教育学院",        "list": [] },
+    { "code": "gjjlc", "name": "国际教育学院(国际交流处)", "list": [] },
+    { "code": "lxy",   "name": "理学院",              "list": ["https://lxy.syau.edu.cn/szdw1/js.htm", "https://lxy.syau.edu.cn/szdw1/fjs.htm"] },
+    { "code": "tyb",   "name": "体育教学部",          "list": ["https://tyb.syau.edu.cn/bmgk/jsdw.htm"] },
+    { "code": "wyb",   "name": "外语教学部",          "list": ["https://wyb.syau.edu.cn/szdw/szdw.htm"] }
+  ]
+}

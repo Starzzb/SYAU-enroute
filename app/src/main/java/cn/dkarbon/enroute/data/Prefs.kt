@@ -47,6 +47,32 @@ class Prefs(ctx: Context) {
         get() = sp.getInt("color_source", 0)
         set(v) = sp.edit().putInt("color_source", v).apply()
 
+    // ── 自定义配色（票 25）────────────────────────────────
+    //
+    // 四个槽分开存：**浅色与深色各自独立**（纸白上达标的主色压到黑土上就是一团糊）。
+    // 值 = ARGB 整数，`0` = 该槽没设过（不是黑色）。
+    // 与主题设置同在本文件里，所以「清除所有数据」（[clearAll]）会一起清掉。
+
+    /** 浅色·主色 */
+    var customPrimaryLight: Int
+        get() = sp.getInt("custom_primary_light", 0)
+        set(v) = sp.edit().putInt("custom_primary_light", v).apply()
+
+    /** 浅色·强调色 */
+    var customAccentLight: Int
+        get() = sp.getInt("custom_accent_light", 0)
+        set(v) = sp.edit().putInt("custom_accent_light", v).apply()
+
+    /** 深色·主色 */
+    var customPrimaryDark: Int
+        get() = sp.getInt("custom_primary_dark", 0)
+        set(v) = sp.edit().putInt("custom_primary_dark", v).apply()
+
+    /** 深色·强调色 */
+    var customAccentDark: Int
+        get() = sp.getInt("custom_accent_dark", 0)
+        set(v) = sp.edit().putInt("custom_accent_dark", v).apply()
+
     /**
      * 上课提醒总开关。
      *

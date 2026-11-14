@@ -354,6 +354,9 @@ object Form {
 @Composable
 @ReadOnlyComposable
 fun primaryInk(): Color {
+    // 主色被用户换过（自定义配色 / 壁纸取色）时，主题层已经把「小字主色」算好了 —— 直接用，
+    // 否则会出现「按钮是松针绿、紧挨着的小字还是品牌橙」的割裂（票 25）。
+    LocalPrimaryInk.current?.let { return it }
     val t = InkTokens.current
     return when {
         Form.current.editorial -> if (t.isDark) Ledger.PineDark else Ledger.Pine

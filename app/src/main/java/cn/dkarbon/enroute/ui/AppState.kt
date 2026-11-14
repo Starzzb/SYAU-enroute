@@ -91,6 +91,14 @@ data class AppState(
     val scoreStats: ScoreStats = ScoreStats(),
     val homeLoading: Boolean = false,
     val homeMsg: String = "",
+    /**
+     * 「更新于：身份 3 天前 · 绩点 2 小时前」这类小字（票 24 的三档缓存）。
+     *
+     * 空串 = 本机还没有任何教务缓存（**不显示假时间**）。
+     * 用途：显示的是缓存时，用户能一眼看出「这是多会儿的数据」——
+     * 这正是「失败不覆盖旧值」那条纪律的配套：给旧数据，就必须标出它的年纪。
+     */
+    val cacheUpdatedLabel: String = "",
 
     // ── 空闲教室 ──
     val campuses: List<CampusOption> = emptyList(),
@@ -229,8 +237,11 @@ data class AppState(
     val themeMode: Int = 0,
     /** 视觉风格：0 硬朗农业 / 2 校报头版（1 学院纸本已下线，仅做老数据回落）；与 themeMode 正交 */
     val styleSet: Int = 0,
-    /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效） */
+    /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效）/ 2 自定义配色 */
     val colorSource: Int = 0,
+    /** 自定义配色的四个槽（票 25）：浅色/深色各自独立，0 = 该槽未设置 */
+    val customPalette: cn.dkarbon.enroute.ui.theme.CustomPalette =
+        cn.dkarbon.enroute.ui.theme.CustomPalette.NONE,
 
     // ── 调试日志（票 20）──
     /** 是否保存日志到本机（开关状态） */

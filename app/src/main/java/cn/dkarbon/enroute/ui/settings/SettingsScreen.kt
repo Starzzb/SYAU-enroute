@@ -1,9 +1,6 @@
 package cn.dkarbon.enroute.ui.settings
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -134,46 +131,69 @@ fun SettingsScreen(
             }
         }
 
-        // ── 取色（Material You，票 16 追加项②）──
-        // 只有 Android 12+ 才显示这一行；低版本**整块不出现**（不给灰色不可用项）
-        if (android.os.Build.VERSION.SDK_INT >= 31) {
-            Spacer(Modifier.height(10.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text("壁纸取色", fontSize = 12.5.sp, color = t.ink)
-                    Spacer(Modifier.height(2.dp))
-                    Text(
-                        "只把主色与强调色换成壁纸色；纸白底、墨色正文、砖红警示不变。" +
-                            "当前取色：" + cn.dkarbon.enroute.ui.theme.ColorSource.name(ui.colorSource),
-                        fontSize = 10.sp,
-                        lineHeight = 15.sp,
-                        color = t.inkFaint,
-                    )
+        // ── 取色（票 25：固定 / 壁纸 / 自定义）──
+        // AGENTS.md 界面文案约定：按钮上只放名字，解释进点开后的面板/弹窗。
+        Spacer(Modifier.height(10.dp))
+        val darkEff = when (ui.themeMode) {
+            1 -> false
+            2 -> true
+            else -> androidx.compose.foundation.isSystemInDarkTheme()
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("取色", fontSize = 12.5.sp, color = t.ink)
+            Spacer(Modifier.weight(1f))
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                val sources = buildList {
+                    add(cn.dkarbon.enroute.ui.theme.ColorSource.FIXED)
+                    // 壁纸取色只在 Android 12+ 露出（低版本给了也不生效，不给灰色项）
+                    if (android.os.Build.VERSION.SDK_INT >= 31) {
+                        add(cn.dkarbon.enroute.ui.theme.ColorSource.WALLPAPER)
+                    }
+                    add(cn.dkarbon.enroute.ui.theme.ColorSource.CUSTOM)
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    listOf(
-                        cn.dkarbon.enroute.ui.theme.ColorSource.FIXED to "固定",
-                        cn.dkarbon.enroute.ui.theme.ColorSource.WALLPAPER to "壁纸",
-                    ).forEach { (src, label) ->
-                        val on = ui.colorSource == src
-                        Box(
-                            Modifier
-                                .clip(RectangleShape)
-                                .background(if (on) t.cardAlt else t.card)
-                                .border(if (on) 1.5.dp else 0.dp, if (on) t.primary else t.card)
-                                .clickable { vm.setColorSource(src) }
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
-                        ) {
-                            Text(
-                                label,
-                                fontSize = 11.sp,
-                                color = if (on) t.ink else t.inkFaint,
-                                fontWeight = if (on) FontWeight.Medium else FontWeight.Normal,
-                            )
-                        }
+                sources.forEach { src ->
+                    val on = ui.colorSource == src
+                    Box(
+                        Modifier
+                            .clip(RectangleShape)
+                            .background(if (on) t.cardAlt else t.card)
+                            .border(if (on) 1.5.dp else 0.dp, if (on) t.primary else t.card)
+                            .clickable { vm.setColorSource(src) }
+                            .padding(horizontal = 10.dp, vertical = 5.dp),
+                    ) {
+                        Text(
+                            cn.dkarbon.enroute.ui.theme.ColorSource.shortName(src),
+                            fontSize = 11.sp,
+                            color = if (on) t.ink else t.inkFaint,
+                            fontWeight = if (on) FontWeight.Medium else FontWeight.Normal,
+                        )
                     }
                 }
             }
+        }
+        // 状态一行：只说"现在是什么"，不讲道理
+        Spacer(Modifier.height(4.dp))
+        Text(
+            when {
+                ui.colorSource != cn.dkarbon.enroute.ui.theme.ColorSource.CUSTOM -> "农业色板"
+                !ui.customPalette.complete(darkEff) -> "自定义 · 这一套还没设，暂用主题色"
+                else -> "自定义 · 浅色与深色各存一套"
+            },
+            fontSize = 10.5.sp,
+            color = t.inkFaint,
+        )
+        // 自定义展开调色区（预设 + 微调 + 对比度闸门）
+        if (ui.colorSource == cn.dkarbon.enroute.ui.theme.ColorSource.CUSTOM) {
+            Spacer(Modifier.height(8.dp))
+            ColorTunerPanel(
+                saved = ui.customPalette,
+                styleSet = ui.styleSet,
+                startDark = darkEff,
+                onSave = { p ->
+                    vm.setCustomPalette(p)
+                    vm.setColorSource(cn.dkarbon.enroute.ui.theme.ColorSource.CUSTOM)
+                },
+            )
         }
         // ── 上课提醒 ──
         SectionTitle("上课提醒")
@@ -471,44 +491,27 @@ fun SettingsScreen(
         }
 
         // ── 关于 ──
+        // 票 26 ②：这一块只留**功能**，长文字搬家到独立页 AboutScreen。
+        // 理由（AGENTS.md「按钮不自带说明书」+ 单一来源）：同一句「数据从哪来」原来
+        // 设置页和关于页各写一份，改一处必忘另一处。
         SectionTitle("关于")
-        Text("沈农在途 · SYAU En Route", fontSize = 12.sp, color = t.ink)
-        Spacer(Modifier.height(3.dp))
-        Text(
-            "课表来自沈阳农业大学教务系统（校内网 10.2.0.47）。校外请用 JSON 导入。\n" +
-                "账号密码只在你点登录的那一次使用，不写入任何文件；登录会话（cookie）" +
-                "用设备密钥加密后存在本机，用于冷启动免重登 —— 「清除所有数据」会连密钥一起销毁。",
-            fontSize = 10.sp,
-            lineHeight = 15.sp,
-            color = t.inkFaint,
-        )
-        Spacer(Modifier.height(10.dp))
-        // 地图共建（票 13 阶段 B）：默认关，开启需先看「传什么/不传什么」，上传要手动点
-        ContributeSection(ui)
-        Spacer(Modifier.height(10.dp))
         // 应用内更新（票 15）：查 latest.json → 下载 → sha256 校验 → 交系统安装器。
         // 只在用户点「检查」时联网；启动时的静默检查每天最多一次（见 EnRouteApp）。
         UpdateSection()
         Spacer(Modifier.height(10.dp))
-        // 开源信息（源码地址 / 许可证 / 依赖致谢 / 数据来源 / 免责）单独一页，
-        // 与其它开源软件的习惯一致：这里只留入口，细节不挤在设置页
+        // 地图共建（票 13 阶段 B）：默认关，开启需先看「传什么/不传什么」，上传要手动点
+        ContributeSection(ui)
+        Spacer(Modifier.height(10.dp))
+        // 独立页入口 —— 设置页的最后一行，就这一行
         Row(
-            verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = Space.minTouch)
-                .clickable(onClick = onOpenAbout)
-                .padding(vertical = 10.dp),
+                .clickable(onClick = onOpenAbout),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Image(
-                painter = painterResource(cn.dkarbon.enroute.R.drawable.ic_github),
-                contentDescription = "GitHub",
-                colorFilter = ColorFilter.tint(t.ink),
-                modifier = Modifier.size(18.dp),
-            )
-            Spacer(Modifier.size(10.dp))
-            Text("源码 · 许可证 · 数据来源", fontSize = 12.5.sp, color = t.ink, modifier = Modifier.weight(1f))
-            Text("查看 ›", fontSize = 12.sp, color = t.accent)
+            Text("关于沈农在途", fontSize = 13.sp, color = t.ink, modifier = Modifier.weight(1f))
+            Text("›", fontSize = 14.sp, color = t.inkFaint)
         }
         Spacer(Modifier.height(30.dp))
     }

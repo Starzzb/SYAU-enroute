@@ -134,12 +134,37 @@ data class InkTokenSet(
 
 val LocalInkTokens = staticCompositionLocalOf { InkTokenSet.Light }
 
+/**
+ * 「主色当文字」时该用哪个色。`null` = 走各主题的固定规则（品牌橙 / 松针绿）；
+ * 非 null = 主色被用户换过（自定义配色 / 壁纸取色），由 [PaletteGate.inkVariant] 推出来。
+ *
+ * 为什么要有这个 Local：`primaryInk()` 写死了 `Machine.n600`，主色一换它就跟不上了 ——
+ * 会出现「按钮是松针绿、旁边的小字还是品牌橙」的割裂。
+ */
+val LocalPrimaryInk = staticCompositionLocalOf<Color?> { null }
+
 /** 简写：`InkTokens.current.card` */
 object InkTokens {
     val current: InkTokenSet
         @Composable
         @ReadOnlyComposable
         get() = LocalInkTokens.current
+}
+
+/**
+ * 取某「风格 + 明暗」下的基础色板（**不含**任何取色覆盖）。
+ *
+ * 为什么单独抽出来：自定义配色的对比度闸门要按**被编辑的那一套**算
+ * （编辑深色槽时用墨底，而不是当前界面那套纸白），所以不能只靠 `InkTokens.current`。
+ * [EnRouteTheme] 自己也走这一个函数 —— 一处定义，避免两处颜色选择逻辑漂移。
+ */
+fun baseTokenSet(styleSet: Int, isDark: Boolean): InkTokenSet = when {
+    styleSet == StyleSet.EDITORIAL && isDark -> EditorialDarkTokens
+    styleSet == StyleSet.EDITORIAL -> EditorialLightTokens
+    styleSet == StyleSet.SCHOLAR && isDark -> ScholarDarkTokens
+    styleSet == StyleSet.SCHOLAR -> ScholarLightTokens
+    isDark -> InkTokenSet.Dark
+    else -> InkTokenSet.Light
 }
 
 /**
@@ -165,8 +190,13 @@ object InkTokens {
 fun EnRouteTheme(
     themeMode: Int = ThemeMode.System,
     styleSet: Int = StyleSet.HARD,
-    /** 取色来源（[ColorSource.FIXED] / [ColorSource.WALLPAPER]）；壁纸取色仅 Android 12+ 生效 */
+    /** 取色来源（[ColorSource.FIXED] / [ColorSource.WALLPAPER] / [ColorSource.CUSTOM]） */
     colorSource: Int = ColorSource.FIXED,
+    /**
+     * 自定义配色的四个槽（票 25）。仅 [colorSource] == [ColorSource.CUSTOM] 时生效；
+     * 该模式下的两个槽没填全就**原样返回**主题自带色板（绝不半套色）。
+     */
+    customPalette: CustomPalette = CustomPalette.NONE,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when (themeMode) {
@@ -176,14 +206,7 @@ fun EnRouteTheme(
     }
     val editorial = styleSet == StyleSet.EDITORIAL
     val scholar = styleSet == StyleSet.SCHOLAR
-    val baseTokens = when {
-        editorial && darkTheme -> EditorialDarkTokens
-        editorial -> EditorialLightTokens
-        scholar && darkTheme -> ScholarDarkTokens
-        scholar -> ScholarLightTokens
-        darkTheme -> InkTokenSet.Dark
-        else -> InkTokenSet.Light
-    }
+    val baseTokens = baseTokenSet(styleSet, darkTheme)
     /*
      * 壁纸取色（Material You，票 16 追加项②）：**只覆盖 primary / accent**。
      *
@@ -192,19 +215,39 @@ fun EnRouteTheme(
      * 低版本（< API 31）或读不到系统色时**原样返回** base token，不抛不崩。
      */
     val ctx = androidx.compose.ui.platform.LocalContext.current
-    val tokens = if (colorSource == ColorSource.WALLPAPER &&
-        DynamicColorRules.available(android.os.Build.VERSION.SDK_INT)
-    ) {
-        val (primaryShade, accentShade) = DynamicColorRules.shades(darkTheme)
-        val primary = DynamicColorRules.systemColor(ctx, primaryShade)
-        val accent = DynamicColorRules.systemColor(ctx, accentShade)
-        if (primary != null && accent != null) {
-            DynamicColorRules.override(baseTokens, primary, accent)
-        } else {
-            baseTokens
+    val tokens = when {
+        /*
+         * 自定义配色（票 25）：用户从预设色板里挑的 primary / accent。
+         * 保存时已经过 [PaletteGate] 的 4.5:1 闸门，这里只负责覆盖；
+         * 该模式缺槽（老数据 / 只设了浅色就切到深色）→ 原样用主题色板，不留半套色。
+         */
+        colorSource == ColorSource.CUSTOM -> {
+            val p = customPalette.primary(darkTheme)
+            val a = customPalette.accent(darkTheme)
+            if (p != null && a != null) DynamicColorRules.override(baseTokens, p, a) else baseTokens
         }
-    } else {
-        baseTokens
+        colorSource == ColorSource.WALLPAPER &&
+            DynamicColorRules.available(android.os.Build.VERSION.SDK_INT) -> {
+            val (primaryShade, accentShade) = DynamicColorRules.shades(darkTheme)
+            val primary = DynamicColorRules.systemColor(ctx, primaryShade)
+            val accent = DynamicColorRules.systemColor(ctx, accentShade)
+            if (primary != null && accent != null) {
+                DynamicColorRules.override(baseTokens, primary, accent)
+            } else {
+                baseTokens
+            }
+        }
+        else -> baseTokens
+    }
+    /*
+     * 主色被换过之后，「主色当文字」那一档也要跟着换（否则按钮是新色、旁边小字还是品牌橙）。
+     * 自定义配色已被 4.5:1 闸门保证过，直接用；壁纸色没有闸门，用 inkVariant 尽力补偿。
+     */
+    val primaryTextInk: Color? = when {
+        colorSource == ColorSource.CUSTOM && tokens !== baseTokens -> tokens.primary
+        colorSource == ColorSource.WALLPAPER && tokens !== baseTokens ->
+            PaletteGate.inkVariant(baseTokens, tokens.primary)
+        else -> null
     }
     val scheme = when {
         editorial && darkTheme -> EditorialDarkScheme
@@ -220,6 +263,7 @@ fun EnRouteTheme(
 
     CompositionLocalProvider(
         LocalInkTokens provides tokens,
+        LocalPrimaryInk provides primaryTextInk,
         LocalForm provides FormSpec.of(styleSet),
     ) {
         MaterialTheme(

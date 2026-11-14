@@ -53,6 +53,15 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     private val credStore = cn.dkarbon.enroute.data.CredentialStore(app)
 
     /**
+     * 教务数据三档缓存（票 24）：`filesDir/academic/cache.json`。
+     *
+     * 判据在 [cn.dkarbon.enroute.data.CachePolicy]（纯函数、单测锁死）；这里只管「抓/不抓、存/不存」。
+     * [cache] 是内存镜像，只在 IO 线程写盘（见 [commitCache]）。
+     */
+    private val academicCacheStore = cn.dkarbon.enroute.data.AcademicCacheStore(app)
+    private var cache = cn.dkarbon.enroute.data.AcademicCache()
+
+    /**
      * 登录成功但「保持登录」还没问过时，把这次输入的凭据**暂存在内存**里。
      *
      * 只在「说明卡还开着」这段时间存在：用户点「启用」就把它们加密存盘，点「不了」就丢掉。
@@ -88,9 +97,16 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 // 风格读盘即归一：学院纸本已下线，老用户存量值平滑回落到硬朗农业（票 16）
                 val style = cn.dkarbon.enroute.ui.theme.StyleSet.normalize(prefs.styleSet)
                 val colorSource = cn.dkarbon.enroute.ui.theme.ColorSource.normalize(prefs.colorSource)
+                // 自定义配色四个槽（票 25）：一次读齐，缺的槽留 0
+                val palette = cn.dkarbon.enroute.ui.theme.CustomPalette(
+                    primaryLight = prefs.customPrimaryLight,
+                    accentLight = prefs.customAccentLight,
+                    primaryDark = prefs.customPrimaryDark,
+                    accentDark = prefs.customAccentDark,
+                )
                 val custom = customStore.load()
                 val remind = prefs.remindersEnabled
-                Loaded(store.load(), week, theme, style, remind, colorSource, custom)
+                Loaded(store.load(), week, theme, style, remind, colorSource, custom, palette)
             }
             _ui.value = _ui.value.copy(
                 timetable = saved.tt,
@@ -98,10 +114,14 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 themeMode = saved.theme,
                 styleSet = saved.style,
                 colorSource = saved.colorSource,
+                customPalette = saved.palette,
                 customCourses = saved.custom,
                 remindersEnabled = saved.remind,
                 timetableMsg = if (saved.tt == null) "" else "已载入 ${saved.tt.courses.size} 门课",
             )
+            // ①a 票 24：先把教务数据的三档缓存灌进界面 —— **这一步不发任何网络请求**，
+            //     断网冷启动也能立刻看到身份 / 成绩 / 考试（失败绝不覆盖旧值的另一半在这里）。
+            loadAcademicCacheIntoState()
             // ①b 调试日志落盘（票 20 / D2）：启动时轮转一次（清过期/超限），再挂上通道。
             //    全程 runCatching —— 日志 I/O 出错绝不许影响启动。
             runCatching {
@@ -141,6 +161,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val remind: Boolean,
         val colorSource: Int = 0,
         val custom: List<cn.dkarbon.enroute.data.custom.CustomCourse> = emptyList(),
+        val palette: cn.dkarbon.enroute.ui.theme.CustomPalette =
+            cn.dkarbon.enroute.ui.theme.CustomPalette.NONE,
     )
 
     // ── 登录态：冷启动恢复 + 验活（票 04）──────────────────
@@ -256,7 +278,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         DebugLog.log("SESSION", "静默续期成功 → 已恢复登录（用户无感）")
         // 续上之后照常拉数据（与手动登录后同一套动作，只是不弹说明卡）
         fetchSchedule(s)
-        refreshHome()
+        // 刚登录成功：真抓一次（凭据可能换了人，缓存先作废，见 login() 的注释）
+        refreshHome(force = true)
         return true
     }
 
@@ -357,6 +380,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                     sessionState = SessionRules.stateOf(hasSession = true, probe = probe),
                     sessionCheckMsg = "",
                 )
+                // 票 24：会话有效才谈得上补数据；**三档都新鲜就一个请求都不发**
+                maybeSilentRefresh(s)
             }
 
             SessionProbe.Expired -> {
@@ -384,6 +409,223 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 )
             }
         }
+    }
+
+    // ── 缓存三档（票 24）：身份=永久 / 成绩·考试·校区列表=每日 / 其余=每次 ──
+    //
+    // 纪律（与 CachePolicy 的判据配套，改这里前先看那段注释）：
+    //   ① 判据全在 CachePolicy（纯函数、单测锁死），本类不自己写 `if (age > ...)`；
+    //   ② 抓成功才写盘；抓失败**一个字段都不覆盖**，界面照常显示旧值 + 「更新于 …」；
+    //   ③ 「刷新」是分块的：身份/学分绩点/考试/成绩各有各的入口，不做「一按全量重抓」。
+
+    /** 当前时刻（判据都在 CachePolicy 里，这里只提供时钟） */
+    private fun nowMs(): Long = System.currentTimeMillis()
+
+    /** 读缓存 → 灌进界面。返回 true = 本机确实有缓存 */
+    private suspend fun loadAcademicCacheIntoState(): Boolean {
+        val loaded = withContext(Dispatchers.IO) { runCatching { academicCacheStore.load() }.getOrNull() }
+        cache = loaded ?: cn.dkarbon.enroute.data.AcademicCache()
+        val hasAny = loaded != null && !loaded.isEmpty
+        _ui.value = _ui.value.copy(
+            // 每一块都只在缓存里真有时才覆盖界面（拿空对象盖掉刚恢复的状态是 bug）
+            profile = cache.profile.takeIf { !it.isEmpty } ?: _ui.value.profile,
+            credit = cache.credit.takeIf { !it.isEmpty } ?: _ui.value.credit,
+            scoreStats = cache.scoreStats.takeIf { !it.isEmpty } ?: _ui.value.scoreStats,
+            scores = cache.scores.ifEmpty { _ui.value.scores },
+            exams = cache.exams.ifEmpty { _ui.value.exams },
+            campuses = cache.campuses.ifEmpty { _ui.value.campuses },
+            buildings = cache.buildings.ifEmpty { _ui.value.buildings },
+            cacheUpdatedLabel = cacheLine(),
+            examsMsg = if (hasAny) examsCacheMsg() else _ui.value.examsMsg,
+        )
+        DebugLog.log(
+            "CACHE",
+            if (hasAny) {
+                "读到缓存：身份=${cache.profileAt > 0} 绩点=${cache.scoreStatsAt > 0} " +
+                    "考试=${cache.exams.size} 场 成绩=${cache.scores.size} 条（不发网络）"
+            } else {
+                "本机还没有教务缓存"
+            },
+        )
+        return hasAny
+    }
+
+    /** 「更新于：身份 3 天前 · 绩点 2 小时前 · 考试 刚刚」；没有缓存 → 空串（不显示假时间） */
+    private fun cacheLine(now: Long = nowMs()): String {
+        val parts = buildList {
+            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.profileAt)
+                .takeIf { it.isNotBlank() }?.let { add("身份 $it") }
+            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.creditAt)
+                .takeIf { it.isNotBlank() }?.let { add("学分 $it") }
+            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.scoreStatsAt)
+                .takeIf { it.isNotBlank() }?.let { add("绩点 $it") }
+            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.examsAt)
+                .takeIf { it.isNotBlank() }?.let { add("考试 $it") }
+            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.scoresAt)
+                .takeIf { it.isNotBlank() }?.let { add("成绩 $it") }
+        }
+        return if (parts.isEmpty()) "" else "更新于：" + parts.joinToString(" · ")
+    }
+
+    /** 考试页/考试卡的「数据是缓存」提示：有考试才说，没有就留空（空态自己有话） */
+    private fun examsCacheMsg(): String {
+        if (cache.exams.isEmpty()) return ""
+        val age = cn.dkarbon.enroute.data.CachePolicy.ageLabel(nowMs(), cache.examsAt)
+        return if (age.isBlank()) "" else "本地缓存 · 考试更新于 $age"
+    }
+
+    /** 合并 + 落盘 + 刷新「更新于」小字（唯一写缓存的地方） */
+    private suspend fun commitCache(
+        update: (cn.dkarbon.enroute.data.AcademicCache) -> cn.dkarbon.enroute.data.AcademicCache,
+    ) {
+        cache = update(cache)
+        val ok = withContext(Dispatchers.IO) { runCatching { academicCacheStore.save(cache) }.getOrDefault(false) }
+        if (!ok) DebugLog.log("CACHE", "缓存写盘失败（界面仍可用，只是下次要重抓）")
+        _ui.value = _ui.value.copy(cacheUpdatedLabel = cacheLine())
+    }
+
+    /**
+     * 冷启动**静默补齐**（票 24 的核心：三档全新鲜时一个请求都不发）。
+     *
+     * 只在「会话有效」之后调；每块各按自己的判据决定抓不抓：
+     *   · 身份：缓存空才抓（永久档）；
+     *   · 成绩/绩点：距上次成功 ≥ 24h 才抓（每日档）；
+     *   · 考试：≥ 24h **或** 缓存里那场「下一场考试」已经过（双条件，见 CachePolicy）。
+     * 任一失败都不影响其他块，也不覆盖已有缓存。
+     */
+    private suspend fun maybeSilentRefresh(s: UrpClient.Session) {
+        val now = nowMs()
+        val needIdentity = cn.dkarbon.enroute.data.CachePolicy.shouldFetchPermanent(cache.profile.isEmpty)
+        val needProgress = cn.dkarbon.enroute.data.CachePolicy.shouldFetchDaily(
+            now,
+            minOf(cache.creditAt, cache.scoreStatsAt).takeIf { it > 0L } ?: 0L,
+        )
+        val needExams = cn.dkarbon.enroute.data.CachePolicy.shouldFetchExams(now, cache.examsAt, cache.nextExamAtMs)
+        val needScores = cn.dkarbon.enroute.data.CachePolicy.shouldFetchDaily(now, cache.scoresAt)
+        if (!needIdentity && !needProgress && !needExams && !needScores) {
+            DebugLog.log("CACHE", "冷启动：三档都新鲜 → 不发身份/成绩/考试请求，直接读缓存")
+            return
+        }
+        DebugLog.log(
+            "CACHE",
+            "冷启动静默补齐：身份=$needIdentity 成绩/绩点=$needProgress 考试=$needExams 成绩明细=$needScores",
+        )
+        _ui.value = _ui.value.copy(homeLoading = true)
+        // 身份与成绩/绩点是两块，各自独立失败
+        if (needIdentity) fetchIdentity(s)
+        if (needProgress) fetchProgress(s)
+        _ui.value = _ui.value.copy(homeLoading = false, homeMsg = if (needIdentity || needProgress) "" else _ui.value.homeMsg)
+        if (needExams) fetchExamsBlock(s, silent = true)
+        if (needScores) fetchScoresBlock(s, silent = true)
+    }
+
+    /**
+     * 学籍身份（**永久档**）。抓失败或解析出空 → 保留旧值。
+     * @return true = 这次真拿到了
+     */
+    private suspend fun fetchIdentity(s: UrpClient.Session): Boolean {
+        val r = withContext(Dispatchers.IO) { runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchProfile(s) } }
+        val p = r.getOrNull()
+        if (p == null || p.isEmpty) {
+            DebugLog.log(
+                "CACHE",
+                "身份没抓到 → 保留旧值（${r.exceptionOrNull()?.javaClass?.simpleName ?: "空页面"}）",
+            )
+            return false
+        }
+        _ui.value = _ui.value.copy(profile = p)
+        commitCache { it.merge(nowMs(), profile = p) }
+        DebugLog.log("CACHE", "身份已更新（永久档：之后不再自动重抓）")
+        return true
+    }
+
+    /** 学分进度 + 成绩统计（**每日档**）。两块各自成功各自写，失败的那块保留旧值 */
+    private suspend fun fetchProgress(s: UrpClient.Session): Boolean {
+        val pair = withContext(Dispatchers.IO) {
+            runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchCreditProgress(s) } to
+                runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchScoreStats(s) }
+        }
+        val credit = pair.first.getOrNull()?.takeIf { !it.isEmpty }
+        val stats = pair.second.getOrNull()?.takeIf { !it.isEmpty }
+        if (credit == null && stats == null) {
+            DebugLog.log("CACHE", "学分/绩点都没抓到 → 保留旧值")
+            return false
+        }
+        _ui.value = _ui.value.copy(
+            credit = credit ?: _ui.value.credit,
+            scoreStats = stats ?: _ui.value.scoreStats,
+        )
+        commitCache { it.merge(nowMs(), credit = credit, scoreStats = stats) }
+        DebugLog.log("CACHE", "学分=${credit != null} 绩点=${stats != null} 已更新（每日档）")
+        return true
+    }
+
+    /**
+     * 考试（**每日档 + 过期双条件**）。
+     *
+     * 服务端答「没有考试」是**有效结果**，要照实写进缓存（否则每次冷启动都会重抓）；
+     * 但「没拿到」（`fetchExamsOrNull` 返回 null）**一个字都不覆盖**。
+     */
+    private suspend fun fetchExamsBlock(s: UrpClient.Session, silent: Boolean = false): Boolean {
+        if (!silent) _ui.value = _ui.value.copy(examsLoading = true, examsMsg = "抓取中…")
+        val r = withContext(Dispatchers.IO) { runCatching { AcademicApi.fetchExamsOrNull(s) } }
+        // 内层 fetchExamsOrNull 已经用「null = 没拿到」表达了失败，这里只取一层 Result。
+        // （写成 `?.getOrNull()` 会被解析成 List.getOrNull(index)，那是另一个函数）
+        val list: List<cn.dkarbon.enroute.data.ExamItem>? = r.getOrNull()
+        if (list == null) {
+            DebugLog.log(
+                "CACHE",
+                "考试没拿到 → 保留 ${cache.exams.size} 场旧数据" +
+                    (r.exceptionOrNull()?.let { "（${it.javaClass.simpleName}）" } ?: ""),
+            )
+            _ui.value = _ui.value.copy(
+                examsLoading = false,
+                examsMsg = if (cache.exams.isEmpty()) {
+                    noSessionHint().ifBlank { "没抓到考试（接口可能不同，去设置页跑一次「接口诊断」）" }
+                } else {
+                    examsCacheMsg() + " · 这次没刷新成功，显示的仍是缓存"
+                },
+            )
+            return false
+        }
+        _ui.value = _ui.value.copy(
+            examsLoading = false,
+            exams = list,
+            examsMsg = if (list.isEmpty()) "教务系统说本学期没有待考考试" else "✅ ${list.size} 场考试",
+        )
+        commitCache { it.merge(nowMs(), exams = list) }
+        DebugLog.log(
+            "CACHE",
+            "考试已更新：${list.size} 场，下一场=${cn.dkarbon.enroute.data.CachePolicy.nextExamAtMs(list, nowMs())}",
+        )
+        return true
+    }
+
+    /** 成绩明细（**每日档**）。没拿到 → 保留旧值 */
+    private suspend fun fetchScoresBlock(s: UrpClient.Session, silent: Boolean = false): Boolean {
+        if (!silent) _ui.value = _ui.value.copy(scoresLoading = true, scoresMsg = "抓取中…")
+        val r = withContext(Dispatchers.IO) { runCatching { AcademicApi.fetchScoresOrNull(s) } }
+        val list: List<cn.dkarbon.enroute.data.ScoreItem>? = r.getOrNull()
+        if (list == null) {
+            DebugLog.log("CACHE", "成绩没拿到 → 保留 ${cache.scores.size} 条旧数据")
+            _ui.value = _ui.value.copy(
+                scoresLoading = false,
+                scoresMsg = if (cache.scores.isEmpty()) {
+                    noSessionHint().ifBlank { "没抓到成绩（接口可能不同，去设置页跑一次「接口诊断」）" }
+                } else {
+                    "本地缓存 · 成绩 ${cn.dkarbon.enroute.data.CachePolicy.ageLabel(nowMs(), cache.scoresAt)}" +
+                        " · 这次没刷新成功"
+                },
+            )
+            return false
+        }
+        _ui.value = _ui.value.copy(
+            scoresLoading = false,
+            scores = list,
+            scoresMsg = if (list.isEmpty()) "教务系统说还没有成绩记录" else "✅ ${list.size} 条成绩",
+        )
+        commitCache { it.merge(nowMs(), scores = list) }
+        return true
     }
 
     // ── 提示 ──────────────────────────────────────────────
@@ -1050,6 +1292,24 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /**
+     * 保存自定义配色（票 25）。
+     *
+     * 只写**当前编辑的那一套**（浅色或深色）的两个槽，另一套原样保留 —— 这是
+     * 「切主题不丢」的实现：`CustomPalette.withMode` 只动一侧。
+     *
+     * 对比度闸门在 UI 层（[cn.dkarbon.enroute.ui.theme.PaletteGate]）已经拦过；
+     * 这里不再二次校验，避免两处规则漂移 —— 但要保证**写盘与内存同时更新**，
+     * 否则重启后颜色会「跳回旧的」。
+     */
+    fun setCustomPalette(palette: cn.dkarbon.enroute.ui.theme.CustomPalette) {
+        prefs.customPrimaryLight = palette.primaryLight
+        prefs.customAccentLight = palette.accentLight
+        prefs.customPrimaryDark = palette.primaryDark
+        prefs.customAccentDark = palette.accentDark
+        _ui.value = _ui.value.copy(customPalette = palette)
+    }
+
+    /**
      * 上课提醒开关。
      *
      * 关掉要**立刻清掉已排任务**，否则用户关了还在响 —— 这是最招人烦的 bug 类型。
@@ -1122,11 +1382,22 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                         DebugLog.log("CRED", "首次登录成功 → 询问是否保持登录（默认关闭）")
                     }
                 }
+                // 票 24：缓存跟着**账号**走。刚完成一次登录，无法在抓数据前知道是谁的账号，
+                // 所以先作废旧缓存（合规红线：绝不把上一个人的身份/成绩留给下一个人看），
+                // 紧接着的 fetchSchedule/fetchAcademic/refreshHome 会把它重新填满。
+                cache = cn.dkarbon.enroute.data.AcademicCache()
+                withContext(Dispatchers.IO) { runCatching { academicCacheStore.clear() } }
+                _ui.value = _ui.value.copy(
+                    cacheUpdatedLabel = "",
+                    profile = cn.dkarbon.enroute.data.UrpHomeApi.StudentProfile(),
+                    credit = cn.dkarbon.enroute.data.UrpHomeApi.CreditProgress(),
+                    scoreStats = cn.dkarbon.enroute.data.UrpHomeApi.ScoreStats(),
+                )
                 fetchSchedule(s)
                 fetchAcademic(s)
                 // 学业主页那三件套（身份/学分进度/成绩统计）也顺手抓一遍，
                 // 否则用户第一次点进「我的」要再等一次网络
-                refreshHome()
+                refreshHome(force = true)
             }.onFailure { e ->
                 cn.dkarbon.enroute.data.DebugLog.error("LOGIN", "登录失败：${friendlyError(e)} | raw=${e.javaClass.simpleName}: ${e.message}")
                 _ui.value = _ui.value.copy(
@@ -1157,28 +1428,13 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * 抓考试 + 成绩明细（**保留下来的旧入口**，供「这两块一起刷」的地方用）。
+     * 失败各自保留旧值，见 [fetchExamsBlock] / [fetchScoresBlock]。
+     */
     private suspend fun fetchAcademic(s: UrpClient.Session) {
-        _ui.value = _ui.value.copy(examsLoading = true, scoresLoading = true, examsMsg = "抓取中…", scoresMsg = "抓取中…")
-        val exams = runCatching { withContext(Dispatchers.IO) { AcademicApi.fetchExams(s) } }
-        val scores = runCatching { withContext(Dispatchers.IO) { AcademicApi.fetchScores(s) } }
-        cn.dkarbon.enroute.data.DebugLog.log(
-            "DATA",
-            "考试 ${exams.getOrDefault(emptyList()).size} 场 / 成绩 ${scores.getOrDefault(emptyList()).size} 条" +
-                (exams.exceptionOrNull()?.let { " · 考试异常 ${it.message}" } ?: "") +
-                (scores.exceptionOrNull()?.let { " · 成绩异常 ${it.message}" } ?: ""),
-        )
-        _ui.value = _ui.value.copy(
-            examsLoading = false,
-            scoresLoading = false,
-            exams = exams.getOrDefault(emptyList()),
-            scores = scores.getOrDefault(emptyList()),
-            examsMsg = if (exams.getOrDefault(emptyList()).isEmpty())
-                "没抓到考试（接口可能不同，去设置页跑一次「接口诊断」）"
-            else "✅ ${exams.getOrDefault(emptyList()).size} 场考试",
-            scoresMsg = if (scores.getOrDefault(emptyList()).isEmpty())
-                "没抓到成绩（接口可能不同，去设置页跑一次「接口诊断」）"
-            else "✅ ${scores.getOrDefault(emptyList()).size} 条成绩",
-        )
+        fetchExamsBlock(s)
+        fetchScoresBlock(s)
     }
 
     /** 用缓存的会话重新抓考试/成绩（切到那两个 tab 时用） */
@@ -1190,6 +1446,26 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             return
         }
         viewModelScope.launch { fetchAcademic(s) }
+    }
+
+    /** 票 24：**只刷考试**（考试卡/考试页的刷新入口用它，不连带成绩或身份） */
+    fun refreshExams() {
+        val s = session
+        if (s == null) {
+            _ui.value = _ui.value.copy(examsMsg = noSessionHint())
+            return
+        }
+        viewModelScope.launch { fetchExamsBlock(s) }
+    }
+
+    /** 票 24：**只刷成绩**（成绩页的刷新入口用它） */
+    fun refreshScores() {
+        val s = session
+        if (s == null) {
+            _ui.value = _ui.value.copy(scoresMsg = noSessionHint())
+            return
+        }
+        viewModelScope.launch { fetchScoresBlock(s) }
     }
 
     // ── 学业主页（身份 / 学分进度 / 成绩统计）──────────────
@@ -1206,44 +1482,82 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         }
 
     /**
-     * 主页三件套。
+     * 学业主页三块：身份（永久档）+ 学分进度 + 成绩统计（每日档）。
      *
-     * 三个请求**各自独立失败**：身份抓不到不该连累学分进度，反之亦然。
-     * 最后按成功数给一句话，不全成功也不假装全成功。
+     * @param force 手动刷新（用户按了「刷新」）→ 一律真抓；
+     *   `false` 是**自动路径**（冷启动/切页），按 [cn.dkarbon.enroute.data.CachePolicy] 判据决定抓哪些，
+     *   全新鲜时一个请求都不发。这就是「不要把刷新做成全量重抓」的落地方式。
+     *
+     * 三块各自独立失败；失败时**保留旧值**，只在提示里说清「显示的是多久前的数据」。
      */
-    fun refreshHome() {
+    fun refreshHome(force: Boolean = false) {
         val s = session
         if (s == null) {
             _ui.value = _ui.value.copy(homeMsg = noSessionHint())
             return
         }
+        val now = nowMs()
+        val needIdentity = force || cn.dkarbon.enroute.data.CachePolicy.shouldFetchPermanent(cache.profile.isEmpty)
+        val needProgress = force || cn.dkarbon.enroute.data.CachePolicy.shouldFetchDaily(
+            now,
+            minOf(cache.creditAt, cache.scoreStatsAt).takeIf { it > 0L } ?: 0L,
+        )
+        if (!needIdentity && !needProgress) {
+            // 缓存新鲜：告诉用户「这块是缓存，多会儿的」，不假装刚抓过
+            _ui.value = _ui.value.copy(homeMsg = "", cacheUpdatedLabel = cacheLine(now))
+            DebugLog.log("CACHE", "主页三块都新鲜 → 不发请求")
+            return
+        }
         _ui.value = _ui.value.copy(homeLoading = true, homeMsg = "抓取中…")
         viewModelScope.launch {
-            val r = withContext(Dispatchers.IO) {
-                Triple(
-                    runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchProfile(s) },
-                    runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchCreditProgress(s) },
-                    runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchScoreStats(s) },
-                )
-            }
-            val (pf, cr, sc) = r
-            val okCount = listOf(pf.isSuccess, cr.isSuccess, sc.isSuccess).count { it }
-            val firstErr = listOfNotNull(pf, cr, sc).firstNotNullOfOrNull { it.exceptionOrNull() }
-            cn.dkarbon.enroute.data.DebugLog.log(
-                "HOME",
-                "主页抓取：身份=${pf.isSuccess} 学分=${cr.isSuccess} 成绩=${sc.isSuccess}" +
-                    (firstErr?.let { " · ${it.javaClass.simpleName}: ${it.message}" } ?: ""),
-            )
+            val okIdentity = if (needIdentity) fetchIdentity(s) else true
+            val okProgress = if (needProgress) fetchProgress(s) else true
+            val stale = cacheLine()
             _ui.value = _ui.value.copy(
                 homeLoading = false,
-                profile = pf.getOrNull() ?: _ui.value.profile,
-                credit = cr.getOrNull() ?: _ui.value.credit,
-                scoreStats = sc.getOrNull() ?: _ui.value.scoreStats,
+                cacheUpdatedLabel = stale,
                 homeMsg = when {
-                    okCount == 3 -> ""
-                    okCount == 0 -> friendlyError(firstErr ?: IllegalStateException("未知错误"))
-                    else -> "$okCount/3 项抓取成功，其余下次刷新再试"
+                    (needIdentity && !okIdentity) || (needProgress && !okProgress) ->
+                        "这次没刷新成功（可能不在校园网）。" +
+                            (if (cache.isEmpty) "本机也还没有缓存。" else "$stale —— 显示的是缓存")
+                    else -> ""
                 },
+            )
+        }
+    }
+
+    /** 票 24：**只刷身份**（学籍那一块；身份是永久档，平时不需要动它） */
+    fun refreshIdentity() {
+        val s = session
+        if (s == null) {
+            _ui.value = _ui.value.copy(homeMsg = noSessionHint())
+            return
+        }
+        _ui.value = _ui.value.copy(homeLoading = true)
+        viewModelScope.launch {
+            val ok = fetchIdentity(s)
+            _ui.value = _ui.value.copy(
+                homeLoading = false,
+                homeMsg = if (ok) "" else "身份没刷新成功（可能不在校园网），显示的还是缓存",
+                cacheUpdatedLabel = cacheLine(),
+            )
+        }
+    }
+
+    /** 票 24：**只刷学分进度 + 绩点**（不碰身份、不碰考试） */
+    fun refreshProgress() {
+        val s = session
+        if (s == null) {
+            _ui.value = _ui.value.copy(homeMsg = noSessionHint())
+            return
+        }
+        _ui.value = _ui.value.copy(homeLoading = true)
+        viewModelScope.launch {
+            val ok = fetchProgress(s)
+            _ui.value = _ui.value.copy(
+                homeLoading = false,
+                homeMsg = if (ok) "" else "学分/绩点没刷新成功（可能不在校园网），显示的还是缓存",
+                cacheUpdatedLabel = cacheLine(),
             )
         }
     }

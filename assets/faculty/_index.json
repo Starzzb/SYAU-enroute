@@ -1,0 +1,17 @@
+{
+ "schema": 1,
+ "generatedAt": "2026-11-14T21:00:00+08:00",
+ "total": 20,
+ "colleges": [
+  {
+   "code": "zbxy",
+   "college": "植物保护学院",
+   "count": 20,
+   "withTitle": 14,
+   "withEmail": 15,
+   "withResearch": 5,
+   "withPhoto": 15,
+   "problems": 6
+  }
+ ]
+}

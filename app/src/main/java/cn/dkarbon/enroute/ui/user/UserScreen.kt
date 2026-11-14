@@ -113,12 +113,17 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
     BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
     val current = stack.last()
 
+    // 票 26：子页栈本身已经 saveable（A6），但**页内滚动位置**要靠 SaveableStateHolder 才留得住 ——
+    // 设置 → 关于 → 返回，设置页停在原处；考试 → 设置 → 返回，时间轴停在原处。
+    val pageStates = androidx.compose.runtime.saveable.rememberSaveableStateHolder()
+
     Column(Modifier.fillMaxSize()) {
         if (current != UserPage.Root) {
             SubHeader(current.title, onBack = { stack.removeAt(stack.lastIndex) })
         }
         Box(Modifier.weight(1f)) {
-            when (current) {
+            pageStates.SaveableStateProvider("user:${current.name}") {
+                when (current) {
                 UserPage.Root -> UserRoot(
                     ui = ui,
                     vm = vm,
@@ -175,6 +180,7 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
                     sessionState = ui.sessionState,
                     onDone = { stack.removeAt(stack.lastIndex) },
                 )
+                }
             }
         }
     }
@@ -241,7 +247,9 @@ private fun UserRoot(
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Spacer(Modifier.weight(1f))
             if (ui.sessionState == SessionState.Active) {
-                TextButton(onClick = { vm.refreshHome() }, enabled = !ui.homeLoading) {
+                // 票 24：手动刷新**只刷这一组**（身份 + 学分/绩点），不连带考试/成绩/教室；
+                // force = 用户按了就得真抓，不看 24h 窗口
+                TextButton(onClick = { vm.refreshHome(force = true) }, enabled = !ui.homeLoading) {
                     Text(if (ui.homeLoading) "读取中" else "刷新", fontSize = 12.sp)
                 }
             }
@@ -365,6 +373,12 @@ private fun UserRoot(
                 sub = MyPageModel.scoreBadge(ui.scores.size, ui.scoresLoading),
                 onClick = onOpenScore,
             )
+        }
+
+        // 票 24：这一组数据是缓存时，必须标出它是多会儿的（配合「失败不覆盖」那条纪律）
+        if (ui.cacheUpdatedLabel.isNotBlank()) {
+            Spacer(Modifier.height(6.dp))
+            cn.dkarbon.enroute.ui.home.HomeFootNote(ui.cacheUpdatedLabel)
         }
 
         if (ui.homeMsg.isNotBlank()) {

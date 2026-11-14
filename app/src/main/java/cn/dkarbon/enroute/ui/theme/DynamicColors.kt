@@ -72,15 +72,39 @@ object DynamicColorRules {
     }
 }
 
-/** 取色来源（刻意只有两个值：固定 / 壁纸；「跟随壁纸」在不支持的机型上不显示） */
+/**
+ * 取色来源：**固定 / 壁纸 / 自定义**（自定义是票 25 加的第三档）。
+ *
+ * - [FIXED]：用主题自带的农业色板（默认，老用户升级后看到的就是这个）
+ * - [WALLPAPER]：Material You 壁纸取色，仅 Android 12+ 生效
+ * - [CUSTOM]：用户从预设色板里挑 + 微调（见 [CustomPalette] / [PaletteGate]）
+ *
+ * 三档都只覆盖 `primary` / `accent`，语义色永远不动（数据诚实红线）。
+ */
 object ColorSource {
     const val FIXED = 0
     const val WALLPAPER = 1
+    const val CUSTOM = 2
 
-    fun isValid(v: Int): Boolean = v == FIXED || v == WALLPAPER
+    fun isValid(v: Int): Boolean = v == FIXED || v == WALLPAPER || v == CUSTOM
 
     /** 不认识的存值一律回落固定（避免老/坏数据让界面变空白） */
-    fun normalize(v: Int): Int = if (v == WALLPAPER) WALLPAPER else FIXED
+    fun normalize(v: Int): Int = when (v) {
+        WALLPAPER -> WALLPAPER
+        CUSTOM -> CUSTOM
+        else -> FIXED
+    }
 
-    fun name(v: Int): String = if (v == WALLPAPER) "跟随壁纸取色" else "固定"
+    fun name(v: Int): String = when (v) {
+        WALLPAPER -> "跟随壁纸取色"
+        CUSTOM -> "自定义配色"
+        else -> "固定"
+    }
+
+    /** 设置页三档按钮的短名（按钮上只放名字，说明进弹窗 —— AGENTS.md 界面文案约定） */
+    fun shortName(v: Int): String = when (v) {
+        WALLPAPER -> "壁纸"
+        CUSTOM -> "自定义"
+        else -> "固定"
+    }
 }

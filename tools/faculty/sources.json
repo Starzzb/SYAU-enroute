@@ -1,0 +1,1008 @@
+{
+  "generatedAt": "2026-11-14T20:24:15+0800",
+  "note": "候选链接只来自各站首页导航，未做任何猜测",
+  "colleges": [
+    {
+      "code": "nxy",
+      "name": "农学院",
+      "home": "http://nxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 37062,
+      "stack": [
+        "VSB站群"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://nxy.syau.edu.cn/xygk1/xyjj.htm"
+        },
+        {
+          "text": "科研团队",
+          "url": "https://nxy.syau.edu.cn/kygz1/kytd.htm"
+        },
+        {
+          "text": "师资队伍 |",
+          "url": "https://nxy.syau.edu.cn/szdw1.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:23:52+0800",
+      "finalUrl": "https://nxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "zbxy",
+      "name": "植物保护学院",
+      "home": "http://zbxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 34479,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://zbxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "学科师资",
+          "url": "https://zbxy.syau.edu.cn/xkjs/xkjs.htm"
+        },
+        {
+          "text": "师资力量",
+          "url": "https://zbxy.syau.edu.cn/xkjs/szll.htm"
+        },
+        {
+          "text": "杰出人才",
+          "url": "https://zbxy.syau.edu.cn/xkjs/jcrc1.htm"
+        },
+        {
+          "text": "栾军波教授荣获2026年全国五一劳动奖...",
+          "url": "https://mp.weixin.qq.com/s/rPsejS9RBCb3wz_dduiaOQ"
+        },
+        {
+          "text": "我院两位教师获评沈阳农业大学本科教...",
+          "url": "https://zbxy.syau.edu.cn/info/1057/5816.htm"
+        },
+        {
+          "text": "沈阳农业大学重大农业入侵害虫治理团队科...",
+          "url": "https://zbxy.syau.edu.cn/info/1058/5735.htm"
+        },
+        {
+          "text": "我院两位教师获评沈阳农业大学本科教学名师",
+          "url": "https://zbxy.syau.edu.cn/info/1036/5815.htm"
+        },
+        {
+          "text": "【学术成果】杨雪清教授团队揭示害虫行...",
+          "url": "https://zbxy.syau.edu.cn/info/1028/5806.htm"
+        },
+        {
+          "text": "【学术成果】栾军波团队在PNAS杂志发文...",
+          "url": "https://zbxy.syau.edu.cn/info/1028/5788.htm"
+        },
+        {
+          "text": "【学术成果】李玉婷/杨雪清教授团队在害...",
+          "url": "https://zbxy.syau.edu.cn/info/1028/5784.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:23:53+0800",
+      "finalUrl": "https://zbxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "yyxy",
+      "name": "园艺学院",
+      "home": "http://yyxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 37395,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://yyxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://yyxy.syau.edu.cn/xkjs/szdw.htm"
+        },
+        {
+          "text": "导师队伍",
+          "url": "https://yyxy.syau.edu.cn/yjsjy1/dsdw.htm"
+        },
+        {
+          "text": "关于开展2026年沈阳市人才自主认定申报...",
+          "url": "https://rcb.syau.edu.cn/info/1026/3120.htm"
+        },
+        {
+          "text": "关于加强外聘教师管理的通知",
+          "url": "https://rsc.syau.edu.cn/info/1102/3971.htm"
+        },
+        {
+          "text": "关于开展2026年度沈阳农业大学优秀教师...",
+          "url": "https://rsc.syau.edu.cn/info/1102/3969.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:23:54+0800",
+      "finalUrl": "https://yyxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "thxy",
+      "name": "土地与环境学院",
+      "home": "http://thxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 51796,
+      "stack": [
+        "VSB站群"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://thxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://thxy.syau.edu.cn/szdw/bssds.htm"
+        },
+        {
+          "text": "教师系列",
+          "url": "https://thxy.syau.edu.cn/szdw/jsxl/zgjzc.htm"
+        },
+        {
+          "text": "学科人才",
+          "url": "https://thxy.syau.edu.cn/xkjs/xkrc.htm"
+        },
+        {
+          "text": "学术团队",
+          "url": "https://thxy.syau.edu.cn/xkjs/xstd.htm"
+        },
+        {
+          "text": "科研团队",
+          "url": "https://thxy.syau.edu.cn/kxyj1/kytd.htm"
+        },
+        {
+          "text": "教学队伍",
+          "url": "https://thxy.syau.edu.cn/jxpy/jxdw.htm"
+        },
+        {
+          "text": "人才办",
+          "url": "https://rcb.syau.edu.cn/"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:23:55+0800",
+      "finalUrl": "https://thxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "jgxy",
+      "name": "经济管理学院",
+      "home": "http://jgxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 106980,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://jgxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://jgxy.syau.edu.cn/szdw/nljjglzy.htm"
+        },
+        {
+          "text": "人才项目",
+          "url": "https://jgxy.syau.edu.cn/szdw/rcxm.htm"
+        },
+        {
+          "text": "博士生导师",
+          "url": "https://jgxy.syau.edu.cn/szdw/bssds.htm"
+        },
+        {
+          "text": "农经学硕导师",
+          "url": "https://jgxy.syau.edu.cn/szdw/njxsds.htm"
+        },
+        {
+          "text": "教经学硕导师",
+          "url": "https://jgxy.syau.edu.cn/szdw/jjxsds.htm"
+        },
+        {
+          "text": "农业管理专硕导师",
+          "url": "https://jgxy.syau.edu.cn/szdw/nyglzsds.htm"
+        },
+        {
+          "text": "会计专硕导师",
+          "url": "https://jgxy.syau.edu.cn/szdw/hjzsds.htm"
+        },
+        {
+          "text": "工商管理专硕导师",
+          "url": "https://jgxy.syau.edu.cn/szdw/gsglzsds.htm"
+        },
+        {
+          "text": "人才培养",
+          "url": "https://jgxy.syau.edu.cn/rcpy/yjsxm.htm"
+        },
+        {
+          "text": "导师制度",
+          "url": "https://jgxy.syau.edu.cn/rcpy/dszd.htm"
+        },
+        {
+          "text": "南京林业大学杨红强教授在天柱山经管论坛...",
+          "url": "https://jgxy.syau.edu.cn/info/1176/6487.htm"
+        },
+        {
+          "text": "学院成功举办2026年研究生导师专题培训会",
+          "url": "https://jgxy.syau.edu.cn/info/1176/6407.htm"
+        },
+        {
+          "text": "经济管理学院2026年教师教学创...",
+          "url": "https://jgxy.syau.edu.cn/info/1175/6431.htm"
+        },
+        {
+          "text": "北京第二外国语学院唐承财教授...",
+          "url": "https://jgxy.syau.edu.cn/info/1168/6488.htm"
+        },
+        {
+          "text": "南京林业大学杨红强教授在天柱...",
+          "url": "https://jgxy.syau.edu.cn/info/1168/6469.htm"
+        },
+        {
+          "text": "南京林业大学杨红强教授在天柱...",
+          "url": "https://jgxy.syau.edu.cn/info/1291/6470.htm"
+        },
+        {
+          "text": "德国哥廷根大学于晓华教授在天...",
+          "url": "https://jgxy.syau.edu.cn/info/1291/6451.htm"
+        },
+        {
+          "text": "新西兰林肯大学马旺林教授在天...",
+          "url": "https://jgxy.syau.edu.cn/info/1291/6448.htm"
+        },
+        {
+          "text": "新西兰林肯大学马旺林教授在天...",
+          "url": "https://jgxy.syau.edu.cn/info/1291/6445.htm"
+        },
+        {
+          "text": "中国人民大学郑风田教授在天柱...",
+          "url": "https://jgxy.syau.edu.cn/info/1291/6294.htm"
+        },
+        {
+          "text": "天津城建大学张跃胜教授在天柱...",
+          "url": "https://jgxy.syau.edu.cn/info/1291/6041.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:23:57+0800",
+      "finalUrl": "https://jgxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "myxy",
+      "name": "动物科学与医学学院",
+      "home": "http://myxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 65823,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://myxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://myxy.syau.edu.cn/szdw.htm"
+        },
+        {
+          "text": "高层次人才",
+          "url": "https://myxy.syau.edu.cn/szdw/gccrc.htm"
+        },
+        {
+          "text": "教授",
+          "url": "https://myxy.syau.edu.cn/szdw/js.htm"
+        },
+        {
+          "text": "副教授",
+          "url": "https://myxy.syau.edu.cn/szdw/fjs.htm"
+        },
+        {
+          "text": "校外博士生导师",
+          "url": "https://myxy.syau.edu.cn/szdw/xwbssds.htm"
+        },
+        {
+          "text": "校外硕士生导师",
+          "url": "https://myxy.syau.edu.cn/szdw/xwsssds.htm"
+        },
+        {
+          "text": "思政队伍",
+          "url": "https://myxy.syau.edu.cn/szdw/szdw1.htm"
+        },
+        {
+          "text": "荣休教授",
+          "url": "https://myxy.syau.edu.cn/szdw/rxjs.htm"
+        },
+        {
+          "text": "导师招生",
+          "url": "https://myxy.syau.edu.cn/yjsjy/dszs.htm"
+        },
+        {
+          "text": "创新团队",
+          "url": "https://myxy.syau.edu.cn/xsky/cxtd.htm"
+        },
+        {
+          "text": "中心简介",
+          "url": "https://myxy.syau.edu.cn/dwzx/zxjj.htm"
+        },
+        {
+          "text": "我院4位教师入选爱思唯尔全球前2%顶尖",
+          "url": "https://myxy.syau.edu.cn/info/1193/6731.htm"
+        },
+        {
+          "text": "肉鸡团队协办2026辽宁省家禽产业高质量",
+          "url": "https://myxy.syau.edu.cn/info/1193/6728.htm"
+        },
+        {
+          "text": "教职工之窗",
+          "url": "https://myxy.syau.edu.cn/index/jzgzc.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:23:58+0800",
+      "finalUrl": "https://myxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "lin",
+      "name": "林学院",
+      "home": "http://lin.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 39928,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://lin.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://lin.syau.edu.cn/szdw.htm"
+        },
+        {
+          "text": "专业教师",
+          "url": "https://lin.syau.edu.cn/szdw/zyjs.htm"
+        },
+        {
+          "text": "兼职导师",
+          "url": "https://lin.syau.edu.cn/szdw/jzds.htm"
+        },
+        {
+          "text": "曾任师资",
+          "url": "https://lin.syau.edu.cn/szdw/crsz.htm"
+        },
+        {
+          "text": "人才培养",
+          "url": "https://lin.syau.edu.cn/rcpy.htm"
+        },
+        {
+          "text": "学术团队",
+          "url": "https://lin.syau.edu.cn/kxyj/xstd.htm"
+        },
+        {
+          "text": "董胜君教授团队在全国科技小院大赛中斩...",
+          "url": "https://lin.syau.edu.cn/info/1003/5676.htm"
+        },
+        {
+          "text": "我院教师在第二届全国智慧课程设计大赛中荣获佳绩",
+          "url": "https://lin.syau.edu.cn/info/1004/6422.htm"
+        },
+        {
+          "text": "林学院学术团队简介 2026 04-22",
+          "url": "https://lin.syau.edu.cn/info/1005/3301.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:23:59+0800",
+      "finalUrl": "https://lin.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "gcxy",
+      "name": "工程学院",
+      "home": "http://gcxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 48795,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "领导团队",
+          "url": "https://gcxy.syau.edu.cn/xygk/ldtd.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://gcxy.syau.edu.cn/szdw1/xxmj.htm"
+        },
+        {
+          "text": "教授目录",
+          "url": "https://gcxy.syau.edu.cn/szdw1/jsml.htm"
+        },
+        {
+          "text": "人才培养",
+          "url": "https://gcxy.syau.edu.cn/info/1260/2168.htm"
+        },
+        {
+          "text": "科研团队",
+          "url": "https://gcxy.syau.edu.cn/kxyj1/kytd.htm"
+        },
+        {
+          "text": "特色林果业（绿肥）机械装备团队",
+          "url": "https://gcxy.syau.edu.cn/info/1182/3043.htm"
+        },
+        {
+          "text": "水稻种植机械化技术及智能装备研究团队",
+          "url": "https://gcxy.syau.edu.cn/info/1182/3044.htm"
+        },
+        {
+          "text": "秸秆综合利用技术与智能装备团队",
+          "url": "https://gcxy.syau.edu.cn/info/1182/3045.htm"
+        },
+        {
+          "text": "北方农业废弃物就地生态处理与资源化利用团队",
+          "url": "https://gcxy.syau.edu.cn/info/1182/3046.htm"
+        },
+        {
+          "text": "生物质热解产物高值化利用团队",
+          "url": "https://gcxy.syau.edu.cn/info/1182/3047.htm"
+        },
+        {
+          "text": "花生收获与加工处理技术及装备科研团队",
+          "url": "https://gcxy.syau.edu.cn/info/1182/3048.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:01+0800",
+      "finalUrl": "https://gcxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "xdxy",
+      "name": "信息与电气工程学院",
+      "home": "http://xdxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 31091,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://xdxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://xdxy.syau.edu.cn/szdw.htm"
+        },
+        {
+          "text": "人才称号",
+          "url": "https://xdxy.syau.edu.cn/szdw/rcch.htm"
+        },
+        {
+          "text": "学科&amp;学位点简介",
+          "url": "https://xdxy.syau.edu.cn/xkjs/xk_xwdjian_jie.htm"
+        },
+        {
+          "text": "科研团队",
+          "url": "https://xdxy.syau.edu.cn/kxyj/kytd.htm"
+        },
+        {
+          "text": "导师名录",
+          "url": "https://xdxy.syau.edu.cn/yjspy/dsml1.htm"
+        },
+        {
+          "text": "我校校友、美国阿肯色大学李延斌教授，...",
+          "url": "https://xdxy.syau.edu.cn/info/1053/3773.htm"
+        },
+        {
+          "text": "· 电气工程及其自动化专业人才培养方案",
+          "url": "https://xdxy.syau.edu.cn/info/1030/1970.htm"
+        },
+        {
+          "text": "· 辽宁省普通高等学校教师党支部规范化建",
+          "url": "https://xdxy.syau.edu.cn/info/1096/1814.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:02+0800",
+      "finalUrl": "https://xdxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "slxy",
+      "name": "水利学院",
+      "home": "http://slxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 51820,
+      "stack": [
+        "VSB站群",
+        "含AJAX",
+        "含iframe"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://slxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "科研团队",
+          "url": "https://slxy.syau.edu.cn/xkyky/kytd.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://slxy.syau.edu.cn/szdw2.htm"
+        },
+        {
+          "text": "高层次人才",
+          "url": "https://slxy.syau.edu.cn/szdw2/gccrc.htm"
+        },
+        {
+          "text": "教授",
+          "url": "https://slxy.syau.edu.cn/szdw2/js.htm"
+        },
+        {
+          "text": "副教授",
+          "url": "https://slxy.syau.edu.cn/szdw2/fjs.htm"
+        },
+        {
+          "text": "实验教师",
+          "url": "https://slxy.syau.edu.cn/szdw2/syjs.htm"
+        },
+        {
+          "text": "校外导师",
+          "url": "https://slxy.syau.edu.cn/szdw2/xwds.htm"
+        },
+        {
+          "text": "历任教师",
+          "url": "https://slxy.syau.edu.cn/szdw2/lrjs.htm"
+        },
+        {
+          "text": "荣休教师",
+          "url": "https://slxy.syau.edu.cn/szdw2/rxjs.htm"
+        },
+        {
+          "text": "学院获2026年“振兴杯”教职工羽毛球赛第四",
+          "url": "https://slxy.syau.edu.cn/info/1217/8449.htm"
+        },
+        {
+          "text": "关于2026年第二季度教师思想政治和师德师风",
+          "url": "https://rsc.syau.edu.cn/info/1102/3921.htm"
+        },
+        {
+          "text": "关于2026年第一季度教师思想政治和师德师风",
+          "url": "https://rsc.syau.edu.cn/info/1102/3905.htm"
+        },
+        {
+          "text": "我院举办第十届全国水利类专业青年教师讲课",
+          "url": "https://slxy.syau.edu.cn/info/1217/8366.htm"
+        },
+        {
+          "text": "水利学院承担辽宁省基层水利人才定向培养任",
+          "url": "https://slxy.syau.edu.cn/info/1217/8344.htm"
+        },
+        {
+          "text": "内蒙古农业大学李仙岳教授来院作学术报告",
+          "url": "https://slxy.syau.edu.cn/info/1220/8395.htm"
+        },
+        {
+          "text": "中国科学院大学张喜英教授来院作学术报告",
+          "url": "https://slxy.syau.edu.cn/info/1220/8352.htm"
+        },
+        {
+          "text": "大连理工大学康飞教授来院作学术报告",
+          "url": "https://slxy.syau.edu.cn/info/1220/8287.htm"
+        },
+        {
+          "text": "中国水利水电科学研究院许迪教授来学院作学",
+          "url": "https://slxy.syau.edu.cn/info/1220/8288.htm"
+        },
+        {
+          "text": "我院邀请万海斌教授、姜文来研究员做学术报",
+          "url": "https://slxy.syau.edu.cn/info/1220/8093.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:03+0800",
+      "finalUrl": "https://slxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "spxy",
+      "name": "食品学院",
+      "home": "http://spxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 48390,
+      "stack": [
+        "VSB站群"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://spxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "学科简介",
+          "url": "https://spxy.syau.edu.cn/xkjs/xkjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://spxy.syau.edu.cn/szdw.htm"
+        },
+        {
+          "text": "专业师资",
+          "url": "https://spxy.syau.edu.cn/szdw/zysz.htm"
+        },
+        {
+          "text": "创新人才",
+          "url": "https://spxy.syau.edu.cn/szdw/cxrc.htm"
+        },
+        {
+          "text": "导师风采",
+          "url": "https://spxy.syau.edu.cn/szdw/dsfc.htm"
+        },
+        {
+          "text": "教授名录",
+          "url": "https://spxy.syau.edu.cn/szdw/jsml1.htm"
+        },
+        {
+          "text": "荣休教授",
+          "url": "https://spxy.syau.edu.cn/szdw/rxjs.htm"
+        },
+        {
+          "text": "人才培养",
+          "url": "https://spxy.syau.edu.cn/rcpy1.htm"
+        },
+        {
+          "text": "学术团队",
+          "url": "https://spxy.syau.edu.cn/kxyj1/xstd1.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:04+0800",
+      "finalUrl": "https://spxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "swxy",
+      "name": "生物科学技术学院",
+      "home": "http://swxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 35932,
+      "stack": [
+        "VSB站群",
+        "含AJAX",
+        "含iframe"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://swxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资概况",
+          "url": "https://swxy.syau.edu.cn/szdw/szgk.htm"
+        },
+        {
+          "text": "优秀人才",
+          "url": "https://swxy.syau.edu.cn/szdw/yxrc.htm"
+        },
+        {
+          "text": "在职教师",
+          "url": "https://swxy.syau.edu.cn/szdw/zzjs.htm"
+        },
+        {
+          "text": "荣休教授",
+          "url": "https://swxy.syau.edu.cn/szdw/rxjs1.htm"
+        },
+        {
+          "text": "导师队伍",
+          "url": "https://swxy.syau.edu.cn/yjs/dsdw.htm"
+        },
+        {
+          "text": "学术团队",
+          "url": "https://swxy.syau.edu.cn/xkjs/xstd.htm"
+        },
+        {
+          "text": "【我和我的专业】生物科学 曲波教授",
+          "url": "https://mp.weixin.qq.com/s/eABdrvSvN-bOtfWuqYGhWA"
+        },
+        {
+          "text": "【我和我的专业】生物技术 郭志富教授",
+          "url": "https://mp.weixin.qq.com/s/rCVpRaTF_wIYe0uuGiE1Ow"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://swxy.syau.edu.cn/szdw.htm"
+        },
+        {
+          "text": ">> 晏磊教授应邀来院作学术报告",
+          "url": "https://swxy.syau.edu.cn/info/1055/6081.htm"
+        },
+        {
+          "text": ">> 西南大学代方银教授来校作学术报告",
+          "url": "https://swxy.syau.edu.cn/info/1055/6071.htm"
+        },
+        {
+          "text": "关于骆世洪教授专利转让公示",
+          "url": "https://swxy.syau.edu.cn/info/1056/6011.htm"
+        },
+        {
+          "text": ">> 加拿大新布伦瑞克大学曲洋副教授与我院师生",
+          "url": "https://swxy.syau.edu.cn/info/1057/6007.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:06+0800",
+      "finalUrl": "https://swxy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "marx",
+      "name": "马克思主义学院",
+      "home": "https://marx.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 24280,
+      "stack": [
+        "VSB站群"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://marx.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资力量",
+          "url": "https://marx.syau.edu.cn/szll/sxddyfzjys.htm"
+        },
+        {
+          "text": "科研团队",
+          "url": "https://marx.syau.edu.cn/xsky/kytd.htm"
+        },
+        {
+          "text": "学科简介",
+          "url": "https://marx.syau.edu.cn/xkjs/xkjj.htm"
+        },
+        {
+          "text": "导师简介",
+          "url": "https://marx.syau.edu.cn/xkjs/dsjj.htm"
+        },
+        {
+          "text": "关于沈阳农业大学招聘思政课教师的通知",
+          "url": "https://marx.syau.edu.cn/info/1152/3805.htm"
+        },
+        {
+          "text": "我院黄家慧副教授获评沈阳农业大学本科...",
+          "url": "https://marx.syau.edu.cn/info/1130/4062.htm"
+        },
+        {
+          "text": "我院教师在第十五届辽宁省高校思政课教...",
+          "url": "https://marx.syau.edu.cn/info/1130/4053.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:07+0800",
+      "finalUrl": "https://marx.syau.edu.cn/",
+      "contentType": "text/html"
+    },
+    {
+      "code": "jxjy",
+      "name": "继续教育学院",
+      "home": "http://jxjy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 56849,
+      "stack": [
+        "VSB站群"
+      ],
+      "candidates": [
+        {
+          "text": "&nbsp;学院简介&nbsp;",
+          "url": "https://jxjy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "&nbsp;简介&nbsp;",
+          "url": "https://jxjy.syau.edu.cn/xljy/jj.htm"
+        },
+        {
+          "text": "&nbsp;专业简介&nbsp;",
+          "url": "https://jxjy.syau.edu.cn/xljy/zyjj.htm"
+        },
+        {
+          "text": "继续教育学院组织全体教职工参观沈...",
+          "url": "https://jxjy.syau.edu.cn/info/1052/3043.htm"
+        },
+        {
+          "text": "我院组织教职工观看九三阅兵盛况",
+          "url": "https://jxjy.syau.edu.cn/info/1007/3049.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:08+0800",
+      "finalUrl": "https://jxjy.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "gjjlc",
+      "name": "国际教育学院(国际交流处)",
+      "home": "http://gjjlc.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 41201,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "我校特聘教授汉斯·兰伯斯院士荣获辽宁省友...",
+          "url": "https://gjjlc.syau.edu.cn/info/1004/2803.htm"
+        },
+        {
+          "text": "我校实现国家留学基金委国际人才培养项目...",
+          "url": "https://gjjlc.syau.edu.cn/info/1004/2794.htm"
+        },
+        {
+          "text": "2026年创新型人才国际合作培养项目第三...",
+          "url": "https://gjjlc.syau.edu.cn/info/1005/2844.htm"
+        },
+        {
+          "text": "2026年创新型人才国际合作培养项目第一...",
+          "url": "https://gjjlc.syau.edu.cn/info/1005/2804.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:09+0800",
+      "finalUrl": "https://gjjlc.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "lxy",
+      "name": "理学院",
+      "home": "http://lxy.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 39072,
+      "stack": [
+        "VSB站群",
+        "generator=ASPCMS! V2",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "学院简介",
+          "url": "https://lxy.syau.edu.cn/xygk/xyjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://lxy.syau.edu.cn/szdw1.htm"
+        },
+        {
+          "text": "教授",
+          "url": "https://lxy.syau.edu.cn/szdw1/js.htm"
+        },
+        {
+          "text": "副教授",
+          "url": "https://lxy.syau.edu.cn/szdw1/fjs.htm"
+        },
+        {
+          "text": "我院举办教师教学创新大赛 2026-10-12",
+          "url": "https://lxy.syau.edu.cn/info/1013/2553.htm"
+        },
+        {
+          "text": "我院举办教师教学创新大赛",
+          "url": "https://lxy.syau.edu.cn/info/1105/2554.htm"
+        },
+        {
+          "text": "我院与园艺学院开展通专融合人才培养交流",
+          "url": "https://lxy.syau.edu.cn/info/1105/2540.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:11+0800",
+      "finalUrl": "https://lxy.syau.edu.cn/index.jsp",
+      "contentType": "text/html;charset=UTF-8"
+    },
+    {
+      "code": "tyb",
+      "name": "体育教学部",
+      "home": "http://tyb.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 33509,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "单位简介",
+          "url": "https://tyb.syau.edu.cn/bmgk/dwjj.htm"
+        },
+        {
+          "text": "教师队伍",
+          "url": "https://tyb.syau.edu.cn/bmgk/jsdw.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:12+0800",
+      "finalUrl": "https://tyb.syau.edu.cn/index.htm",
+      "contentType": "text/html"
+    },
+    {
+      "code": "wyb",
+      "name": "外语教学部",
+      "home": "https://wyb.syau.edu.cn/",
+      "reachable": true,
+      "status": 200,
+      "error": null,
+      "bytes": 22676,
+      "stack": [
+        "VSB站群",
+        "含AJAX"
+      ],
+      "candidates": [
+        {
+          "text": "部门简介",
+          "url": "https://wyb.syau.edu.cn/bmgk/bmjj.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://wyb.syau.edu.cn/szdw.htm"
+        },
+        {
+          "text": "师资队伍",
+          "url": "https://wyb.syau.edu.cn/szdw/szdw.htm"
+        },
+        {
+          "text": "我部教师代表前往北京参加大学英语…",
+          "url": "https://wyb.syau.edu.cn/info/1106/4510.htm"
+        },
+        {
+          "text": "10/10 我部召开全体教师工作部署大会",
+          "url": "https://wyb.syau.edu.cn/info/1040/4954.htm"
+        }
+      ],
+      "fetchedAt": "2026-11-14T20:24:13+0800",
+      "finalUrl": "https://wyb.syau.edu.cn/",
+      "contentType": "text/html"
+    }
+  ]
+}

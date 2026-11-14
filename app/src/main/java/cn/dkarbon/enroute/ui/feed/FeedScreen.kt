@@ -57,6 +57,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -75,6 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.feed.FeedItem
 import cn.dkarbon.enroute.data.feed.SourceResult
+import cn.dkarbon.enroute.ui.common.rememberListScrollState
 import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.cardFloat
 import cn.dkarbon.enroute.ui.theme.primaryInk
@@ -109,11 +111,19 @@ fun FeedScreen(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier = Modifier
     val detail by vm.detail.collectAsState()
     BackHandler(enabled = detail.item != null) { vm.closeDetail() }
 
+    // 票 26：详情与列表是 if/else 两个分支，切过去时列表整棵被销毁。
+    // 用 SaveableStateHolder 按「路由」存下两个分支的 saveable 状态（pager 页码 + 列表位置），
+    // 返回时原位恢复；配合 FeedPage 里的 rememberListScrollState 才完整。
+    val routeStates = rememberSaveableStateHolder()
     val d = detail.item
     if (d != null) {
-        FeedDetailView(detail = detail, vm = vm, onBack = { vm.closeDetail() })
+        routeStates.SaveableStateProvider("feed:detail") {
+            FeedDetailView(detail = detail, vm = vm, onBack = { vm.closeDetail() })
+        }
     } else {
-        FeedListView(ui = ui, vm = vm, modifier = modifier)
+        routeStates.SaveableStateProvider("feed:list") {
+            FeedListView(ui = ui, vm = vm, modifier = modifier)
+        }
     }
 }
 
@@ -247,6 +257,8 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
                         onLongClick = { quickItem = it },
                         onToggleGroup = vm::toggleGroup,
                         onLoadMore = { vm.loadMore(cat) },
+                        // 筛选签名：换筛选/搜索/密度就回顶部（新内容），只换频道不回顶部（同级回退）
+                        resetKey = "${ui.query}|${ui.onlyUnread}|${ui.starredOnly}|${ui.compactByChannel[cat]}",
                     )
                 }
             }
@@ -738,9 +750,11 @@ private fun FeedPage(
     onLongClick: (FeedItem) -> Unit,
     onToggleGroup: (String) -> Unit,
     onLoadMore: () -> Unit,
+    resetKey: String,
 ) {
     val t = InkTokens.current
-    val listState = rememberLazyListState()
+    // 票 26：saveable + 频道页 key，进详情返回原位；换筛选由 resetKey 触发回顶部
+    val listState = rememberListScrollState(resetKey)
 
     // 分页触发（评审 B13）：对**索引值**响应而非布尔边沿，
     // 「还有更多」纳入判定 —— 到底不空调，短列表全可见首帧后即触发

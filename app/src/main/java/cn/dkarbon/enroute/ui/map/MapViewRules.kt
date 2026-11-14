@@ -141,6 +141,81 @@ internal object MapViewRules {
      */
     fun panAfterZoomAt(anchor: Float, pan: Float, k: Float): Float = anchor - (anchor - pan) * k
 
+    // ── 双击锚定缩放（票 23 ①）──────────────────────────────
+    //
+    // 主人原话：「放大默认还是中心放大」。双击以前就是 `zoom *= 2` —— 以**画布中心**为不动点，
+    // 手指点哪儿完全没参与计算，所以看起来永远朝中间涨。
+    // 现在与捏合同一个模型：以**点击点**为不动点，`panAfterZoomAt` 保证那一点下的内容不动。
+
+    /** 一次「缩放 + 平移」的结果（纯值，方便单测） */
+    data class ZoomPan(val zoom: Float, val panX: Float, val panY: Float)
+
+    /**
+     * 双击放大：以 ([tapX], [tapY]) 为不动点放大 [factor] 倍。
+     *
+     * @param tapX/tapY 点击点在**画布坐标系**里的位置（左上角为 0）
+     * @param canvasW/canvasH 画布尺寸（`pan` 与变换都以画布中心为原点，所以要减半）
+     */
+    fun doubleTapZoom(
+        zoom: Float,
+        panX: Float,
+        panY: Float,
+        tapX: Float,
+        tapY: Float,
+        canvasW: Float,
+        canvasH: Float,
+        factor: Float = 2f,
+    ): ZoomPan {
+        val newZoom = (zoom * factor).coerceIn(MIN_ZOOM, MAX_ZOOM)
+        val k = newZoom / zoom
+        val ax = tapX - canvasW / 2f
+        val ay = tapY - canvasH / 2f
+        return ZoomPan(newZoom, panAfterZoomAt(ax, panX, k), panAfterZoomAt(ay, panY, k))
+    }
+
+    // ── 惯性甩动（票 23 ②）──────────────────────────────────
+    //
+    // 主人原话：「松手就停，别扭」。这里只做**线性减速 + 边界阻尼**，不做弹簧物理：
+    //   · 每帧乘 [FLING_FRICTION_PER_FRAME]（0.85），等价于连续衰减 `0.85^(dt/16.67ms)`；
+    //   · 速度低于 [FLING_MIN_SPEED_DP_S] 直接不滑 —— 否则轻推会变成「漂移」；
+    //   · 最多滑 [FLING_MAX_MS]，到点必停（票面要求 1.2 秒内停住）；
+    //   · 越界时用 [applyOverdrag] 施阻尼（会自己回弹，见 `snapBack`）。
+
+    /** 低于这个速度（dp/s）不启动惯性 —— 轻推就停，不漂移 */
+    const val FLING_MIN_SPEED_DP_S = 100f
+
+    /** 惯性最长时长（ms）—— 票面要求 1.2 秒内必须停住 */
+    const val FLING_MAX_MS = 1200L
+
+    /** 每帧速度衰减（≈60fps 下的摩擦系数） */
+    const val FLING_FRICTION_PER_FRAME = 0.85f
+
+    /** 60fps 一帧的毫秒数（连续衰减换算用） */
+    const val FRAME_MS = 16.6667f
+
+    /**
+     * 一帧（[dtMs] 毫秒）之后速度剩多少。
+     *
+     * 用连续形式（`0.85^(dt/16.67)`）而不是「每帧死乘 0.85」：
+     * 掉帧时滑行距离才不会突然变短，手感才稳。
+     */
+    fun flingDecay(dtMs: Float): Float {
+        if (dtMs <= 0f) return 1f
+        return java.lang.Math.pow(FLING_FRICTION_PER_FRAME.toDouble(), (dtMs / FRAME_MS).toDouble()).toFloat()
+    }
+
+    /** 够不够快、值得滑一段（不满足就直接停） */
+    fun shouldFling(speedPxPerSec: Float, minPxPerSec: Float): Boolean =
+        speedPxPerSec.isFinite() && speedPxPerSec >= minPxPerSec
+
+    /**
+     * 一帧位移并施边界阻尼。
+     *
+     * @return 新 pan；越界部分按 [OVERDRAG_DECAY] 衰减（松手后 `snapBack` 会带回边界）
+     */
+    fun flingStep(pan: Float, velocityPxPerSec: Float, dtMs: Float, limit: Float): Float =
+        applyOverdrag(pan + velocityPxPerSec * dtMs / 1000f, limit)
+
     /**
      * 矢量层上色：`要素 color` → `层 fill` → 按 `colorGroup` 兜底。
      *

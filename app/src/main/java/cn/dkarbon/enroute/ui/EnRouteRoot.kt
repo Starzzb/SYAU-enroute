@@ -35,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +69,9 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
 
     val feedVm: FeedViewModel = viewModel()
     val feedUi by feedVm.ui.collectAsStateWithLifecycle()
+
+    // 票 26：按 tab 存 saveable 状态（滚动位置等），同级切换可原地恢复
+    val routeStates = rememberSaveableStateHolder()
 
     // 回到前台：资讯距上次成功刷新 >30 分钟 → 静默刷新；顺带跨天重算日期基准
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
@@ -129,10 +133,14 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
                 .padding(inner)
                 .consumeWindowInsets(inner),
         ) {
-            when (tab) {
-                0 -> TimetableScreen(ui = ui, vm = vm)
-                1 -> FeedScreen(ui = feedUi, vm = feedVm)
-                else -> UserScreen(ui = ui, vm = vm)
+            // 票 26：三个 tab 是同级路由 —— 切走再回来要停在原处（资讯滚到第 30 条 → 去课表 → 回资讯），
+            // 所以每个 tab 的 saveable 状态按 tab 名存一份。只存 Bundle，杀进程不恢复。
+            routeStates.SaveableStateProvider("tab:$tab") {
+                when (tab) {
+                    0 -> TimetableScreen(ui = ui, vm = vm)
+                    1 -> FeedScreen(ui = feedUi, vm = feedVm)
+                    else -> UserScreen(ui = ui, vm = vm)
+                }
             }
 
             // 课程大纲浮层（票 10）：课表详情 / 培养方案课程行 / 大纲搜索页三处入口共用，

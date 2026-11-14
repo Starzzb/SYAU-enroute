@@ -192,55 +192,18 @@ internal fun ContributeSection(ui: AppState) {
     }
 
     // ── 首次开启：把「传什么/不传什么」摆到眼前 ──
+    // ── 首次开启：把「传什么/不传什么」摆到眼前 ──
+    // 票 23：抽成 [MapContributeConsentDialog]，地图页的「参与共建」用**同一个**弹窗 ——
+    // 隐私决策点的说明必须就地给（AGENTS.md 例外条款），而且两个入口必须看到同一段话。
     if (confirmEnable) {
-        AlertDialog(
-            onDismissRequest = { confirmEnable = false },
-            title = { Text("开启「参与共建」？", fontSize = 15.sp) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Text(
-                        "开启后，你在地图里填的属性可以手动上报到学校的补丁服务，" +
-                            "审核通过后其他同学也能看到。默认不会自动上传。",
-                        fontSize = 12.sp,
-                        lineHeight = 18.sp,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text("会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    Text(
-                        "· 地块编号（如 f19）\n· 字段名（如 层数）\n· 你填的值\n· 本地随机串（用于限流与归并，可重置）\n" +
-                            "· 机型与系统版本（如 vivo V2301A / Android 16）\n" +
-                            "· 应用级设备标识（Android ID；重置身份后即更换）",
-                        fontSize = 11.sp,
-                        lineHeight = 17.sp,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text("不会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    Text(
-                        "· 姓名、学号、手机号\n" +
-                            "· 定位、通讯录、相册、任何文件\n" +
-                            "· 课表、成绩、登录凭据",
-                        fontSize = 11.sp,
-                        lineHeight = 17.sp,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        "随时可以在设置里关掉；关掉后一个字节都不会上传。",
-                        fontSize = 10.5.sp,
-                        color = InkTokens.current.inkFaint,
-                    )
-                }
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmEnable = false
-                    enabled = true
-                    uploader.setEnabled(true)
-                    uploader.setAcknowledged(true)
-                    status = "已开启：上传要你自己点「立即上传」"
-                }) { Text("我了解，开启", fontSize = 13.sp) }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmEnable = false }) { Text("先不开", fontSize = 13.sp) }
+        MapContributeConsentDialog(
+            onDismiss = { confirmEnable = false },
+            onConfirm = {
+                confirmEnable = false
+                enabled = true
+                uploader.setEnabled(true)
+                uploader.setAcknowledged(true)
+                status = "已开启：上传要你自己点「立即上传」"
             },
         )
     }
@@ -333,4 +296,63 @@ private fun SmallPill(
             color = if (enabled) t.ink else t.inkFaint,
         )
     }
+}
+
+
+/**
+ * 「参与共建」的开启确认弹窗（票 23）。
+ *
+ * 为什么单独抽出来：隐私决策点的说明必须**就地**给（AGENTS.md 的例外条款），
+ * 而入口有两个 —— 设置页的开关、地图页的「参与共建」按钮。两处必须看到**同一段话**，
+ * 否则会出现「一个入口讲清楚了、另一个入口糊里糊涂」。文案只在这里维护一份。
+ */
+@Composable
+internal fun MapContributeConsentDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("开启「参与共建」？", fontSize = 15.sp) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                Text(
+                    "开启后，你在地图里填的属性可以手动上报到学校的补丁服务，" +
+                        "审核通过后其他同学也能看到。默认不会自动上传。",
+                    fontSize = 12.sp,
+                    lineHeight = 18.sp,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text("会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    "· 地块编号（如 f19）\n· 字段名（如 层数）\n· 你填的值\n· 本地随机串（用于限流与归并，可重置）\n" +
+                        "· 机型与系统版本（如 vivo V2301A / Android 16）\n" +
+                        "· 应用级设备标识（Android ID；重置身份后即更换）",
+                    fontSize = 11.sp,
+                    lineHeight = 17.sp,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text("不会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
+                Text(
+                    "· 姓名、学号、手机号\n" +
+                        "· 定位、通讯录、相册、任何文件\n" +
+                        "· 课表、成绩、登录凭据",
+                    fontSize = 11.sp,
+                    lineHeight = 17.sp,
+                )
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "随时可以在设置里关掉；关掉后一个字节都不会上传。",
+                    fontSize = 10.5.sp,
+                    color = InkTokens.current.inkFaint,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) { Text("我了解，开启", fontSize = 13.sp) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("先不开", fontSize = 13.sp) }
+        },
+    )
 }

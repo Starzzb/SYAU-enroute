@@ -1,0 +1,1558 @@
+{
+  "generatedAt": "2026-11-14T20:25:37+0800",
+  "colleges": [
+    {
+      "code": "nxy",
+      "name": "农学院",
+      "lists": [
+        {
+          "url": "https://nxy.syau.edu.cn/szdw1.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 57231,
+          "vsb": true,
+          "itemLinks": 116,
+          "nameLinks": 116,
+          "samples": [
+            {
+              "text": "学院简介",
+              "url": "https://nxy.syau.edu.cn/xygk1/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院领导",
+              "url": "https://nxy.syau.edu.cn/xygk1/xyld.htm",
+              "nameLike": true
+            },
+            {
+              "text": "院委员会",
+              "url": "https://nxy.syau.edu.cn/xygk1/ywyh1.htm",
+              "nameLike": true
+            },
+            {
+              "text": "规章制度",
+              "url": "https://nxy.syau.edu.cn/list.jsp?urltype=tree.TreeTempUrl&wbtreeid=1421",
+              "nameLike": true
+            },
+            {
+              "text": "培养方案",
+              "url": "https://nxy.syau.edu.cn/jxgz1/pyfa.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": false,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://nxy.syau.edu.cn/info/1392/6907.htm",
+            "fromCache": false,
+            "bytes": 23712,
+            "fields": {
+              "院系/系所": [
+                "教研室",
+                "单位"
+              ],
+              "研究方向": [
+                "研究领域"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "陈温福-沈阳农业大学农学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "zbxy",
+      "name": "植物保护学院",
+      "lists": [
+        {
+          "url": "https://zbxy.syau.edu.cn/xkjs/szll.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 24849,
+          "vsb": true,
+          "itemLinks": 44,
+          "nameLinks": 37,
+          "samples": [
+            {
+              "text": "网站首页",
+              "url": "https://zbxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://zbxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://zbxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "院史沿革",
+              "url": "https://zbxy.syau.edu.cn/xygk/ysyg/ysjj1.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://zbxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 72
+          },
+          "detail": {
+            "url": "https://zbxy.syau.edu.cn/info/1124/1808.htm",
+            "fromCache": false,
+            "bytes": 25781,
+            "fields": {
+              "职称": [
+                "教授",
+                "副教授",
+                "讲师"
+              ],
+              "办公地点": [
+                "办公地点",
+                "地点"
+              ],
+              "工作邮箱": [
+                "邮箱",
+                "Email"
+              ],
+              "教育经历": [
+                "教育经历"
+              ],
+              "工作经历": [
+                "工作经历"
+              ],
+              "照片": [
+                "<img"
+              ],
+              "个人主页/简介": [
+                "个人简介"
+              ]
+            },
+            "title": "方红教授-沈阳农业大学植物保护学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "yyxy",
+      "name": "园艺学院",
+      "lists": [
+        {
+          "url": "https://yyxy.syau.edu.cn/xkjs/szdw.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 39947,
+          "vsb": true,
+          "itemLinks": 31,
+          "nameLinks": 31,
+          "samples": [
+            {
+              "text": "学校主页",
+              "url": "https://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "学院首页",
+              "url": "https://yyxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://yyxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://yyxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "组织机构",
+              "url": "https://yyxy.syau.edu.cn/xygk/zzjg.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": false,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://www.syau.edu.cn",
+            "fromCache": false,
+            "bytes": 80897,
+            "fields": {
+              "办公地点": [
+                "办公室"
+              ],
+              "工作邮箱": [
+                "电子邮箱",
+                "邮箱"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "沈阳农业大学"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "thxy",
+      "name": "土地与环境学院",
+      "lists": [
+        {
+          "url": "https://thxy.syau.edu.cn/szdw/jsxl/zgjzc.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 22739,
+          "vsb": true,
+          "itemLinks": 50,
+          "nameLinks": 50,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://thxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://thxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://thxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            },
+            {
+              "text": "机构设置",
+              "url": "https://thxy.syau.edu.cn/xygk/jgsz1.htm",
+              "nameLike": true
+            },
+            {
+              "text": "历任领导",
+              "url": "https://thxy.syau.edu.cn/xygk/lrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://thxy.syau.edu.cn/info/1611/4929.htm",
+            "fromCache": false,
+            "bytes": 30486,
+            "fields": {
+              "职称": [
+                "职称",
+                "教授",
+                "副教授"
+              ],
+              "职务": [
+                "院长",
+                "副主任"
+              ],
+              "工作邮箱": [
+                "E-mail"
+              ],
+              "工作经历": [
+                "工作经历"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "汪景宽-土地与环境学院"
+          }
+        },
+        {
+          "url": "https://thxy.syau.edu.cn/szdw/bssds.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 18333,
+          "vsb": true,
+          "itemLinks": 42,
+          "nameLinks": 39,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://thxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://thxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://thxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            },
+            {
+              "text": "机构设置",
+              "url": "https://thxy.syau.edu.cn/xygk/jgsz1.htm",
+              "nameLike": true
+            },
+            {
+              "text": "历任领导",
+              "url": "https://thxy.syau.edu.cn/xygk/lrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://thxy.syau.edu.cn/info/1543/3981.htm",
+            "fromCache": false,
+            "bytes": 26485,
+            "fields": {
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "博士生导师-土地与环境学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "jgxy",
+      "name": "经济管理学院",
+      "lists": [
+        {
+          "url": "https://jgxy.syau.edu.cn/szdw/nljjglzy.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 41846,
+          "vsb": true,
+          "itemLinks": 63,
+          "nameLinks": 63,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://jgxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院要闻",
+              "url": "https://jgxy.syau.edu.cn/index/xyyw.htm",
+              "nameLike": true
+            },
+            {
+              "text": "通知公告",
+              "url": "https://jgxy.syau.edu.cn/index/tzgg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "经管快讯",
+              "url": "https://jgxy.syau.edu.cn/index/jgkx.htm",
+              "nameLike": true
+            },
+            {
+              "text": "报告讲座",
+              "url": "https://jgxy.syau.edu.cn/index/bgjz/xssl.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": false,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://jgxy.syau.edu.cn/info/1271/5651.htm",
+            "fromCache": false,
+            "bytes": 29454,
+            "fields": {
+              "职称": [
+                "教授"
+              ],
+              "职务": [
+                "院长"
+              ],
+              "研究方向": [
+                "研究方向"
+              ],
+              "办公地点": [
+                "办公地点",
+                "地点"
+              ],
+              "工作邮箱": [
+                "电子邮箱",
+                "邮箱"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "王振华-经济管理学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "myxy",
+      "name": "动物科学与医学学院",
+      "lists": [
+        {
+          "url": "https://myxy.syau.edu.cn/szdw/js.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 27926,
+          "vsb": true,
+          "itemLinks": 68,
+          "nameLinks": 65,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://myxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://myxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://myxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "历史沿革",
+              "url": "https://myxy.syau.edu.cn/xygk/lsyg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://myxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 30
+          },
+          "detail": {
+            "url": "https://myxy.syau.edu.cn/info/1170/4113.htm",
+            "fromCache": false,
+            "bytes": 25872,
+            "fields": {
+              "职称": [
+                "教授",
+                "副教授",
+                "讲师"
+              ],
+              "院系/系所": [
+                "单位"
+              ],
+              "研究方向": [
+                "研究方向"
+              ],
+              "工作邮箱": [
+                "邮箱"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "张树义-动物科学与医学学院"
+          }
+        },
+        {
+          "url": "https://myxy.syau.edu.cn/szdw/fjs.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 27924,
+          "vsb": true,
+          "itemLinks": 68,
+          "nameLinks": 65,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://myxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://myxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://myxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "历史沿革",
+              "url": "https://myxy.syau.edu.cn/xygk/lsyg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://myxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 28
+          },
+          "detail": {
+            "url": "https://myxy.syau.edu.cn/info/1228/4136.htm",
+            "fromCache": false,
+            "bytes": 27530,
+            "fields": {
+              "职称": [
+                "教授",
+                "副教授",
+                "讲师"
+              ],
+              "院系/系所": [
+                "单位"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "王建民-动物科学与医学学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "lin",
+      "name": "林学院",
+      "lists": [
+        {
+          "url": "https://lin.syau.edu.cn/szdw/zyjs.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 26210,
+          "vsb": true,
+          "itemLinks": 62,
+          "nameLinks": 62,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://lin.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://lin.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://lin.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "历史沿革",
+              "url": "https://lin.syau.edu.cn/xygk/lsyg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "党政班子",
+              "url": "https://lin.syau.edu.cn/xygk/dzbz.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 65
+          },
+          "detail": {
+            "url": "https://lin.syau.edu.cn/info/1032/2661.htm",
+            "fromCache": false,
+            "bytes": 31858,
+            "fields": {
+              "职称": [
+                "教授"
+              ],
+              "职务": [
+                "副主任"
+              ],
+              "研究方向": [
+                "研究方向"
+              ],
+              "教育经历": [
+                "教育经历"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "陆秀君-沈农·林学院"
+          }
+        },
+        {
+          "url": "https://lin.syau.edu.cn/szdw/jzds.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 26091,
+          "vsb": true,
+          "itemLinks": 62,
+          "nameLinks": 50,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://lin.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://lin.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://lin.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "历史沿革",
+              "url": "https://lin.syau.edu.cn/xygk/lsyg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "党政班子",
+              "url": "https://lin.syau.edu.cn/xygk/dzbz.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 36
+          },
+          "detail": {
+            "url": "https://lin.syau.edu.cn/info/1037/2231.htm",
+            "fromCache": false,
+            "bytes": 26273,
+            "fields": {
+              "职称": [
+                "教授"
+              ],
+              "职务": [
+                "院长",
+                "系主任",
+                "副主任"
+              ],
+              "研究方向": [
+                "研究方向"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "殷杉*-沈农·林学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "gcxy",
+      "name": "工程学院",
+      "lists": [
+        {
+          "url": "https://gcxy.syau.edu.cn/szdw1/jsml.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 31871,
+          "vsb": true,
+          "itemLinks": 31,
+          "nameLinks": 31,
+          "samples": [
+            {
+              "text": "网站首页",
+              "url": "https://gcxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://gcxy.syau.edu.cn/xygk/xyjs.htm",
+              "nameLike": true
+            },
+            {
+              "text": "领导团队",
+              "url": "https://gcxy.syau.edu.cn/xygk/ldtd.htm",
+              "nameLike": true
+            },
+            {
+              "text": "组织框架",
+              "url": "https://gcxy.syau.edu.cn/xygk/zzkj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "党群工作",
+              "url": "https://gcxy.syau.edu.cn/dqgz/zzjg1.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 17
+          },
+          "detail": {
+            "url": "https://gcxy.syau.edu.cn/info/1260/2168.htm",
+            "fromCache": false,
+            "bytes": 14034,
+            "fields": {
+              "职称": [
+                "教授"
+              ],
+              "院系/系所": [
+                "单位"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "专业设置   -工程学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "xdxy",
+      "name": "信息与电气工程学院",
+      "lists": [
+        {
+          "url": "https://xdxy.syau.edu.cn/szdw.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 21412,
+          "vsb": true,
+          "itemLinks": 105,
+          "nameLinks": 105,
+          "samples": [
+            {
+              "text": "联系我们",
+              "url": "https://xdxy.syau.edu.cn/xygk/xzbg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学校首页",
+              "url": "https://www.syau.edu.cn/",
+              "nameLike": true
+            },
+            {
+              "text": "网站首页",
+              "url": "https://xdxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://xdxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://xdxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": false,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://xdxy.syau.edu.cn/info/1008/2524.htm",
+            "fromCache": false,
+            "bytes": 37238,
+            "fields": {
+              "职称": [
+                "职称",
+                "教授"
+              ],
+              "职务": [
+                "院长",
+                "副主任"
+              ],
+              "研究方向": [
+                "研究方向"
+              ],
+              "办公地点": [
+                "办公室"
+              ],
+              "工作邮箱": [
+                "Email"
+              ],
+              "照片": [
+                "<img",
+                "照片"
+              ],
+              "个人主页/简介": [
+                "个人简介"
+              ]
+            },
+            "title": "王俊-信息与电气工程学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "slxy",
+      "name": "水利学院",
+      "lists": [
+        {
+          "url": "https://slxy.syau.edu.cn/szdw2/js.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 18635,
+          "vsb": true,
+          "itemLinks": 58,
+          "nameLinks": 58,
+          "samples": [
+            {
+              "text": "学校首页",
+              "url": "http://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "学院首页",
+              "url": "https://slxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://slxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://slxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            },
+            {
+              "text": "机构设置",
+              "url": "https://slxy.syau.edu.cn/xygk/jgsz.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 19
+          },
+          "detail": {
+            "url": "https://slxy.syau.edu.cn/info/1241/5280.htm",
+            "fromCache": false,
+            "bytes": 23556,
+            "fields": {
+              "职称": [
+                "职称",
+                "教授",
+                "副教授"
+              ],
+              "职务": [
+                "职务",
+                "院长",
+                "副主任"
+              ],
+              "院系/系所": [
+                "单位"
+              ],
+              "研究方向": [
+                "研究领域"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "迟道才-水利学院"
+          }
+        },
+        {
+          "url": "https://slxy.syau.edu.cn/szdw2/fjs.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 18695,
+          "vsb": true,
+          "itemLinks": 59,
+          "nameLinks": 59,
+          "samples": [
+            {
+              "text": "学校首页",
+              "url": "http://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "学院首页",
+              "url": "https://slxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://slxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://slxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            },
+            {
+              "text": "机构设置",
+              "url": "https://slxy.syau.edu.cn/xygk/jgsz.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 24
+          },
+          "detail": {
+            "url": "https://slxy.syau.edu.cn/info/1241/5248.htm",
+            "fromCache": false,
+            "bytes": 18553,
+            "fields": {
+              "职称": [
+                "职称",
+                "教授",
+                "副教授"
+              ],
+              "院系/系所": [
+                "单位"
+              ],
+              "研究方向": [
+                "研究领域"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "杨丽萍-水利学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "spxy",
+      "name": "食品学院",
+      "lists": [
+        {
+          "url": "https://spxy.syau.edu.cn/szdw/jsml1.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 19885,
+          "vsb": true,
+          "itemLinks": 56,
+          "nameLinks": 43,
+          "samples": [
+            {
+              "text": "学院首页",
+              "url": "https://spxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://spxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://spxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "组织机构",
+              "url": "https://spxy.syau.edu.cn/xygk/zzjg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://spxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://spxy.syau.edu.cn/info/1206/1911.htm",
+            "fromCache": false,
+            "bytes": 21914,
+            "fields": {
+              "职称": [
+                "教授"
+              ],
+              "办公地点": [
+                "办公室"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "李斌教授-沈阳农业大学食品学院"
+          }
+        },
+        {
+          "url": "https://spxy.syau.edu.cn/szdw/dsfc.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 18034,
+          "vsb": true,
+          "itemLinks": 43,
+          "nameLinks": 37,
+          "samples": [
+            {
+              "text": "学院首页",
+              "url": "https://spxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://spxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://spxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "组织机构",
+              "url": "https://spxy.syau.edu.cn/xygk/zzjg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://spxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://spxy.syau.edu.cn/info/1112/2821.htm",
+            "fromCache": false,
+            "bytes": 86146,
+            "fields": {
+              "职称": [
+                "教授",
+                "副教授",
+                "讲师"
+              ],
+              "办公地点": [
+                "办公室"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "学术型硕士生导师（校内）-沈阳农业大学食品学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "swxy",
+      "name": "生物科学技术学院",
+      "lists": [
+        {
+          "url": "https://swxy.syau.edu.cn/szdw/zzjs.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 24771,
+          "vsb": true,
+          "itemLinks": 130,
+          "nameLinks": 129,
+          "samples": [
+            {
+              "text": "联系我们",
+              "url": "https://swxy.syau.edu.cn/xygk/lxwm.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学校主页",
+              "url": "http://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "首页",
+              "url": "https://swxy.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://swxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "组织机构",
+              "url": "https://swxy.syau.edu.cn/xygk/zzjg.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": false,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://swxy.syau.edu.cn/info/1020/1198.htm",
+            "fromCache": false,
+            "bytes": 24478,
+            "fields": {
+              "职称": [
+                "教授",
+                "副教授",
+                "讲师"
+              ],
+              "研究方向": [
+                "研究方向",
+                "研究领域",
+                "主要研究"
+              ],
+              "办公地点": [
+                "办公室"
+              ],
+              "工作邮箱": [
+                "E-mail"
+              ],
+              "教育经历": [
+                "学习经历"
+              ],
+              "工作经历": [
+                "工作经历"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "曲波-生物科学技术学院"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "marx",
+      "name": "马克思主义学院",
+      "lists": [
+        {
+          "url": "https://marx.syau.edu.cn/szll/sxddyfzjys.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 12856,
+          "vsb": true,
+          "itemLinks": 21,
+          "nameLinks": 21,
+          "samples": [
+            {
+              "text": "首页",
+              "url": "https://marx.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://marx.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院领导",
+              "url": "https://marx.syau.edu.cn/xygk/xyld.htm",
+              "nameLike": true
+            },
+            {
+              "text": "组织机构",
+              "url": "https://marx.syau.edu.cn/xygk/zzjg.htm",
+              "nameLike": true
+            },
+            {
+              "text": "师资力量",
+              "url": "https://marx.syau.edu.cn/szll/sxddyfzjys.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": false,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://marx.syau.edu.cn/index.htm",
+            "fromCache": false,
+            "bytes": 24280,
+            "fields": {
+              "职称": [
+                "教授",
+                "副教授"
+              ],
+              "院系/系所": [
+                "教研室"
+              ],
+              "办公地点": [
+                "办公室"
+              ],
+              "工作邮箱": [
+                "邮箱"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": ""
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "jxjy",
+      "name": "继续教育学院",
+      "lists": [],
+      "note": "首页导航里没有师资/教师入口（继续教育/国际教育这类非教学主体，可能真没有）"
+    },
+    {
+      "code": "gjjlc",
+      "name": "国际教育学院(国际交流处)",
+      "lists": [],
+      "note": "首页导航里没有师资/教师入口（继续教育/国际教育这类非教学主体，可能真没有）"
+    },
+    {
+      "code": "lxy",
+      "name": "理学院",
+      "lists": [
+        {
+          "url": "https://lxy.syau.edu.cn/szdw1/js.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 14808,
+          "vsb": true,
+          "itemLinks": 31,
+          "nameLinks": 31,
+          "samples": [
+            {
+              "text": "学校主页",
+              "url": "https://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "网站首页",
+              "url": "https://lxy.syau.edu.cn/index.jsp",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://lxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://lxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://lxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://lxy.syau.edu.cn/info/1025/1289.htm",
+            "fromCache": false,
+            "bytes": 13436,
+            "fields": {
+              "职称": [
+                "教授",
+                "副教授"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "张阚-沈阳农业大学理学院"
+          }
+        },
+        {
+          "url": "https://lxy.syau.edu.cn/szdw1/fjs.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 12963,
+          "vsb": true,
+          "itemLinks": 24,
+          "nameLinks": 24,
+          "samples": [
+            {
+              "text": "学校主页",
+              "url": "https://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "网站首页",
+              "url": "https://lxy.syau.edu.cn/index.jsp",
+              "nameLike": true
+            },
+            {
+              "text": "学院概况",
+              "url": "https://lxy.syau.edu.cn/xygk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "学院简介",
+              "url": "https://lxy.syau.edu.cn/xygk/xyjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://lxy.syau.edu.cn/xygk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://www.syau.edu.cn",
+            "fromCache": false,
+            "bytes": 80897,
+            "fields": {
+              "办公地点": [
+                "办公室"
+              ],
+              "工作邮箱": [
+                "电子邮箱",
+                "邮箱"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "沈阳农业大学"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "tyb",
+      "name": "体育教学部",
+      "lists": [
+        {
+          "url": "https://tyb.syau.edu.cn/bmgk/jsdw.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 21900,
+          "vsb": true,
+          "itemLinks": 24,
+          "nameLinks": 24,
+          "samples": [
+            {
+              "text": "农大首页",
+              "url": "http://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "首页",
+              "url": "https://tyb.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "部门概况",
+              "url": "https://tyb.syau.edu.cn/bmgk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "单位简介",
+              "url": "https://tyb.syau.edu.cn/bmgk/dwjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "教师队伍",
+              "url": "https://tyb.syau.edu.cn/bmgk/jsdw.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": true,
+            "totalText": 29
+          },
+          "detail": {
+            "url": "http://www.syau.edu.cn",
+            "fromCache": false,
+            "bytes": 80897,
+            "fields": {
+              "办公地点": [
+                "办公室"
+              ],
+              "工作邮箱": [
+                "电子邮箱",
+                "邮箱"
+              ],
+              "照片": [
+                "<img"
+              ]
+            },
+            "title": "沈阳农业大学"
+          }
+        }
+      ],
+      "note": null
+    },
+    {
+      "code": "wyb",
+      "name": "外语教学部",
+      "lists": [
+        {
+          "url": "https://wyb.syau.edu.cn/szdw/szdw.htm",
+          "ok": true,
+          "error": null,
+          "fromCache": false,
+          "bytes": 18651,
+          "vsb": true,
+          "itemLinks": 67,
+          "nameLinks": 67,
+          "samples": [
+            {
+              "text": "学校首页",
+              "url": "http://www.syau.edu.cn",
+              "nameLike": true
+            },
+            {
+              "text": "网站首页",
+              "url": "https://wyb.syau.edu.cn/index.htm",
+              "nameLike": true
+            },
+            {
+              "text": "部门概况",
+              "url": "https://wyb.syau.edu.cn/bmgk.htm",
+              "nameLike": true
+            },
+            {
+              "text": "部门简介",
+              "url": "https://wyb.syau.edu.cn/bmgk/bmjj.htm",
+              "nameLike": true
+            },
+            {
+              "text": "现任领导",
+              "url": "https://wyb.syau.edu.cn/bmgk/xrld.htm",
+              "nameLike": true
+            }
+          ],
+          "paginate": {
+            "createPageHTML": null,
+            "pageLinks": 0,
+            "next": false,
+            "totalText": null
+          },
+          "detail": {
+            "url": "https://wyb.syau.edu.cn/info/1094/4588.htm",
+            "fromCache": false,
+            "bytes": 15346,
+            "fields": {
+              "职称": [
+                "教授"
+              ],
+              "研究方向": [
+                "研究方向"
+              ],
+              "照片": [
+                "<img",
+                "照片"
+              ]
+            },
+            "title": ""
+          }
+        }
+      ],
+      "note": null
+    }
+  ]
+}

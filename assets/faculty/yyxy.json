@@ -1,0 +1,57 @@
+{
+ "schema": 1,
+ "college": "园艺学院",
+ "code": "yyxy",
+ "mode": "C",
+ "generatedAt": "2026-11-14T21:00:00+08:00",
+ "count": 3,
+ "withTitle": 1,
+ "withEmail": 0,
+ "withResearch": 0,
+ "withPhoto": 0,
+ "problems": [],
+ "teachers": [
+  {
+   "name": "国家二级",
+   "title": "教授",
+   "duty": "",
+   "dept": "",
+   "research": "",
+   "office": "",
+   "email": "",
+   "education": "",
+   "work": "",
+   "photo": "",
+   "source": "https://yyxy.syau.edu.cn/xkjs/szdw.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "name": "张志宏",
+   "title": "",
+   "duty": "",
+   "dept": "",
+   "research": "",
+   "office": "",
+   "email": "",
+   "education": "",
+   "work": "",
+   "photo": "",
+   "source": "https://yyxy.syau.edu.cn/xkjs/szdw.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "name": "李天来",
+   "title": "",
+   "duty": "",
+   "dept": "",
+   "research": "",
+   "office": "",
+   "email": "",
+   "education": "",
+   "work": "",
+   "photo": "",
+   "source": "https://yyxy.syau.edu.cn/xkjs/szdw.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  }
+ ]
+}

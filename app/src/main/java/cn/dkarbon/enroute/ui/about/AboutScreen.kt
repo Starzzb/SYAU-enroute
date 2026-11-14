@@ -34,6 +34,7 @@ import cn.dkarbon.enroute.BuildConfig
 import cn.dkarbon.enroute.R
 import cn.dkarbon.enroute.ui.home.CardGap
 import cn.dkarbon.enroute.ui.home.SectionLabel
+import cn.dkarbon.enroute.ui.settings.UpdateSection
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
@@ -91,6 +92,24 @@ fun AboutScreen() {
                 color = t.inkFaint,
             )
         }
+
+        // ── 版本（票 26 ②：版本号 / commit 短码 / 构建日期三样必须在这一页看得到）──
+        CardGap()
+        SectionLabel("版本")
+        AboutCard {
+            KvRow("版本号", BuildConfig.VERSION_NAME)
+            Line()
+            KvRow("构建号", "${BuildConfig.VERSION_CODE}")
+            Line()
+            KvRow("commit", BuildConfig.GIT_COMMIT.takeIf { it.isNotBlank() }?.take(7) ?: "—")
+            Line()
+            KvRow("构建日期", BuildConfig.BUILD_TIME.takeIf { it.isNotBlank() } ?: "—")
+        }
+
+        // ── 更新（复用设置页那个自带状态机的区块：查 → 下载 → 校验 → 交系统安装器）──
+        CardGap()
+        SectionLabel("更新")
+        UpdateSection()
 
         // ── GitHub ──
         CardGap()

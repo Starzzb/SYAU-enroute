@@ -177,15 +177,32 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         session: UrpClient.Session,
         from: LocalDate = LocalDate.now().minusDays(100),
         to: LocalDate = LocalDate.now().plusDays(150),
-    ): List<ExamItem> {
+    ): List<ExamItem> = fetchExamsOrNull(session, from, to).orEmpty()
+
+    /**
+     * 与 [fetchExams] 完全同一条链路，但**区分「真没有考试」和「没拿到」**（票 24）。
+     *
+     * 为什么非要多这一支：缓存分层要靠「这次抓成功了吗」决定**要不要覆盖旧值**
+     * （断网冷启动绝不能把缓存里的考试抹掉）。而 [fetchExams] 把所有失败都压成
+     * `emptyList()`，从外部看不出区别 —— 那是丢信息。
+     *
+     * @return 服务端答的是数据页 → 列表（可能合法为空，例如本学期还没排考试）；
+     *   请求/解析/会话失效 → `null`（**没拿到，不是「没有」**）
+     */
+    suspend fun fetchExamsOrNull(
+        session: UrpClient.Session,
+        from: LocalDate = LocalDate.now().minusDays(100),
+        to: LocalDate = LocalDate.now().plusDays(150),
+    ): List<ExamItem>? {
         // ⚠️ 必须先 GET 一次考试页，再请求 detail，否则服务端返回
         //    {"status":"203","data":""}（看起来像「没有考试」，其实是没建会话上下文）。
         //    2026-11-11 实测：同一个日期区间，不预热 = 203，预热后 = 4 场考试。
         runCatching { get(EXAM_INDEX, session) }
 
         val path = "$EXAM_DETAIL?start=${from.format(DASH)}&end=${to.format(DASH)}&_=${System.currentTimeMillis()}"
-        val body = runCatching { get(path, session).second }.getOrNull() ?: return emptyList()
-        val el = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return emptyList()
+        val body = runCatching { get(path, session).second }.getOrNull() ?: return null
+        val el = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return null
+        // 「203/空 data」这类响应也是合法 JSON，但解析后没有任何考试条目 —— 那确实是「当前没有考试」
         return parseExams(el)
     }
 
@@ -275,12 +292,19 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
      * 两步走：先取 index 页抠 token，再打 data。**中间不能停顿太久** ——
      * token 跟页面会话绑着，隔太久可能失效，所以两请求紧挨着发。
      */
-    suspend fun fetchScores(session: UrpClient.Session): List<ScoreItem> {
-        val html = runCatching { get(SCORE_INDEX, session).second }.getOrNull() ?: return emptyList()
-        val token = TOKEN_RE.find(html)?.groupValues?.get(1) ?: return emptyList()
+    suspend fun fetchScores(session: UrpClient.Session): List<ScoreItem> =
+        fetchScoresOrNull(session).orEmpty()
+
+    /**
+     * 与 [fetchScores] 同一条链路，但失败返回 `null`（票 24 的「没拿到 ≠ 没有成绩」）。
+     * 理由同 [fetchExamsOrNull]：缓存要不要覆盖，取决于这次是不是真的抓到了。
+     */
+    suspend fun fetchScoresOrNull(session: UrpClient.Session): List<ScoreItem>? {
+        val html = runCatching { get(SCORE_INDEX, session).second }.getOrNull() ?: return null
+        val token = TOKEN_RE.find(html)?.groupValues?.get(1) ?: return null
         val path = "/student/integratedQuery/scoreQuery/$token/allTermScores/data"
-        val body = runCatching { get(path, session).second }.getOrNull() ?: return emptyList()
-        val el = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return emptyList()
+        val body = runCatching { get(path, session).second }.getOrNull() ?: return null
+        val el = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return null
         return parseScores(el)
     }
 

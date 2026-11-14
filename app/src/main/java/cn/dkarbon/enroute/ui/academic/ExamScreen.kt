@@ -39,6 +39,7 @@ import cn.dkarbon.enroute.data.AcademicApi
 import cn.dkarbon.enroute.data.ExamItem
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.TimetableViewModel
+import cn.dkarbon.enroute.ui.common.rememberListScrollState
 import cn.dkarbon.enroute.ui.theme.InkTokenSet
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
@@ -78,6 +79,10 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
     var showRawFirst by remember { mutableStateOf(false) }
     var showDiag by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
+
+    // 票 26：折叠分组不算「换内容」（只是同一批数据的显隐），所以 resetKey 恒定 ——
+    // 从详情浮层返回、或折叠/展开后都停在你刚才那一行。
+    val listState = rememberListScrollState()
 
     val rows = remember(ui.exams, today, stamp, collapsed) {
         ExamRows.build(ui.exams, today, stamp, collapsed)
@@ -123,6 +128,7 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                 AcademicHint(t, "点开看三层详情 · 长按直接看原始 JSON")
                 LazyColumn(
                     Modifier.fillMaxSize(),
+                    state = listState,
                     contentPadding = PaddingValues(start = 12.dp, end = 16.dp, top = 2.dp, bottom = 28.dp),
                 ) {
                     val next = stats.next

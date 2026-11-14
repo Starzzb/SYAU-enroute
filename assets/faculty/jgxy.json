@@ -1,0 +1,93 @@
+{
+ "schema": 1,
+ "college": "经济管理学院",
+ "code": "jgxy",
+ "mode": "A",
+ "generatedAt": "2026-11-14T21:00:00+08:00",
+ "count": 5,
+ "withTitle": 1,
+ "withEmail": 1,
+ "withResearch": 1,
+ "withPhoto": 1,
+ "problems": [
+  "https://jgxy.syau.edu.cn/szdw/nljjglzy.htm Remote end closed connection without response",
+  "https://jgxy.syau.edu.cn/szdw/bssds.htm Remote end closed connection without response",
+  "https://jgxy.syau.edu.cn/szdw/njxsds.htm Remote end closed connection without response",
+  "详情页失败 https://jgxy.syau.edu.cn/info/1331/6173.htm: Remote end closed connection without response",
+  "详情页失败 https://jgxy.syau.edu.cn/info/1331/6175.htm: Remote end closed connection without response",
+  "详情页失败 https://jgxy.syau.edu.cn/info/1331/6172.htm: Remote end closed connection without response",
+  "详情页失败 https://jgxy.syau.edu.cn/info/1331/6176.htm: Remote end closed connection without response"
+ ],
+ "teachers": [
+  {
+   "name": "周密",
+   "title": "",
+   "duty": "",
+   "dept": "",
+   "research": "",
+   "office": "",
+   "email": "",
+   "education": "",
+   "work": "",
+   "photo": "",
+   "source": "https://jgxy.syau.edu.cn/info/1331/6173.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "name": "庄健",
+   "title": "讲师",
+   "duty": "",
+   "dept": "",
+   "research": "为农村土地制度、农村土地利用、农业社会化服务等。主持国家自然科学基金青年科学基金项目（ C 类） 1 项，在 CSSCI 来源期刊发表学术论文 7 篇。",
+   "office": "经济管理学院 324 室",
+   "email": "zhuangjian@syau.edu.cn",
+   "education": "",
+   "work": "",
+   "photo": "../../images/logo.png",
+   "source": "https://jgxy.syau.edu.cn/info/1331/6174.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "name": "张默",
+   "title": "",
+   "duty": "",
+   "dept": "",
+   "research": "",
+   "office": "",
+   "email": "",
+   "education": "",
+   "work": "",
+   "photo": "",
+   "source": "https://jgxy.syau.edu.cn/info/1331/6176.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "name": "王昭国",
+   "title": "",
+   "duty": "",
+   "dept": "",
+   "research": "",
+   "office": "",
+   "email": "",
+   "education": "",
+   "work": "",
+   "photo": "",
+   "source": "https://jgxy.syau.edu.cn/info/1331/6172.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "name": "黄利",
+   "title": "",
+   "duty": "",
+   "dept": "",
+   "research": "",
+   "office": "",
+   "email": "",
+   "education": "",
+   "work": "",
+   "photo": "",
+   "source": "https://jgxy.syau.edu.cn/info/1331/6175.htm",
+   "fetchedAt": "2026-11-14T21:00:00+08:00"
+  }
+ ]
+}

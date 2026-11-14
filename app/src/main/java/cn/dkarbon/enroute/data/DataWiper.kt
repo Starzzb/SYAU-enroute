@@ -97,6 +97,20 @@ object DataWiper {
             done += if (had) "本机保存的学号密码（密文与设备密钥）" else "本机保存的密码（本来就没有）"
         }.onFailure { Log.w("DataWiper", "清凭据失败: ${it.javaClass.simpleName}") }
 
+        // ⑤f 教务数据三档缓存（票 24）：filesDir/academic/cache.json
+        //     身份是「永久档」，只有这里能把它作废 —— 清完再打开就是全新的空缓存，
+        //     下一次登录/联网会重新抓一遍。
+        runCatching {
+            val store = AcademicCacheStore(app)
+            val hadBytes = store.sizeBytes()
+            store.clear()
+            done += if (hadBytes > 0) {
+                "教务缓存（身份/成绩/考试，${hadBytes / 1024}KB）"
+            } else {
+                "教务缓存（本来就空）"
+            }
+        }.onFailure { Log.w("DataWiper", "清教务缓存失败: ${it.message}") }
+
         // ⑥ 调试日志（内存）
         DebugLog.clear()
         done += "调试日志（内存）"

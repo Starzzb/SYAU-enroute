@@ -130,6 +130,12 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             ctx.contentResolver.openOutputStream(uri)?.use { it.write(content.toByteArray(Charsets.UTF_8)) }
         }
     }
+    // ── 参与共建（票 23）：入口就在地图页，不用滚到设置里去翻 ──
+    // 状态来自 `MapContributeStore`（设置页用的是同一个 store，所以两处天然同步）
+    val contributeStore = remember { cn.dkarbon.enroute.data.map.MapContributeStore(ctx.applicationContext) }
+    var contributeOn by remember { mutableStateOf(contributeStore.isEnabled()) }
+    var askContribute by remember { mutableStateOf(false) }
+
     val saveGeo = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/geo+json"),
     ) { uri -> writeTo(uri, ui.mapExportGeoJson) }
@@ -294,6 +300,10 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             // 回弹动画必须跑在普通协程里：`awaitEachGesture` 的受限挂起作用域不能直接调 animate
             val uiScope = androidx.compose.runtime.rememberCoroutineScope()
 
+            /** 轻推门槛：100dp/s 以下直接停，不做「漂移」 */
+            val flingMinPx = with(density) { MapViewRules.FLING_MIN_SPEED_DP_S.dp.toPx() }
+
+
             /** 松手回弹：把越界的那点位移用 200ms 动画夹回边界（**只在所有手指抬起后调用**） */
             fun snapBack() {
                 val (lx, ly) = limitsNow.value
@@ -314,6 +324,38 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 }
             }
 
+            /**
+             * 惯性甩动（票 23 ②）：松手后按速度继续滑、逐帧减速，越界交给 [MapViewRules.applyOverdrag]
+             * 施阻尼，滑完再回弹。**最多** [MapViewRules.FLING_MAX_MS]，到点必停。
+             *
+             * 为什么用 `withFrameNanos` 而不是 `animate`：滑行期间要**每帧**判断是否越界并施阻尼，
+             * 而 `animate` 只会沿一条预设曲线走到底，中途没法改道。
+             */
+            fun startFling(vx: Float, vy: Float) {
+                val speed = kotlin.math.hypot(vx.toDouble(), vy.toDouble()).toFloat()
+                if (!MapViewRules.shouldFling(speed, flingMinPx)) {
+                    snapBack()
+                    return
+                }
+                uiScope.launch {
+                    var velocity = androidx.compose.ui.geometry.Offset(vx, vy)
+                    val startedAt = androidx.compose.runtime.withFrameNanos { it }
+                    var last = startedAt
+                    var elapsedMs = 0L
+                    while (elapsedMs < MapViewRules.FLING_MAX_MS) {
+                        val nowNanos = androidx.compose.runtime.withFrameNanos { it }
+                        val dt = ((nowNanos - last) / 1_000_000f).coerceIn(1f, 40f)
+                        last = nowNanos
+                        elapsedMs = (nowNanos - startedAt) / 1_000_000L
+                        val (lx, ly) = limitsNow.value
+                        velocity *= MapViewRules.flingDecay(dt)
+                        panX = MapViewRules.flingStep(panX, velocity.x, dt, lx)
+                        panY = MapViewRules.flingStep(panY, velocity.y, dt, ly)
+                        if (!MapViewRules.shouldFling(velocity.getDistance(), flingMinPx)) break
+                    }
+                    snapBack()   // 滑完（或到点）统一回弹，越界的那点位移在这里收干净
+                }
+            }
             Column(Modifier.fillMaxWidth()) {
                 // clipToBounds：放大后画面会超出地图块（Canvas 默认不裁剪，会溢到图例上）
                 Box(Modifier.fillMaxWidth().height(mapH).clipToBounds()) {
@@ -325,6 +367,9 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                             .pointerInput(pkg) {
                                 awaitEachGesture {
                                     val down = awaitFirstDown(requireUnconsumed = false)
+                                    // 票 23 ②：取松手速度（只对单指拖动有意义；双指缩放不甩动）
+                                    val tracker = androidx.compose.ui.input.pointer.util.VelocityTracker()
+                                    tracker.addPosition(down.uptimeMillis, down.position)
                                     var lastCentroid = androidx.compose.ui.geometry.Offset.Zero
                                     var lastDistance = 0f
                                     var started = false
@@ -334,6 +379,9 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                                         val event = awaitPointerEvent()
                                         val pressed = event.changes.filter { it.pressed }
                                         if (pressed.size > maxPointers) maxPointers = pressed.size
+                                        if (pressed.size == 1) {
+                                            tracker.addPosition(pressed[0].uptimeMillis, pressed[0].position)
+                                        }
                                         if (pressed.isEmpty()) break      // ← 全部抬起 = 真正的手势结束
                                         // 质心与双指间距（只有一根手指时 distance=0 → 纯平移）
                                         var cx = 0f
@@ -371,7 +419,23 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                                             if (distance > 1f) lastDistance = distance
                                         }
                                     }
-                                    snapBack()                        // ← 只有这里会回弹
+                                    // ── 松手：先看速度，快就甩一段，慢就直接回弹 ──
+                                    val releaseVelocity = if (maxPointers <= 1) {
+                                        runCatching { tracker.calculateVelocity() }.getOrNull()
+                                    } else null
+                                    if (releaseVelocity != null &&
+                                        MapViewRules.shouldFling(
+                                            kotlin.math.hypot(
+                                                releaseVelocity.x.toDouble(),
+                                                releaseVelocity.y.toDouble(),
+                                            ).toFloat(),
+                                            flingMinPx,
+                                        )
+                                    ) {
+                                        startFling(releaseVelocity.x, releaseVelocity.y)
+                                    } else {
+                                        snapBack()
+                                    }
 
                                     // ── 点击 / 双击判定（**绝不在拖动或双击时选中**）──
                                     if (!MapViewRules.isTap(maxPointers, moved, tapSlopPx)) {
@@ -389,21 +453,25 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                                         slopScreen = doubleTapSlopPx,
                                     )
                                     if (isDouble) {
-                                        // 第二下：取消挂起的单击、按点击点放大、**不选中**
+                                        // 第二下：取消挂起的单击、按**点击点**放大、**不选中**
+                                        // （票 23 ①：以前是 `zoom *= 2`，以画布中心为不动点，
+                                        //  所以主人一直觉得「放大还是中心放大」。现在锚点=手指位置，
+                                        //  与捏合缩放同一个模型，公式在 MapViewRules.doubleTapZoom 里，有单测。）
                                         tapPending.value?.cancel()
                                         tapPending.value = null
                                         tapLastAt.longValue = 0L
-                                        val oldZoom = zoom
-                                        val newZoom = (oldZoom * 2f)
-                                            .coerceIn(MapViewRules.MIN_ZOOM, MapViewRules.MAX_ZOOM)
-                                        val k = newZoom / oldZoom
-                                        panX = MapViewRules.panAfterZoomAt(
-                                            down.position.x - cw / 2f, panX, k,
+                                        val zp = MapViewRules.doubleTapZoom(
+                                            zoom = zoom,
+                                            panX = panX,
+                                            panY = panY,
+                                            tapX = down.position.x,
+                                            tapY = down.position.y,
+                                            canvasW = cw,
+                                            canvasH = ch,
                                         )
-                                        panY = MapViewRules.panAfterZoomAt(
-                                            down.position.y - ch / 2f, panY, k,
-                                        )
-                                        zoom = newZoom
+                                        zoom = zp.zoom
+                                        panX = zp.panX
+                                        panY = zp.panY
                                         clampPan()
                                     } else {
                                         // 第一下：记下来，300ms 内没有第二下才真的算单击
@@ -560,6 +628,20 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             }
         }
 
+        // ── 参与共建的确认弹窗（票 23）：与设置页**同一个** composable / 同一份文案 ──
+        if (askContribute) {
+            cn.dkarbon.enroute.ui.settings.MapContributeConsentDialog(
+                onDismiss = { askContribute = false },
+                onConfirm = {
+                    askContribute = false
+                    contributeStore.setEnabled(true)
+                    contributeStore.setAcknowledged(true)
+                    contributeOn = true
+                    android.widget.Toast.makeText(ctx, "已开启参与共建", android.widget.Toast.LENGTH_SHORT).show()
+                },
+            )
+        }
+
         // ── 属性面板（可编辑，票 12 §7）──
         if (selected != null && manifest != null) {
             PropertyPanel(
@@ -584,6 +666,16 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             SmallButton("导出标注") { vm.exportMapAnnotations() }
+            Spacer(Modifier.width(Space.s))
+            // 未开启 → 点开确认弹窗（与设置页同一个 `MapContributeConsentDialog`）
+            // 已开启 → 只显示状态，不再重复解释（AGENTS.md：按钮只留名字 + 状态）
+            SmallButton(if (contributeOn) "参与共建 · 已开" else "参与共建") {
+                if (contributeOn) {
+                    contributeOn = contributeStore.isEnabled()   // 只是回读一下真实状态
+                } else {
+                    askContribute = true
+                }
+            }
             Spacer(Modifier.width(Space.s))
             if (ui.mapExportGeoJson.isNotEmpty()) {
                 SmallButton("另存 GeoJSON") { saveGeo.launch(ui.mapExportGeoName) }

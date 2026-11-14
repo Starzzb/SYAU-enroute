@@ -1,0 +1,181 @@
+{
+ "generatedAt": "2026-11-14T21:00:00+08:00",
+ "results": [
+  {
+   "code": "nxy",
+   "exit": 0,
+   "seconds": 4,
+   "stdout": [
+    "         ! ����ҳʧ�� https://nxy.syau.edu.cn/info/1430/7101.htm: Remote end closed connection without response",
+    "",
+    "�ϼƣ�1 ��ѧԺ��91 ��"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "zbxy",
+   "exit": 2,
+   "seconds": 0,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - ֲ�ﱣ��ѧԺ(zbxy): 0 �� ���� https://zbxy.syau.edu.cn/xkjs/szll.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "xdxy",
+   "exit": 0,
+   "seconds": 26,
+   "stdout": [
+    "         ! ����ҳʧ�� https://xdxy.syau.edu.cn/info/1008/1505.htm: Remote end closed connection without response",
+    "",
+    "�ϼƣ�1 ��ѧԺ��60 ��"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "swxy",
+   "exit": 2,
+   "seconds": 0,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - �����ѧ����ѧԺ(swxy): 0 �� ���� https://swxy.syau.edu.cn/szdw/zzjs.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "jgxy",
+   "exit": 0,
+   "seconds": 2,
+   "stdout": [
+    "         ! https://jgxy.syau.edu.cn/szdw/bssds.htm Remote end closed connection without response",
+    "",
+    "�ϼƣ�1 ��ѧԺ��5 ��"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "myxy",
+   "exit": 0,
+   "seconds": 10,
+   "stdout": [
+    "         ! ����ҳʧ�� https://myxy.syau.edu.cn/info/1170/4107.htm: Remote end closed connection without response",
+    "",
+    "�ϼƣ�1 ��ѧԺ��18 ��"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "lin",
+   "exit": 2,
+   "seconds": 1,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - ��ѧԺ(lin): 0 �� ���� https://lin.syau.edu.cn/szdw/zyjs.htm Remote end closed connection without response; https://lin.syau.edu.cn/szdw/jzds/2.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "slxy",
+   "exit": 0,
+   "seconds": 0,
+   "stdout": [
+    "         ! https://slxy.syau.edu.cn/szdw2/fjs/1.htm Remote end closed connection without response",
+    "",
+    "�ϼƣ�1 ��ѧԺ��39 ��"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "spxy",
+   "exit": 0,
+   "seconds": 7,
+   "stdout": [
+    "         ! ����ҳʧ�� https://spxy.syau.edu.cn/info/1206/2581.htm: Remote end closed connection without response",
+    "",
+    "�ϼƣ�1 ��ѧԺ��18 ��"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "thxy",
+   "exit": 2,
+   "seconds": 1,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - �����뻷��ѧԺ(thxy): 0 �� ���� https://thxy.syau.edu.cn/szdw/jsxl/zgjzc.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "wyb",
+   "exit": 2,
+   "seconds": 0,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - �����ѧ��(wyb): 0 �� ���� https://wyb.syau.edu.cn/szdw/szdw.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "lxy",
+   "exit": 2,
+   "seconds": 0,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - ��ѧԺ(lxy): 0 �� ���� https://lxy.syau.edu.cn/szdw1/js.htm Remote end closed connection without response; https://lxy.syau.edu.cn/szdw1/fjs.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "gcxy",
+   "exit": 2,
+   "seconds": 0,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - ����ѧԺ(gcxy): 0 �� ���� https://gcxy.syau.edu.cn/szdw1/jsml.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "tyb",
+   "exit": 2,
+   "seconds": 0,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - ������ѧ��(tyb): 0 �� ���� https://tyb.syau.edu.cn/bmgk/jsdw.htm Remote end closed connection without response"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "yyxy",
+   "exit": 0,
+   "seconds": 1,
+   "stdout": [
+    "[OK]   ԰��ѧԺ                3 ��  ְ��  1 ����  0 �о�����  0  ����3 ��ʧ0 ���0  (����)",
+    "",
+    "�ϼƣ�1 ��ѧԺ��3 ��"
+   ],
+   "stderr": ""
+  },
+  {
+   "code": "marx",
+   "exit": 2,
+   "seconds": 0,
+   "stdout": [
+    "�ϼƣ�0 ��ѧԺ��0 ��",
+    "ʧ��/�ս����",
+    "  - ����˼����ѧԺ(marx): 0 �� ���� https://marx.syau.edu.cn/szll/sxddyfzjys.htm ������ 0 ����C ģʽ��"
+   ],
+   "stderr": ""
+  }
+ ]
+}

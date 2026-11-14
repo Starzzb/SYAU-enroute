@@ -147,6 +147,119 @@ class MapViewRulesTest {
         assertEquals(37f, MapViewRules.panAfterZoomAt(120f, 37f, 1f), 1e-6f)
     }
 
+    // ── 双击锚定（票 23 ①）──────────────────────────────
+
+    @Test
+    fun `双击放大后点击点下的内容不动`() {
+        // 画布 1000×600；三种位置：中心 / 左上角 / 右下角
+        val cw = 1000f
+        val ch = 600f
+        val cases = listOf(
+            500f to 300f,   // 中心（这一档本来就对）
+            120f to 80f,    // 左上角附近
+            880f to 520f,   // 右下角附近
+        )
+        for ((tapX, tapY) in cases) {
+            for (startZoom in listOf(1f, 2f, 4f)) {
+                val zp = MapViewRules.doubleTapZoom(
+                    zoom = startZoom, panX = 0f, panY = 0f,
+                    tapX = tapX, tapY = tapY, canvasW = cw, canvasH = ch,
+                )
+                val k = zp.zoom / startZoom
+                // 点击点下的那个内容点：它的「基础屏幕坐标」满足 c + 1*(b-c) + pan == tap（pan 初始为 0）
+                val bX = tapX
+                val bY = tapY
+                // 放大后的屏幕坐标必须仍在点击点（误差 < 0.5px，远严于票面 40dp）
+                val afterX = cw / 2f + k * (bX - cw / 2f) + zp.panX
+                val afterY = ch / 2f + k * (bY - ch / 2f) + zp.panY
+                assertEquals("tap($tapX,$tapY) @${startZoom}× 的 x 锚点", tapX, afterX, 0.5f)
+                assertEquals("tap($tapX,$tapY) @${startZoom}× 的 y 锚点", tapY, afterY, 0.5f)
+            }
+        }
+    }
+
+    @Test
+    fun `双击不会超过最大缩放`() {
+        var zoom = 1f
+        var panX = 0f
+        var panY = 0f
+        repeat(8) {
+            val zp = MapViewRules.doubleTapZoom(zoom, panX, panY, 300f, 200f, 1000f, 600f)
+            zoom = zp.zoom; panX = zp.panX; panY = zp.panY
+        }
+        assertEquals(MapViewRules.MAX_ZOOM, zoom, 1e-4f)
+        // 到顶之后再双击是 no-op（k=1），不能继续漂
+        val zp = MapViewRules.doubleTapZoom(zoom, panX, panY, 300f, 200f, 1000f, 600f)
+        assertEquals(zoom, zp.zoom, 1e-4f)
+        assertEquals(panX, zp.panX, 1e-4f)
+    }
+
+    // ── 惯性甩动（票 23 ②）──────────────────────────────
+
+    @Test
+    fun `摩擦衰减按帧率连续换算`() {
+        // 一帧（16.67ms）正好剩 85%
+        assertEquals(0.85f, MapViewRules.flingDecay(MapViewRules.FRAME_MS), 1e-3f)
+        // 两帧 = 0.85²（掉帧时滑行距离不该突然变短）
+        assertEquals(0.7225f, MapViewRules.flingDecay(MapViewRules.FRAME_MS * 2f), 1e-3f)
+        // dt<=0 不衰减
+        assertEquals(1f, MapViewRules.flingDecay(0f), 1e-6f)
+        // 单调递减
+        assertTrue(MapViewRules.flingDecay(20f) < MapViewRules.flingDecay(10f))
+    }
+
+    @Test
+    fun `速度太小不滑行`() {
+        val minPx = 100f
+        assertFalse(MapViewRules.shouldFling(99f, minPx))     // 轻推 → 直接停
+        assertFalse(MapViewRules.shouldFling(0f, minPx))
+        assertTrue(MapViewRules.shouldFling(100f, minPx))     // 边界值要滑
+        assertTrue(MapViewRules.shouldFling(2500f, minPx))
+        assertFalse(MapViewRules.shouldFling(Float.NaN, minPx))
+    }
+
+    @Test
+    fun `滑行位移与速度成正比`() {
+        val limit = 5000f
+        // 1000px/s 走一帧 ≈ 16.67px；2000px/s 走两倍
+        val slow = MapViewRules.flingStep(0f, 1000f, MapViewRules.FRAME_MS, limit)
+        val fast = MapViewRules.flingStep(0f, 2000f, MapViewRules.FRAME_MS, limit)
+        assertEquals(16.6f, slow, 0.2f)
+        assertEquals(slow * 2f, fast, 0.4f)
+    }
+
+    @Test
+    fun `滑到边界施阻尼而不是硬停`() {
+        // 所有中间量都写成命名变量 —— 上一版这里写了一个来源不明的 `600f`，
+        // 它其实隐含了「起点是 0」这个前提，和 `start = 90f` 冲突，
+        // 于是断言与实现静默错位（看起来在测、其实测错了，比没测更糟）。
+        val limit = 100f
+        val start = 90f                 // 已经贴近边界
+        val velocity = 10_000f          // px/s
+        val dtMs = 60f
+        val rawStep = velocity * dtMs / 1000f          // 这一帧想走多远（= 600）
+        val rawLanding = start + rawStep               // 未加阻尼的落点（= 690）
+        val over = rawLanding - limit                  // 越界多少（= 590）
+
+        val panned = MapViewRules.flingStep(start, velocity, dtMs, limit)
+
+        // ① 确实越过了边界（有阻尼位移，不是硬停在 limit）
+        assertTrue("应当越过边界（留一点阻尼位移）：$panned", panned > limit)
+        // ② 落点 = 边界 + 越界部分 × 35%
+        assertEquals(limit + over * MapViewRules.OVERDRAG_DECAY, panned, 1.5f)
+        // ③ 方向性：越界越多，阻尼吃掉的比例越多（阻尼后的越界量必定小于原始越界量）
+        assertTrue(
+            "阻尼后的越界量 ${panned - limit} 应小于原始越界量 $over",
+            panned - limit < over,
+        )
+        // ④ 同一速度但没越界 → 一点不衰减
+        val insideStart = 0f
+        val tinyDt = 1f
+        val insideRaw = insideStart + velocity * tinyDt / 1000f   // = 10
+        assertEquals(insideRaw, MapViewRules.flingStep(insideStart, velocity, tinyDt, limit), 0.2f)
+        assertEquals(10f, insideRaw, 0.2f)                        // 顺手钉住这一档的直觉值
+    }
+
     // ── 点击判定（票 18 复测：双击不许选中）─────────────
 
     @Test

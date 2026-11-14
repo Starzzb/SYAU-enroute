@@ -35,6 +35,7 @@ import cn.dkarbon.enroute.data.AcademicApi
 import cn.dkarbon.enroute.data.ScoreItem
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.TimetableViewModel
+import cn.dkarbon.enroute.ui.common.rememberListScrollState
 import cn.dkarbon.enroute.ui.theme.InkTokenSet
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
@@ -66,6 +67,10 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
     var detail by remember { mutableStateOf<ScoreItem?>(null) }
     var showDiag by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
+
+    // 票 26：「只看不及格」是**换内容**（筛掉了别的课），所以它进 resetKey —— 切换必须回顶部；
+    // 而学期折叠只是显隐，不算换内容，不参与 key。
+    val listState = rememberListScrollState(if (onlyFailed) "failed" else "all")
 
     val shown = remember(ui.scores, onlyFailed) {
         if (onlyFailed) ui.scores.filter { it.failed } else ui.scores
@@ -125,6 +130,7 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
             } else {
                 LazyColumn(
                     Modifier.fillMaxSize(),
+                    state = listState,
                     contentPadding = PaddingValues(top = 2.dp, bottom = 28.dp),
                 ) {
                     items(items = rows, key = { it.rowKey }, contentType = { it.contentType }) { row ->

@@ -104,9 +104,13 @@ class ThemeDynamicTest {
         assertEquals(ColorSource.FIXED, ColorSource.normalize(0))
         assertEquals(ColorSource.WALLPAPER, ColorSource.normalize(1))
         assertEquals(ColorSource.FIXED, ColorSource.normalize(7))
-        assertTrue(ColorSource.isValid(0) && ColorSource.isValid(1))
-        assertFalse(ColorSource.isValid(2))
+        // 票 25 加了第三档 CUSTOM：0/1/2 都合法，表外的才回落
+        assertTrue(ColorSource.isValid(0) && ColorSource.isValid(1) && ColorSource.isValid(2))
+        assertTrue(ColorSource.isValid(ColorSource.CUSTOM))
+        assertFalse(ColorSource.isValid(3))
+        assertEquals(ColorSource.CUSTOM, ColorSource.normalize(2))
         assertEquals("跟随壁纸取色", ColorSource.name(ColorSource.WALLPAPER))
         assertEquals("固定", ColorSource.name(ColorSource.FIXED))
+        assertEquals("自定义配色", ColorSource.name(ColorSource.CUSTOM))
     }
 }
