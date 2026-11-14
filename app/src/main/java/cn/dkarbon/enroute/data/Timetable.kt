@@ -41,7 +41,23 @@ data class Course(
     val room: String = "",
     val credit: Double? = null,
     val raw: String = "",
+    /**
+     * 来源标记（票 19）：空 = 教务排的课；`custom` = 用户自己加的课。
+     *
+     * 网格里要给自定义课画一个「自」角标 —— 用户必须能一眼分清「学校排的」和「自己加的」，
+     * 这跟数据诚实是同一条原则。
+     */
+    val origin: String = "",
+    /** 自定义课程的备注（教务课恒空）。**完整保存，不截断** */
+    val note: String = "",
 ) {
+    companion object {
+        const val ORIGIN_CUSTOM = "custom"
+    }
+
+    /** 是不是用户自己加的课（决定网格里画不画「自」角标） */
+    val isCustom: Boolean get() = origin == ORIGIN_CUSTOM
+
     val weekdayName: String
         get() = when (weekday) {
             1 -> "周一"; 2 -> "周二"; 3 -> "周三"; 4 -> "周四"

@@ -231,6 +231,16 @@ data class AppState(
     val styleSet: Int = 0,
     /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效） */
     val colorSource: Int = 0,
+
+    // ── 自定义课程（票 19）──
+    /** 本机存的自定义课程（只存本机，不上传） */
+    val customCourses: List<cn.dkarbon.enroute.data.custom.CustomCourse> = emptyList(),
+    /** 正在编辑的那门（null = 不在编辑页） */
+    val customEditing: cn.dkarbon.enroute.data.custom.CustomCourse? = null,
+    /** 编辑页是否打开 */
+    val customEditorOpen: Boolean = false,
+    /** 编辑页/列表的一句话提示 */
+    val customMsg: String = "",
     /** 上课提醒总开关（默认开） */
     val remindersEnabled: Boolean = true,
 

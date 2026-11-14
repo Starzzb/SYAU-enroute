@@ -172,29 +172,49 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
 
     val summer = remember { SchoolClock.isSummerTime() }
 
-    // 一格一门课：同一格有多门（冲突）时取第一门，其余进未排课列表提示
-    val cells = remember(tt, week) {
-        val m = mutableMapOf<Pair<Int, Int>, Course>()
-        for (c in tt.courses) {
-            if (c.weekday !in 1..7 || week !in c.weeks) continue
-            for (b in BigSession.ofCourse(c.sections)) m.putIfAbsent(c.weekday to b.index, c)
+    // ── 自定义课程展开（票 19）──────────────────────────────
+    // 规则展开必须知道「第 1 周周一是哪天」：SingleDay 按日期换算周次要用。
+    // 未校准（没设开学日）时不展开单日课 —— 宁可不显示，也不猜一个周次出来。
+    val week1Monday = remember(week, cal.isCalibrated) {
+        if (cal.isCalibrated && week != null) runCatching { cal.mondayOfWeek(1) }.getOrNull() else null
+    }
+    val termCode = tt.term
+    val weekCustom: List<Course> = remember(ui.customCourses, week, week1Monday, termCode) {
+        if (week == null || week1Monday == null) emptyList()
+        else ui.customCourses.flatMap { c ->
+            cn.dkarbon.enroute.data.custom.CustomRules.toCourses(c, week, week1Monday, termCode)
         }
-        m
     }
 
+    // 一格一门课：同一格有多门（冲突）时取第一门，其余进未排课列表提示
+    // 合并规则（票 19）收在 `CustomRules.mergeIntoGrid` 里：教务先占位、自定义绝不覆盖，
+    // 被挤掉的那门进「同格冲突」列表 —— 两门都看得见，且这套规则有单测。
+    val merged = remember(tt, week, weekCustom) {
+        cn.dkarbon.enroute.data.custom.CustomRules.mergeIntoGrid(
+            urp = tt.courses,
+            custom = weekCustom,
+            week = week ?: 0,
+            bigsOf = { sec -> BigSession.ofCourse(sec).map { it.index } },
+        )
+    }
+    val cells = merged.first
+
     // 排不上时间的课 + 同格冲突被挤掉的课：都不能静默丢
-    val unscheduled = remember(tt, week, cells) {
-        val noSlot = tt.courses.filter {
+    val unscheduled = remember(tt, week, cells, weekCustom, merged) {
+        // 被同格挤掉的自定义课（票 19）：必须单列出来，绝不静默丢
+        val bumpedCustom = merged.second
+        val all = tt.courses + weekCustom
+        val noSlot = all.filter {
             it.weeks.isEmpty() || it.weekday !in 1..7 || it.sections.isEmpty()
         }
-        val bumped = tt.courses.filter { c ->
+        val bumped = all.filter { c ->
             c.weekday in 1..7 && week in c.weeks && c.sections.isNotEmpty() &&
                 BigSession.ofCourse(c.sections).any { b ->
                     val owner = cells[c.weekday to b.index]
                     owner != null && owner !== c && owner.courseNo != c.courseNo
                 }
         }
-        (noSlot + bumped).distinct()
+        (noSlot + bumped + bumpedCustom).distinct()
     }
 
     var detail by remember { mutableStateOf<Course?>(null) }
@@ -619,6 +639,12 @@ internal fun GridArea(
                                             onClick = { onCourseClick(course) },
                                             onLongClick = { onCourseLongClick(course) },
                                         )
+                                    }
+                                    // 自定义课标记（票 19 硬规矩 1）：右上角一枚「自」。
+                                    // 画在单元格这一层（不是画在某套卡片里）→ 硬朗/账页两套都自动带上，
+                                    // 也不必去改任何一套卡片的实现。尺寸压到 7sp，不抢课名。
+                                    if (course != null && course.isCustom) {
+                                        SelfMarkBadge(Modifier.align(Alignment.TopEnd))
                                     }
                                 }
                             }
@@ -1332,5 +1358,26 @@ private fun ImportTab(label: String, on: Boolean, onClick: () -> Unit) {
             fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
             color = if (on) (if (t.isDark) androidx.compose.ui.graphics.Color(0xFF100E0B) else Color.White) else t.inkSoft,
         )
+    }
+}
+
+/**
+ * 自定义课的「自」角标（票 19）。
+ *
+ * 为什么做成角标而不是细杠/换色：细杠和配色都被**科目色系**占用了（`Tt.famOf`），
+ * 再借一层视觉语义会打架；「自」一个字最直白 —— 用户要能一眼分清哪门是自己加的。
+ * 尺寸 7sp + 半透明底，只在右上角占一小块，不遮课名。
+ */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.SelfMarkBadge(modifier: Modifier = Modifier) {
+    val t = InkTokens.current
+    Box(
+        modifier
+            .padding(top = 1.dp, end = 1.dp)
+            .background(t.card.copy(alpha = 0.82f))
+            .border(Stroke.hairline, t.outline)
+            .padding(horizontal = 2.dp, vertical = 0.dp),
+    ) {
+        Text("\u81ea", fontSize = 7.sp, lineHeight = 9.sp, color = t.inkSoft, fontWeight = FontWeight.Bold)
     }
 }

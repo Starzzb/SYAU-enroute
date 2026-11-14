@@ -196,6 +196,13 @@ fun CourseDetailOverlay(
                 FactRow("地点", course.room.ifBlank { "未填" })
                 FactRow("教师", course.teacher.ifBlank { "未填" })
                 FactRow("周次", CourseFacts.weeks(course.weeks))
+                // 自定义课（票 19）：来源与备注都要看得见；备注**完整显示不截断**（票面硬规矩 4）
+                if (course.isCustom) {
+                    FactRow("来源", "自己加的课 · 只存本机")
+                    if (course.note.isNotBlank()) {
+                        FactRow("备注", course.note)
+                    }
+                }
                 if (course.courseNo.isNotBlank()) {
                     FactRow("课程号", course.courseNo + " · " + course.seqNo, mono = true)
                 }

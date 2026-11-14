@@ -25,6 +25,7 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:compileDebugKotlin UP-TO-DATE
 > Task :app:javaPreCompileDebug UP-TO-DATE
 > Task :app:compileDebugJavaWithJavac UP-TO-DATE
+> Task :app:bundleDebugClassesToRuntimeJar UP-TO-DATE
 > Task :app:bundleDebugClassesToCompileJar UP-TO-DATE
 > Task :app:compileDebugUnitTestKotlin UP-TO-DATE
 > Task :app:preDebugUnitTestBuild UP-TO-DATE
@@ -32,11 +33,10 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:compileDebugUnitTestJavaWithJavac NO-SOURCE
 > Task :app:processDebugJavaRes UP-TO-DATE
 > Task :app:processDebugUnitTestJavaRes UP-TO-DATE
-> Task :app:bundleDebugClassesToRuntimeJar
+> Task :app:testDebugUnitTest UP-TO-DATE
 > Task :app:buildKotlinToolingMetadata UP-TO-DATE
-> Task :app:testDebugUnitTest
 > Task :app:preReleaseBuild UP-TO-DATE
-> Task :app:generateReleaseBuildConfig UP-TO-DATE
+> Task :app:generateReleaseBuildConfig
 > Task :app:checkReleaseAarMetadata UP-TO-DATE
 > Task :app:generateReleaseResValues UP-TO-DATE
 > Task :app:mapReleaseSourceSetPaths UP-TO-DATE
@@ -65,7 +65,7 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:generateReleaseAssets UP-TO-DATE
 > Task :app:mergeReleaseAssets UP-TO-DATE
 > Task :app:compressReleaseAssets UP-TO-DATE
-> Task :app:extractReleaseVersionControlInfo UP-TO-DATE
+> Task :app:extractReleaseVersionControlInfo
 > Task :app:optimizeReleaseResources UP-TO-DATE
 > Task :app:collectReleaseDependencies UP-TO-DATE
 > Task :app:sdkReleaseDependencyData UP-TO-DATE
@@ -73,12 +73,15 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:writeReleaseAppMetadata UP-TO-DATE
 > Task :app:writeReleaseSigningConfigVersions UP-TO-DATE
 > Task :app:compileReleaseKotlin
-> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:179:33 Condition is always 'true'.
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:183:13 Condition is always 'false'.
+
+> Task :app:compileReleaseJavaWithJavac
 > Task :app:generateReleaseLintVitalReportModel
 > Task :app:mergeReleaseGeneratedProguardFiles UP-TO-DATE
-> Task :app:processReleaseJavaRes UP-TO-DATE
-> Task :app:mergeReleaseJavaResource UP-TO-DATE
+> Task :app:processReleaseJavaRes
 > Task :app:expandReleaseArtProfileWildcards
+> Task :app:mergeReleaseJavaResource
 > Task :app:lintVitalAnalyzeRelease
 > Task :app:minifyReleaseWithR8
 > Task :app:compileReleaseArtProfile
@@ -92,6 +95,6 @@ Warning: Unable to initialize metrics, ensure C:\Users\28759\.android is writabl
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 2m 24s
-72 actionable tasks: 10 executed, 62 up-to-date
+BUILD SUCCESSFUL in 2m 38s
+72 actionable tasks: 13 executed, 59 up-to-date
 EXIT=0 

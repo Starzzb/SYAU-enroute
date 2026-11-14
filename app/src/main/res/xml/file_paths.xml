@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 应用内更新：只把 filesDir/updates/ 这一层暴露给系统安装器
+         （票 15：用 FileProvider 交 Uri，不暴露整个 filesDir） -->
+    <files-path name="updates" path="updates/" />
+</paths>

@@ -41,6 +41,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     private val store = TimetableStore(app)
     private val termCalendar = TermCalendar(app)
     private val sessionStore = SessionStore(app)
+    /** 自定义课程存档（票 19）：与教务数据分文件，重拉课表不影响它 */
+    private val customStore = cn.dkarbon.enroute.data.custom.CustomCourseStore(app)
 
     /** 静默续期凭据（票 14）：本机 Keystore 加密，默认关闭 */
     private val credStore = cn.dkarbon.enroute.data.CredentialStore(app)
@@ -81,8 +83,9 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 // 风格读盘即归一：学院纸本已下线，老用户存量值平滑回落到硬朗农业（票 16）
                 val style = cn.dkarbon.enroute.ui.theme.StyleSet.normalize(prefs.styleSet)
                 val colorSource = cn.dkarbon.enroute.ui.theme.ColorSource.normalize(prefs.colorSource)
+                val custom = customStore.load()
                 val remind = prefs.remindersEnabled
-                Loaded(store.load(), week, theme, style, remind, colorSource)
+                Loaded(store.load(), week, theme, style, remind, colorSource, custom)
             }
             _ui.value = _ui.value.copy(
                 timetable = saved.tt,
@@ -90,6 +93,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 themeMode = saved.theme,
                 styleSet = saved.style,
                 colorSource = saved.colorSource,
+                customCourses = saved.custom,
                 remindersEnabled = saved.remind,
                 timetableMsg = if (saved.tt == null) "" else "已载入 ${saved.tt.courses.size} 门课",
             )
@@ -116,6 +120,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val style: Int,
         val remind: Boolean,
         val colorSource: Int = 0,
+        val custom: List<cn.dkarbon.enroute.data.custom.CustomCourse> = emptyList(),
     )
 
     // ── 登录态：冷启动恢复 + 验活（票 04）──────────────────
@@ -432,7 +437,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /** 手动切换版本年份（2024 / 2025） */
+    /** 手动切换版本年份（2023 / 2024 / 2025） */
     fun selectPlanYear(year: String) {
         val idx = _ui.value.planIndex ?: return
         if (year == _ui.value.planYear) return
@@ -847,6 +852,68 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 mapExportCsv = res.csv,
                 mapExportGeoName = res.geojsonName,
                 mapExportCsvName = res.csvName,
+            )
+        }
+    }
+
+    // ── 自定义课程（票 19）──────────────────────────────────
+
+    /** 打开自定义课程列表 */
+    fun openCustomCourses() {
+        _ui.value = _ui.value.copy(customEditorOpen = false, customEditing = null, customMsg = "")
+    }
+
+    /** 新建：true = 按周次，false = 固定某一天（编辑页第一步就选这个） */
+    fun startAddCustom() {
+        _ui.value = _ui.value.copy(customEditing = null, customEditorOpen = true, customMsg = "")
+    }
+
+    fun editCustom(id: String) {
+        val c = _ui.value.customCourses.firstOrNull { it.id == id } ?: return
+        _ui.value = _ui.value.copy(customEditing = c, customEditorOpen = true, customMsg = "")
+    }
+
+    fun closeCustomEditor() {
+        _ui.value = _ui.value.copy(customEditorOpen = false, customEditing = null)
+    }
+
+    /**
+     * 保存（新建或更新）。**先写盘再改内存**：写不进去就如实报错，不让界面显示一个没存下的课。
+     */
+    fun saveCustom(course: cn.dkarbon.enroute.data.custom.CustomCourse) {
+        if (course.name.isBlank()) {
+            _ui.value = _ui.value.copy(customMsg = "课程名必填")
+            return
+        }
+        if (course.rules.isEmpty()) {
+            _ui.value = _ui.value.copy(customMsg = "至少要有一个上课时间")
+            return
+        }
+        val id = course.id.ifBlank { "c" + System.currentTimeMillis() }
+        val next = _ui.value.customCourses.filterNot { it.id == id } + course.copy(id = id)
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { customStore.save(next.sortedBy { it.name }) }
+            DebugLog.log("CUSTOM", "保存自定义课《${course.name}》→ $ok（共 ${next.size} 门）")
+            _ui.value = _ui.value.copy(
+                customCourses = if (ok) next.sortedBy { it.name } else _ui.value.customCourses,
+                customEditorOpen = false,
+                customEditing = null,
+                customMsg = if (ok) "已保存《${course.name}》" else "保存失败（写盘出错）",
+            )
+        }
+    }
+
+    fun deleteCustom(id: String) {
+        val target = _ui.value.customCourses.firstOrNull { it.id == id } ?: return
+        val next = _ui.value.customCourses.filterNot { it.id == id }
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { customStore.save(next) }
+            DebugLog.log("CUSTOM", "删除自定义课《${target.name}》→ $ok")
+            _ui.value = _ui.value.copy(
+                customCourses = if (ok) next else _ui.value.customCourses,
+                customEditorOpen = false,
+                customEditing = null,
+                customMsg = if (ok) "已删除《${target.name}》" else "删除失败（写盘出错）",
             )
         }
     }

@@ -5,6 +5,16 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <!-- 上课提醒（Android 13+ 需运行时申请） -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 应用内更新（票 15）：系统安装器拉起的权限。**不静默安装** —— 只在用户点「安装」时用 -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
+    <!-- Android 11+ 包可见性：查「谁能处理 APK 安装」必须声明，否则 resolveActivity 返回 null -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/vnd.android.package-archive" />
+        </intent>
+    </queries>
 
     <application
         android:name=".EnRouteApp"
@@ -40,6 +50,19 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/today_widget_info" />
         </receiver>
+
+        <!-- 应用内更新（票 15）：把 filesDir/updates/ 里的 APK 以 content:// 交给系统安装器。
+             exported=false + grantUriPermissions=true：只有拿到临时授权的安装器能读，
+             不暴露整个私有目录，也不用把包写到公共存储。 -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

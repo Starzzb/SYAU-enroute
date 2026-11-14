@@ -24,6 +24,6 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:processDebugResources UP-TO-DATE
 > Task :app:compileDebugKotlin UP-TO-DATE
 
-BUILD SUCCESSFUL in 12s
+BUILD SUCCESSFUL in 11s
 15 actionable tasks: 15 up-to-date
 EXIT=0 

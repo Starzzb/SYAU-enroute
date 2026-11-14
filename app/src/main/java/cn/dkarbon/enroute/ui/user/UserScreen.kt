@@ -75,6 +75,7 @@ private enum class UserPage(val title: String) {
     Syllabus("课程大纲"),
     History("历年课表"),
     CampusMap("校园地图"),
+    CustomCourses("自定义课程"),
     Rooms("空闲教室"),
     Teacher("查教师"),
     TeacherDetail("教师详情"),
@@ -128,6 +129,7 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
                     onOpenSyllabus = { stack.add(UserPage.Syllabus) },
                     onOpenHistory = { stack.add(UserPage.History) },
                     onOpenMap = { stack.add(UserPage.CampusMap) },
+                    onOpenCustom = { vm.openCustomCourses(); stack.add(UserPage.CustomCourses) },
                     onOpenRooms = { stack.add(UserPage.Rooms) },
                     onOpenTeacher = { stack.add(UserPage.Teacher) },
                     onOpenLogin = { stack.add(UserPage.Login) },
@@ -138,6 +140,7 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
                 UserPage.Syllabus -> cn.dkarbon.enroute.ui.curriculum.SyllabusSearchScreen(ui = ui, vm = vm)
                 UserPage.History -> cn.dkarbon.enroute.ui.timetable.HistoryTimetableScreen(ui = ui, vm = vm)
                 UserPage.CampusMap -> cn.dkarbon.enroute.ui.map.CampusMapScreen(ui = ui, vm = vm)
+                UserPage.CustomCourses -> cn.dkarbon.enroute.ui.custom.CustomCourseScreen(ui = ui, vm = vm)
                 UserPage.Rooms -> cn.dkarbon.enroute.ui.home.RoomsScreen(ui = ui, vm = vm)
                 UserPage.Teacher -> cn.dkarbon.enroute.ui.home.TeacherScreen(
                     ui = ui,
@@ -201,6 +204,7 @@ private fun UserRoot(
     onOpenSyllabus: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenMap: () -> Unit,
+    onOpenCustom: () -> Unit,
     onOpenRooms: () -> Unit,
     onOpenTeacher: () -> Unit,
     onOpenLogin: () -> Unit,
@@ -375,6 +379,14 @@ private fun UserRoot(
         // ── 本机组（数据来源 = 本机存储）──
         // 组头 premise 与折叠头摘要都写「课表门数/周次」——这正是本组的状态前提（B2）
         GroupHead(title = "本机", premise = MyPageModel.weekLabel(week))
+        TileRow {
+            ToolTile(
+                label = "自定义课程",
+                sub = if (ui.customCourses.isEmpty()) "自己加课" else "${ui.customCourses.size} 门",
+                onClick = onOpenCustom,
+            )
+        }
+        Spacer(Modifier.height(Space.s))
         FoldSection(
             summary = MyPageModel.localSummary(ui.timetable?.courses?.size, week),
             expanded = localExpanded,

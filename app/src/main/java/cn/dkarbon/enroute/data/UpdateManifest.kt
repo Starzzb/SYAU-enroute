@@ -1,0 +1,200 @@
+package cn.dkarbon.enroute.data
+
+import java.net.URI
+import java.security.MessageDigest
+
+/**
+ * 应用内更新的**纯逻辑层**（票 15）。
+ *
+ * 这里没有任何网络/文件/Android API —— 全部是「给定输入决定输出」的纯函数，
+ * 所以能在 JVM 单测里把几条红线钉死：
+ *   1. `latest.json` 解析不出来 → 说人话，不猜、不降级成「有更新」
+ *   2. 下载地址**只认白名单主机**（防劫持，票 15 红线）
+ *   3. 版本比较必须认「服务器版本比本机低」这种情况（不能提示更新）
+ *   4. 自动检查每天最多一次（时间窗可测）
+ *   5. sha256 不匹配一律判失败（「凑合装」是绝对禁止）
+ */
+
+/** `latest.json` 的内容（服务器侧契约见 `docs/版本控制与发版流程.md` §4） */
+data class UpdateInfo(
+    val versionCode: Long,
+    val versionName: String,
+    /** APK 直链 —— 必须是 [UpdatePolicy.ALLOWED_APK_HOSTS] 里的主机，且 https */
+    val url: String,
+    /** 小写十六进制 sha256（64 字符） */
+    val sha256: String,
+    /** 字节数；0 表示服务器没给（不拿它做判断，只用于显示） */
+    val size: Long = 0,
+    val notes: String = "",
+    /** 低于这个 versionCode 的老版本「强制提示」（0 = 不强制） */
+    val minSupported: Long = 0,
+) {
+    /** 人类可读体积：`23.1 MB`；没给就返回空串（不编数字） */
+    val sizeText: String
+        get() = when {
+            size <= 0L -> ""
+            size >= 1024L * 1024L -> "%.1f MB".format(size / 1024.0 / 1024.0)
+            else -> "%d KB".format(size / 1024L)
+        }
+}
+
+/** 解析结果：成功带数据，失败带**人话原因**（失败原因要能直接显示给用户） */
+sealed interface LatestResult {
+    data class Ok(val info: UpdateInfo) : LatestResult
+    data class Fail(val reason: String) : LatestResult
+}
+
+/** 版本关系（三态，不是布尔 —— 「服务器更低」和「一样」要分开表达） */
+enum class UpdateRelation { NEWER, SAME, OLDER }
+
+object UpdatePolicy {
+
+    /**
+     * **唯一允许的 APK 来源主机**。
+     *
+     * 为什么写死在代码里而不是信 `latest.json`：`latest.json` 本身就是从网上取的，
+     * 它要是被中间人改过、把 url 指到别的域名，App 就会去装一个陌生包。
+     * 白名单 + 只许 https = 即使 latest.json 被篡改，最坏也只是「下载失败」。
+     *
+     * APK 不放自己的 ECS（出口 148 KB/s，4.75MB 要 30 秒还挤占补丁服务）——
+     * 走 GitHub Releases 直链，所以白名单是这几家：
+     *   · `github.com`                          ← Releases 的 `releases/download/...` 入口
+     *   · `objects.githubusercontent.com`       ← 302 之后的真实对象地址（主要落点）
+     *   · `release-assets.githubusercontent.com`← 新版 Releases 的资源域
+     *   · `github-releases.githubusercontent.com`← 老版资源域，保留兼容
+     */
+    val ALLOWED_APK_HOSTS = listOf(
+        "github.com",
+        "objects.githubusercontent.com",
+        "release-assets.githubusercontent.com",
+        "github-releases.githubusercontent.com",
+    )
+
+    /** 下载地址是否合法：**https** + 主机在白名单里（按 [URI.host] 精确比对，不看字符串包含） */
+    fun isAllowedApkUrl(url: String): Boolean {
+        val u = runCatching { URI(url.trim()) }.getOrNull() ?: return false
+        if (!u.scheme.equals("https", ignoreCase = true)) return false
+        val host = u.host?.lowercase() ?: return false
+        if (host.isBlank()) return false
+        // 精确等于白名单主机；子域**不放行**（`github.com.evil.com` 这种必须被拒）
+        if (host !in ALLOWED_APK_HOSTS) return false
+        return u.path.orEmpty().isNotBlank()
+    }
+
+    /** sha256 字符串看起来合法吗（64 位十六进制，大小写不敏感） */
+    fun looksLikeSha256(s: String): Boolean =
+        s.length == 64 && s.all { it in "0123456789abcdefABCDEF" }
+}
+
+object UpdateParse {
+
+    private val json = kotlinx.serialization.json.Json { isLenient = true; ignoreUnknownKeys = true }
+
+    /**
+     * 解析 `latest.json`。**任何一项不合格都整体失败**，不做「能读多少算多少」——
+     * 更新包半信半疑地装上去比不装危险得多。
+     *
+     * 用 kotlinx.serialization 而不是 `org.json`：后者在 JVM 单测里是空实现（会抛异常），
+     * 这几条红线必须能在纯 JVM 上验，所以解析器也跟着走纯 Kotlin 的。
+     */
+    fun latest(text: String): LatestResult {
+        val root = runCatching {
+            json.parseToJsonElement(text) as? kotlinx.serialization.json.JsonObject
+        }.getOrNull()
+            ?: return LatestResult.Fail("服务器返回的不是合法 JSON 对象（latest.json 可能没放对）")
+
+        fun str(key: String): String =
+            (root[key] as? kotlinx.serialization.json.JsonPrimitive)?.content?.trim().orEmpty()
+
+        fun num(key: String): Long =
+            (root[key] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toDoubleOrNull()?.toLong() ?: 0L
+
+        val code = num("versionCode")
+        if (code <= 0L) return LatestResult.Fail("latest.json 缺 versionCode（或不是正整数）")
+
+        val name = str("versionName")
+        if (name.isBlank()) return LatestResult.Fail("latest.json 缺 versionName")
+
+        val url = str("url")
+        if (url.isBlank()) return LatestResult.Fail("latest.json 缺下载地址 url")
+        if (!UpdatePolicy.isAllowedApkUrl(url)) {
+            return LatestResult.Fail(
+                "下载地址不在允许的范围内（只允许 GitHub Releases），已拒绝：${hostOf(url).ifBlank { url.take(40) }}",
+            )
+        }
+
+        val sha = str("sha256")
+        if (!UpdatePolicy.looksLikeSha256(sha)) {
+            return LatestResult.Fail("latest.json 的 sha256 不是 64 位十六进制，无法校验，拒绝更新")
+        }
+
+        return LatestResult.Ok(
+            UpdateInfo(
+                versionCode = code,
+                versionName = name,
+                url = url,
+                sha256 = sha.lowercase(),
+                size = num("size").coerceAtLeast(0L),
+                notes = str("notes"),
+                minSupported = num("minSupported").coerceAtLeast(0L),
+            ),
+        )
+    }
+
+    private fun hostOf(url: String): String =
+        runCatching { URI(url.trim()).host.orEmpty() }.getOrDefault("")
+}
+
+object UpdateVersions {
+
+    /** 远端 vs 本机：`NEWER` / `SAME` / `OLDER` */
+    fun relation(remoteCode: Long, localCode: Long): UpdateRelation = when {
+        remoteCode > localCode -> UpdateRelation.NEWER
+        remoteCode == localCode -> UpdateRelation.SAME
+        else -> UpdateRelation.OLDER
+    }
+
+    /** 是否需要提示更新（只有 NEWER 才算） */
+    fun hasUpdate(info: UpdateInfo, localCode: Long): Boolean =
+        relation(info.versionCode, localCode) == UpdateRelation.NEWER
+
+    /** 是否强制提示（老到服务器不支持了）。只影响提示强弱，**绝不阻断使用**（票 15 红线） */
+    fun isMandatory(info: UpdateInfo, localCode: Long): Boolean =
+        hasUpdate(info, localCode) && info.minSupported > 0L && localCode < info.minSupported
+}
+
+object UpdateSchedule {
+
+    const val DAY_MS = 24L * 60L * 60L * 1000L
+
+    /**
+     * 启动时是否该静默查一次：从没查过 → 查；距上次 ≥24h → 查；否则不查。
+     *
+     * 时钟被往回调（`now < last`，用户手动改时间或跨时区）也**查一次**，
+     * 否则「时间被调回去」会让检查永久停摆。
+     */
+    fun shouldAutoCheck(nowMs: Long, lastMs: Long?, windowMs: Long = DAY_MS): Boolean {
+        if (lastMs == null || lastMs <= 0L) return true
+        if (nowMs < lastMs) return true
+        return nowMs - lastMs >= windowMs
+    }
+}
+
+object UpdateDigest {
+
+    /** 流式计算 sha256（大文件不整包读进内存）；返回小写十六进制 */
+    fun sha256Hex(readChunk: (ByteArray) -> Int, close: () -> Unit = {}): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        val buf = ByteArray(64 * 1024)
+        try {
+            while (true) {
+                val n = readChunk(buf)
+                if (n <= 0) break
+                md.update(buf, 0, n)
+            }
+        } finally {
+            close()
+        }
+        return md.digest().joinToString("") { "%02x".format(it) }
+    }
+}
