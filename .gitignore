@@ -30,3 +30,19 @@ local.properties
 # ── OS ───────────────────────────────────────────────────
 Thumbs.db
 desktop.ini
+
+# ── 工具运行态 / 会话面板（含真实学号姓名，绝不入库）──────
+.dsh-ops/
+在途/.dsh-ops/
+
+# ── 构建日志（每次编译重生成的中间物）────────────────────
+build-log.txt
+build-log-utf8.txt
+build-done.txt
+log-convert-done.txt
+
+# ── 培养方案提取管线的中间产物（可复现，26MB）──────────────
+# 保留 在途/curriculum/json（源数据）与 README/query.py；
+# _work 里是脚本草稿与 txt 转储，用 tools/curriculum/pack.py 即可重跑
+在途/curriculum/_work/
+在途/curriculum/__pycache__/
