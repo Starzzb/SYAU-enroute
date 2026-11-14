@@ -52,7 +52,9 @@ class ShapeTokenTest {
     fun `账页形状按规范取值`() {
         val l = ShapeSet.Ledger
         assertEquals(RectangleShape, l.page)
-        assertEquals("徽标 6dp", RoundedCornerShape(6.dp), l.badge)
+        // 徽标走胶囊（章）：主人 2026-11-14 定 —— 短标记圆端包裹边界清楚，
+        // 6dp 方角在账页色带上会和分区边缘搅在一起
+        assertEquals("徽标：胶囊盖章感（不是 6dp）", RoundedCornerShape(percent = 50), l.badge)
         assertEquals("按钮/输入框 6dp", RoundedCornerShape(6.dp), l.control)
         assertEquals("卡片 10dp", RoundedCornerShape(10.dp), l.card)
         assertEquals("课卡 10dp", RoundedCornerShape(10.dp), l.courseCard)
@@ -130,43 +132,15 @@ class ShapeTokenTest {
     // ── ③ 真源码：可编辑范围必须归零，课表包只许变少 ──────────
 
     @Test
-    fun `可编辑范围内裸形状必须为零`() {
+    fun `全仓裸形状必须为零`() {
         val root = ShapeScan.sourceRoot()
         val report = ShapeScan.scan(root)
 
-        val editable = report.filterKeys { !it.startsWith("ui/timetable/") }
         assertTrue(
             "这些文件还有裸形状（形状请走 Form.current.shapes.*）：\n" +
-                editable.entries.joinToString("\n") { "  ${it.key} × ${it.value}" },
-            editable.isEmpty(),
+                report.entries.joinToString("\n") { "  ${it.key} × ${it.value}" },
+            report.isEmpty(),
         )
-    }
-
-    @Test
-    fun `课表包的裸形状只许变少不许变多`() {
-        val root = ShapeScan.sourceRoot()
-        val report = ShapeScan.scan(root)
-
-        // 基线：本票不动 ui/timetable（另一票正在改那边的左右滑动）。
-        // 数字只能减不能增 —— 想偷偷加一个圆角，这里立刻红。
-        val frozen = mapOf(
-            "ui/timetable/ErodedCard.kt" to 1,
-            "ui/timetable/LedgerTimetable.kt" to 6,
-            "ui/timetable/TimetableScreen.kt" to 2,
-        )
-        frozen.forEach { (file, allowed) ->
-            val actual = report[file] ?: 0
-            assertTrue(
-                "$file 的裸形状从基线 $allowed 涨到了 $actual —— 请改用 Form.current.shapes.*",
-                actual <= allowed,
-            )
-            if (actual < allowed) {
-                println("[ShapeTokenTest] $file 已清到 $actual（基线 $allowed）：把冻结值改小即可")
-            }
-        }
-        // 课表包里不许出现**新的**裸形状文件
-        val extra = report.keys.filter { it.startsWith("ui/timetable/") && it !in frozen.keys }
-        assertTrue("课表包出现新的裸形状文件：$extra", extra.isEmpty())
     }
 
     @Test

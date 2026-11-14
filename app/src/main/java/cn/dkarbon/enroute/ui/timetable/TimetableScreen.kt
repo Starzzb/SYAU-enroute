@@ -850,6 +850,7 @@ private fun CourseCard(
     onLongClick: () -> Unit,
 ) {
     val t = InkTokens.current
+    val f = Form.current
     val key = course.courseNo.ifBlank { course.name }
     val fam = Tt.famOf(key)
     val wash = Tt.washOf(fam, t.isDark)
@@ -917,7 +918,7 @@ private fun CourseCard(
             Box(
                 Modifier
                     .matchParentSize()
-                    .border(Stroke.emphasis, t.primary.copy(alpha = 0.55f), RoundedCornerShape(4.dp)),
+                    .border(Stroke.emphasis, t.primary.copy(alpha = 0.55f), f.shapes.courseCard),
             )
         }
     }
@@ -1264,7 +1265,7 @@ private fun HeaderTapPad(
     Box(
         modifier
             .size(48.dp)
-            .clip(CircleShape)
+            .clip(Form.current.shapes.circle)
             .clickable(
                 interactionSource = interaction,
                 indication = ripple(),

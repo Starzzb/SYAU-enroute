@@ -49,9 +49,10 @@ fun ErodedCard(
     val faded = if (isDark) Color(0xFF3A362E) else Color(0xFFDDD8CF)   // 掉色后的灰
     val gone = if (isDark) Color(0xFF211E18) else Color(0xFFEFEBE2)    // 完全侵蚀后的底
 
-    // 2026-11-13 回退 CET6 普通样式：卡片允许 4dp 小圆角（主人点名「和 cet6 一样」，
-    // 这是课表卡的局部例外；资讯页/浮层仍然 0 圆角）。
-    val shape = RoundedCornerShape(4.dp)
+    // 2026-11-13 回退 CET6 普通样式：卡片允许小圆角（主人点名「和 cet6 一样」）。
+    // 票 31：改走形状 token —— HARD 下仍是 4dp（`ShapeSet.Hard.courseCard`），零变化；
+    // 若将来这张侵蚀卡也进账页，会自动取账页的 10dp。
+    val shape = cn.dkarbon.enroute.ui.theme.Form.current.shapes.courseCard
     Box(
         modifier
             .clip(shape)

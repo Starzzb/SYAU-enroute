@@ -70,7 +70,7 @@ internal fun LedgerCourseCell(
     val fam = Tt.famOf(key)
     val spine = Tt.spineOf(fam, t.isDark)
     val haptic = LocalHapticFeedback.current
-    val shape = RoundedCornerShape(f.radiusCourseCard)
+    val shape = f.shapes.courseCard
 
     Box(
         Modifier
@@ -175,7 +175,7 @@ internal fun LedgerResidue(course: Course?) {
     val t = InkTokens.current
     val f = Form.current
     val name = course?.name.orEmpty()
-    val shape = RoundedCornerShape(f.radiusCourseCard)
+    val shape = f.shapes.courseCard
     Box(
         Modifier
             .fillMaxSize()
@@ -222,7 +222,7 @@ internal fun LedgerAxisRow(sections: String, startTime: String) {
             Modifier
                 .width(30.dp)
                 .height(f.pillSize)
-                .clip(RoundedCornerShape(f.pillSize / 2))
+                .clip(f.shapes.pill)
                 .background(t.cardAlt),
             contentAlignment = Alignment.Center,
         ) {
@@ -297,7 +297,7 @@ internal fun LedgerUnscheduledRow(c: Course, onClick: () -> Unit) {
     val f = Form.current
     val fam = Tt.famOf(c.courseNo.ifBlank { c.name })
     val spine = Tt.spineOf(fam, t.isDark)
-    val shape = RoundedCornerShape(12.dp)
+    val shape = f.shapes.card
 
     Row(
         Modifier
@@ -314,7 +314,7 @@ internal fun LedgerUnscheduledRow(c: Course, onClick: () -> Unit) {
             .padding(horizontal = 10.dp, vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(3.dp).height(24.dp).clip(RoundedCornerShape(2.dp)).background(spine))
+        Box(Modifier.width(3.dp).height(24.dp).clip(f.shapes.badge).background(spine))
         Spacer(Modifier.width(9.dp))
         Column(Modifier.weight(1f)) {
             Text(
@@ -348,8 +348,9 @@ internal fun LedgerUnscheduledRow(c: Course, onClick: () -> Unit) {
 internal fun LedgerWeekStamp(isThisWeek: Boolean) {
     if (!isThisWeek) return
     val t = InkTokens.current
+    val f = Form.current
     val ink = cn.dkarbon.enroute.ui.theme.primaryInk()
-    val shape = RoundedCornerShape(999.dp)
+    val shape = f.shapes.pill
     Box(
         Modifier
             .clip(shape)

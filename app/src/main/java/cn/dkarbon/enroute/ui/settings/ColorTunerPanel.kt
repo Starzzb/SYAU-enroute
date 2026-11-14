@@ -272,7 +272,9 @@ private fun SwatchRow(
                 Box(
                     Modifier
                         .size(if (on) 28.dp else 24.dp)
-                        .clip(Form.current.shapes.badge)
+                        // 色块本身是可点控件（点它换色），所以走 control 而不是 badge：
+                        // badge 在账页是胶囊（盖章语义），套在方形色样上会变成圆点，认不出是"色样"
+                        .clip(Form.current.shapes.control)
                         .background(p.color)
                         .border(
                             if (on) 2.dp else 1.dp,

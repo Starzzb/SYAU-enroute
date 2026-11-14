@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
  * | 档 | 用在哪 | HARD | LEDGER |
  * |---|---|---|---|
  * | [page] | 页面块、通栏列表、表格行、分割区 | 0 | 0 |
- * | [badge] | 徽标、角标、小色块、缩略图 | 0 | 6dp |
+ * | [badge] | 徽标、角标、小色块、短标记 | 0 | **50%** |
  * | [control] | **按钮**、输入框、chips、搜索条 | 0 | 6dp |
  * | [card] | 通用卡片、便签 | 0 | 10dp |
  * | [courseCard] | 课表课程卡（HARD 4dp 是主人点名的局部例外） | 4dp | 10dp |
@@ -38,6 +38,10 @@ import androidx.compose.ui.unit.dp
  *   高度多少都正好是半高，这才是"胶囊"的定义。
  * - [circle] 与 [pill] 不是同一件事：circle 是"正圆"（头像、状态点，宽高相等时才成立），
  *   pill 是"两端半圆的矩形"（胶囊）。混用就会出现"把 48dp 按钮画成 48dp 正圆"这类事故。
+ * - **徽标在账页走 [pill] 而不是 6dp**（主人 2026-11-14 定）：徽标是 2–3 个字的短标记
+ *   （「自」「共建」「官方」），圆端像"盖章"，边界清楚；而 6dp 方角短标记在账页的**色带背景**上
+ *   会和色带边缘搅在一起，分不清哪是徽标哪是分区。按钮（[control]）保持 6dp ——
+ *   它是可点击的大面，圆太多会显得软。
  */
 @Immutable
 data class ShapeSet(
@@ -64,10 +68,10 @@ data class ShapeSet(
             circle = CircleShape,
         )
 
-        /** 账页：便签 10、按钮/徽标 6、浮层 14；胶囊按百分比 */
+        /** 账页：便签 10、按钮 6、徽标走胶囊（盖章感）、浮层 14 */
         val Ledger = ShapeSet(
             page = RectangleShape,
-            badge = RoundedCornerShape(6.dp),
+            badge = RoundedCornerShape(percent = 50),
             control = RoundedCornerShape(6.dp),
             card = RoundedCornerShape(10.dp),
             courseCard = RoundedCornerShape(10.dp),

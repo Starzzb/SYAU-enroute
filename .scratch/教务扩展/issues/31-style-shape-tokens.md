@@ -109,10 +109,12 @@ tests=9 failures=1     ← 抓到，且指名到文件与条数
 
 ---
 
-## 5. `ui/timetable/` 的 9 处为什么还在（本票唯一的缺口，如实报）
+## 5. `ui/timetable/` 的 9 处（**已清，棘轮已拆**）
 
-Lead 的纪律是「**不碰 `ui/timetable/`**（那边刚加完左右滑动）」，而验收又要求"全仓裸值只在 token 文件里"。
-两条撞在一起时我选择遵守**前者**（碰了会毁别人的在途改动），用**棘轮**兜住风险：
+> 首轮因「不碰 `ui/timetable/`」的纪律用棘轮冻结；票 28 落定后 Lead 放行，本节记录当时的过渡方案，
+> **实际结果见 §7 的收尾记录**：9 处已全部换成 token，棘轮基线删除，扫描口径改为「全仓归零」。
+
+过渡期的做法（留档）：
 
 ```kotlin
 // 基线：本票不动 ui/timetable（另一票正在改那边的左右滑动）。
@@ -147,12 +149,11 @@ TimetableScreen.kt → 2
 
 | 项 | 结果 |
 |---|---|
-| 可编辑范围裸形状 = 0 | ✅ `ShapeTokenTest.可编辑范围内裸形状必须为零` |
-| 课表包不新增 | ✅ 棘轮基线（见 §5） |
+| 全仓裸形状 = 0 | ✅ `ShapeTokenTest.全仓裸形状必须为零`（`ShapeScan.scan()` 输出空表，含 `widget/` 与 `ui/timetable/`） |
 | `compile-check` 绿 | ✅ `:app:compileDebugKotlin` BUILD SUCCESSFUL |
-| 全量单测绿 | ✅ **42 类 / 557 条 / 0 失败**（基线 539/40 + 票 29 的 9 条 + 本票 9 条） |
+| 全量单测绿 | ✅ **42 类 / 556 条 / 0 失败**（557 − 1：棘轮那条并入"全仓归零"） |
 | 扫描测试抓得住违规 | ✅ 红→绿闭环（§4，已实跑并留日志） |
-| 4 个点名组件按主题规则 | ✅ ContributeSection→`control`、UpdateSection→`control/badge/pill`、ColorTunerPanel→`control/badge`、ErodedCard 4dp 只在 HARD 渲染（=HARD 规则） |
+| 4 个点名组件按主题规则 | ✅ ContributeSection→`control`、UpdateSection→`control/badge/pill`、ColorTunerPanel→`control`、ErodedCard→`courseCard`（只在 HARD 渲染，=4dp） |
 
 **未做（明确在批次外）**：阴影（批 4）、字阶（批 2）、间距（批 2）、重启（批 5）。
 间距的实测家底已备好，供批次 2 定允许集用：
@@ -174,3 +175,48 @@ TimetableScreen.kt → 2
     ② `ui/timetable/` 9 处仍在（Lead 纪律 vs 全仓归零的冲突，用棘轮兜住，并给出 8 行替换表）；
     ③ 间距类测试本批**故意不写**（705 处 / 63 种取值，先收家底再定允许集）。
   - 顺手删了 6 个已失效的 `import RoundedCornerShape/CircleShape`（避免"看起来还在用"的误导）。
+
+- 2026-11-14 23:0x（批次 1 收尾，Lead 放行后）：**棘轮拆除，全仓归零**。
+  - 票 28（课表左右滑动）已落定，`ui/timetable/` 可以动，9 处全部清掉：
+
+    | 位置 | 改前 | 改后 | 语义判断 |
+    |---|---|---|---|
+    | `ErodedCard.kt:54` | `RoundedCornerShape(4.dp)` | `Form.current.shapes.courseCard` | HARD 仍是 4dp，零变化 |
+    | `LedgerTimetable.kt:73/178` | `RoundedCornerShape(f.radiusCourseCard)` | `f.shapes.courseCard` | 账页 10dp 不变 |
+    | `LedgerTimetable.kt:225` | `RoundedCornerShape(f.pillSize / 2)` | `f.shapes.pill` | 节次牌是 30×20 的**胶囊**（不是正圆），pill 语义更准 |
+    | `LedgerTimetable.kt:300` | `RoundedCornerShape(12.dp)` | `f.shapes.card` | 未排课行是**卡**不是浮层，故取 card（账页 10dp，视觉差 2dp） |
+    | `LedgerTimetable.kt:317` | `RoundedCornerShape(2.dp)` | `f.shapes.badge` | 3dp 宽书脊细条：**没有为它新开档**（8 档的承诺不能破）。badge 在账页 = 半高圆端，2dp 圆角在 3dp 宽上本来就是"两端半圆"，等价且更自洽；HARD 下此条不渲染 |
+    | `LedgerTimetable.kt:352` | `RoundedCornerShape(999.dp)` | `f.shapes.pill` | 「本周」徽，胶囊 |
+    | `TimetableScreen.kt:920` | `RoundedCornerShape(4.dp)` | `f.shapes.courseCard` | 进行中边框跟课卡同形 |
+    | `TimetableScreen.kt:1267` | `.clip(CircleShape)` | `Form.current.shapes.circle` | 48dp 触区补丁，两主题都是圆 |
+
+  - 扫描测试同步收紧：删掉「课表包棘轮基线」那条，改为 **`全仓裸形状必须为零`**（含 `widget/`、`ui/timetable/`）。
+    现在 `ShapeScan.scan()` 的输出是**空表**。
+  - **徽标分档**（主人 2026-11-14 定）：`Ledger.badge` 从 `RoundedCornerShape(6.dp)` 改 **`RoundedCornerShape(percent = 50)`**
+    （短标记＝盖章，圆端边界清楚；6dp 方角在色带上会和分区边缘搅在一起）。`Hard.badge` 仍 `RectangleShape`，
+    `control` 两档都不变（按钮 6dp：可点的大面圆太多会显得软）。
+    顺带把 `ColorTunerPanel` 的**色样**从 `badge` 改到 `control`：色样是可点控件，套胶囊会变成圆点、认不出是"色样"。
+  - 单测 **42 类 / 556 条 / 0 失败**（= 557 − 1：两条棘轮测试并成一条"全仓归零"）。
+  - **未做**（明确在批次外）：`card` 仍 10dp。Lead 在收尾批复的表格里把 `card` 写成 6dp，但规范 §2.1 与
+    `FormSpec.Ledger.radiusCard` 都是 10dp，本条消息的主旨是"徽标我要改"。**按 10dp 保持，等一句话再改**（一行的事）。
+
+---
+
+## 8. 外观变化清单（真机一次看全）
+
+| # | 组件 | 改前 | 改后 | 主题 | 可见度 |
+|---|---|---|---|---|---|
+| 1 | ContributeSection「帮助完善地图」按钮 | 999dp 全圆 | 方角 | HARD | **中** |
+| 2 | UpdateSection「检查更新 / 下载」按钮 | 999dp 全圆 | 方角 | HARD | **中** |
+| 3 | UpdateSection 徽标（「建议尽快更新」） | 999dp 全圆 | 方角 | HARD | 小 |
+| 4 | UpdateSection 下载进度条（3dp 高） | 999dp 全圆 | 方角 | HARD | 小 |
+| 5 | 资讯频道 chips（全部/竞赛/…） | 999dp 全圆 | 方角 | HARD | **大**（首屏就有） |
+| 6 | 资讯分类徽（「教务」二字，32dp） | 6dp | **胶囊** | 账页 | **大**（本批最明显） |
+| 7 | ColorTunerPanel 色样（24/28dp） | 0 | 6dp | 账页 | 中 |
+| 8 | ColorTunerPanel 槽位切换 / 保存按钮 | 0 | 6dp | 账页 | 小 |
+| 9 | 课表未排课行 | 12dp | 10dp | 账页 | 小 |
+| 10 | 课表书脊细条（3×24dp） | 2dp | 半高圆端 | 账页 | 小 |
+| — | 按钮/徽标/进度条在账页 | 999dp | 6dp / 胶囊 / 半高 | 账页 | 小（原本已很圆，等价化） |
+| — | 资讯 chips 在账页 | 999dp | 50% | 账页 | 无（本来就是胶囊） |
+| — | 未读点、头像、48dp 触区、进行中边框、课卡 | — | 同形 | 两套 | 无 |
+
