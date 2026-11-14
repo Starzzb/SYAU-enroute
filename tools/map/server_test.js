@@ -61,6 +61,19 @@ async function post(body) {
   return { status: res.status, json: await res.json() };
 }
 
+/** 通用 POST（approve 等），headers 原样带上 */
+async function post2(pathname, body, headers = {}) {
+  const res = await handler(
+    new Request(BASE + pathname, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body: JSON.stringify(body),
+    }),
+  );
+  const text = await res.text();
+  return { status: res.status, json: text ? JSON.parse(text) : null };
+}
+
 const MV = "2026.11.14-1";
 
 function patchBody(patches, client = { did: "anon-test" }) {
@@ -198,6 +211,66 @@ function ok(name, fn) {
     assert.ok(st.json.patches === raw.length, `${st.json.patches} vs ${raw.length}`);
     assert.equal(st.json.rev, d4.json.rev);
     assert.ok(st.json.versions[MV] >= 5);
+  });
+
+  // ── 9b. approve：0→1、报回找不到的 id、幂等（票 22 补）──
+  const ids = raw.map((r) => r.id);
+  const ap1 = await post2("/map/api/approve", { ids: [ids[0], ids[1]] }, { "x-admin-key": "adm" });
+  ok("正常 approve 两条", () => {
+    assert.equal(ap1.status, 200);
+    assert.equal(ap1.json.approved, 2);
+    assert.deepEqual(ap1.json.missing, []);
+  });
+
+  const ap2 = await post2(
+    "/map/api/approve",
+    { ids: [ids[0], "deadbeef-not-a-real-id", ids[2]] },
+    { "x-admin-key": "adm" },
+  );
+  ok("混合存在与不存在：计数只算新审的，missing 如实报回", () => {
+    assert.equal(ap2.json.approved, 1);                       // 只有 ids[2] 是新审的
+    assert.equal(ap2.json.alreadyApproved, 1);                // ids[0] 已审过
+    assert.deepEqual(ap2.json.missing, ["deadbeef-not-a-real-id"]);
+  });
+
+  const ap3 = await post2("/map/api/approve", { ids: [ids[0], ids[1]] }, { "x-admin-key": "adm" });
+  ok("重复 approve 同一批：不报错、approved=0（幂等）", () => {
+    assert.equal(ap3.status, 200);
+    assert.equal(ap3.json.approved, 0);
+    assert.equal(ap3.json.alreadyApproved, 2);
+  });
+
+  const apNoKey = await post2("/map/api/approve", { ids: [ids[0]] }, {});
+  ok("不带 X-Admin-Key → 403（不会变成匿名可审）", () => assert.equal(apNoKey.status, 403));
+
+  const apEmpty = await post2("/map/api/approve", { ids: [] }, { "x-admin-key": "adm" });
+  ok("空 ids → 400", () => assert.equal(apEmpty.status, 400));
+
+  ok("approve 落盘到 approved.jsonl（重启不丢；重复的不重复写）", () => {
+    const lines = fs.readFileSync(path.join(TMP, "approved.jsonl"), "utf8").trim().split("\n");
+    assert.equal(lines.length, 3);        // 2 + 1，重复的没再写
+    assert.equal(new Set(lines).size, 3);
+  });
+
+  const snapBefore = await get("/map/api/snapshot?mv=" + MV, { "x-admin-key": "adm" });
+  ok("snapshot 不会把「未审但更新」的补丁当成已审（已审值不能被顶掉）", () => {
+    // 已审的是 raw[0]/raw[1]（层数=3、所属单位=体育部），
+    // 但 index 里 (f19,层数) 的赢家是 raw[3]（层数=4，未审）。
+    // 若 snapshot 直接用 index，这里会吐 4 —— 那是未审数据进了"官方"。
+    assert.equal(snapBefore.json.features.f19["层数"], "3");
+    assert.equal(snapBefore.json.features.f19["所属单位"], "体育部");
+  });
+
+  // 再把「最新那条」也审掉 → snapshot 应跟上
+  const ap4 = await post2("/map/api/approve", { ids: [ids[3]] }, { "x-admin-key": "adm" });
+  const snapAfter = await get("/map/api/snapshot?mv=" + MV, { "x-admin-key": "adm" });
+  ok("审核最新一条后 snapshot 更新为 4", () => {
+    assert.equal(ap4.json.approved, 1);
+    assert.equal(snapAfter.json.features.f19["层数"], "4");
+  });
+
+  ok("snapshot 不含别的版本/未审的要素", () => {
+    assert.ok(!JSON.stringify(snapAfter.json.features).includes("f99"), "别的版本的记录不能出现");
   });
 
   // ── 10. rev.txt 重启恢复 ──

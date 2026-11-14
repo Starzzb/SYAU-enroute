@@ -143,6 +143,30 @@ function aggregate(mv, sinceRev) {
   };
 }
 
+/**
+ * 人工审核记录（票 22 补）：`approved.jsonl` 一行一个 patch `id`。
+ *
+ * 为什么不直接改 `patches.jsonl`：那是**只追加**的审计日志，改写它等于毁证据。
+ * 审核是另一个维度的事实，单独一个文件、同样只追加，启动时并回内存。
+ */
+const APPROVED_FILE = path.join(DATA_DIR, "approved.jsonl");
+const approvedIds = new Set();
+
+function loadApproved() {
+  if (!fs.existsSync(APPROVED_FILE)) return;
+  let n = 0;
+  for (const line of fs.readFileSync(APPROVED_FILE, "utf8").split("\n")) {
+    const id = line.trim();
+    if (!id) continue;
+    approvedIds.add(id);
+    n++;
+  }
+  for (const r of records) if (approvedIds.has(r.id)) r.approved = 1;
+  console.log(`[boot] approved ids: ${n}`);
+}
+loadApproved();
+
+
 /** 最近一次落盘时间（UTC ISO），客户端只用来显示「数据更新于」 */
 function lastUpdatedAt() {
   let max = "";
@@ -365,21 +389,77 @@ const server = Bun.serve({
       });
     }
 
+    // ── 人工审核：把一批 patch id 置为已审核（票 22 补）──
+    // 只允许 0→1（要撤回另做端点，绝不让一个接口既能审又能撤）；
+    // 幂等：重复 approve 同一批不报错，计数只按**实际变更**算；
+    // 找不到的 id **如实报回来**，不静默跳过。
+    if (p === "/map/api/approve" && req.method === "POST") {
+      if (!ADMIN_KEY || req.headers.get("x-admin-key") !== ADMIN_KEY) {
+        return new Response('{"error":"forbidden"}', { status: 403 });
+      }
+      let body;
+      try { body = await readBody(req); } catch { return new Response('{"error":"body"}', { status: 413 }); }
+      let o;
+      try { o = JSON.parse(body); } catch { return new Response('{"error":"json"}', { status: 400 }); }
+
+      const ids = Array.isArray(o.ids) ? o.ids.map((x) => String(x).trim()).filter(Boolean) : [];
+      if (!ids.length) return json(400, { error: "no_ids" });
+
+      const byId = new Map();
+      for (const r of records) byId.set(r.id, r);
+
+      const missing = [];
+      const fresh = [];
+      let already = 0;
+      for (const id of ids) {
+        const r = byId.get(id);
+        if (!r) { missing.push(id); continue; }
+        if (r.approved === 1) { already++; continue; }   // 幂等：已审的不再计数
+        r.approved = 1;                                   // 只 0→1
+        fresh.push(id);
+      }
+
+      if (fresh.length) {
+        try {
+          const fd = fs.openSync(APPROVED_FILE, "a");
+          try { fs.writeSync(fd, fresh.join("\n") + "\n"); } finally { fs.closeSync(fd); }
+          for (const id of fresh) approvedIds.add(id);
+        } catch (e) {
+          // 落盘失败要如实说：内存里已置 1，但重启会丢
+          console.error("[warn] approved.jsonl 写入失败:", e.message);
+          return json(500, { error: "persist_failed", approved: 0, missing, detail: e.message });
+        }
+      }
+
+      console.log(`[approve] fresh=${fresh.length} already=${already} missing=${missing.length}`);
+      return json(200, { approved: fresh.length, missing, alreadyApproved: already });
+    }
+
     // ── 拉审核通过后的合并快照（管理端用）──
     if (p === "/map/api/snapshot" && req.method === "GET") {
       if (!ADMIN_KEY || req.headers.get("x-admin-key") !== ADMIN_KEY) {
         return new Response('{"error":"forbidden"}', { status: 403 });
       }
       const mv = url.searchParams.get("mv") || "";
+      // ⚠️ 这里**不能**直接用 `index`：那里面是「ts 最新的记录」，
+      // 一条更新但**未审核**的补丁会把已审值顶掉 —— 审核结果就凭空消失了。
+      // 正确口径：每个 (mv,fid,field) 取「最新的**已审核**记录」。
+      const best = new Map();
+      for (const r of records) {
+        if (!r.approved) continue;
+        if (mv && r.mv !== mv) continue;
+        const k = keyOf(r.mv, r.fid, r.field);
+        const prev = best.get(k);
+        if (!prev || String(r.ts) >= String(prev.ts)) best.set(k, r);
+      }
       const fields = new Set();
       const features = {};
-      for (const r of index.values()) {
-        if (mv && r.mv !== mv) continue;
-        if (!r.approved) continue;                // 只给人工审核过的（无关数据版本 rev）
+      for (const r of best.values()) {
+        if (r.op === "delete") continue;          // 已审核的删除 → 该字段不出现在快照里
         fields.add(r.field);
-        (features[r.fid] ||= {})[r.field] = r.value;
+        (features[r.fid] ||= {})[r.field] = r.value == null ? "" : r.value;
       }
-      return json(200, { mapVersion: mv, fields: [...fields], features });
+      return json(200, { mapVersion: mv, fields: [...fields].sort(), features, approvedKeys: best.size });
     }
 
     return new Response('{"error":"not_found"}', { status: 404, headers: { "Content-Type": "application/json" } });

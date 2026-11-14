@@ -49,12 +49,26 @@ class MapContributeStore(ctx: Context) {
         return fresh
     }
 
-    /** 重置：与历史数据脱钩（票 13 验收项） */
+    /** 重置：与历史数据脱钩（票 13 验收项）。`installId` 一并更换 —— 弹窗里承诺的是「重置后即更换」 */
     fun resetAnonymousKey(): String {
         val fresh = MapContribute.newAnonymousKey()
-        prefs.edit().putString(KEY_ANON, fresh).apply()
+        prefs.edit().putString(KEY_ANON, fresh).putString(KEY_INSTALL, newInstallId()).apply()
         return fresh
     }
+
+    /**
+     * 安装级 UUID（票 22）：卸载重装才会变；「重置身份」也会换。
+     * 与 `did` 分开存：`did` 是**可随时重置**的匿名身份，`installId` 是**这次安装**的标记。
+     */
+    fun installId(): String {
+        val cur = prefs.getString(KEY_INSTALL, null)
+        if (!cur.isNullOrBlank()) return cur
+        val fresh = newInstallId()
+        prefs.edit().putString(KEY_INSTALL, fresh).apply()
+        return fresh
+    }
+
+    private fun newInstallId(): String = "install-" + java.util.UUID.randomUUID().toString()
 
     // ── 退避 ─────────────────────────────────────────────
 
@@ -137,6 +151,7 @@ class MapContributeStore(ctx: Context) {
         const val KEY_ENABLED = "enabled"
         const val KEY_ACK = "acknowledged"
         const val KEY_ANON = "anonKey"
+        const val KEY_INSTALL = "installId"
         const val KEY_FAILS = "fails"
         const val KEY_NEXT_TRY = "nextTryAt"
         const val KEY_LAST_OK = "lastOkAt"

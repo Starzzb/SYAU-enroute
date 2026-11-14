@@ -214,58 +214,9 @@ object MapEditsOps {
         return edits.features.keys.filter { it !in ids }.sorted()
     }
 
-    // ── 官方基线（票 13「B 路」的只读层）──────────────────────
-
-    /**
-     * 一个字段在**用户视角**下的取值。
-     *
-     * @param value 实际显示的值
-     * @param official true = 这个值来自 asset 里的官方基线（用户没填过）
-     */
-    data class FieldView(val name: String, val value: String, val official: Boolean)
-
-    /**
-     * 属性面板要显示的「自定义字段」顺序 + 每格的可信来源。
-     *
-     * 合并规则（与 `docs/校园地图-数据契约与接入方案.md` §10.3 一致）：
-     * 1. 先列**用户加过的字段**（[MapEdits.fieldOrder]，顺序即用户添加顺序）
-     * 2. 再列**只有官方有的字段**（[declared] = `manifest.customFields`，去掉第 1 步已有的）
-     * 3. 同一个字段两边都有值 → **用户标注胜**（`official = false`）
-     * 4. 用户清空了自己的值 → 退回显示官方值（`official = true`），并保持诚实：
-     *    这时面板要说明「你清掉的是你自己的值，官方值还在」
-     *
-     * 这就是为什么官方基线**不能**塞进 `edits.json`：它是另一层，
-     * 删得掉用户的值、删不掉官方的值，「已标注 N 个面」也只数用户那层。
-     */
-    fun fieldViews(feature: MapFeature, edits: MapEdits, declared: List<String>): List<FieldView> {
-        val mine = edits.features[feature.id]
-        val out = ArrayList<FieldView>(edits.fieldOrder.size + declared.size)
-        val seen = HashSet<String>()
-        edits.fieldOrder.forEach { f ->
-            seen += f
-            val v = mine?.fields?.get(f).orEmpty()
-            val officialValue = feature.props[f].orEmpty()
-            out += if (v.isNotBlank()) {
-                FieldView(f, v, official = false)
-            } else {
-                FieldView(f, officialValue, official = officialValue.isNotBlank())
-            }
-        }
-        declared.forEach { f ->
-            if (f in seen) return@forEach
-            val officialValue = feature.props[f].orEmpty()
-            if (officialValue.isBlank()) return@forEach   // 这一面没有官方值 → 不占地方
-            out += FieldView(f, officialValue, official = true)
-        }
-        return out
-    }
-
-    /** 官方基线里、这一面**确实有值**的字段数（UI 顶部用来区分「用户标注」与「官方」） */
-    fun officialFieldCount(feature: MapFeature, declared: List<String>): Int {
-        val fromDeclared = declared.count { feature.props[it].orEmpty().isNotBlank() }
-        // 包里没写 customFields 时，退回「props 里有几个非固定字段」
-        return if (declared.isEmpty()) feature.props.values.count { it.isNotBlank() } else fromDeclared
-    }
+    // 属性面板的取值与来源判定**只有一处**：[MapDataset.rows]（待上传 / 共建 / 内置）。
+    // 2026-11-14 删掉了这里原来的「按 official 布尔判定」那套旧口径：UI 早已改用上面那个，
+    // 留着就是两套语义并存 —— 旧的那份还带着「官方」这个词，下一个人会以为它是权威，照着写就会打架。
 }
 
 /**

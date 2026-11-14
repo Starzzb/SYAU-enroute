@@ -150,6 +150,13 @@ class MapDatasetClient(ctx: Context) {
             "http://47.95.12.198:18081/map/api/dataset",
         )
 
+        /**
+         * ⚠️ **这一行不能删。**
+         *
+         * nginx 在 18082 上有 UA 过滤器，`curl/` `wget/` `python-` `java/` 等一律 403。
+         * `HttpURLConnection` 的**默认 UA 是 `Java/1.x`**，正好命中黑名单 ——
+         * 删了这行，拉取会以「403」失败（看起来像权限问题，其实是 UA）。
+         */
         private const val UA = "SYAU-Enroute (personal student test build; map dataset)"
 
         fun hostOf(url: String): String = runCatching { URI(url).host.orEmpty() }.getOrDefault("")

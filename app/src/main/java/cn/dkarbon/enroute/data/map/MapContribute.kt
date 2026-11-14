@@ -91,6 +91,29 @@ object MapContribute {
         val key: String = featureId + "|" + field
     }
 
+    /**
+     * **上传随行的设备/应用信息**（票 22：主人明确要求收集机型与设备标识）。
+     *
+     * ⚠️ 这些是**可识别信息**，不再是匿名数据。此前不发的 `sid`（学号）依然不发。
+     * ⚠️ 里面没有真正的硬件序列号 —— Android 10+ 普通应用读不到 IMEI/序列号。
+     *    能拿到的只有机型 + 系统版本 + **应用级**标识（见 [MapDeviceIdentity]）。
+     */
+    data class ClientInfo(
+        /** 本地随机串（可重置）。发给服务端当 `did`，只为让限流与归并有效 */
+        val did: String,
+        val appVer: String = "",
+        val manufacturer: String = "",
+        val model: String = "",
+        val device: String = "",
+        /** 0 = 取不到（不发这个键） */
+        val sdkInt: Int = 0,
+        val release: String = "",
+        /** `Settings.Secure.ANDROID_ID`；取不到就是空串 —— **绝不填占位串** */
+        val ssaid: String = "",
+        /** 本地生成的安装级 UUID（重置身份时一并更换） */
+        val installId: String = "",
+    )
+
     /** 从「用户的标注」生成补丁列表（只含有值/清值的格子，不含官方基线） */
     fun patchesFrom(
         edits: MapEdits,
@@ -154,15 +177,23 @@ object MapContribute {
      */
     fun body(
         mapVersion: String,
-        anonymousKey: String,
-        appVersion: String,
+        client: ClientInfo,
         patches: List<Patch>,
     ): String {
         val sb = StringBuilder()
         sb.append("{\"schema\":1")
         sb.append(",\"mapVersion\":").append(q(mapVersion))
-        sb.append(",\"client\":{\"did\":").append(q(anonymousKey))
-        if (appVersion.isNotBlank()) sb.append(",\"appVer\":").append(q(appVersion.take(20)))
+        sb.append(",\"client\":{")
+        sb.append("\"did\":").append(q(client.did))
+        sb.append(",\"manufacturer\":").append(q(client.manufacturer))
+        sb.append(",\"model\":").append(q(client.model))
+        sb.append(",\"device\":").append(q(client.device))
+        if (client.sdkInt > 0) sb.append(",\"sdkInt\":").append(client.sdkInt)
+        sb.append(",\"release\":").append(q(client.release))
+        // 取不到就是空串：**不填占位串**，服务端落盘的也是空
+        sb.append(",\"ssaid\":").append(q(client.ssaid))
+        sb.append(",\"installId\":").append(q(client.installId))
+        if (client.appVer.isNotBlank()) sb.append(",\"appVer\":").append(q(client.appVer.take(20)))
         sb.append("}")
         sb.append(",\"patches\":[")
         patches.forEachIndexed { i, p ->
@@ -177,6 +208,15 @@ object MapContribute {
         sb.append("]}")
         return sb.toString()
     }
+
+    /**
+     * **唯一的上传闸门**：开关关着 → 一条都不发；没东西可传 → 不发。
+     *
+     * 抽成纯函数是为了能被单测锁住（票 22 验收：「关开关时一个字节都不上传」）；
+     * [MapUploader.upload] 第一行就用它 —— 谁改那条判断，这里会红。
+     */
+    fun shouldSend(enabled: Boolean, patches: List<Patch>): Boolean =
+        enabled && patches.isNotEmpty()
 
     /** 上传前的**预览**（给用户看「要传什么」）：一行一条，人话 */
     fun preview(patchCount: Int, featureCount: Int, fields: List<String>): String =

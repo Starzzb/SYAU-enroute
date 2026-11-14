@@ -172,6 +172,49 @@ object MapDataset {
 
     const val FIVE_MIN = 5L * 60L * 1000L
 
+    /**
+     * 序列化成**和服务器同样的形状**（磁盘缓存用）。
+     *
+     * 放在这里而不是 Store 里：`parse(encode(x)) == x` 这条往返必须能被单测锁住 ——
+     * 缓存写坏了的表现是「地图上别人的数据突然消失」，很难在线索里看出来。
+     */
+    fun encode(ds: Dataset): String {
+        val sb = StringBuilder()
+        sb.append("{\"schema\":").append(ds.schema)
+        sb.append(",\"mapVersion\":").append(q(ds.mapVersion))
+        sb.append(",\"rev\":").append(ds.rev)
+        sb.append(",\"updatedAt\":").append(q(ds.updatedAt))
+        sb.append(",\"fields\":[")
+        ds.fields.forEachIndexed { i, f -> if (i > 0) sb.append(','); sb.append(q(f)) }
+        sb.append("],\"features\":{")
+        ds.features.entries.forEachIndexed { i, (fid, m) ->
+            if (i > 0) sb.append(',')
+            sb.append(q(fid)).append(":{")
+            m.entries.forEachIndexed { j, (k, v) ->
+                if (j > 0) sb.append(',')
+                sb.append(q(k)).append(':').append(q(v))
+            }
+            sb.append('}')
+        }
+        sb.append("},\"deleted\":[]}")
+        return sb.toString()
+    }
+
+    private fun q(s: String): String {
+        val sb = StringBuilder("\"")
+        s.forEach { c ->
+            when (c) {
+                '"' -> sb.append("\\\"")
+                '\\' -> sb.append("\\\\")
+                '\n' -> sb.append("\\n")
+                '\r' -> sb.append("\\r")
+                '\t' -> sb.append("\\t")
+                else -> if (c.code < 0x20) sb.append("\\u%04x".format(c.code)) else sb.append(c)
+            }
+        }
+        return sb.append('"').toString()
+    }
+
     // ── 三档来源 ─────────────────────────────────────────
 
     /**
@@ -196,7 +239,9 @@ object MapDataset {
      *    - 不同（服务器没有或值不同）→ 还没生效 → [Source.PENDING]，**可编辑**
      * 2. 服务器有值 → [Source.SHARED]
      * 3. 内置 asset 有值（[MapFeature.props]）→ [Source.BUILTIN]
-     * 4. 都没有 → 不出现（不占一行）
+     * 4. **用户自己加的字段**（在 [MapEdits.fieldOrder] 里）即使还空着也保留一行，
+     *    否则「＋ 添加字段」之后没有输入框可填 —— 这是实打实的功能缺陷
+     * 5. 其余没值的（只被声明/只在别的面有值）→ 不占行
      *
      * @param declared 官方/共建字段名清单（`manifest.customFields` + 数据集里的 `fields`）
      */
@@ -208,7 +253,7 @@ object MapDataset {
     ): List<Row> {
         val mine = edits.features[feature.id]
         val order = LinkedHashSet<String>()
-        edits.fieldOrder.forEach { order += it }
+        edits.fieldOrder.forEach { order += it }                       // 用户格子永远在
         declared.forEach { order += it }
         dataset?.features?.get(feature.id)?.keys?.forEach { order += it }
 
@@ -217,6 +262,7 @@ object MapDataset {
             val localValue = mine?.fields?.get(field).orEmpty().trim()
             val serverValue = dataset?.valueOf(feature.id, field).orEmpty().trim()
             val builtinValue = feature.props[field].orEmpty().trim()
+            val isUserSlot = field in edits.fieldOrder
 
             val row = when {
                 localValue.isNotBlank() && localValue == serverValue ->
@@ -227,6 +273,8 @@ object MapDataset {
                     Row(field, serverValue, Source.SHARED, editable = false)
                 builtinValue.isNotBlank() ->
                     Row(field, builtinValue, Source.BUILTIN, editable = false)
+                isUserSlot ->
+                    Row(field, "", Source.PENDING, editable = true)           // 空的自有格子：留着让你填
                 else -> null
             }
             row?.let { out += it }

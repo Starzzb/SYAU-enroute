@@ -114,8 +114,10 @@ internal fun ContributeSection(ui: AppState) {
         // 上传内容一句话说清（关闭时也显示，让用户知道「如果开」会传什么）
         Spacer(Modifier.height(4.dp))
         Text(
-            "会传：地块编号 + 字段名 + 你填的值 + 一个本地随机串（用于限流/归并）\n" +
-                "不传：姓名、学号、设备号、定位、任何文件",
+            "会传：地块编号 + 字段名 + 你填的值 + 本地随机串\n" +
+                "　　+ 机型与系统版本（如 vivo V2301A / Android 16）\n" +
+                "　　+ 应用级设备标识（重置身份后即更换）\n" +
+                "不传：姓名、学号、定位、通讯录、相册、任何文件",
             fontSize = 9.5.sp,
             lineHeight = 14.sp,
             color = t.inkFaint,
@@ -204,10 +206,22 @@ internal fun ContributeSection(ui: AppState) {
                     )
                     Spacer(Modifier.height(8.dp))
                     Text("会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    Text("· 地块编号（如 f19）\n· 字段名（如 层数）\n· 你填的值\n· 一个本地随机串（只用于限流与归并，可重置）", fontSize = 11.sp, lineHeight = 17.sp)
+                    Text(
+                        "· 地块编号（如 f19）\n· 字段名（如 层数）\n· 你填的值\n· 本地随机串（用于限流与归并，可重置）\n" +
+                            "· 机型与系统版本（如 vivo V2301A / Android 16）\n" +
+                            "· 应用级设备标识（Android ID；重置身份后即更换）",
+                        fontSize = 11.sp,
+                        lineHeight = 17.sp,
+                    )
                     Spacer(Modifier.height(8.dp))
                     Text("不会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
-                    Text("· 姓名、学号、手机号\n· 设备型号 / 设备号 / 任何硬件标识\n· 定位、剪贴板、文件、课表、成绩", fontSize = 11.sp, lineHeight = 17.sp)
+                    Text(
+                        "· 姓名、学号、手机号\n" +
+                            "· 定位、通讯录、相册、任何文件\n" +
+                            "· 课表、成绩、登录凭据",
+                        fontSize = 11.sp,
+                        lineHeight = 17.sp,
+                    )
                     Spacer(Modifier.height(8.dp))
                     Text(
                         "随时可以在设置里关掉；关掉后一个字节都不会上传。",
@@ -269,6 +283,20 @@ internal fun ContributeSection(ui: AppState) {
                             Text("${p.featureId} · ${p.field}：$why", fontSize = 10.sp, lineHeight = 14.sp)
                         }
                     }
+                    // 随附的设备信息也列出来 —— 弹窗承诺「会传什么」，这里就不能藏东西
+                    val ci = uploader.clientInfo()
+                    Spacer(Modifier.height(10.dp))
+                    Text("随附信息（同样会上传）：", fontSize = 11.sp, fontWeight = FontWeight.Medium)
+                    val device = listOf(ci.manufacturer, ci.model).filter { it.isNotBlank() }.joinToString(" ")
+                    Text(
+                        "· 机型：${device.ifBlank { "（取不到）" }}\n" +
+                            "· 系统：Android ${ci.release.ifBlank { "?" }}（API ${ci.sdkInt}）\n" +
+                            "· 应用级设备标识：" + (if (ci.ssaid.isBlank()) "（本机取不到，留空）" else ci.ssaid.take(8) + "…") + "\n" +
+                            "· 本地随机串：${ci.did.take(13)}…",
+                        fontSize = 10.sp,
+                        lineHeight = 15.sp,
+                        color = InkTokens.current.inkSoft,
+                    )
                 }
             },
             confirmButton = { TextButton(onClick = { showPreview = false }) { Text("知道了", fontSize = 13.sp) } },

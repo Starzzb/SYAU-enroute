@@ -62,6 +62,18 @@ class MapUploader(ctx: Context) {
 
     fun anonymousKey(): String = store.anonymousKey()
 
+    /** 安装级 UUID（「重置身份」会一并更换）；界面预览要用 */
+    fun installId(): String = store.installId()
+
+    /** 上传会随附的设备信息（预览/确认弹窗要如实列出，不许藏） */
+    fun clientInfo(): MapContribute.ClientInfo =
+        MapDeviceIdentity.collect(
+            ctx = app,
+            did = store.anonymousKey(),
+            installId = store.installId(),
+            appVersion = BuildConfig.VERSION_NAME,
+        )
+
     fun resetAnonymousKey(): String = store.resetAnonymousKey()
 
     fun nextTryAt(): Long = store.nextTryAt()
@@ -81,9 +93,12 @@ class MapUploader(ctx: Context) {
 
     /** 上传队列。`force=true` 时忽略退避时间（用户手动点「立刻重试」） */
     suspend fun upload(mapVersion: String, force: Boolean = false): Outcome = withContext(Dispatchers.IO) {
-        if (!store.isEnabled()) return@withContext Outcome.Failed("还没开启「参与共建」", retryable = false)
         val patches = store.pending()
-        if (patches.isEmpty()) return@withContext Outcome.NothingToDo
+        // ★ 唯一的上传闸门：开关关着 → 一条都不发（票 22 红线）。判断在纯函数里，有单测锁。
+        if (!MapContribute.shouldSend(store.isEnabled(), patches)) {
+            return@withContext if (patches.isEmpty()) Outcome.NothingToDo
+            else Outcome.Failed("还没开启「参与共建」", retryable = false)
+        }
         val now = System.currentTimeMillis()
         if (!force && !MapContribute.shouldTryNow(now, store.nextTryAt())) {
             val mins = ((store.nextTryAt() - now) / 60_000L).coerceAtLeast(1)
@@ -91,13 +106,18 @@ class MapUploader(ctx: Context) {
         }
 
         val key = store.anonymousKey()
+        val clientInfo = MapDeviceIdentity.collect(
+            ctx = app,
+            did = key,
+            installId = store.installId(),
+            appVersion = BuildConfig.VERSION_NAME,
+        )
         val sent = ArrayList<MapContribute.Patch>()
         var lastOk: MapContribute.MapPatchResponse? = null
         for (batch in MapContribute.chunk(patches)) {
             val body = MapContribute.body(
                 mapVersion = mapVersion,
-                anonymousKey = key,
-                appVersion = BuildConfig.VERSION_NAME,
+                client = clientInfo,
                 patches = batch,
             )
             if (body.toByteArray().size > MapContribute.MAX_BODY_BYTES) {
@@ -210,6 +230,13 @@ class MapUploader(ctx: Context) {
          */
         val API_KEY: String = cn.dkarbon.enroute.BuildConfig.CMAP_API_KEY
 
+        /**
+         * ⚠️ **这一行不能删。**
+         *
+         * nginx 在 18082 上有 UA 过滤器，`curl/` `wget/` `python-` `java/` 等一律 403。
+         * `HttpURLConnection` 的**默认 UA 是 `Java/1.x`**，正好命中黑名单 ——
+         * 删了这行，上传会以「403」而不是网络错误失败，非常难查（已被踩过一次）。
+         */
         private const val UA = "SYAU-Enroute (personal student test build; map contribute)"
 
         fun describe(e: Throwable?): String {

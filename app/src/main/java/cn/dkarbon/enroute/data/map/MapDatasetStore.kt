@@ -50,7 +50,7 @@ class MapDatasetStore(ctx: Context) {
     fun save(ds: MapDataset.Dataset): Boolean = runCatching {
         file.parentFile?.mkdirs()
         val tmp = File(file.parentFile, file.name + ".tmp")
-        tmp.writeText(encode(ds))
+        tmp.writeText(MapDataset.encode(ds))
         if (file.exists()) file.delete()
         tmp.renameTo(file)
     }.getOrDefault(false)
@@ -60,47 +60,7 @@ class MapDatasetStore(ctx: Context) {
     /** 只取版本号，不解整份数据（快速判「有没有变」） */
     fun cachedRev(): Long = load()?.rev ?: 0L
 
-    /**
-     * 写回时用**和服务器同样的形状**，这样缓存文件可以直接拿去对账/排查，
-     * 也可以当作 `merge()` 的输入（`parse()` 能读回来 —— 单测锁这个往返）。
-     */
-    private fun encode(ds: MapDataset.Dataset): String {
-        val sb = StringBuilder()
-        sb.append("{\"schema\":").append(ds.schema)
-        sb.append(",\"mapVersion\":").append(q(ds.mapVersion))
-        sb.append(",\"rev\":").append(ds.rev)
-        sb.append(",\"updatedAt\":").append(q(ds.updatedAt))
-        sb.append(",\"fields\":[")
-        ds.fields.forEachIndexed { i, f -> if (i > 0) sb.append(','); sb.append(q(f)) }
-        sb.append("],\"features\":{")
-        ds.features.entries.forEachIndexed { i, (fid, m) ->
-            if (i > 0) sb.append(',')
-            sb.append(q(fid)).append(":{")
-            m.entries.forEachIndexed { j, (k, v) ->
-                if (j > 0) sb.append(',')
-                sb.append(q(k)).append(':').append(q(v))
-            }
-            sb.append('}')
-        }
-        sb.append("},\"deleted\":[]}")
-        return sb.toString()
-    }
-
-    private fun q(s: String): String {
-        val sb = StringBuilder("\"")
-        s.forEach { c ->
-            when (c) {
-                '"' -> sb.append("\\\"")
-                '\\' -> sb.append("\\\\")
-                '\n' -> sb.append("\\n")
-                '\r' -> sb.append("\\r")
-                '\t' -> sb.append("\\t")
-                else -> if (c.code < 0x20) sb.append("\\u%04x".format(c.code)) else sb.append(c)
-            }
-        }
-        return sb.append('"').toString()
-    }
-
+    /** 编码交给纯逻辑层（往返有单测）：见 [MapDataset.encode] */
     private companion object {
         const val KEY_LAST_CHECK = "lastCheckAt"
         const val KEY_LAST_ERR = "lastErr"

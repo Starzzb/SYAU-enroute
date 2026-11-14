@@ -35,31 +35,86 @@ class MapContributeTest {
 
     // ── 1. 隐私：请求体里到底有什么 ───────────────────────
 
+    private fun client() = MapContribute.ClientInfo(
+        did = "anon-1234",
+        appVer = "0.2.0+m19",
+        manufacturer = "vivo",
+        model = "V2301A",
+        device = "PD2301",
+        sdkInt = 36,
+        release = "16",
+        ssaid = "ssaid-abcdef012345",
+        installId = "install-xyz",
+    )
+
     @Test
-    fun `request body carries exactly the allowed keys and no identity`() {
+    fun `request body carries exactly the declared client fields`() {
         val body = MapContribute.body(
             mapVersion = "2026.11.14-1",
-            anonymousKey = "anon-1234",
-            appVersion = "0.2.0+m19",
+            client = client(),
             patches = MapContribute.patchesFrom(edits()),
         )
         // 允许的
         assertTrue(body.contains("\"mapVersion\":\"2026.11.14-1\""))
         assertTrue(body.contains("\"featureId\":\"f19\""))
-        // `client` 里**只允许** did + appVer —— 用整段精确断言，加任何键都会红
-        assertTrue(
-            "client 里出现了 did/appVer 以外的东西：$body",
-            body.contains(",\"client\":{\"did\":\"anon-1234\",\"appVer\":\"0.2.0+m19\"}"),
-        )
-        // **禁止的**（票 13 红线：不传姓名/学号/设备号/位置）
+        // 票 22：机型/系统/设备标识**现在要发**（主人要求收集上传者信息）
+        assertTrue(body.contains("\"did\":\"anon-1234\""))
+        assertTrue(body.contains("\"manufacturer\":\"vivo\""))
+        assertTrue(body.contains("\"model\":\"V2301A\""))
+        assertTrue(body.contains("\"device\":\"PD2301\""))
+        assertTrue(body.contains("\"sdkInt\":36"))
+        assertTrue(body.contains("\"release\":\"16\""))
+        assertTrue(body.contains("\"ssaid\":\"ssaid-abcdef012345\""))
+        assertTrue(body.contains("\"installId\":\"install-xyz\""))
+        assertTrue(body.contains("\"appVer\":\"0.2.0+m19\""))
+        // **禁止的**（票 22 红线：学号仍然不传）
         assertFalse("不许出现学号字段 sid", body.contains("\"sid\""))
-        assertFalse("不许出现机型（服务端明文落盘）", body.contains("\"model\""))
         assertFalse("服务端不认 userKey 这个名字", body.contains("userKey"))
         assertFalse("不许出现定位", body.contains("\"lat\"") || body.contains("\"lng\"") || body.contains("location"))
         assertFalse("不许出现中文姓名键", body.contains("姓名"))
-        assertFalse("不许出现硬件标识", body.contains("androidId") || body.contains("imei") || body.contains("serial"))
         // 注：`"field":"name"` 是**字段名**（固定字段 name/kind 也要上传），不是隐私泄露
         assertTrue(body.contains("\"field\":\"name\""))
+    }
+
+    @Test
+    fun `client block has no key beyond the declared ones`() {
+        val body = MapContribute.body("2026.11.14-1", client(), emptyList())
+        val start = body.indexOf("\"client\":{") + "\"client\":".length   // 从 `{` 开始，别把 `"client"` 自己算进去
+        val end = body.indexOf('}', start)
+        val block = body.substring(start, end + 1)
+        val keys = Regex("\"(\\w+)\":").findAll(block).map { it.groupValues[1] }.toSet()
+        assertEquals(
+            "client 里只能有这些键；多一个都算偷偷多传",
+            setOf(
+                "did", "manufacturer", "model", "device", "sdkInt",
+                "release", "ssaid", "installId", "appVer",
+            ),
+            keys,
+        )
+    }
+
+    @Test
+    fun `ssaid unavailable is an empty string, never a placeholder`() {
+        val noSsaid = client().copy(ssaid = "")
+        val body = MapContribute.body("2026.11.14-1", noSsaid, emptyList())
+        assertTrue("拿不到就该是空串", body.contains("\"ssaid\":\"\""))
+        assertFalse("绝不能编占位串", body.contains("unknown"))
+        assertFalse(body.contains("\"ssaid\":\"0"))
+    }
+
+    @Test
+    fun `sdkInt 0 is omitted instead of sending a fake value`() {
+        val noSdk = client().copy(sdkInt = 0)
+        val body = MapContribute.body("2026.11.14-1", noSdk, emptyList())
+        assertFalse("取不到就不发这个键，别写 0", body.contains("\"sdkInt\""))
+    }
+
+    @Test
+    fun `the switch is the only gate - nothing is sent when it is off`() {
+        val patches = MapContribute.patchesFrom(edits())
+        assertFalse("关着 → 一条都不发", MapContribute.shouldSend(enabled = false, patches = patches))
+        assertFalse("没东西 → 也不发", MapContribute.shouldSend(enabled = true, patches = emptyList()))
+        assertTrue(MapContribute.shouldSend(enabled = true, patches = patches))
     }
 
     @Test
@@ -69,6 +124,10 @@ class MapContributeTest {
         assertTrue(a.startsWith("anon-"))
         assertTrue("两次必须不同", a != b)
         assertEquals("anon- 前缀 + UUID 长度", 5 + 36, a.length)
+        // 「应用级设备标识」是另一件事：Android ID / installId 由系统与本地各自生成，
+        // 这里只确认本地随机串不带任何硬件前缀
+        assertFalse(a.contains("imei"))
+        assertFalse(a.contains("serial"))
     }
 
     // ── 2. featureId / field 与服务端正则一致 ─────────────

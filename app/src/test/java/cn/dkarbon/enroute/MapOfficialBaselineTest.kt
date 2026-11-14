@@ -2,7 +2,7 @@ package cn.dkarbon.enroute
 
 import cn.dkarbon.enroute.data.map.MapEdits
 import cn.dkarbon.enroute.data.map.MapEditsCodec
-import cn.dkarbon.enroute.data.map.MapEditsOps
+import cn.dkarbon.enroute.data.map.MapDataset
 import cn.dkarbon.enroute.data.map.MapFeature
 import cn.dkarbon.enroute.data.map.MapParse
 import org.junit.Assert.assertEquals
@@ -67,52 +67,60 @@ class MapOfficialBaselineTest {
         assertEquals(emptyList<String>(), old.customFields)
     }
 
-    // 2. 合并优先级
+    // 2. 合并优先级（口径已统一到 MapDataset.rows：待上传 / 共建 / 内置）
     @Test
-    fun `user annotation wins over official value and loses the official badge`() {
+    fun `user annotation wins over official value and is not marked builtin`() {
         val f19 = features().first { it.id == "f19" }
-        // 用户只改「层数」，别的没动
+        // 用户只改「层数」，别的没动；服务器没有数据（dataset = null）
         val edits = MapEdits(
             mapVersion = "2026.11.14-1",
             fieldOrder = listOf("层数"),
             features = mapOf("f19" to cn.dkarbon.enroute.data.map.MapEdit(fields = mapOf("层数" to "4"))),
         )
-        val views = MapEditsOps.fieldViews(f19, edits, listOf("层数", "所属单位", "开放时间"))
-        val byName = views.associateBy { it.name }
+        val rows = MapDataset.rows(f19, edits, dataset = null, declared = listOf("层数", "所属单位", "开放时间"))
+        val byName = rows.associateBy { it.name }
 
         assertEquals("4", byName["层数"]!!.value)
-        assertFalse("用户填的不能标成官方", byName["层数"]!!.official)
-        // 官方独有字段仍然显示，且标 official
+        assertEquals("用户值优先，且不能标成内置", MapDataset.Source.PENDING, byName["层数"]!!.source)
+        assertTrue("用户填的必须可编辑", byName["层数"]!!.editable)
+        // 官方独有字段仍然显示，标「内置」
         assertEquals("体育部", byName["所属单位"]!!.value)
-        assertTrue(byName["所属单位"]!!.official)
+        assertEquals(MapDataset.Source.BUILTIN, byName["所属单位"]!!.source)
+        assertFalse("内置值不可直接编辑", byName["所属单位"]!!.editable)
     }
 
     @Test
-    fun `clearing the user value falls back to the official value, still marked official`() {
+    fun `clearing the user value falls back to the official value, still marked builtin`() {
         val f19 = features().first { it.id == "f19" }
         // 用户建了同名列但留空（= 清掉自己的值）
         val edits = MapEdits(
             fieldOrder = listOf("层数"),
             features = mapOf("f19" to cn.dkarbon.enroute.data.map.MapEdit(fields = emptyMap())),
         )
-        val v = MapEditsOps.fieldViews(f19, edits, listOf("层数")).first { it.name == "层数" }
+        val v = MapDataset.rows(f19, edits, null, listOf("层数")).first { it.name == "层数" }
         assertEquals("3", v.value)
-        assertTrue("退回官方值时必须标官方，否则像用户自己填的", v.official)
+        assertEquals(
+            "退回官方值时必须标「内置」，否则像用户自己填的",
+            MapDataset.Source.BUILTIN,
+            v.source,
+        )
+        assertFalse(v.editable)
     }
 
     @Test
     fun `field order is user fields first then official-only ones, no duplicates`() {
         val f19 = features().first { it.id == "f19" }
-        val edits = MapEdits(fieldOrder = listOf("备注"))  // 用户自建字段，官方没有
-        val names = MapEditsOps.fieldViews(f19, edits, listOf("层数", "所属单位", "备注")).map { it.name }
+        val edits = MapEdits(fieldOrder = listOf("备注"))   // 用户自建字段，官方没有
+        val names = MapDataset.rows(f19, edits, null, listOf("层数", "所属单位", "备注")).map { it.name }
         assertEquals(listOf("备注", "层数", "所属单位"), names)
+        assertEquals("不能重复出现同一字段", names.size, names.toSet().size)
     }
 
     @Test
     fun `official fields with blank value do not occupy a row`() {
         val f20 = features().first { it.id == "f20" }   // 这一面没有任何官方字段
-        val views = MapEditsOps.fieldViews(f20, MapEdits(), listOf("层数", "所属单位"))
-        assertTrue("没有官方值的面不该出现空行", views.isEmpty())
+        val rows = MapDataset.rows(f20, MapEdits(), null, listOf("层数", "所属单位"))
+        assertTrue("没有官方值的面不该出现空行", rows.isEmpty())
     }
 
     // 3. 「已标注 N」只数用户
