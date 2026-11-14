@@ -483,6 +483,9 @@ fun SettingsScreen(
             color = t.inkFaint,
         )
         Spacer(Modifier.height(10.dp))
+        // 地图共建（票 13 阶段 B）：默认关，开启需先看「传什么/不传什么」，上传要手动点
+        ContributeSection(ui)
+        Spacer(Modifier.height(10.dp))
         // 应用内更新（票 15）：查 latest.json → 下载 → sha256 校验 → 交系统安装器。
         // 只在用户点「检查」时联网；启动时的静默检查每天最多一次（见 EnRouteApp）。
         UpdateSection()

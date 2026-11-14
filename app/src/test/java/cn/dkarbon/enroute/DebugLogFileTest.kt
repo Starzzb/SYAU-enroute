@@ -69,6 +69,22 @@ class DebugLogFileTest {
     }
 
     @Test
+    fun `内存与导出文档里也搜不到凭证明文`() {
+        // 真机复测的洞：原来只在落盘那层脱敏 → 屏幕、复制、导出文档全是明文。
+        // 现在脱敏在 DebugLog.write()（进内存之前），三条下游一起覆盖。
+        DebugLog.log("URP", "GET 10.2.0.47/login?ticket=ST-MEMORY-SECRET")
+        DebugLog.log("SESSION", "Cookie: JSESSIONID=MEMORYJS; CASTGC=MEMORYCASTGC")
+        DebugLog.warn("CRED", "password=MEMORYPWD")
+        val screen = DebugLog.entries.value.joinToString("\n") { DebugLog.formatLine(it) }
+        val dump = DebugLog.dump()
+        listOf("ST-MEMORY-SECRET", "MEMORYJS", "MEMORYCASTGC", "MEMORYPWD").forEach {
+            assertFalse("屏幕路径还有 $it", screen.contains(it))
+            assertFalse("导出文档还有 $it", dump.contains(it))
+        }
+        assertTrue(screen.contains("ticket=***"))
+    }
+
+    @Test
     fun `落盘文件里搜不到凭证明文`() {
         val sink = DebugLogFile(dir)
         sink.append("11:00:00.000  [URP]  ← 200 1.2KB 820ms GET 10.2.0.47/login?ticket=ST-REAL-SECRET")
@@ -142,11 +158,11 @@ class DebugLogFileTest {
         val days = listOf("2026-11-14", "2026-11-08", "2026-11-11")   // 顺序乱也能算对
         assertEquals("在途日志_2026-11-08_2026-11-14.txt", DebugLogFile.exportFileName(days, "2026-11-14"))
         // 只有一天
-        assertEquals("在途日志_2026-11-14_2026-11-14.txt", DebugLogFile.exportFileName(listOf("2026-11-14"), "2026-11-14"))
+        assertEquals("在途日志_2026-11-14.txt", DebugLogFile.exportFileName(listOf("2026-11-14"), "2026-11-14"))
         // 没有任何落盘文件 → 退化成今天单日，不编范围
-        assertEquals("在途日志_2026-11-20_2026-11-20.txt", DebugLogFile.exportFileName(emptyList(), "2026-11-20"))
+        assertEquals("在途日志_2026-11-20.txt", DebugLogFile.exportFileName(emptyList(), "2026-11-20"))
         // 空串日期被忽略
-        assertEquals("在途日志_2026-11-20_2026-11-20.txt", DebugLogFile.exportFileName(listOf("", "  "), "2026-11-20"))
+        assertEquals("在途日志_2026-11-20.txt", DebugLogFile.exportFileName(listOf("", "  "), "2026-11-20"))
     }
 
     @Test

@@ -134,9 +134,21 @@ fun DebugScreen(
         ) {
             Text("调试日志", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = t.ink)
             Spacer(Modifier.width(8.dp))
+            // 「留空」和「显示 0」一样是信息缺失：要么给真实占用，要么明说未启用。
+            // 占用值直接问落盘通道（flush 之后才是真值，所以按日志条数变化重算一次）。
+            val usageLabel = if (ui == null) {
+                ""
+            } else if (!ui.debugFileEnabled) {
+                " · 落盘未启用"
+            } else {
+                val kb = remember(allEntries.size) {
+                    runCatching { cn.dkarbon.enroute.data.DebugLog.fileSink()?.usageBytes() ?: -1L }
+                        .getOrDefault(-1L)
+                }
+                if (kb >= 0) " · 落盘 ${kb / 1024}KB" else " · 落盘未启用"
+            }
             Text(
-                "${entries.size} 条" +
-                    (if (ui?.debugFileEnabled == true) " · 落盘 " + ui.debugFileUsage.substringBefore(" ·") else ""),
+                "${entries.size} 条" + usageLabel,
                 fontSize = 11.sp,
                 color = t.inkFaint,
             )

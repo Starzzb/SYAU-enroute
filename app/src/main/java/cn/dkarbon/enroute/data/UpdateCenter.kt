@@ -281,12 +281,18 @@ class UpdateCenter(private val ctx: Context) {
          * **为什么首选 GitHub raw**：明文 http 上的 `latest.json` 可以被中间人连同 `sha256`
          * 一起改掉 —— 那样「校验通过」就失去意义了。走 https 的 raw 文件没有这个洞；
          * 自己的机器只作回落，且 APK 入口地址还**钉死了本仓库前缀**
-         * （[UpdatePolicy.PINNED_RELEASE_PREFIX]），最坏情况只是「下载失败」。
+         * （[UpdatePolicy.PINNED_RELEASE_PREFIX]）：攻击者拿不到本仓库的写权限，
+         * 就提供不出任何**可安装**的包 —— **最坏结果只是「下载失败」**。
+         *
+         * 回落为什么留着（2026-11-14 复议）：`47.95.12.198` 已在 `network_security_config.xml`
+         * 里放行明文（地图补丁上报必须走它，那台机器没有 TLS），所以回落**是可用的**，
+         * 不是死路。若日志里再出现 `Cleartext HTTP traffic to 47.95.12.198 not permitted`，
+         * 说明 network config 没生效 —— 那条 ERROR 正好当探针用，别删。
          */
         val MANIFEST_URLS = listOf(
             // ① 首选：GitHub raw（https，手机链路上 TLS 不会被 RST）
             "https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ② 回落：自己的机器（<2KB，明文，只在 raw 拉不到时用）
+            // ② 回落：自己的机器（<2KB，明文，只在 raw 拉不到时用；已由 network config 放行）
             "http://47.95.12.198:18082/app/latest.json",
             "http://47.95.12.198:18081/app/latest.json",
         )

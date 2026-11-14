@@ -50,6 +50,16 @@ class MapUploader(ctx: Context) {
 
     fun isEnabled(): Boolean = store.isEnabled()
 
+    /** UI 侧开关（**关闭即刻生效**：之后一个字节都不会再发） */
+    fun setEnabled(on: Boolean) = store.setEnabled(on)
+
+    /** 是否已经看过「会传什么/不传什么」的确认（首次开启要过一次） */
+    fun hasAcknowledged(): Boolean = store.hasAcknowledged()
+
+    fun setAcknowledged(v: Boolean) = store.setAcknowledged(v)
+
+    fun clearQueue() = store.clearQueue()
+
     fun anonymousKey(): String = store.anonymousKey()
 
     fun resetAnonymousKey(): String = store.resetAnonymousKey()
@@ -70,7 +80,7 @@ class MapUploader(ctx: Context) {
     }
 
     /** 上传队列。`force=true` 时忽略退避时间（用户手动点「立刻重试」） */
-    suspend fun upload(force: Boolean = false): Outcome = withContext(Dispatchers.IO) {
+    suspend fun upload(mapVersion: String, force: Boolean = false): Outcome = withContext(Dispatchers.IO) {
         if (!store.isEnabled()) return@withContext Outcome.Failed("还没开启「参与共建」", retryable = false)
         val patches = store.pending()
         if (patches.isEmpty()) return@withContext Outcome.NothingToDo
@@ -85,7 +95,7 @@ class MapUploader(ctx: Context) {
         var lastOk: MapContribute.MapPatchResponse? = null
         for (batch in MapContribute.chunk(patches)) {
             val body = MapContribute.body(
-                mapVersion = MAP_VERSION,
+                mapVersion = mapVersion,
                 anonymousKey = key,
                 appVersion = BuildConfig.VERSION_NAME,
                 patches = batch,
@@ -120,10 +130,10 @@ class MapUploader(ctx: Context) {
     }
 
     /** 后台跑一次（设置页/地图页进入时用），失败不打扰 */
-    fun uploadAsync(force: Boolean = false) {
+    fun uploadAsync(mapVersion: String, force: Boolean = false) {
         if (!store.isEnabled()) return
         if (!force && !MapContribute.shouldTryNow(System.currentTimeMillis(), store.nextTryAt())) return
-        scope.launch { runCatching { upload(force) } }
+        scope.launch { runCatching { upload(mapVersion, force) } }
     }
 
     // ── HTTP ─────────────────────────────────────────────
@@ -187,21 +197,18 @@ class MapUploader(ctx: Context) {
             "http://47.95.12.198:18081/map/api/patches",
         )
 
-        /**
-         * 当前地图包版本（与服务端 `mapVersion` 正则一致）。
-         * 由地图包 manifest 决定；这里是**兜底值**，调用方应传真实版本
-         * （`MapUploader.queueFromEdits(edits, mapVersion)` 已经这么做，上传时用同一版本）。
-         */
-        var MAP_VERSION: String = "2026.11.14-1"
 
         /**
-         * 服务端 `X-Api-Key`（`CMAP_API_KEY`）。
+         * 服务端 `X-Api-Key`，由 `build.gradle.kts` 从 `local.properties` 注入
+         * （`CMAP_API_KEY`）—— 公开仓库里不出现明文键，换键不用改代码。
          *
-         * ⚠️ 这个键只是**防刷**，不是秘密凭据（写在 APK 里必然可被提取）。
-         * 正式包应在 `build.gradle.kts` 里 `buildConfigField` 注入，别提交到仓库；
-         * 这里留空 = 不带该头，服务端若配了键会返回 403 —— 界面上会明说原因，不会静默失败。
+         * ⚠️ **它不是安全边界**：打进 APK 的字符串必然可被提取。真正拦人的是三件事：
+         * ① 服务端限流 400 条/小时（靠稳定的 `did` → `ch` 才有效）
+         * ② 众包数据要人工过一遍才合并进资产（**不实时下行**）
+         * ③ 上报内容本身匿名（不含 sid / model / 定位 / 硬件标识）
+         * 留空 = 不带该头；服务端若配了键会返回 403，界面会明说原因，不静默失败。
          */
-        var API_KEY: String = ""
+        val API_KEY: String = cn.dkarbon.enroute.BuildConfig.CMAP_API_KEY
 
         private const val UA = "SYAU-Enroute (personal student test build; map contribute)"
 

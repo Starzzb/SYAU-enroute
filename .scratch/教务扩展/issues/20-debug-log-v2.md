@@ -133,3 +133,52 @@ NO PLAINTEXT CREDENTIALS FOUND (0 matches)
 `导出文件名带日期范围`（乱序/单日/无文件退化/空串忽略）、`二次脱敏是幂等的`。
 
 **当前总量：440 条 / 35 类 / 0 失败**；`compile-check.bat` BUILD SUCCESSFUL / EXIT=0。
+
+### 2026-11-14 真机复测后修正（三条，第 ④ 条按 lead 复议作废）
+
+**① 🔴 脱敏只在落盘层 → 已提到内存唯一入口**
+
+真机证据：调试页上明文出现 `ticket=ST-277817-0WFt4Yi1VkhaY3Dd53vC-tpass`。
+原因：`DebugLogFile.append()` 才脱敏，而 `_entries`（屏幕/复制/「导出文档」的数据源）从头到尾没脱敏。
+
+改法：脱敏挪进 `DebugLog.write()`（**进内存之前**，唯一写入口），四条下游一次覆盖：
+屏幕 / 复制 / 导出文档 / 落盘。落盘层 `redact` 保留（幂等，纵深防御）。
+
+代价：调试时看不到票据原文 —— 认了，安全优先；**键名仍保留**（知道有票、拿不到票）。
+
+**② 🟡 导出文件名同日重复** → 单日退化成 `在途日志_2026-11-14.txt`；
+多日才 `_起_止`（`DebugLogFile.exportFileName:144`）。
+
+**③ 🟡「落盘 xxKB」空白** → 改成直接问落盘通道 `usageBytes()`、按日志条数变化重算；
+未启用时明确写「落盘未启用」。**留空和 0 一样是信息缺失**。
+
+**④ 更新回落 http 地址：保留（lead 复议，我原改动作废）**
+`47.95.12.198` 已由 `network_security_config.xml` 放行明文（地图上报必须走它），回落可用。
+安全性论证不变：`PINNED_RELEASE_PREFIX` 把 APK 入口钉死在本仓库 `releases/download/` 下，
+攻击者无本仓库写权限 → 提供不出可安装的包，**最坏只是下载失败**。
+`Cleartext HTTP traffic to 47.95.12.198 not permitted` 那条 ERROR **留作探针**（重建后还出现＝config 没生效）。
+
+#### 新的脱敏证据（覆盖屏幕 + 导出文档 + 落盘三条路径）
+`DebugLogEvidenceTest` 把三条路径的产物都写到 `app/build/debuglog-evidence/`
+（`screen.txt` / `dump.txt` / `2026-11-14.log`，不自动删）：
+
+```
+18:06:36.979  [URP] ← 302 0B  GET 10.2.0.47/login?errorCode=invalidSession&ticket=***
+18:06:36.987  [SESSION] Set-Cookie: JSESSIONID=***; Path=***; HttpOnly
+18:06:36.987  [SESSION] Set-Cookie: CASTGC=***; Path=***
+18:06:36.989  [CRED] POST body password=***&execution=***
+18:06:36.989  [API] GET api/score?token=***&access_token=***
+18:06:36.989  [FEED] ← 200 12.3KB  820ms  GET jwc.syau.edu.cn/index/jwtz.htm?ticket=***
+```
+
+```powershell
+Select-String -Path app\build\debuglog-evidence\* `
+  -Pattern 'JSESSIONID=[^*.\s]|CASTGC=[^*.\s]|ticket=[^*.\s]|token=[^*.\s]|password=[^*.\s]|ST-EVIDENCE'
+# → NO PLAINTEXT CREDENTIALS IN screen.txt / dump.txt / *.log (0 matches)
+```
+
+顺带把 cookie 头从「整段 `***`」改成**抹值留名**（`Set-Cookie: JSESSIONID=***; Path=***`）：
+排查时「有没有这个 cookie」有用，且未知新 cookie 名也能挡住（逐对抹，不是白名单）。
+
+**单测**：`DebugLogFileTest` 14 条（新增 `内存与导出文档里也搜不到凭证明文`）+ `DebugLogEvidenceTest` 1 条。
+**当前：454 条 / 36 类 / 0 失败**（含另一个代理新增的类）；`compile-check.bat` BUILD SUCCESSFUL / EXIT=0。

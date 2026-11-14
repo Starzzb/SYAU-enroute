@@ -87,8 +87,8 @@ object MapContribute {
         val op: String = "set",
         val ts: String,
     ) {
-        /** 去重键：同一地块同一字段只保留最新一条 */
-        val key: String get() = "$featureId\u0000$field"
+        /** 去重键：同一地块同一字段只保留最新一条（不参与 equals，故放 body 里） */
+        val key: String = featureId + "|" + field
     }
 
     /** 从「用户的标注」生成补丁列表（只含有值/清值的格子，不含官方基线） */
@@ -213,24 +213,37 @@ object MapContribute {
         }
     }
 
+    private val json = kotlinx.serialization.json.Json { isLenient = true }
+
     fun parseResponse(text: String): MapPatchResponse? {
         val o = runCatching {
-            kotlinx.serialization.json.Json { isLenient = true }
-                .parseToJsonElement(text) as? kotlinx.serialization.json.JsonObject
+            json.parseToJsonElement(text) as? kotlinx.serialization.json.JsonObject
         }.getOrNull() ?: return null
-        fun n(k: String) = (o[k] as? kotlinx.serialization.json.JsonPrimitive)?.content?.toDoubleOrNull()?.toInt() ?: 0
-        val reasons = ((o["reasons"] as? kotlinx.serialization.json.JsonArray) ?: return@runCatching null)
+
+        fun prim(key: String): String =
+            (o[key] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty()
+
+        // 注意：服务端的 `reasons` 是**数组**（文档写成 map 是错的，以 server.js 为准）
+        val reasonsArr = o["reasons"] as? kotlinx.serialization.json.JsonArray ?: return null
+        val reasons = reasonsArr
             .mapNotNull { it as? kotlinx.serialization.json.JsonObject }
             .map { r ->
+                fun rs(key: String): String =
+                    (r[key] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty()
                 MapPatchResponse.Rejected(
-                    featureId = (r["featureId"] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty(),
-                    field = (r["field"] as? kotlinx.serialization.json.JsonPrimitive)?.content.orEmpty(),
-                    reasons = ((r["reasons"] as? kotlinx.serialization.json.JsonArray)
-                        ?: kotlinx.serialization.json.JsonArray(emptyList()))
-                        .mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.content },
+                    featureId = rs("featureId"),
+                    field = rs("field"),
+                    reasons = (r["reasons"] as? kotlinx.serialization.json.JsonArray)
+                        ?.mapNotNull { (it as? kotlinx.serialization.json.JsonPrimitive)?.content }
+                        .orEmpty(),
                 )
             }
-        return MapPatchResponse(n("accepted"), n("rejected"), reasons, n("keys"))
+        return MapPatchResponse(
+            accepted = prim("accepted").toIntOrNull() ?: 0,
+            rejected = prim("rejected").toIntOrNull() ?: 0,
+            reasons = reasons,
+            keys = prim("keys").toIntOrNull() ?: 0,
+        )
     }
 
     // ── 退避 ─────────────────────────────────────────────

@@ -79,11 +79,23 @@ object DebugLog {
 
     fun error(tag: String, msg: String) = write(Entry(System.currentTimeMillis(), tag, msg, Level.ERROR))
 
+    /**
+     * **唯一写入口**。
+     *
+     * 脱敏在这里做（进内存之前），不是只在落盘时做 —— 这是真机复测暴露的洞：
+     * 日志离开设备的机会**不止一次**：① 落盘文件被导出 ② 屏幕被人看到 ③ 复制粘贴到聊天窗
+     * ④ 「导出文档」把内存缓冲写出去。只在落盘那层挡，②③④ 全是明文
+     * （真机上 CAS 票据 `ST-277817-…` 就这么明晃晃显示在调试页上）。
+     *
+     * 代价：调试时看不到票据原文。这个代价认了 —— 安全优先，且键名仍保留（知道有票、拿不到票）。
+     * 落盘那层的 `DebugLogFile.redact` 保留：幂等，作为纵深防御。
+     */
     private fun write(e: Entry) {
-        _entries.value = (_entries.value + e).takeLast(MAX)
-        if (e.level == Level.ERROR) _errors.value = (_errors.value + e).takeLast(MAX_ERRORS)
+        val safe = e.copy(msg = DebugLogFile.redact(e.msg))
+        _entries.value = (_entries.value + safe).takeLast(MAX)
+        if (safe.level == Level.ERROR) _errors.value = (_errors.value + safe).takeLast(MAX_ERRORS)
         // 落盘：失败必须吞掉（日志 I/O 绝不许影响业务）
-        runCatching { file?.append(formatLine(e)) }
+        runCatching { file?.append(formatLine(safe)) }
     }
 
     fun clear() {

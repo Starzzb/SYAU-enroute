@@ -140,7 +140,8 @@ class DebugLogFile(private val root: File) {
             val clean = days.filter { it.isNotBlank() }.sorted()
             val oldest = clean.firstOrNull() ?: today
             val newest = clean.lastOrNull() ?: today
-            return "在途日志_${oldest}_${newest}.txt"
+            // 只有一天时**别把同一天写两遍**（真机 SAF 弹窗里 `_2026-11-14_2026-11-14` 就是这个问题）
+            return if (oldest == newest) "在途日志_$newest.txt" else "在途日志_${oldest}_${newest}.txt"
         }
 
         fun todayString(): String =
@@ -167,9 +168,15 @@ class DebugLogFile(private val root: File) {
             Regex("""(?i)\b(password|passwd|pwd|pl)\s*=\s*[^;&\s"']+"""),
             // 通用 token
             Regex("""(?i)\b(access_token|refresh_token|token|secret|api_key)\s*=\s*[^;&\s"']+"""),
-            // 请求头形式
-            Regex("""(?i)\b(Authorization|Cookie)\s*:\s*[^\r\n]+"""),
+            // 请求头形式：Authorization 整段抹掉（值里常带 bearer token，没有可读的结构）
+            Regex("""(?i)\bAuthorization\s*:\s*[^\r\n]+"""),
         )
+
+        /** `Set-Cookie:` / `Cookie:` 头：**保留 cookie 名**，只抹每个 `name=value` 的值 */
+        private val COOKIE_HEADER = Regex("""(?i)\b(Set-Cookie|Cookie)\s*:\s*([^\r\n]+)""")
+
+        /** cookie 头里的单个 `name=value` 对 */
+        private val COOKIE_PAIR = Regex("""([A-Za-z0-9_.\-]+)\s*=\s*([^;,\s]+)""")
 
         /**
          * 对一行文本脱敏。**纯函数**，单测直接打。
@@ -189,6 +196,15 @@ class DebugLogFile(private val root: File) {
                         if (mark == '=') "$key=***" else "$key: ***"
                     }
                 }
+            }
+            // cookie 头：抹值、留名 —— 「知道有这么个 cookie」对排查有用，
+            // 但未知的新 cookie 名也必须被挡住（所以是逐对抹，而不是白名单）
+            out = COOKIE_HEADER.replace(out) { m ->
+                val header = m.groupValues[1]
+                val rest = COOKIE_PAIR.replace(m.groupValues[2]) { pair ->
+                    pair.groupValues[1] + "=***"
+                }
+                "$header: $rest"
             }
             return out
         }

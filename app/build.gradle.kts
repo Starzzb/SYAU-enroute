@@ -46,6 +46,13 @@ android {
             out
         }.getOrDefault("")
         buildConfigField("String", "GIT_COMMIT", "\"$gitCommit\"")
+        // 地图补丁上报的共享键（票 13 阶段 B）。空 = 不带 X-Api-Key，服务端若配了键会 403。
+        // ⚠️ 说明：打进包里的"密钥"必然可被提取，它不是安全边界。
+        //    真正的防护在服务端（限流 400/小时 + 人工过 conflicts + 数据匿名），
+        //    这里只是避免公开仓库里出现明文键、并让换键时不用改代码。
+        val cmapKey = localProps.getProperty("CMAP_API_KEY").orEmpty()
+        buildConfigField("String", "CMAP_API_KEY", "\"$cmapKey\"")
+
         buildConfigField(
             "String",
             "BUILD_TIME",
