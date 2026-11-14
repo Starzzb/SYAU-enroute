@@ -101,7 +101,7 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                 t = t,
                 label = label,
                 loading = ui.examsLoading,
-                onRefresh = { vm.refreshAcademic() },
+                onRefresh = { vm.refreshExams() },
                 onMore = { showMore = true },
             )
 
@@ -111,7 +111,7 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                     title = "考试安排没读出来",
                     reason = ui.examsMsg,
                     loggedIn = ui.loggedIn,
-                    onRetry = { vm.refreshAcademic() },
+                    onRetry = { vm.refreshExams() },
                     onDiagnose = { showDiag = true },
                 )
             } else {
@@ -204,7 +204,7 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
             ) {
                 SheetMenuRow(t, "重新抓取", "再打一次考试接口（需要登录态）") {
                     showMore = false
-                    vm.refreshAcademic()
+                    vm.refreshExams()
                 }
                 Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.rule))
                 SheetMenuRow(t, "接口诊断", "看状态码、字节数和返回原文前 200 字") {

@@ -1,17 +1,353 @@
 {
  "schema": 1,
- "generatedAt": "2026-11-14T21:00:00+08:00",
- "total": 20,
- "colleges": [
+ "generatedAt": "2026-11-14T21:41:23+0800",
+ "colleges": 16,
+ "total": 741,
+ "fields": [
+  "title",
+  "duty",
+  "dept",
+  "research",
+  "office",
+  "email",
+  "education",
+  "work",
+  "photo",
+  "photoThumb"
+ ],
+ "byCollege": [
+  {
+   "code": "gcxy",
+   "college": "工程学院",
+   "mode": "B",
+   "count": 18,
+   "coverage": {
+    "title": 18,
+    "duty": 0,
+    "dept": 0,
+    "research": 0,
+    "office": 0,
+    "email": 0,
+    "education": 0,
+    "work": 0,
+    "photo": 0,
+    "photoThumb": 0
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "jgxy",
+   "college": "经济管理学院",
+   "mode": "A",
+   "count": 81,
+   "coverage": {
+    "title": 72,
+    "duty": 14,
+    "dept": 7,
+    "research": 48,
+    "office": 63,
+    "email": 73,
+    "education": 0,
+    "work": 0,
+    "photo": 74,
+    "photoThumb": 73
+   },
+   "problems": 7,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "lin",
+   "college": "林学院",
+   "mode": "A",
+   "count": 65,
+   "coverage": {
+    "title": 59,
+    "duty": 11,
+    "dept": 43,
+    "research": 56,
+    "office": 0,
+    "email": 22,
+    "education": 16,
+    "work": 9,
+    "photo": 65,
+    "photoThumb": 12
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "lxy",
+   "college": "理学院",
+   "mode": "A",
+   "count": 7,
+   "coverage": {
+    "title": 6,
+    "duty": 0,
+    "dept": 0,
+    "research": 4,
+    "office": 0,
+    "email": 0,
+    "education": 0,
+    "work": 0,
+    "photo": 6,
+    "photoThumb": 6
+   },
+   "problems": 2,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "marx",
+   "college": "马克思主义学院",
+   "mode": "C",
+   "count": 46,
+   "coverage": {
+    "title": 46,
+    "duty": 0,
+    "dept": 0,
+    "research": 0,
+    "office": 0,
+    "email": 0,
+    "education": 0,
+    "work": 0,
+    "photo": 0,
+    "photoThumb": 0
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "myxy",
+   "college": "动物科学与医学学院",
+   "mode": "A",
+   "count": 42,
+   "coverage": {
+    "title": 41,
+    "duty": 8,
+    "dept": 41,
+    "research": 21,
+    "office": 1,
+    "email": 16,
+    "education": 0,
+    "work": 0,
+    "photo": 41,
+    "photoThumb": 37
+   },
+   "problems": 2,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "nxy",
+   "college": "农学院",
+   "mode": "A",
+   "count": 91,
+   "coverage": {
+    "title": 84,
+    "duty": 57,
+    "dept": 74,
+    "research": 63,
+    "office": 3,
+    "email": 33,
+    "education": 3,
+    "work": 4,
+    "photo": 91,
+    "photoThumb": 90
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "slxy",
+   "college": "水利学院",
+   "mode": "A",
+   "count": 43,
+   "coverage": {
+    "title": 43,
+    "duty": 27,
+    "dept": 43,
+    "research": 41,
+    "office": 1,
+    "email": 37,
+    "education": 0,
+    "work": 0,
+    "photo": 43,
+    "photoThumb": 42
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "spxy",
+   "college": "食品学院",
+   "mode": "A",
+   "count": 36,
+   "coverage": {
+    "title": 30,
+    "duty": 14,
+    "dept": 3,
+    "research": 17,
+    "office": 30,
+    "email": 3,
+    "education": 0,
+    "work": 0,
+    "photo": 30,
+    "photoThumb": 30
+   },
+   "problems": 6,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "swxy",
+   "college": "生物科学技术学院",
+   "mode": "A",
+   "count": 79,
+   "coverage": {
+    "title": 79,
+    "duty": 1,
+    "dept": 10,
+    "research": 43,
+    "office": 79,
+    "email": 69,
+    "education": 24,
+    "work": 73,
+    "photo": 79,
+    "photoThumb": 79
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "thxy",
+   "college": "土地与环境学院",
+   "mode": "A",
+   "count": 24,
+   "coverage": {
+    "title": 24,
+    "duty": 3,
+    "dept": 5,
+    "research": 16,
+    "office": 5,
+    "email": 22,
+    "education": 1,
+    "work": 21,
+    "photo": 24,
+    "photoThumb": 21
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "tyb",
+   "college": "体育教学部",
+   "mode": "D",
+   "count": 29,
+   "coverage": {
+    "title": 29,
+    "duty": 1,
+    "dept": 29,
+    "research": 0,
+    "office": 0,
+    "email": 29,
+    "education": 0,
+    "work": 0,
+    "photo": 29,
+    "photoThumb": 28
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "wyb",
+   "college": "外语教学部",
+   "mode": "A",
+   "count": 54,
+   "coverage": {
+    "title": 8,
+    "duty": 1,
+    "dept": 40,
+    "research": 2,
+    "office": 0,
+    "email": 0,
+    "education": 0,
+    "work": 0,
+    "photo": 51,
+    "photoThumb": 51
+   },
+   "problems": 3,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "xdxy",
+   "college": "信息与电气工程学院",
+   "mode": "A",
+   "count": 60,
+   "coverage": {
+    "title": 54,
+    "duty": 3,
+    "dept": 5,
+    "research": 52,
+    "office": 54,
+    "email": 47,
+    "education": 6,
+    "work": 7,
+    "photo": 54,
+    "photoThumb": 54
+   },
+   "problems": 6,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
+  {
+   "code": "yyxy",
+   "college": "园艺学院",
+   "mode": "C",
+   "count": 3,
+   "coverage": {
+    "title": 1,
+    "duty": 0,
+    "dept": 0,
+    "research": 0,
+    "office": 0,
+    "email": 0,
+    "education": 0,
+    "work": 0,
+    "photo": 0,
+    "photoThumb": 0
+   },
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
+  },
   {
    "code": "zbxy",
    "college": "植物保护学院",
-   "count": 20,
-   "withTitle": 14,
-   "withEmail": 15,
-   "withResearch": 5,
-   "withPhoto": 15,
-   "problems": 6
+   "mode": "A",
+   "count": 63,
+   "coverage": {
+    "title": 60,
+    "duty": 7,
+    "dept": 5,
+    "research": 16,
+    "office": 57,
+    "email": 61,
+    "education": 53,
+    "work": 56,
+    "photo": 61,
+    "photoThumb": 21
+   },
+   "problems": 3,
+   "generatedAt": "2026-11-14T21:00:00+08:00"
   }
- ]
+ ],
+ "totals": {
+  "title": 654,
+  "duty": 147,
+  "dept": 305,
+  "research": 379,
+  "office": 293,
+  "email": 412,
+  "education": 103,
+  "work": 170,
+  "photo": 648,
+  "photoThumb": 544
+ },
+ "note": "本文件每次都由 tools/faculty/summary.py 重扫整个 assets 目录生成，不是逐站中间产物"
 }

@@ -90,7 +90,7 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
             t = t,
             label = label,
             loading = ui.scoresLoading,
-            onRefresh = { vm.refreshAcademic() },
+            onRefresh = { vm.refreshScores() },
             onMore = { showMore = true },
         )
 
@@ -100,7 +100,7 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
                 title = "成绩没读出来",
                 reason = ui.scoresMsg,
                 loggedIn = ui.loggedIn,
-                onRetry = { vm.refreshAcademic() },
+                onRetry = { vm.refreshScores() },
                 onDiagnose = { showDiag = true },
             )
         } else {
@@ -191,7 +191,7 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
         ) {
             SheetMenuRow(t, "重新抓取", "再打一次成绩接口（token 每次都不一样，会重新取）") {
                 showMore = false
-                vm.refreshAcademic()
+                vm.refreshScores()
             }
             Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.rule))
             SheetMenuRow(

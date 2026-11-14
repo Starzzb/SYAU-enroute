@@ -45,6 +45,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.runtime.mutableFloatStateOf
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -254,18 +262,109 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
                 onRecalibrate = { calibrating = true },
             )
 
-            GridArea(
-                modifier = Modifier.weight(1f),
-                week = week,
-                isThisWeek = isThisWeek,
-                todayWeekday = todayWeekday,
-                cells = cells,
-                nowMin = nowMin,
-                summer = summer,
-                monday = cal.mondayOfWeek(week),
-                onCourseClick = { detail = it },
-                onCourseLongClick = { quick = it },
-            )
+            // ── 左右滑动切周（票 28）──────────────────────────────
+            // 手势判定全部在 `WeekSwipeRules`（纯函数、可单测）；这里只做三件事：
+            // 把位移喂进去、把结果画出来、切换周次。**纵向滚动优先**是关键：
+            // 手指还没横着走够阈值之前，一次 `consume()` 都不发出，纵向滚动照常。
+            val swipeScope = rememberCoroutineScope()
+            val swipeDensity = androidx.compose.ui.platform.LocalDensity.current
+            val minSwipePx = with(swipeDensity) { WeekSwipeRules.MIN_SWIPE_DP.dp.toPx() }
+            val flingPx = with(swipeDensity) { WeekSwipeRules.FLING_VELOCITY_DP_S.dp.toPx() }
+            var swipeOffset by remember { mutableStateOf(0f) }
+            var swipeWidth by remember { mutableFloatStateOf(1f) }
+            // 切换动作要读到**最新**的 week / 边界；pointerInput(Unit) 里捕获的 lambda 会是旧的
+            val trySwipeNow = rememberUpdatedState<(Int) -> Boolean> { step ->
+                val target = week + step
+                if (target in minWeek..maxWeek) {
+                    week = target
+                    true
+                } else {
+                    false
+                }
+            }
+
+            fun animateSwipeTo(target: Float, ms: Int = WeekSwipeRules.TRANSITION_MS) {
+                swipeScope.launch {
+                    androidx.compose.animation.core.animate(
+                        initialValue = swipeOffset,
+                        targetValue = target,
+                        animationSpec = androidx.compose.animation.core.tween(ms),
+                    ) { v, _ -> swipeOffset = v }
+                }
+            }
+
+            BoxWithConstraints(Modifier.weight(1f)) {
+                val widthPx = with(swipeDensity) { maxWidth.toPx() }
+                androidx.compose.runtime.LaunchedEffect(widthPx) { swipeWidth = widthPx }
+
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        // 平移 + 淡入淡出：整块内容一起动，所以账页的色带不会错位
+                        // （错位只会发生在"分区各自位移"的写法里，这里不是）
+                        .graphicsLayer {
+                            translationX = swipeOffset
+                            alpha = WeekSwipeRules.alphaFor(swipeOffset, swipeWidth)
+                        }
+                        .pointerInput(Unit) {
+                            awaitEachGesture {
+                                val down = awaitFirstDown(requireUnconsumed = false)
+                                val tracker =
+                                    androidx.compose.ui.input.pointer.util.VelocityTracker()
+                                tracker.addPosition(down.uptimeMillis, down.position)
+                                var dx = 0f
+                                var dy = 0f
+                                var claimed = false
+                                while (true) {
+                                    val event = awaitPointerEvent()
+                                    val pressed = event.changes.filter { it.pressed }
+                                    if (pressed.isEmpty()) break
+                                    val c = pressed.first()
+                                    tracker.addPosition(c.uptimeMillis, c.position)
+                                    dx = c.position.x - down.position.x
+                                    dy = c.position.y - down.position.y
+                                    if (!claimed) {
+                                        // 够横向意图了才接管；在此之前一个事件都不 consume，
+                                        // 纵向滚动 / 点击 / 长按完全不受影响
+                                        if (WeekSwipeRules.shouldClaim(dx, dy, minSwipePx)) claimed = true
+                                    }
+                                    if (claimed) {
+                                        event.changes.forEach { it.consume() }
+                                        swipeOffset = WeekSwipeRules.dragOffset(dx, swipeWidth)
+                                    }
+                                }
+                                if (!claimed) return@awaitEachGesture
+                                val vx = runCatching { tracker.calculateVelocity().x }.getOrDefault(0f)
+                                val step = WeekSwipeRules.decide(dx, dy, vx, minSwipePx, flingPx)
+                                when (WeekSwipeRules.outcomeFor(step, week, minWeek, maxWeek)) {
+                                    WeekSwipeRules.SwipeOutcome.SWITCHED -> {
+                                        // 先把内容"摆到"滑动反方向的一侧，再动画回 0 ——
+                                        // 观感就是新一周从手指来的方向推进来
+                                        trySwipeNow.value(step)
+                                        swipeOffset = -step * swipeWidth
+                                        animateSwipeTo(0f)
+                                    }
+                                    // 到边界：回弹，周次不变（不静默）
+                                    WeekSwipeRules.SwipeOutcome.BOUNCE_AT_EDGE -> animateSwipeTo(0f)
+                                    WeekSwipeRules.SwipeOutcome.SNAP_BACK -> animateSwipeTo(0f)
+                                }
+                            }
+                        },
+                ) {
+                    GridArea(
+                        modifier = Modifier.fillMaxSize(),
+                        week = week,
+                        isThisWeek = isThisWeek,
+                        todayWeekday = todayWeekday,
+                        cells = cells,
+                        nowMin = nowMin,
+                        summer = summer,
+                        monday = cal.mondayOfWeek(week),
+                        onCourseClick = { detail = it },
+                        onCourseLongClick = { quick = it },
+                    )
+                }
+            }
 
             // 未排课 + 尾注：上限高度，自己能滚，不抢网格地盘
             Column(
@@ -475,6 +574,9 @@ internal fun GridArea(
 
             // 矮屏兜底：网格比可视区高时纵向滚动，而不是把卡片压扁
             val vScroll = rememberScrollState()
+    // 票 28：切周后回到顶部 —— 这是**新内容**，不是回退。
+    // （与票 26 的"滚动记忆"语义一致：只有同一周内才谈得上记住位置。）
+    androidx.compose.runtime.LaunchedEffect(week) { vScroll.scrollTo(0) }
             // 账页竖点线的 PathEffect：只在这里 remember 一次，
             // 不在 Canvas 的 draw 循环里每列 new 一个（draw 阶段零分配是硬要求）
             val dottedRule = remember(ed) {

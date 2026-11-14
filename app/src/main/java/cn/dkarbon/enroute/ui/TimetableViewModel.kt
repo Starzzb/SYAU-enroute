@@ -495,6 +495,20 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
      */
     private suspend fun maybeSilentRefresh(s: UrpClient.Session) {
         val now = nowMs()
+        // 总判据走 CachePolicy.anyBlockStale：false = 三档全新鲜 = **一个请求都不发**
+        val anyStale = cn.dkarbon.enroute.data.CachePolicy.anyBlockStale(
+            nowMs = now,
+            profileIsEmpty = cache.profile.isEmpty,
+            creditAt = cache.creditAt,
+            scoreStatsAt = cache.scoreStatsAt,
+            examsAt = cache.examsAt,
+            nextExamAtMs = cache.nextExamAtMs,
+            scoresAt = cache.scoresAt,
+        )
+        if (!anyStale) {
+            DebugLog.log("CACHE", "冷启动：三档都新鲜 → 不发身份/成绩/考试请求，直接读缓存")
+            return
+        }
         val needIdentity = cn.dkarbon.enroute.data.CachePolicy.shouldFetchPermanent(cache.profile.isEmpty)
         val needProgress = cn.dkarbon.enroute.data.CachePolicy.shouldFetchDaily(
             now,
@@ -502,10 +516,6 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         )
         val needExams = cn.dkarbon.enroute.data.CachePolicy.shouldFetchExams(now, cache.examsAt, cache.nextExamAtMs)
         val needScores = cn.dkarbon.enroute.data.CachePolicy.shouldFetchDaily(now, cache.scoresAt)
-        if (!needIdentity && !needProgress && !needExams && !needScores) {
-            DebugLog.log("CACHE", "冷启动：三档都新鲜 → 不发身份/成绩/考试请求，直接读缓存")
-            return
-        }
         DebugLog.log(
             "CACHE",
             "冷启动静默补齐：身份=$needIdentity 成绩/绩点=$needProgress 考试=$needExams 成绩明细=$needScores",
@@ -2023,6 +2033,9 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val done = cn.dkarbon.enroute.data.DataWiper.wipeAll(app)
         session = null
         termCalendar.clear()
+        // 内存镜像也必须重置：盘清了、界面清了，只要这里还留着旧对象，
+        // 任何一次后续写缓存都会把旧身份/成绩又写回盘里（"清了个寂寞"）。
+        cache = cn.dkarbon.enroute.data.AcademicCache()
         _ui.value = AppState(
             timetableMsg = "已清除全部数据，可以去登录了",
             wipeMsg = done.joinToString("、"),
@@ -2041,12 +2054,33 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         // 所以这里连持久化会话一起清（不清课表以外的缓存，成绩/考试列表也一起清了，见下）。
         runCatching { sessionStore.clear() }
             .onFailure { DebugLog.log("SESSION", "清持久化会话失败：${it.javaClass.simpleName}") }
+        // 票 24：界面上把考试/成绩清空了，**缓存里也必须一起忘掉** ——
+        // 否则下次冷启动它们又冒出来，用户会觉得「清了个寂寞」。
+        // 一个清除动作只能有一个结果：界面一套、缓存一套是最坏的组合。
+        val before = cache
+        cache = cache.copy(
+            exams = emptyList(),
+            examsAt = 0L,
+            nextExamAtMs = 0L,
+            scores = emptyList(),
+            scoresAt = 0L,
+        )
+        val changed = cache != before
+        if (changed) {
+            viewModelScope.launch {
+                val ok = withContext(Dispatchers.IO) {
+                    runCatching { academicCacheStore.save(cache) }.getOrDefault(false)
+                }
+                if (!ok) DebugLog.log("CACHE", "清缓存里的考试/成绩失败（下次冷启动可能会再读出来）")
+            }
+        }
         _ui.value = _ui.value.copy(
             timetable = null,
             sessionState = SessionState.None,
             sessionCheckMsg = "",
             exams = emptyList(),
             scores = emptyList(),
+            cacheUpdatedLabel = if (changed) cacheLine() else _ui.value.cacheUpdatedLabel,
             timetableMsg = "已清空课表",
         )
     }

@@ -74,9 +74,13 @@ COLLEGES = [
     {"code": "lxy", "name": "理学院", "mode": "A", "lists": ["/szdw1/js.htm", "/szdw1/fjs.htm"], "base": "https://lxy.syau.edu.cn/"},
     {"code": "wyb", "name": "外语教学部", "mode": "A", "lists": ["/szdw/szdw.htm"], "base": "https://wyb.syau.edu.cn/"},
     {"code": "gcxy", "name": "工程学院", "mode": "B", "lists": ["/szdw1/jsml.htm"], "base": "https://gcxy.syau.edu.cn/"},
-    {"code": "tyb", "name": "体育教学部", "mode": "B", "lists": ["/bmgk/jsdw.htm"], "base": "https://tyb.syau.edu.cn/"},
+    # D = 列表由 JS 渲染（静态 HTML 没有姓名），只留隐藏的 /info/ 锚点 → 逐条去详情页 title 取名
+    {"code": "tyb", "name": "体育教学部", "mode": "D", "lists": ["/bmgk/jsdw.htm"], "base": "https://tyb.syau.edu.cn/"},
     {"code": "yyxy", "name": "园艺学院", "mode": "C", "lists": ["/xkjs/szdw.htm"], "base": "https://yyxy.syau.edu.cn/"},
-    {"code": "marx", "name": "马克思主义学院", "mode": "C", "lists": ["/szll/sxddyfzjys.htm"], "base": "https://marx.syau.edu.cn/"},
+    # C = 按教研室分页罗列「姓名（职称）」，没有详情页
+    {"code": "marx", "name": "马克思主义学院", "mode": "C", "base": "https://marx.syau.edu.cn/",
+     "lists": ["/szll/sxddyfzjys.htm", "/szll/zgjxdsjys.htm", "/szll/mkszyjbyljys.htm",
+               "/szll/xsyzcjys.htm", "/szll/yjssxzzllkjys.htm"]},
 ]
 
 
@@ -151,6 +155,19 @@ def list_entries(html, page_url_, mode):
         else:  # mode B/C：从正文里找「姓名 + 职称」
             pass
 
+    if mode == "D":
+        # 列表是 JS 渲染的：静态 HTML 里只有 display:none 的 /info/ 锚点，**没有姓名**。
+        # 不在列表页猜姓名（也不从 URL/文件名猜），全部交给详情页 title。
+        for m in A_RE.finditer(html):
+            href = m.group(1)
+            if not DETAIL_RE.search(href):
+                continue
+            full = urljoin(page_url_, href)
+            if full in seen:
+                continue
+            seen.add(full)
+            out.append({"name": "", "url": full})
+
     if mode in ("B", "C"):
         # 先按表格行抽：体育教学部这类「姓名 | 职称」的可见列表在 <tr> 里，
         # /info/ 链接被放在 display:none 的 div 中（按 id 顺序映射太脆，这里不赌）
@@ -177,9 +194,18 @@ def list_entries(html, page_url_, mode):
             out.append({"name": nm, "url": None, "titleFromList": t})
 
         txt = norm(html)
-        # 姓名后紧跟职称，或「姓名 性别 职称」这类紧凑表格行
+        # ① 「姓名（职称）」/「姓名(职称)」—— 马院教研室页就是这种写法
         for m in re.finditer(
-            r"(?:^|\n)([\u4e00-\u9fa5]{2,4})\s*(教授|副教授|讲师|研究员|副研究员|高级实验师|实验师|助教|讲师/)", txt
+            r"([\u4e00-\u9fa5]{2,4})\s*[（(]\s*(教授|副教授|讲师|研究员|副研究员|高级实验师|实验师|助教)\s*[）)]", txt
+        ):
+            nm = m.group(1)
+            if nm in NAV_WORDS or nm in seen:
+                continue
+            seen.add(nm)
+            out.append({"name": nm, "url": None, "titleFromList": m.group(2)})
+        # ② 「姓名 职称」紧邻（其它站点的紧凑列表）
+        for m in re.finditer(
+            r"(?:^|\n)([\u4e00-\u9fa5]{2,4})\s*(教授|副教授|讲师|研究员|副研究员|高级实验师|实验师|助教)", txt
         ):
             nm = m.group(1)
             if nm in NAV_WORDS or nm in seen:
@@ -242,7 +268,8 @@ def scrape_college(cfg, at, refresh=False, max_pages=20, dry=False):
 
             for e in entries:
                 nm = e["name"]
-                if not nm:
+                # mode D 的姓名本来就要去详情页 title 取，列表页为空是正常的
+                if not nm and cfg["mode"] != "D":
                     continue
                 rec = {
                     "name": nm,
@@ -256,8 +283,20 @@ def scrape_college(cfg, at, refresh=False, max_pages=20, dry=False):
                     dkey = os.path.join(CACHE, code, "d_" + re.sub(r"\W+", "_", e["url"][-40:]) + ".html")
                     try:
                         dhtml = fetch_page(e["url"], dkey, refresh)
+                        if not nm:
+                            # mode D：姓名只在详情页 title 里（形如「张三-体育教学部」）
+                            mt = re.search(r"<title>(.*?)</title>", dhtml, re.S)
+                            if mt:
+                                cand = re.split(r"[-\u2014|_]", mt.group(1).strip())[0].strip()
+                                if HANZI_NAME.match(cand) and cand not in NAV_WORDS:
+                                    nm = cand
+                                    rec["name"] = cand
                         for k, v in detail_fields(dhtml).items():
-                            if v:
+                            if v and not rec.get(k):
+                                # 照片要绝对化：详情页里常是 `/__local/…png` 这种相对路径，
+                                # 不补成完整 URL 的话，下游（缩略图/大图）根本用不了
+                                if k == "photo" and not v.startswith("http"):
+                                    v = urljoin(e["url"], v)
                                 rec[k] = v
                     except Exception as ex:  # noqa: BLE001 —— 单页失败不毁整站，但要记
                         problems.append("详情页失败 %s: %s" % (e["url"], ex))

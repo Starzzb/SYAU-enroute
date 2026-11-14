@@ -109,6 +109,34 @@ object CachePolicy {
     }
 
     /**
+     * **总判据**：还有没有哪一块该抓？
+     *
+     * `false` = 冷启动**一个请求都不用发**（这正是票 24 要让学生感觉到的东西）。
+     * 单独写成一支的理由：ViewModel 里"分块各判一次"很容易和这里漂移——
+     * 一边改了窗口、另一边没改，界面就会莫名其妙多打一次网络。
+     * 统一走这里，再用单测把「全新鲜 → false」钉死。
+     *
+     * @param profileIsEmpty 身份缓存是否为空（永久档只补空）
+     */
+    fun anyBlockStale(
+        nowMs: Long,
+        profileIsEmpty: Boolean,
+        creditAt: Long,
+        scoreStatsAt: Long,
+        examsAt: Long,
+        nextExamAtMs: Long,
+        scoresAt: Long,
+        windowMs: Long = DAY_MS,
+    ): Boolean {
+        if (shouldFetchPermanent(profileIsEmpty)) return true
+        // 学分进度与绩点是同一支接口的两个面，任一为空/过期就一起补
+        val progressAt = minOf(creditAt, scoreStatsAt).takeIf { it > 0L } ?: 0L
+        if (shouldFetchDaily(nowMs, progressAt, windowMs)) return true
+        if (shouldFetchExams(nowMs, examsAt, nextExamAtMs, windowMs)) return true
+        return shouldFetchDaily(nowMs, scoresAt, windowMs)
+    }
+
+    /**
      * 一节考试的开考时刻。`date = 2026-11-15` + `startClock = 10:00` → epoch ms。
      *
      * **解析不出来就返回 `null`**（0 也是 null 的等价物），不猜：

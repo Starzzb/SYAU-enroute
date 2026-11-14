@@ -162,8 +162,73 @@ class AcademicCacheTest {
         assertEquals(0L, CachePolicy.nextExamAtMs(listOf(exam("待定")), t0, zone))
     }
 
-    // ── ④ 「上次更新」人话 ────────────────────────────────
+    // ── ③b 总判据：三档全新鲜 → 一个请求都不发 ──────────────
 
+    /** 造一份「刚抓完、什么都新鲜」的缓存（模拟上次联网成功后的状态） */
+    private fun freshCache(): AcademicCache = AcademicCache()
+        .merge(
+            t0 - hour,
+            profile = profile(),
+            credit = CreditProgress(planName = "2024 方案", requiredXf = 165.0, earnedXf = 106.0),
+            scoreStats = ScoreStats(total = 40, passed = 39, weightedGpa = 3.21),
+            scores = listOf(ScoreItem(name = "生态学基础", score = "73")),
+            exams = listOf(exam("2026-12-01", "09:00")),
+        )
+
+    @Test
+    fun `全新鲜时一个请求都不发`() {
+        val c = freshCache()
+        assertFalse(
+            "这是「冷启动不发身份/成绩/考试请求」的机器可验证据",
+            CachePolicy.anyBlockStale(
+                nowMs = t0,
+                profileIsEmpty = c.profile.isEmpty,
+                creditAt = c.creditAt,
+                scoreStatsAt = c.scoreStatsAt,
+                examsAt = c.examsAt,
+                nextExamAtMs = c.nextExamAtMs,
+                scoresAt = c.scoresAt,
+            ),
+        )
+    }
+
+    @Test
+    fun `任一块过期就发那块的请求`() {
+        val c = freshCache()
+        fun stale(
+            profileIsEmpty: Boolean = c.profile.isEmpty,
+            creditAt: Long = c.creditAt,
+            scoreStatsAt: Long = c.scoreStatsAt,
+            examsAt: Long = c.examsAt,
+            nextExamAtMs: Long = c.nextExamAtMs,
+            scoresAt: Long = c.scoresAt,
+        ) = CachePolicy.anyBlockStale(t0, profileIsEmpty, creditAt, scoreStatsAt, examsAt, nextExamAtMs, scoresAt)
+
+        assertTrue("身份没缓存过", stale(profileIsEmpty = true))
+        assertTrue("学分进度超过一天", stale(creditAt = t0 - day))
+        assertTrue("绩点超过一天", stale(scoreStatsAt = t0 - day))
+        assertTrue("考试超过一天", stale(examsAt = t0 - day))
+        assertTrue("缓存里那场考试已经开考", stale(nextExamAtMs = t0 - 60_000))
+        assertTrue("成绩明细超过一天", stale(scoresAt = t0 - day))
+    }
+
+    @Test
+    fun `只有永久档缺失时 也判定为「有东西要抓」而不是全新鲜`() {
+        val c = freshCache().copy(profile = StudentProfile(), profileAt = 0L)
+        assertTrue(
+            CachePolicy.anyBlockStale(
+                nowMs = t0,
+                profileIsEmpty = c.profile.isEmpty,
+                creditAt = c.creditAt,
+                scoreStatsAt = c.scoreStatsAt,
+                examsAt = c.examsAt,
+                nextExamAtMs = c.nextExamAtMs,
+                scoresAt = c.scoresAt,
+            ),
+        )
+    }
+
+    // ── ④ 「上次更新」人话 ────────────────────────────────
     @Test
     fun `更新时间说法 没有时间就不显示假文字`() {
         assertEquals("", CachePolicy.ageLabel(t0, 0L))

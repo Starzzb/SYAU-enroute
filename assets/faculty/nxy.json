@@ -5,16 +5,11 @@
  "mode": "A",
  "generatedAt": "2026-11-14T21:00:00+08:00",
  "count": 91,
- "withTitle": 81,
- "withEmail": 30,
- "withResearch": 62,
- "withPhoto": 87,
- "problems": [
-  "详情页失败 https://nxy.syau.edu.cn/info/1430/7099.htm: Remote end closed connection without response",
-  "详情页失败 https://nxy.syau.edu.cn/info/1430/7101.htm: Remote end closed connection without response",
-  "详情页失败 https://nxy.syau.edu.cn/info/1430/7102.htm: Remote end closed connection without response",
-  "详情页失败 https://nxy.syau.edu.cn/info/1430/7104.htm: Remote end closed connection without response"
- ],
+ "withTitle": 84,
+ "withEmail": 33,
+ "withResearch": 63,
+ "withPhoto": 91,
+ "problems": [],
  "teachers": [
   {
    "name": "丛巍巍",
@@ -26,23 +21,25 @@
    "email": "vivien8026@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1408/6964.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "乔延艳",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "",
    "research": "",
    "office": "",
-   "email": "",
+   "email": "995162268@qq.com",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7102.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "于海秋",
@@ -54,9 +51,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6920.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "于翠梅",
@@ -68,13 +66,14 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1400/6946.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "于飞跃",
-   "title": "",
+   "title": "助教",
    "duty": "",
    "dept": "",
    "research": "",
@@ -82,9 +81,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7104.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "付时丰",
@@ -96,7 +96,7 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1431/7106.htm",
    "fetchedAt": "2026-11-14T21:00:00+08:00"
   },
@@ -110,9 +110,10 @@
    "email": "enchuanyou0421@sina.com.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1416/6989.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "任婧瑶",
@@ -124,9 +125,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1405/6954.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "修立群",
@@ -138,9 +140,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1409/7009.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "刘兆晨",
@@ -152,9 +155,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1417/7474.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "刘利民",
@@ -166,9 +170,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1415/6988.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "刘喜波",
@@ -180,9 +185,10 @@
    "email": "",
    "education": "1. 1998.9-2002.6 沈阳大学师范学院 地理科学专业 理学学士；",
    "work": "1. 2005.7-2007.7 沈阳农业大学农村区域发展专业助教；",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6925.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "刘春娟",
@@ -194,9 +200,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1396/6924.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "刘赛男",
@@ -208,9 +215,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6997.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "刘遵奇",
@@ -222,9 +230,10 @@
    "email": "liuzunqi@syau.edu.cn",
    "education": "2007/09-2011/06 ，吉林农业大学，农学院，农学专业，获学士学位；",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/7001.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "史晓龙",
@@ -236,9 +245,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1396/6917.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "吕文彦",
@@ -250,9 +260,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1399/6948.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "吕正昊",
@@ -264,9 +275,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1396/6909.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "吕香玲",
@@ -278,9 +290,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1411/7270.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "周婵婵",
@@ -292,9 +305,10 @@
    "email": "zhouchan@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1431/7109.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "周宇飞",
@@ -306,9 +320,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6915.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "周萱玮",
@@ -320,9 +335,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1401/7658.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "姚兴东",
@@ -334,9 +350,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1401/6943.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "姜海鹰",
@@ -348,9 +365,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1400/6949.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "孙媛媛",
@@ -362,9 +380,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1419/7656.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "孟德璇",
@@ -376,9 +395,10 @@
    "email": "dxmeng@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1400/6940.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "宫香伟",
@@ -390,9 +410,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6918.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "尹学琳",
@@ -404,9 +425,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1431/7111.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "崔志波",
@@ -418,9 +440,10 @@
    "email": "cuizb@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1412/7015.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "康树立",
@@ -432,9 +455,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6919.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "张伟明",
@@ -446,9 +470,10 @@
    "email": "tianyi_zwm@126.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/7267.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "张惠君",
@@ -460,9 +485,10 @@
    "email": "zhj20047@sina.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6926.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "张文忠",
@@ -474,9 +500,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6990.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "徐明洁",
@@ -488,9 +515,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1404/6961.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "曹殿云",
@@ -502,9 +530,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1396/7003.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "朱先进",
@@ -516,9 +545,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1407/6963.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李丰成",
@@ -530,9 +560,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1411/7013.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李嘉敏",
@@ -544,9 +575,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1417/6984.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李奕卓",
@@ -558,9 +590,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1417/7660.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李无双",
@@ -572,9 +605,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1428/7091.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李春红",
@@ -586,9 +620,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1401/6951.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李梓萌",
@@ -600,9 +635,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1405/6953.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李秀芬",
@@ -614,9 +650,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1403/6957.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "李芳时",
@@ -628,9 +665,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7100.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "杜万里",
@@ -642,9 +680,10 @@
    "email": "dwl2014@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1411/6972.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "杨振中",
@@ -656,9 +695,10 @@
    "email": "673485129@qq.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1431/7116.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "林嘉明",
@@ -667,12 +707,13 @@
    "dept": "",
    "research": "",
    "office": "",
-   "email": "",
+   "email": "syaujiaming@163.com",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7101.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "江琳琳",
@@ -684,9 +725,10 @@
    "email": "2016500047@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6999.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "渠建洲",
@@ -698,9 +740,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1412/6973.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "燕雪飞",
@@ -712,9 +755,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1409/6971.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王嘉宇",
@@ -726,9 +770,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1399/7004.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王国骄",
@@ -740,9 +785,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1408/6965.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王宏伟",
@@ -754,9 +800,10 @@
    "email": "2001500026@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6911.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王庆阳",
@@ -768,9 +815,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1409/7657.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王晓光",
@@ -782,9 +830,10 @@
    "email": "wxg@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6914.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王晓雪",
@@ -796,9 +845,10 @@
    "email": "wangxx@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1399/7006.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王海英",
@@ -810,9 +860,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6922.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王立为",
@@ -824,9 +875,10 @@
    "email": "wlw@syau.edu.cn",
    "education": "",
    "work": "2025/12 至今，沈阳农业大学农学院，副教授",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1416/7271.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王艳华",
@@ -838,9 +890,10 @@
    "email": "yanhuawang999@sina.com.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1417/6986.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "王青娜",
@@ -852,9 +905,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7097.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "程国亮",
@@ -866,9 +920,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7103.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "程效义",
@@ -880,9 +935,10 @@
    "email": "016500031@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1419/7017.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "程海涛",
@@ -894,9 +950,10 @@
    "email": "henghaitao1976@163.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1401/6952.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "罗新兰",
@@ -908,9 +965,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1404/6960.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "罗海山",
@@ -922,9 +980,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1401/6936.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "范淑秀",
@@ -936,9 +995,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1412/6979.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "蒋春姬",
@@ -950,9 +1010,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6933.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "谢立勇",
@@ -964,9 +1025,10 @@
    "email": "xly0910@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1415/6982.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "贾宝艳",
@@ -978,9 +1040,10 @@
    "email": "2004500018@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6932.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "贾景丽",
@@ -992,9 +1055,10 @@
    "email": "jiajingli1999@163.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1411/6976.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "赫天一",
@@ -1006,9 +1070,10 @@
    "email": "hetianyi@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/7002.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "赵天宏",
@@ -1020,9 +1085,10 @@
    "email": "zth@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1407/6968.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "赵姝丽",
@@ -1034,9 +1100,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1396/6929.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "赵新华",
@@ -1048,9 +1115,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6913.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "赵明哲",
@@ -1062,9 +1130,10 @@
    "email": "",
    "education": "1999/9 - 2007/5 ， University of Texas-Austin ，分子生物，博士，导师： Alan M Lloyd",
    "work": "2014/12 - 至今， 沈阳农业大学，农学院，大豆研究所，教授。",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1399/6944.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "赵明辉",
@@ -1076,9 +1145,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1393/6991.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "赵艳泽",
@@ -1090,23 +1160,25 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1396/6908.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "郭世超",
-   "title": "",
-   "duty": "",
+   "title": "讲师",
+   "duty": "无。",
    "dept": "",
-   "research": "",
+   "research": "无 。",
    "office": "",
-   "email": "",
+   "email": "1375453481@qq.com",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7099.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "金诚诚",
@@ -1118,9 +1190,10 @@
    "email": "jinchengcheng@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1431/7108.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "钟雪梅",
@@ -1132,9 +1205,10 @@
    "email": "xuemei.zhong@163.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1400/6937.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "陈志刚",
@@ -1146,9 +1220,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1430/7095.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "陈温福",
@@ -1160,9 +1235,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1392/6907.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "陈良宇",
@@ -1174,9 +1250,10 @@
    "email": "lychen@126.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1399/6942.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "韩迎春",
@@ -1188,9 +1265,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1428/7093.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "顾闻琦",
@@ -1202,9 +1280,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1428/7302.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "马兆惠",
@@ -1216,9 +1295,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1401/6945.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "高士博",
@@ -1230,9 +1310,10 @@
    "email": "shibogao@126.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1416/6983.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "高继平",
@@ -1244,9 +1325,10 @@
    "email": "",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1394/6995.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "高西宁",
@@ -1258,9 +1340,10 @@
    "email": "syaugxn@syau.edu.cn",
    "education": "",
    "work": "2024/12 至今，沈阳农业大学农学院，教授",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1415/6981.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "黄元财",
@@ -1272,9 +1355,10 @@
    "email": "hycai001@163.com",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1396/6934.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   },
   {
    "name": "黄玉威",
@@ -1286,9 +1370,12 @@
    "email": "2019500056@syau.edu.cn",
    "education": "",
    "work": "",
-   "photo": "../../images/logo.png",
+   "photo": "https://nxy.syau.edu.cn/images/logo.png",
    "source": "https://nxy.syau.edu.cn/info/1431/7110.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "photoThumb": "photos/ee6355eb2e085074.jpg"
   }
- ]
+ ],
+ "photosAt": "2026-11-14T21:39:49+0800",
+ "withThumb": 90
 }

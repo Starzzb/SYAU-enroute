@@ -71,23 +71,69 @@
 
 | 文件 | 位置 | 内容 |
 |---|---|---|
-| `data/AcademicCacheStore.kt`（新，285 行） | `CacheTier` L40 · `CachePolicy` L52 · `isFresh` L65 · `shouldFetchDaily` L72 · `shouldFetchPermanent` L82 · `shouldFetchExams` L99 · `examStartMs` L117 · `nextExamAtMs` L129 · `ageLabel` L140 · `AcademicCache` L162 · `merge` L203 · `VERSION` L232 · `toJson/fromJson` L240/L242 · `AcademicCacheStore` L257 · `load` L263 · `save` L268 · `clear` L276 · `sizeBytes` L284 | 三档判据（纯函数）+ 快照模型 + 原子写落盘。一个文件、一个用户、每块各带自己的 `*At` 时间戳 |
+| `data/AcademicCacheStore.kt`（新，313 行） | `CacheTier` L40 · `CachePolicy` L52 · `isFresh` L65 · `shouldFetchDaily` L72 · `shouldFetchPermanent` L82 · `shouldFetchExams` L99 · **`anyBlockStale` L121（总判据：false = 一个请求都不发）** · `examStartMs` L145 · `nextExamAtMs` L157 · `ageLabel` L168 · `AcademicCache` L190 · `merge` L231 · `VERSION` L260 · `toJson/fromJson` L268/L270 · `AcademicCacheStore` L285 · `load` L291 · `save` L296 · `clear` L304 · `sizeBytes` L312 | 三档判据（纯函数）+ 快照模型 + 原子写落盘。一个文件、一个用户、每块各带自己的 `*At` 时间戳 |
 | `data/Academic.kt` | `fetchExamsOrNull` L192、`fetchScoresOrNull` L302（原 `fetchExams`/`fetchScores` 变成它们的 `.orEmpty()` 壳，L180 / L296） | **区分「真没有」和「没拿到」**：原实现把失败压成 `emptyList()`，缓存层没法判断该不该覆盖 —— 这是「失败不覆盖」能成立的前提 |
 | `data/DataWiper.kt` | ⑤f L100–112 | 「清除所有数据」连带清 `filesDir/academic/cache.json`（身份是永久档，只有这里能作废它） |
 | `ui/AppState.kt` | `cacheUpdatedLabel` L101 | 「更新于：身份 3 天前 · 绩点 2 小时前」；空串 = 没有缓存（不显示假时间） |
-| `ui/TimetableViewModel.kt` | 字段 L61–62 · 冷启动灌缓存 L124 → `loadAcademicCacheIntoState()` L425 · 验活成功后静默补齐 L384 → `maybeSilentRefresh()` L496 · `cacheLine()` L454 · `examsCacheMsg()` L471 · `commitCache()` L478（唯一写盘点） · `fetchIdentity` L526 · `fetchProgress` L543 · `fetchExamsBlock` L569 · `fetchScoresBlock` L605 · 登录换账号清缓存 L1385–1389 · `refreshExams` L1452 · `refreshScores` L1462 · `refreshHome(force)` L1493 · `refreshIdentity` L1530 · `refreshProgress` L1548 | 判据只用 `CachePolicy`；每块「抓成功才写盘，失败不覆盖」；冷启动三档全新鲜时一个请求都不发 |
+| `ui/TimetableViewModel.kt` | 字段 L61–62 · 冷启动灌缓存 L124 → `loadAcademicCacheIntoState()` L425 · 验活成功后静默补齐 L384 → `maybeSilentRefresh()` L501（首行先问 `anyBlockStale`） · `cacheLine()` L454 · `examsCacheMsg()` L471 · `commitCache()` L478（唯一写盘点） · `fetchIdentity` L531 · `fetchProgress` L548 · `fetchExamsBlock` L574 · `fetchScoresBlock` L610 · 登录换账号清缓存 L1392–1398 · `refreshExams` L1462 · `refreshScores` L1472 · `refreshHome(force)` L1493 · `refreshIdentity` L1530 · `refreshProgress` L1548 · **`wipeAllData` 重置内存镜像 L2038** · **`clearTimetable` 连缓存一起忘掉 L2057–2075** | 判据只用 `CachePolicy`；每块「抓成功才写盘，失败不覆盖」；冷启动三档全新鲜时一个请求都不发 |
 | `ui/user/UserScreen.kt` | L252（刷新按钮 → `force = true`）、L379–381（「更新于」小字） | 手动刷新只看这一组；缓存数据必须标年纪 |
-| `app/src/test/java/cn/dkarbon/enroute/AcademicCacheTest.kt`（新，22 条 / 300 行） | — | 三档判据 / 24h 边界 / 考试双条件 / 失败不覆盖 / 序列化容错 |
+| `ui/academic/ExamScreen.kt` | L104（工具栏刷新）、L114（重试）、L207（「更多 → 重新抓取」） | 全部改 `vm.refreshExams()`：**只刷考试**，不再连带成绩 |
+| `ui/academic/ScoreScreen.kt` | L93、L103、L194 | 全部改 `vm.refreshScores()`：**只刷成绩** |
+| `app/src/test/java/cn/dkarbon/enroute/AcademicCacheTest.kt`（新，25 条 / 375 行） | — | 三档判据 / 24h 边界 / 考试双条件 / **总判据「全新鲜 → 不发请求」** / 失败不覆盖 / 序列化容错 |
 | `README.md` | 测试数量 | 未改：本轮禁止跑全量单测，总数由 lead 统一更新 |
+
+### 2026-11-14 · 冷启动到底会不会联网（清单式自证）
+
+这一段是给「开飞行模式冷启动，身份/成绩/考试照常显示」这条验收用的。
+冷启动按代码路径逐段点名，**没有任何一条会为了身份/成绩/考试去联网**：
+
+| 步骤 | 做什么 | 联网？ |
+|---|---|---|
+| ① `init` | 读 SharedPreferences / 课表 JSON / 自定义课程（本地文件） | 否 |
+| ② `loadAcademicCacheIntoState()`（在会话恢复**之前**） | 读 `filesDir/academic/cache.json`，把身份/学分/绩点/成绩/考试灌进 `AppState` | 否 —— **界面在这之后就已经有数据了** |
+| ③ 调试日志轮转 | 本地文件 | 否 |
+| ④ `restoreSession()` | 解密会话 cookie（Keystore）；没有会话且开了「保持登录」才会尝试静默续期 | 否（续期那条见下） |
+| ⑤ `verifyRestoredSession()` | **只读验活一次**：`GET /student/teachingResources/freeClassroom/queryCodeCampusList`（几百字节，票 04） | **是，但这不是身份/成绩/考试** |
+| ⑥ `maybeSilentRefresh()` | 先问 `CachePolicy.anyBlockStale`；**全新鲜直接 return** | 否 |
+| ⑦ 提醒重排 / 小组件 | 本地 | 否 |
+
+四种冷启动的结局：
+
+- **缓存全新鲜 + 在线**：只有 ⑤ 那一次验活；身份/成绩/考试**零请求**（⑥ 提前 return）。日志会有
+  `CACHE 冷启动：三档都新鲜 → 不发身份/成绩/考试请求，直接读缓存`。
+- **飞行模式**：⑤ 连不上 → `SessionProbe.Unreachable` → 会话保留、提示「这次没连上教务…没法确认」，
+  **⑥ 根本不会被调用**（只在验活通过时才调）→ 数据请求数为 **0**，界面照常显示缓存。
+- **缓存过期（>24h / 考试已开考）**：⑥ 只抓对应的那几块，失败就保留旧值。
+- **开了「保持登录」（票 14）且会话已失效**：会先尝试一次静默登录（POST），失败计数到 3 次停手 ——
+  这是票 14 的既定行为，与本票无关；飞行模式下它会失败但没有副作用。
+
+⚠️ 一个诚实的边界：**第一次安装/清除所有数据之后**，缓存是空的，此时飞行模式冷启动当然只能显示「暂缺」——
+这不是回归，是「还没有任何数据」。
 
 ### 2026-11-14 · 怎么验证
 
 1. `cmd /c compile-check.bat` → **`BUILD SUCCESSFUL` + `EXIT=0`**（`build-compile-log.txt` 尾两行）。
-   `AcademicCacheStore.kt` / `Academic.kt` / `AppState.kt` / `TimetableViewModel.kt` / `UserScreen.kt` 零 error 零 warning。
+   `AcademicCacheStore.kt` / `Academic.kt` / `AppState.kt` / `TimetableViewModel.kt` / `UserScreen.kt` /
+   `ExamScreen.kt` / `ScoreScreen.kt` 零 error 零 warning（日志里仅有的两条 warning 属 `TimetableScreen.kt`，不是本票文件）。
 2. 单测源码单独编译过一次（`:app:compileDebugUnitTestKotlin`，`BUILD SUCCESSFUL` / `EXIT=0`）——
-   上一票栽在「测试编译不过」，所以先确认 22 条新测试能编过再交。
+   上一票栽在「测试编译不过」，所以先确认 25 条新测试能编过再交。
 3. **全量单测由 lead 统一跑**（本轮约定），本票不重复跑，避免与其它代理抢 Gradle。
-4. 需要真机/校园网才能体现的两条（见遗留 1、2）。
+4. **「一个请求都不发」这条的机器可验证据**：单测 `全新鲜时一个请求都不发`（走 `CachePolicy.anyBlockStale`，
+   喂一份"什么都新鲜"的缓存快照，断言 `false`）+ `任一块过期就发那块的请求`（6 个子条件各断一次）。
+   ViewModel 里 `maybeSilentRefresh` 的第一句就是问它，判据不在 UI 层、也不在两处各写一遍。
+5. **真机自证步骤**（需主人做，见遗留 1）：
+   联网登录一次让缓存填满 → 开飞行模式 → 杀进程重开 → 身份卡/学分/绩点/成绩/考试应立刻有数据（无转圈）→
+   设置 → 调试日志里应看到 `CACHE 冷启动：三档都新鲜 …` 或（离线时）只有一条 `SESSION 验活未完成：…`，
+   **没有** `HOME GET /student/rollManagement/…` / `instructionPlanQuery/…` / `scoreQuery/…` / 考试 detail 的请求行。
+
+### 2026-11-14 · 收尾（两处一致性 + 分块刷新接线）
+
+- **`wipeAllData()` L2038**：补 `cache = AcademicCache()`。之前盘清了、界面清了，**内存镜像没重置** ——
+  表面看不出，但只要之后有任何一次写缓存，旧身份/成绩就会被写回盘里，也就是「清了个寂寞」的另一种形态。
+- **`clearTimetable()` L2057–2075**：同时把缓存里的 `exams` / `scores`（含 `nextExamAtMs`）一起忘掉并落盘。
+  **一个清除动作只能有一个结果**：界面一套、缓存一套是最坏的组合（用户下次冷启动又看见它们回来了）。
+- **分块刷新接线**：`ExamScreen` 三处 → `refreshExams()`，`ScoreScreen` 三处 → `refreshScores()`。
+  刷新的粒度跟数据的粒度一致：身份、考试、成绩是三块独立数据，三个独立入口。
 
 ### 2026-11-14 · 遗留
 
@@ -97,9 +143,9 @@
    应看到 `CACHE 考试已更新` 与 `nextExamAtMs` 前进。
 3. **空闲教室的教室明细没有进缓存**（刻意的，理由见上）。若主人希望「切到空闲教室页时先用上次结果铺一下再刷新」，
    那是另一种 UX（先旧后新），需要单独一张票，不能混进「缓存」这个语义里。
-4. `ui/academic/ExamScreen.kt` / `ScoreScreen.kt` 的刷新按钮仍调 `refreshAcademic()`（考试+成绩两块一起刷），
-   **没有**改成 `refreshExams()` / `refreshScores()` —— 那两个文件当时正被票 26 的代理改，避免踩踏；
-   VM 的四个分块入口都已就绪，后续一行就能接上。
+4. ~~分块刷新只做了一半~~ → **已补齐**：`ExamScreen` 三处刷新全部走 `refreshExams()`、`ScoreScreen` 三处走 `refreshScores()`
+   （工具栏刷新 / 重试 / 「更多 → 重新抓取」）。`refreshAcademic()` 保留但界面已不再调用。
+   「我的」页右上刷新 = `refreshHome(force = true)`，只刷身份 + 学分/绩点。**三块数据三个入口，粒度对齐。**
 5. 培养方案结构（票 09）本来就是内置资产、离线可读，因此**不需要**网络缓存；
    需要联网的只有「学分进度」（每日档）。这一点与票面表格的字面表述略有出入，按「离线资产不重复缓存」处理。
 
