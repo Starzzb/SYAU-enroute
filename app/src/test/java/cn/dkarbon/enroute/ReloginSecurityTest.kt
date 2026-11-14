@@ -108,6 +108,21 @@ class ReloginSecurityTest {
         assertNull(SessionCrypto.open(testKey(), sealed, SessionCrypto.AAD_CREDENTIAL))
     }
 
+    @Test
+    fun `加密由 provider 生成 IV 且每次不同`() {
+        // 2026-11-14 真机事故的回归测试：AndroidKeyStore 的密钥禁止调用方提供 IV，
+        // 所以 seal() 必须「不传 GCMParameterSpec，让 provider 生成，再从 cipher.iv 取」。
+        // 这里用普通 JCE 密钥验证这条路径本身是通的（真机侧由「密钥自检」按钮验）。
+        val key = testKey()
+        val a = SessionCrypto.seal(key, "x".toByteArray(), SessionCrypto.AAD_CREDENTIAL)
+        val b = SessionCrypto.seal(key, "x".toByteArray(), SessionCrypto.AAD_CREDENTIAL)
+        assertNotEquals("每次加密都要新 IV", a, b)
+        // 明文长度 1，GCM tag 16，IV 12 → 解码后至少 29 字节
+        val raw = java.util.Base64.getDecoder().decode(a)
+        assertTrue("密文里要带 IV（≥12+16 字节）", raw.size >= 29)
+        assertEquals("x", String(SessionCrypto.open(key, a, SessionCrypto.AAD_CREDENTIAL)!!, Charsets.UTF_8))
+    }
+
     // ── 凭据记录的格式（与 SessionCodec 同款前缀）─────────
 
     @Test

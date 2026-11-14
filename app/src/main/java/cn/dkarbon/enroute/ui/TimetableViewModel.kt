@@ -282,6 +282,27 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     /** 设置页「清除本机保存的密码」（与关闭等价，但保留开关状态不变 = 一起关） */
     fun clearSavedPassword() = disableKeepLogin()
 
+    /**
+     * 密钥自检（调试页一键）：真 Keystore 加解密往返。
+     *
+     * 2026-11-14 的教训：会话存档在真机上从来没写成功，而 JVM 单测全绿 ——
+     * 因为 AndroidKeyStore 的密钥不允许调用方提供 IV，普通 JCE 密钥允许。
+     * 有了这个自检，「存档到底能不能用」在真机上一按就知道，不用猜。
+     */
+    fun runCryptoSelfTest() {
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) {
+                val session = runCatching { SessionStore(getApplication()).selfTest() }
+                    .getOrElse { "✘ 会话自检异常：${it.javaClass.simpleName}" }
+                val cred = runCatching { credStore.selfTest() }
+                    .getOrElse { "✘ 凭据自检异常：${it.javaClass.simpleName}" }
+                session + " ｜ " + cred
+            }
+            DebugLog.log("SELFTEST", r)
+            toast(r)
+        }
+    }
+
     /** 刷新界面上的凭据状态（进设置页时调） */
     fun refreshCredStatus() {
         _ui.value = _ui.value.copy(

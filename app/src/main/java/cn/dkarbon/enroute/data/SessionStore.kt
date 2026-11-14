@@ -135,6 +135,32 @@ class SessionStore(ctx: Context) {
         )
     }
 
+    /**
+     * **设备自检**：用真 Keystore 密钥做一次加密→解密往返。
+     *
+     * 为什么要有它：2026-11-14 发现票 04 的会话存档在真机上**从来没写成功**——
+     * 原因是 Keystore 密钥禁止调用方提供 IV，`Cipher.init` 抛异常，
+     * 而 JVM 单测用的是普通 JCE 密钥（允许自带 IV），所以一直是绿的。
+     * 这个自检让「加密存档到底能不能用」在真机上一键可验，不用猜。
+     *
+     * @return 人话结论；**不含任何凭据/session 内容**（自检用的是固定假串）
+     */
+    fun selfTest(): String = try {
+        val key = openKey(create = true) ?: return "✘ 取不到设备密钥（Keystore 不可用）"
+        val probe = "selftest-v1"
+        val sealed = SessionCrypto.seal(key, probe.toByteArray(Charsets.UTF_8))
+        val opened = SessionCrypto.open(key, sealed)
+        val text = opened?.let { String(it, Charsets.UTF_8) }
+        when {
+            text == probe -> "✔ 加密存档可用（AES-256-GCM 往返成功，密文 ${sealed.length} 字符）"
+            text == null -> "✘ 密文解不开（AAD/密钥不匹配）"
+            else -> "✘ 解密结果不一致"
+        }
+    } catch (e: Exception) {
+        // 只报异常类型，不报内容
+        "✘ 加密存档不可用：${e.javaClass.simpleName}"
+    }
+
     /** 验活通过：清掉可能残留的「过期」标记（不改密文） */
     fun markVerified() {
         if (prefs.sessionExpired) prefs.sessionExpired = false

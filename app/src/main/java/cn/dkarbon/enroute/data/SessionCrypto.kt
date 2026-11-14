@@ -1,6 +1,5 @@
 package cn.dkarbon.enroute.data
 
-import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.Cipher
 import javax.crypto.SecretKey
@@ -29,7 +28,7 @@ object SessionCrypto {
 
     const val TRANSFORMATION = "AES/GCM/NoPadding"
 
-    /** GCM 推荐 96 位 IV */
+    /** GCM 推荐 96 位 IV（长度只用于解密时校验） */
     private const val IV_BYTES = 12
 
     /** 认证标签 128 位（满强度） */
@@ -47,7 +46,7 @@ object SessionCrypto {
      */
     const val AAD_CREDENTIAL = "cn.dkarbon.enroute.credential.v1"
 
-    private val random = SecureRandom()
+
 
     /** 空串 = 会话用途（票 04 的老密文保持能开）；非空 = 该用途自己的 AAD */
     private fun aadBytes(aad: String): ByteArray =
@@ -56,11 +55,17 @@ object SessionCrypto {
     /** 加密：返回 `Base64(IV ‖ 密文)`，可直接塞进 SharedPreferences 字符串 */
     @JvmOverloads
     fun seal(key: SecretKey, plain: ByteArray, aad: String = ""): String {
-        val iv = ByteArray(IV_BYTES).also { random.nextBytes(it) }
         val cipher = Cipher.getInstance(TRANSFORMATION)
-        cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(TAG_BITS, iv))
+        // ⚠️ **不要自己传 IV**：AndroidKeyStore 的密钥默认
+        // `setRandomizedEncryptionRequired(true)`，此时由调用方提供 IV 会让
+        // `Cipher.init` 直接抛 `InvalidAlgorithmParameterException: Caller-provided IV not permitted`。
+        // 2026-11-14 实战教训：票 04 的会话存档因此**从来没写成功过**
+        // （单测用普通 JCE 密钥，允许自带 IV，所以一直绿的 —— 真机上 save() 静默返回 false）。
+        // 正确姿势：让 provider/Keystore 生成 IV，init 之后从 `cipher.iv` 取。
+        cipher.init(Cipher.ENCRYPT_MODE, key)
         cipher.updateAAD(aadBytes(aad))
         val body = cipher.doFinal(plain)
+        val iv = cipher.iv   // 12 字节；与解密侧 GCMParameterSpec 对应
         return Base64.getEncoder().encodeToString(iv + body)
     }
 

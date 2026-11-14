@@ -98,6 +98,21 @@ class CredentialStore(ctx: Context) {
         }
     }
 
+    /** 设备自检：真 Keystore 做一次加密→解密往返（不含任何真实凭据） */
+    fun selfTest(): String = try {
+        val key = openKey(create = true) ?: return "✘ 取不到凭据密钥"
+        val probe = "cred-selftest"
+        val sealed = SessionCrypto.seal(
+            key, probe.toByteArray(Charsets.UTF_8), SessionCrypto.AAD_CREDENTIAL,
+        )
+        val back = SessionCrypto.open(
+            key, sealed, SessionCrypto.AAD_CREDENTIAL,
+        )?.let { String(it, Charsets.UTF_8) }
+        if (back == probe) "✔ 凭据加密可用（AES-256-GCM 往返成功）" else "✘ 凭据密文解不开"
+    } catch (e: Exception) {
+        "✘ 凭据加密不可用：${e.javaClass.simpleName}"
+    }
+
     /** 读回凭据；任何一步失败都返回 null（当作没存过），**不猜、不半份** */
     fun read(): Credentials? {
         if (!prefs.credEnabled) return null

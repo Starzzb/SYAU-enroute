@@ -61,7 +61,10 @@ import java.util.Locale
  *   · 成绩那条 `token=未找到` → 学校改版了，把这份日志发我
  */
 @Composable
-fun DebugScreen(modifier: Modifier = Modifier) {
+fun DebugScreen(
+    modifier: Modifier = Modifier,
+    onSelftest: () -> Unit = {},
+) {
     val t = InkTokens.current
     val ctx = LocalContext.current
     val entries by DebugLog.entries.collectAsState()
@@ -106,6 +109,9 @@ fun DebugScreen(modifier: Modifier = Modifier) {
             ) { Text("导出文档", fontSize = 12.sp) }
             TextButton(enabled = entries.isNotEmpty(), onClick = { copyAll(ctx) }) {
                 Text("复制", fontSize = 12.sp)
+            }
+            TextButton(onClick = { onSelftest() }) {
+                Text("密钥自检", fontSize = 12.sp)
             }
             TextButton(enabled = entries.isNotEmpty(), onClick = { DebugLog.clear() }) {
                 Text("清空", fontSize = 12.sp, color = t.brick)

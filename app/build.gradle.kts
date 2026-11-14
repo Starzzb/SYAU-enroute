@@ -1,9 +1,23 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
+
+// ── 正式签名（release）────────────────────────────────────────────
+// 密钥与密码都在仓库外的 O:\dev\keys 与 local.properties（后者已 gitignore），绝不入库。
+// 没配的情况下回退 debug 签名，保证 CI / 新机器上仍然能 assembleRelease 出可装包
+// （代价：那种包是可调试的，只适合内测）。
+val localProps = Properties().apply {
+    val f = rootProject.file("local.properties")
+    if (f.exists()) FileInputStream(f).use { load(it) }
+}
+val releaseStorePath = localProps.getProperty("ENROUTE_STORE_FILE").orEmpty()
+val hasReleaseKey = releaseStorePath.isNotBlank() && File(releaseStorePath).exists()
 
 android {
     namespace = "cn.dkarbon.enroute"
@@ -25,6 +39,14 @@ android {
             keyAlias = "androiddebugkey"
             keyPassword = "android"
         }
+        if (hasReleaseKey) {
+            create("release") {
+                storeFile = File(releaseStorePath)
+                storePassword = localProps.getProperty("ENROUTE_STORE_PASSWORD")
+                keyAlias = localProps.getProperty("ENROUTE_KEY_ALIAS")
+                keyPassword = localProps.getProperty("ENROUTE_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
@@ -35,6 +57,13 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // 有正式密钥就用它；没有就回退 debug（那种包可调试，仅内测）
+            signingConfig = if (hasReleaseKey) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("⚠️ 未配置 ENROUTE_STORE_FILE，release 将回退 debug 签名（不建议分发）")
+                signingConfigs.getByName("debug")
+            }
         }
     }
 

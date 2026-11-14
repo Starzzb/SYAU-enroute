@@ -141,7 +141,7 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
                         onOpenDebug = { stack.add(UserPage.Debug) },
                     )
                 }
-                UserPage.Debug -> DebugScreen()
+                UserPage.Debug -> DebugScreen(onSelftest = { vm.runCryptoSelfTest() })
                 UserPage.Login -> LoginScreen(
                     vm = vm,
                     sessionState = ui.sessionState,

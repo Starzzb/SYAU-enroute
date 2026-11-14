@@ -5,7 +5,7 @@
 
 **Blocked by:** 04（会话加密存档已实现，复用同一套 Keystore + AES-GCM）
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 ---
 
@@ -95,3 +95,86 @@ POST https://pass.syau.edu.cn/tpass/login?service=http%3A%2F%2F10.2.0.47%2Flogin
   注意这里**推翻了票 04 里「密码绝不持久化」那条约束** —— 那是当时的保守选择；
   主人明确要求长期免登录后，改为「**默认关闭 + 显式开启 + 本机 Keystore 加密 + 只发本校 CAS**」，
   并保留随时关闭即刻清除的能力。
+
+## Comments
+
+### 2026-11-14 交付（agent）
+
+**先说重点：票 04 的 L1（会话恢复）确实是坏的，根因已定位并修好，而且实机验证通过。**
+
+#### 根因：AndroidKeyStore 不允许调用方提供 IV
+
+实机 logcat（`tag=SessionStore`，杀进程冷启动）只出现一句：
+
+```
+restore: 本机没有会话密文（expired=false）
+```
+
+说明**密文从来没被写进去过**，不是解密失败、不是版本前缀不匹配。继续追到 `SessionCrypto.seal()`：
+它自己 `SecureRandom` 生成 IV 再 `cipher.init(ENCRYPT_MODE, key, GCMParameterSpec(128, iv))`。
+而 Keystore 密钥是 `setRandomizedEncryptionRequired(true)` 生成的 —— 这种密钥**禁止调用方提供 IV**，
+`Cipher.init` 直接抛 `InvalidAlgorithmParameterException: Caller-provided IV not permitted`
+→ `SessionStore.save()` 里被 `catch` 吞掉、`return false` → 只在内存 DebugLog 里留一句
+「会话存盘失败」，用户与我都看不见 → 每次冷启动都是「未登录」。
+
+**为什么单测一直是绿的**：票 04 的单测用普通 JCE 密钥（`KeyGenerator.getInstance("AES")`），
+它**允许**自带 IV；只有真 Keystore 才拒绝。这是"测试替身比真实环境宽松"的经典坑。
+
+**修法**（`SessionCrypto.kt:57`）：`cipher.init(ENCRYPT_MODE, key)` **不传 IV**，让 provider/Keystore 生成，
+`init` 之后从 `cipher.iv` 取出再拼进密文（格式 `Base64(IV‖密文)` 不变，老密文照样能解）。
+
+**实机证据**（这台机器上按的）：调试页新增「密钥自检」按钮 → 输出
+`✔ 加密存档可用（AES-256-GCM 往返成功，密文 52 字符）` ｜ `✔ 凭据加密可用（AES-256-GCM 往返成功）`。
+在此之前这个自检必然报错；现在两项都过，说明**存档通道真的通了**。
+
+顺手补的防再犯：
+- `SessionStore.save()` 现在**一条 cookie 都没有就拒绝存盘**并写日志（以前 `encode` 永远写一行 `#name`，
+  于是空会话也能"存成功"，冷启动再被 `decode` 丢掉 —— 白存一趟还查不出原因）；
+- `save/restore` 的每个分支都写 `android.util.Log`（`tag=SessionStore`，只记 cookie **条数**，不记内容），
+  以后真机一抓就能定位，不用再猜；
+- 调试页「密钥自检」（`DebugScreen` + `TimetableViewModel.runCryptoSelfTest()` `:292`）。
+
+#### L2：静默续期（本票正题）
+
+- `data/CredentialStore.kt`（新，31 起）：`save` 77 / `read` 117 / `clear` 156 / `forget` 167 /
+  `recordFailure` 59 / `autoReloginBlocked` 70 / `selfTest` 102。密文进 `enroute` prefs 的
+  **`cred_sealed`**（另有 `cred_saved_at` / `cred_enabled` / `cred_prompted` / `cred_fail_count`），
+  密钥是**独立别名** `enroute.urp.cred.v1`（清会话不该顺手带走凭据）。
+- `SessionCrypto` 增加 AAD 维度：凭据用 `AAD_CREDENTIAL`，**与会话密文不能互相顶替**（有单测）。
+- 冷启动顺序实现（`TimetableViewModel.restoreSession`）：读 L1 → 有就验活（有效直接用、**不发密码**）；
+  无效/没有 → 若开了「保持登录」且有凭据 → `silentRelogin()`（`TimetableViewModel.kt:184`）自动重登一次。
+  过期分支也会走一次续期（`verifyRestoredSession` 的 `SessionProbe.Expired` 分支）。
+- 续期成功：会话重新存盘、失败计数清零、**不弹任何提示**；失败：计数 +1，累计 3 次停手并提示
+  「可能改过密码，请手动登录一次」（`SessionText.RELOGIN_BLOCKED_NOTE`）。
+- 首次登录成功后的说明卡：`ui/user/KeepLoginPrompt.kt`（挂在根节点 `EnRouteRoot.kt:145`，
+  免得登录页关太快漏掉），文案 `SessionText.KEEP_LOGIN_TITLE/BODY`；点「启用」→ `enableKeepLogin()` `:237`
+  把凭据加密存盘，点「不了」→ `dismissKeepLoginPrompt()` `:260` 丢弃并记下「问过了」。
+- 设置页：`保持登录（自动续期）` 开关 + `清除本机保存的密码`（`SettingsScreen.kt:179` 起）；
+  **关闭开关会立刻删密文与 Keystore 别名**（`CredentialStore.clear()`），不是标记关闭。
+- `DataWiper` ⑤e：连清凭据 + Keystore 别名（crypto-shredding）。
+- 登录页文案同步：「密码默认不保存（可在设置里开启「保持登录」）」。
+
+#### 安全红线自检（对应票面 §安全要求）
+1. 凭据只发 `pass.syau.edu.cn`：`UrpClient.CAS_LOGIN_URL` 常量 + `casLoginUrl(service)` 只让 service 参与拼接，
+   单测断言 `URI(...).host == "pass.syau.edu.cn"`（含 `service` 传恶意值的情形）；
+2. Keystore AES-256-GCM、`setUserAuthenticationRequired(false)`、独立 AAD、独立别名；
+3. 日志/异常栈 grep 不到凭据：`Credentials.toString()` 打码 + 只记异常类型，
+   单测断言 `"$creds"` 不含学号/密码；
+4. 默认关闭 + 一次性说明卡；
+5. 关闭即删密文（不是标记）；
+6. 连续 3 次失败停手（`MAX_FAILURES`，单测锁）；
+7. `DataWiper` 清凭据与 Keystore 别名。
+
+#### 怎么验证
+- 先单独 `:app:compileDebugUnitTestKotlin` → 绿；`build-test.bat`：`BUILD SUCCESSFUL` / `EXIT=0`。
+- 单测：**346 条 / 25 类 / 0 失败**（本轮基线 329/23；新增 `ReloginSecurityTest` 10 条 + `MapNudgeTest` 7 条）。
+- **实机**：调试页「密钥自检」两项都 ✔（见上）；「我的」页现状 `未登录`（符合「本机没有密文」）。
+- **APK**：22,880,576 → 23,013,515 字节（**+0.13MB**）。
+
+#### 遗留（只能主人做）
+1. **请主人登录一次**（校园网下）→ 看是否出现一次性说明卡；选「启用保持登录」→ 杀掉重开应显示「已登录」，
+   此时 logcat `tag=SessionStore` 应该出现 `save: ok，cookie N 项`。这一步是 L1 修复的最终确认（我这边没有密码，跑不了）。
+2. 服务端超时后的自动续期（`markExpired` → 冷启动静默重登）只能等真实过期才能验；也可临时手动触发验证。
+3. 改密码场景：连续 3 次失败后会停手并提示，文案已就位。
+4. 凭据存的是明文密码（加密后落盘）—— 这是本票的取舍，已按红线限制在本机 + 只发本校 CAS；
+   设备被盗/root 场景下 Keystore 仍是最后一道防线（无用户认证，因为无人值守续期需要）。
