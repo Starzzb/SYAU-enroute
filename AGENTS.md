@@ -75,3 +75,15 @@
 ```powershell
 Get-Content local.properties   # 应为 5 行：sdk.dir + 4 个 ENROUTE_*
 ```
+## 判断构建结果只看这两行
+
+`build-test.bat` / `compile-check.bat` / `build-release.bat` 都是「跑 gradle → 写日志 → 收尾」的包装。
+**不要用 PowerShell 的 `$LASTEXITCODE` 判断成败**：如果上一条命令是管道（如 `| Select-String`），
+`$LASTEXITCODE` 取到的是**管道末端命令**的退出码，gradle 失败也会显示 0 —— 我们已经被这个坑骗过一次。
+
+正确做法：读日志末尾两行
+
+```powershell
+Get-Content build-compile-log.txt | Select-String 'BUILD SUCCESSFUL|BUILD FAILED|^EXIT='
+# 同时看到 BUILD SUCCESSFUL 与 EXIT=0 才算过
+```
