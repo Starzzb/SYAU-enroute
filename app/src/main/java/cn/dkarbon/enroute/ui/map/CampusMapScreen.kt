@@ -716,7 +716,8 @@ private fun PropertyPanel(
         }
         if (hasOfficial) {
             Text(
-                "标「官方」的是随地图包下发的基线，不是你填的 —— 它不会被「清除数据」删掉，也不计入「已标注」。",
+                "标「官方」的是随地图包下发的基线，不是你填的 —— 不会被「清除数据」删掉，也不计入「已标注」。\n" +
+                    "要改成自己的值：点「＋ 添加字段」用同名字段覆盖（用户值优先）。",
                 fontSize = 8.5.sp,
                 lineHeight = 12.sp,
                 color = t.inkFaint,
