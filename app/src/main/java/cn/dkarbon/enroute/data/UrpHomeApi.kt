@@ -1009,7 +1009,7 @@ object UrpHomeApi {
         runCatching { s.absorb(conn) }
         val stream = if (code in 200..299) conn.inputStream else conn.errorStream
         val body = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
-        DebugLog.http("HOME", if (conn.requestMethod == "POST") "POST" else "GET", path, code, body.length, body)
+        DebugLog.http("HOME", if (conn.requestMethod == "POST") "POST" else "GET", path, code, body.length, preview = body)
         return body
     }
 

@@ -98,6 +98,8 @@ data class FeedItem(
 data class SyncReport(
     val perSource: List<SourceResult> = emptyList(),
     val at: Long = 0,
+    /** 本次刷新总耗时（ms，票 20 / D1）；0 = 未计时 */
+    val elapsedMs: Long = 0,
 ) {
     val totalNew: Int get() = perSource.sumOf { it.added }
     val failed: Int get() = perSource.count { it.error != null }

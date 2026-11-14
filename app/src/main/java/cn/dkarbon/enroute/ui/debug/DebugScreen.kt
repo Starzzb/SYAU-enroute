@@ -23,6 +23,10 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -64,12 +68,30 @@ import java.util.Locale
 fun DebugScreen(
     modifier: Modifier = Modifier,
     onSelftest: () -> Unit = {},
+    /** 传进来才显示「落盘 xxKB」与「清空历史」；没传（老调用点）行为不变 */
+    ui: cn.dkarbon.enroute.ui.AppState? = null,
+    onClearHistory: () -> Unit = {},
+    /** 「全部导出」的文件名（带日期范围）；空串 = 不显示这个按钮 */
+    exportAllName: () -> String = { "" },
+    /** 「全部导出」的正文（**VM 侧已再脱敏一遍**） */
+    exportAllText: () -> String = { "" },
 ) {
     val t = InkTokens.current
     val ctx = LocalContext.current
-    val entries by DebugLog.entries.collectAsState()
+    val allEntries by DebugLog.entries.collectAsState()
+    val errorEntries by DebugLog.errors.collectAsState()
     val listState = rememberLazyListState()
     var lastSave by remember { mutableStateOf("") }
+
+    // 票 20 / D3：**过滤只在读取侧做**，写入侧不丢数据。
+    // 「仅错误」直接读 DebugLog 的 ERROR 保底缓冲（最近 50 条），不受 400 条主缓冲滚动影响。
+    var onlyErrors by rememberSaveable { mutableStateOf(false) }
+    var warnPlus by rememberSaveable { mutableStateOf(false) }
+    val entries = when {
+        onlyErrors -> errorEntries
+        warnPlus -> allEntries.filter { it.level != DebugLog.Level.DEBUG && it.level != DebugLog.Level.INFO }
+        else -> allEntries
+    }
 
     // 系统「另存为」：用户自己选目录，App 不需要存储权限
     val exportLauncher = rememberLauncherForActivityResult(
@@ -85,6 +107,22 @@ fun DebugScreen(
         Toast.makeText(ctx, lastSave, Toast.LENGTH_SHORT).show()
     }
 
+    // 「全部导出」：7 天落盘日志打包成一个 txt，仍走系统「另存为」——
+    // 与上面的「导出文档」完全同一套 SAF 写法，不新造存储路径、不需要存储权限。
+    val exportAllLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("text/plain"),
+    ) { uri ->
+        if (uri == null) return@rememberLauncherForActivityResult
+        val ok = runCatching {
+            ctx.contentResolver.openOutputStream(uri)?.use { out ->
+                out.write(exportAllText().toByteArray(Charsets.UTF_8))
+            } != null
+        }.getOrDefault(false)
+        val msg = if (ok) "已导出全部历史日志" else "导出失败（没写进去）"
+        lastSave = msg
+        Toast.makeText(ctx, msg, Toast.LENGTH_SHORT).show()
+    }
+
     LaunchedEffect(entries.size) {
         if (entries.isNotEmpty()) listState.animateScrollToItem(entries.lastIndex)
     }
@@ -96,8 +134,21 @@ fun DebugScreen(
         ) {
             Text("调试日志", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = t.ink)
             Spacer(Modifier.width(8.dp))
-            Text("${entries.size} 条", fontSize = 11.sp, color = t.inkFaint)
+            Text(
+                "${entries.size} 条" +
+                    (if (ui?.debugFileEnabled == true) " · 落盘 " + ui.debugFileUsage.substringBefore(" ·") else ""),
+                fontSize = 11.sp,
+                color = t.inkFaint,
+            )
             Spacer(Modifier.weight(1f))
+            if (exportAllName().isNotBlank()) {
+                TextButton(
+                    onClick = {
+                        val name = exportAllName()
+                        exportAllLauncher.launch(name.ifBlank { "在途日志.txt" })
+                    },
+                ) { Text("导出全部", fontSize = 12.sp) }
+            }
             TextButton(
                 enabled = entries.isNotEmpty(),
                 onClick = {
@@ -115,6 +166,21 @@ fun DebugScreen(
             }
             TextButton(enabled = entries.isNotEmpty(), onClick = { DebugLog.clear() }) {
                 Text("清空", fontSize = 12.sp, color = t.brick)
+            }
+        }
+
+        // 级别过滤（票 20 / D3）：全部 / 警告+ / 仅错误
+        Row(
+            Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            LevelChip("全部", !onlyErrors && !warnPlus) { onlyErrors = false; warnPlus = false }
+            LevelChip("警告+", !onlyErrors && warnPlus) { onlyErrors = false; warnPlus = true }
+            LevelChip("仅错误 (${errorEntries.size})", onlyErrors) { onlyErrors = true; warnPlus = false }
+            Spacer(Modifier.weight(1f))
+            if (ui != null) {
+                TextButton(onClick = { onClearHistory() }) { Text("清空历史", fontSize = 11.sp) }
             }
         }
 
@@ -151,7 +217,8 @@ fun DebugScreen(
                 contentType = { _, _ -> "log" },
             ) { _, e ->
                 val color = when {
-                    e.msg.startsWith("✘") -> t.brick
+                    e.level == DebugLog.Level.ERROR -> t.brick
+                    e.level == DebugLog.Level.WARN -> t.olive
                     e.msg.contains("← 200") -> t.olive
                     e.msg.startsWith("→") || e.msg.startsWith("←") -> t.inkSoft
                     else -> t.inkFaint
@@ -197,4 +264,22 @@ private fun copyAll(ctx: Context) {
     val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     cm.setPrimaryClip(ClipData.newPlainText("enroute-debug", DebugLog.dump()))
     Toast.makeText(ctx, "已复制 ${DebugLog.entries.value.size} 条日志", Toast.LENGTH_SHORT).show()
+}
+
+/** 级别过滤小胶囊（0 圆角、细描边，沿用调试页的朴素风格） */
+@Composable
+private fun LevelChip(label: String, on: Boolean, onClick: () -> Unit) {
+    val t = InkTokens.current
+    Box(
+        Modifier
+            .heightIn(min = 30.dp)
+            .clip(RectangleShape)
+            .background(if (on) t.cardAlt else t.card)
+            .border(if (on) 1.5.dp else 0.8.dp, if (on) t.primary else t.outline)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 9.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(label, fontSize = 10.5.sp, color = if (on) t.ink else t.inkSoft)
+    }
 }

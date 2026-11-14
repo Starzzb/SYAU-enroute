@@ -62,7 +62,19 @@ class UpdateCenter(private val ctx: Context) {
             val res = runCatching { httpGetText(url, timeoutMs = 10_000) }
             val text = res.getOrNull()
             if (text == null) {
-                lastErr = describeNetError(res.exceptionOrNull())
+                val e = res.exceptionOrNull()
+                val msg = e?.message.orEmpty()
+                // 仓库改名 / 换默认分支这类错误**不会自己好**，但用户永远看不到
+                // （会静默回落到明文 http，正好绕过前缀钉死）。所以在日志里留一条 ERROR：
+                // raw 地址 404 基本等于「仓库名或分支写错了」，见 MANIFEST_URLS 的注释。
+                if (url.contains("raw.githubusercontent.com") && msg.contains("404")) {
+                    DebugLog.error(
+                        "UPDATE",
+                        "latest.json 在 GitHub raw 上 404：$url —— 仓库名或默认分支可能写错了" +
+                            "（默认分支是 master，不是 main）",
+                    )
+                }
+                lastErr = describeNetError(e)
                 continue
             }
             return@withContext when (val parsed = UpdateParse.latest(text)) {

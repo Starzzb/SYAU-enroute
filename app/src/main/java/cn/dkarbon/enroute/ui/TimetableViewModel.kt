@@ -44,6 +44,11 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     /** 自定义课程存档（票 19）：与教务数据分文件，重拉课表不影响它 */
     private val customStore = cn.dkarbon.enroute.data.custom.CustomCourseStore(app)
 
+    /** 调试日志落盘（票 20 / D2）：挂上后 DebugLog 每条都会异步追加到本机文件 */
+    private val debugFile by lazy {
+        cn.dkarbon.enroute.data.DebugLogFile(java.io.File(getApplication<Application>().filesDir, "debug"))
+    }
+
     /** 静默续期凭据（票 14）：本机 Keystore 加密，默认关闭 */
     private val credStore = cn.dkarbon.enroute.data.CredentialStore(app)
 
@@ -97,6 +102,21 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 remindersEnabled = saved.remind,
                 timetableMsg = if (saved.tt == null) "" else "已载入 ${saved.tt.courses.size} 门课",
             )
+            // ①b 调试日志落盘（票 20 / D2）：启动时轮转一次（清过期/超限），再挂上通道。
+            //    全程 runCatching —— 日志 I/O 出错绝不许影响启动。
+            runCatching {
+                if (prefs.debugLogToFile) {
+                    withContext(Dispatchers.IO) { debugFile.rotate() }
+                    cn.dkarbon.enroute.data.DebugLog.attachFile(debugFile)
+                    cn.dkarbon.enroute.data.DebugLog.log(
+                        "LOG",
+                        "落盘已开启（保留 ${cn.dkarbon.enroute.data.DebugLogFile.MAX_DAYS} 天 / 上限 " +
+                            "${cn.dkarbon.enroute.data.DebugLogFile.MAX_BYTES / 1024 / 1024}MB，已占用 " +
+                            "${debugFile.usageBytes() / 1024}KB）",
+                    )
+                }
+            }
+
             // ② 恢复登录态（票 04）。放在课表之后：课表是本地文件，先让它出来，
             //    会话恢复要解密（Keystore 首次还要建 key），不能挡着首屏。
             restoreSession()
@@ -854,6 +874,84 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 mapExportCsvName = res.csvName,
             )
         }
+    }
+
+    // ── 调试日志（票 20）────────────────────────────────────
+
+    /** 设置页「保存日志到本机」开关：关掉立刻摘掉通道（连文件都不再创建） */
+    fun setDebugLogToFile(on: Boolean) {
+        prefs.debugLogToFile = on
+        cn.dkarbon.enroute.data.DebugLog.attachFile(if (on) debugFile else null)
+        cn.dkarbon.enroute.data.DebugLog.log("LOG", if (on) "已开启日志落盘" else "已关闭日志落盘")
+        _ui.value = _ui.value.copy(debugFileEnabled = on, debugFileUsage = debugUsageLine())
+    }
+
+    /** 「已占用 412KB · 保留 7 天」这类状态行 */
+    fun debugUsageLine(): String {
+        if (!prefs.debugLogToFile) return "未开启（日志只留在内存，退出即丢）"
+        val kb = runCatching { debugFile.usageBytes() / 1024 }.getOrDefault(0L)
+        return "已占用 ${kb}KB · 保留 ${cn.dkarbon.enroute.data.DebugLogFile.MAX_DAYS} 天 · 上限 " +
+            "${cn.dkarbon.enroute.data.DebugLogFile.MAX_BYTES / 1024 / 1024}MB"
+    }
+
+    fun refreshDebugFileState() {
+        _ui.value = _ui.value.copy(
+            debugFileEnabled = prefs.debugLogToFile,
+            debugFileUsage = debugUsageLine(),
+        )
+    }
+
+    /** 清空历史日志文件（**不动内存缓冲**） */
+    fun clearDebugHistory() {
+        viewModelScope.launch {
+            val ok = withContext(Dispatchers.IO) { runCatching { debugFile.clear() }.getOrDefault(false) }
+            _ui.value = _ui.value.copy(
+                debugFileUsage = debugUsageLine(),
+                toast = if (ok) "已清空历史日志文件" else "清空失败",
+            )
+        }
+    }
+
+    /** 把 7 天日志拼成一份文本（给「全部导出」用；走 SAF，不需要存储权限） */
+    fun exportAllDebug(): String = runCatching { debugFile.read(null) }.getOrDefault("")
+
+    /** 历史日志文件列表（新→旧），调试页「历史日志」用 */
+    fun debugHistoryDays(): List<String> =
+        runCatching { debugFile.logFiles().map { it.name.removeSuffix(".log") } }.getOrDefault(emptyList())
+
+    fun readDebugDay(day: String): String = runCatching { debugFile.read(day) }.getOrDefault("")
+
+    /**
+     * 「全部导出」的文件名：带**日期范围**（`在途日志_2026-11-08_2026-11-14.txt`）。
+     *
+     * 落盘的价值就在跨天：用户昨天遇到问题、今天来反馈，得能拿到昨天的日志。
+     * 没有落盘文件时退化成「今天」单日，不编范围。
+     */
+    fun exportAllDebugFileName(): String {
+        return cn.dkarbon.enroute.data.DebugLogFile.exportFileName(
+            days = debugHistoryDays(),
+            today = java.time.LocalDate.now().toString(),
+        )
+    }
+
+    /**
+     * 「全部导出」的正文。
+     *
+     * ⚠️ **导出前再脱敏一遍**，不假设落盘时脱过就安全 —— 导出是日志**第二次离开设备**的机会
+     * （SAF 存到 SD 卡、被别的 App 读到、被同步盘上传都在这一步之后）。
+     * 脱敏函数是幂等的（`JSESSIONID=***` 再抹一次还是 `***`），重复调用无副作用。
+     */
+    fun exportAllDebugText(): String {
+        val body = exportAllDebug()
+        val head = buildString {
+            appendLine("=== 沈农在途 调试日志（全部历史）===")
+            appendLine("导出时间: " + java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.CHINA)
+                .format(java.util.Date()))
+            appendLine("说明: 只存本机、不上传；导出前已再次脱敏（Cookie / CAS 票据 / 密码字段 / token）")
+            appendLine("---")
+        }
+        return head + body.lineSequence()
+            .joinToString("\n") { cn.dkarbon.enroute.data.DebugLogFile.redact(it) }
     }
 
     // ── 自定义课程（票 19）──────────────────────────────────

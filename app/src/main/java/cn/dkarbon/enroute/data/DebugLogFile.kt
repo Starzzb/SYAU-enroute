@@ -1,0 +1,196 @@
+package cn.dkarbon.enroute.data
+
+import java.io.File
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+
+/**
+ * 调试日志的**落盘**（票 20 / D2）。
+ *
+ * 设计取舍（都来自 `docs/计划-调试日志v2.md`）：
+ * 1. **按天一个文件**：`<root>/2026-11-14.log`，只追加不重写 —— 崩溃时已写入的行不会丢；
+ * 2. **不指望 `onTerminate`**（Android 常常不调用它）：改成**每 500ms 或攒够 20 行就 flush**，
+ *    牺牲一点 I/O 换「崩溃前最后几行还在」；
+ * 3. **有上限**：保留 [MAX_DAYS] 天、总量封顶 [MAX_BYTES]，超了从最旧的删；
+ * 4. **落盘即脱敏**：内存里丢就丢了，文件是可能被导出/被读的 —— 写之前必须把
+ *    Cookie / CAS 票据 / 密码字段 / token 一律抹成 `***`；
+ * 5. **失败一律吞掉**：写日志出错绝不允许影响业务。
+ *
+ * 根目录是**构造参数**（[root]），单测传临时目录，不碰 Android 的 `filesDir`。
+ */
+class DebugLogFile(private val root: File) {
+
+    /** 收行 + 批量 flush 的锁 */
+    private val lock = Any()
+    private val buffer = ArrayList<String>(FLUSH_LINES)
+
+    @Volatile
+    private var lastFlushAt: Long = 0L
+
+    /** 当前进程内写过的行数（调试页可以显示） */
+    @Volatile
+    var written: Long = 0L
+        private set
+
+    /** 追加一行（**已脱敏**由本函数负责） */
+    fun append(line: String) {
+        val safe = redact(line)
+        var flushNow = false
+        synchronized(lock) {
+            buffer += safe
+            if (buffer.size >= FLUSH_LINES) flushNow = true
+            else if (System.currentTimeMillis() - lastFlushAt >= FLUSH_INTERVAL_MS) flushNow = true
+        }
+        if (flushNow) flush()
+    }
+
+    /** 把缓冲写下去。可安全并发调用；失败静默。 */
+    fun flush() {
+        val batch: List<String>
+        synchronized(lock) {
+            if (buffer.isEmpty()) {
+                lastFlushAt = System.currentTimeMillis()
+                return
+            }
+            batch = buffer.toList()
+            buffer.clear()
+            lastFlushAt = System.currentTimeMillis()
+        }
+        runCatching {
+            root.mkdirs()
+            File(root, dayFileName(todayString())).appendText(
+                batch.joinToString("") { it + "\n" },
+                Charsets.UTF_8,
+            )
+            written += batch.size
+        }
+    }
+
+    /** 启动时跑一次：删过期天、再把总大小压到 [MAX_BYTES] 以内 */
+    fun rotate(today: String = todayString()): List<String> {
+        val deleted = mutableListOf<String>()
+        runCatching {
+            root.mkdirs()
+            val files = logFiles().sortedBy { it.name }   // 文件名即日期，字典序 = 时间序
+            val cutoff = dayFileName(shiftDay(today, -MAX_DAYS + 1))
+            // ① 超过保留天数的
+            files.filter { it.name < cutoff }.forEach { f ->
+                if (f.delete()) deleted += f.name
+            }
+            // ② 总大小超限：从最旧的删到合格
+            var total = logFiles().sumOf { it.length() }
+            val remain = logFiles().sortedBy { it.name }.toMutableList()
+            while (total > MAX_BYTES && remain.size > 1) {
+                val oldest = remain.removeAt(0)
+                val len = oldest.length()
+                if (oldest.delete()) {
+                    deleted += oldest.name
+                    total -= len
+                }
+            }
+        }
+        return deleted
+    }
+
+    /** 目录下所有日志文件（按日期新→旧） */
+    fun logFiles(): List<File> = runCatching {
+        root.listFiles { f -> f.isFile && f.name.endsWith(".log") }
+            ?.sortedByDescending { it.name }
+            .orEmpty()
+    }.getOrDefault(emptyList())
+
+    /** 已占用字节数（调试页/设置页显示「已占用 412KB」） */
+    fun usageBytes(): Long = runCatching { logFiles().sumOf { it.length() } }.getOrDefault(0L)
+
+    /** 读某一天的日志；传 null 读全部（新→旧） */
+    fun read(day: String? = null): String = runCatching {
+        val targets = if (day == null) logFiles() else logFiles().filter { it.name == dayFileName(day) }
+        targets.joinToString("") { f -> runCatching { f.readText(Charsets.UTF_8) }.getOrDefault("") }
+    }.getOrDefault("")
+
+    /** 清空历史日志（**不动内存缓冲**） */
+    fun clear(): Boolean = runCatching {
+        logFiles().forEach { it.delete() }
+        true
+    }.getOrDefault(false)
+
+    companion object {
+
+        /** 保留天数 */
+        const val MAX_DAYS = 7
+
+        /** 总量上限 */
+        const val MAX_BYTES = 2 * 1024 * 1024
+
+        /** 攒够这么多行就 flush */
+        const val FLUSH_LINES = 20
+
+        /** 或者距上次 flush 超过这么久（崩溃前最后几行尽量落盘） */
+        const val FLUSH_INTERVAL_MS = 500L
+
+        fun dayFileName(day: String): String = "$day.log"
+
+        /**
+         * 「全部导出」的文件名，带**日期范围**：`在途日志_2026-11-08_2026-11-14.txt`。
+         *
+         * @param days 已有的日志日期（顺序无所谓）；空列表时退化成 [today] 单日，不编范围
+         */
+        fun exportFileName(days: List<String>, today: String): String {
+            val clean = days.filter { it.isNotBlank() }.sorted()
+            val oldest = clean.firstOrNull() ?: today
+            val newest = clean.lastOrNull() ?: today
+            return "在途日志_${oldest}_${newest}.txt"
+        }
+
+        fun todayString(): String =
+            SimpleDateFormat("yyyy-MM-dd", Locale.CHINA).format(Date())
+
+        fun shiftDay(day: String, deltaDays: Int): String = runCatching {
+            java.time.LocalDate.parse(day).plusDays(deltaDays.toLong()).toString()
+        }.getOrDefault(day)
+
+        // ── 脱敏（落盘前必过）──────────────────────────────
+
+        /**
+         * 需要抹掉的模式。**顺序有意义**：先抹 `key=value` 型，再抹 Header 型。
+         *
+         * 每条都保留键名、只把值换成 `***` —— 这样日志仍然可读（知道有这个 cookie），
+         * 但拿不到真凭证。
+         */
+        private val PATTERNS: List<Regex> = listOf(
+            // Cookie / Session
+            Regex("""(?i)\b(JSESSIONID|CASTGC|SESSION|PHPSESSID|student\.urpSoft\.cn)\s*=\s*[^;\s&"']+"""),
+            // CAS 票据
+            Regex("""(?i)\b(lt|ticket|execution|service_id)\s*=\s*[^;&\s"']+"""),
+            // 密码类字段
+            Regex("""(?i)\b(password|passwd|pwd|pl)\s*=\s*[^;&\s"']+"""),
+            // 通用 token
+            Regex("""(?i)\b(access_token|refresh_token|token|secret|api_key)\s*=\s*[^;&\s"']+"""),
+            // 请求头形式
+            Regex("""(?i)\b(Authorization|Cookie)\s*:\s*[^\r\n]+"""),
+        )
+
+        /**
+         * 对一行文本脱敏。**纯函数**，单测直接打。
+         */
+        fun redact(line: String): String {
+            var out = line
+            for (p in PATTERNS) {
+                out = p.replace(out) { m ->
+                    val full = m.value
+                    val sep = full.indexOfFirst { it == '=' || it == ':' }
+                    if (sep <= 0) {
+                        "***"
+                    } else {
+                        // 保留键名与分隔符（等号两侧空格按原样）
+                        val key = full.substring(0, sep).trimEnd()
+                        val mark = full[sep]
+                        if (mark == '=') "$key=***" else "$key: ***"
+                    }
+                }
+            }
+            return out
+        }
+    }
+}

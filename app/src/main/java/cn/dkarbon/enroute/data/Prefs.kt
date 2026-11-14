@@ -191,6 +191,16 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("cred_prompted", false)
         set(v) = sp.edit().putBoolean("cred_prompted", v).apply()
 
+    /**
+     * 调试日志是否保存到本机（票 20 / D2）。
+     *
+     * **默认开**：崩溃/被杀时的日志才是最有用的，事后没法补。release 版同样生效
+     * （不用 `BuildConfig.DEBUG` 写死，主人在发布版里也可能要导出）。
+     */
+    var debugLogToFile: Boolean
+        get() = sp.getBoolean("debug_log_file", true)
+        set(v) = sp.edit().putBoolean("debug_log_file", v).apply()
+
     /** 地图「共建引导」是否已自动弹过一次（票 12 §8.3；「清除所有数据」会一起清掉） */
     var mapGuideSeen: Boolean
         get() = sp.getBoolean("map_guide_seen", false)

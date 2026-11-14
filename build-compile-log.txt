@@ -22,10 +22,8 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:processDebugManifest UP-TO-DATE
 > Task :app:processDebugManifestForPackage UP-TO-DATE
 > Task :app:processDebugResources UP-TO-DATE
-> Task :app:compileDebugKotlin
-w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:179:33 Condition is always 'true'.
-w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:183:13 Condition is always 'false'.
+> Task :app:compileDebugKotlin UP-TO-DATE
 
-BUILD SUCCESSFUL in 51s
-15 actionable tasks: 1 executed, 14 up-to-date
+BUILD SUCCESSFUL in 11s
+15 actionable tasks: 15 up-to-date
 EXIT=0 

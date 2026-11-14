@@ -28,6 +28,15 @@ data class MapManifest(
     val style: MapStyle = MapStyle(),
     /** 类别码 → 中文（19 个码；属性面板的「类别」下拉就靠它） */
     val kindLabels: Map<String, String> = emptyMap(),
+    /**
+     * **官方基线**自带的标注字段名（票 13「B 路」）。
+     *
+     * `pack.py` 打包时会把众包合并进来的自定义字段统计到这个列表里。
+     * 它是**只读层**：这些值来自 `campus.geojson` 的 properties，不在用户的
+     * `edits.json` 里 —— 所以「已标注 N 个面」**不统计**它们，
+     * 用户点「清除数据」也删不掉官方数据。
+     */
+    val customFields: List<String> = emptyList(),
     /** **逻辑层**：可以多个指向同一个 geojson，用 `filter.kind` 过滤 */
     val layers: List<MapLayer> = emptyList(),
 ) {
@@ -108,6 +117,14 @@ data class MapFeature(
     val color: String = "",
     /** 原始面积（源像素²，pack.py 已算好；没有就本地算） */
     val areaPx: Double = 0.0,
+    /**
+     * **官方基线的标注字段**（`campus.geojson` properties 里除派生量以外的一切）。
+     *
+     * 票 13「B 路」要的就是这一个字段：官方数据留在 asset 里当**只读层**，
+     * 不进 `edits.json`，所以不会被用户「清除数据」删掉，也不会算成用户标注。
+     * 解析时**原样保留**（不认识的键也留着）——「不丢字段」是这条链路的硬要求。
+     */
+    val props: Map<String, String> = emptyMap(),
     val rings: List<List<MapPoint>> = emptyList(),
 ) {
     /** 命中时取**面积最小**者用 */

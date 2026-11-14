@@ -17,6 +17,15 @@ object MapParse {
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
+    /**
+     * 不进 [MapFeature.props] 的键：派生量 + 已有专门槽位的固定字段。
+     * 其余一律当「官方基线标注」原样留下（票 13 B 路）。
+     */
+    private val DERIVED_OR_FIXED_KEYS = setOf(
+        "id", "name", "kind", "code", "floors", "dept", "note",
+        "colorGroup", "color", "areaPx",
+    )
+
     fun manifest(text: String): MapManifest? {
         val o = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull() ?: return null
         val layers = (o["layers"] as? JsonArray)
@@ -44,6 +53,11 @@ object MapParse {
         val kindLabels = (o["kindLabels"] as? JsonObject)
             ?.mapNotNull { (k, v) -> (v as? JsonPrimitive)?.content?.let { k to it } }
             ?.toMap()
+            .orEmpty()
+        // 官方基线字段名（pack.py 统计）；老包没有这个键 → 空表，行为与从前一致
+        val customFields = (o["customFields"] as? JsonArray)
+            ?.mapNotNull { (it as? JsonPrimitive)?.content?.trim() }
+            ?.filter { it.isNotBlank() }
             .orEmpty()
         return MapManifest(
             schema = str(o, "schema").toIntOrNull() ?: 0,
@@ -74,6 +88,7 @@ object MapParse {
                 selectedStrokeWidth = str(selObj, "strokeWidth").toFloatOrNull() ?: 2f,
             ),
             kindLabels = kindLabels,
+            customFields = customFields,
             layers = layers,
         )
     }
@@ -143,10 +158,31 @@ object MapParse {
                 colorGroup = str(props, "colorGroup").toDoubleOrNull()?.toInt() ?: 0,
                 color = str(props, "color"),
                 areaPx = str(props, "areaPx").toDoubleOrNull() ?: 0.0,
+                props = officialProps(props),
                 rings = rings,
             )
         }
         return GeoJsonDoc(features = features, nonPolygon = nonPolygon, duplicateIds = duplicateIds)
+    }
+
+    /**
+     * **官方基线字段**：properties 里除派生量以外的一切，原样保留（票 13 B 路）。
+     *
+     * 为什么单列一个函数：这是「不丢字段」的唯一入口，
+     * 以后要加过滤条件（长度上限、保留字冲突）只改这里，别在解析主流程里散开。
+     * 固定字段（`name`/`kind`）不进来 —— 它们有自己的槽位，用户标注对它们的覆盖
+     * 走 [cn.dkarbon.enroute.data.map.MapEditsOps] 的优先级，不靠这张表。
+     */
+    private fun officialProps(props: JsonObject?): Map<String, String> {
+        if (props == null) return emptyMap()
+        val out = LinkedHashMap<String, String>()
+        props.forEach { (k, v) ->
+            if (k in DERIVED_OR_FIXED_KEYS) return@forEach
+            if (v is JsonNull || v is JsonObject || v is JsonArray) return@forEach
+            val s = (v as? JsonPrimitive)?.content?.trim().orEmpty()
+            if (s.isNotBlank()) out[k] = s
+        }
+        return out
     }
 
     private fun str(o: JsonObject?, key: String): String {

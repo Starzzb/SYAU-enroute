@@ -163,7 +163,13 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
                     )
                 }
                 UserPage.About -> cn.dkarbon.enroute.ui.about.AboutScreen()
-                UserPage.Debug -> DebugScreen(onSelftest = { vm.runCryptoSelfTest() })
+                UserPage.Debug -> DebugScreen(
+                    onSelftest = { vm.runCryptoSelfTest() },
+                    ui = ui,
+                    onClearHistory = { vm.clearDebugHistory() },
+                    exportAllName = { vm.exportAllDebugFileName() },
+                    exportAllText = { vm.exportAllDebugText() },
+                )
                 UserPage.Login -> LoginScreen(
                     vm = vm,
                     sessionState = ui.sessionState,

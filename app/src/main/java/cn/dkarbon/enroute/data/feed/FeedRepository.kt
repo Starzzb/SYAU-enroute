@@ -56,8 +56,11 @@ class FeedRepository(private val ctx: Context) {
         // 期间用户新增的本地状态不影响「哪些条目是新的」
         val knownKeys = _items.value.map { it.key }.toHashSet()
         val fetched = mutableListOf<Pair<FeedSource, List<FeedItem>>>()
+        // 票 20 / D1：整次刷新计时（给「抓取优化」留基线）
+        val refreshStart = System.nanoTime()
 
         for (src in FeedSources.ALL.filter { it.enabled }) {
+            val srcStart = System.nanoTime()
             val r = runCatching {
                 // 主页 + 已实测翻页语义的额外页（串行、页间 400ms，单页失败不拖垮整源）
                 val pages = mutableListOf<FeedHttp.Resp>()
@@ -102,11 +105,13 @@ class FeedRepository(private val ctx: Context) {
                 }
 
                 fetched += src to withDates
-                DebugLog.log("FEED", "${src.name}：抓到 ${items.size} 条（${pages.size} 页）")
+                val srcMs = (System.nanoTime() - srcStart) / 1_000_000
+                DebugLog.log("FEED", "${src.name}：${srcMs}ms · ${pages.size} 页 · ${items.size} 条")
                 SourceResult(src.key, items.size, 0)
             }.getOrElse { e ->
                 val m = e.message ?: e.javaClass.simpleName
-                DebugLog.error("FEED", "${src.name} 失败：$m")
+                val srcMs = (System.nanoTime() - srcStart) / 1_000_000
+                DebugLog.error("FEED", "${src.name} 失败（${srcMs}ms）：$m")
                 SourceResult(src.key, 0, 0, m)
             }
             results += r
@@ -159,8 +164,13 @@ class FeedRepository(private val ctx: Context) {
             store.saveItems(sorted)
             sorted
         }
-        DebugLog.log("FEED", "刷新完成：新增 $addedTotal 条，本地共 ${merged.size} 条")
-        SyncReport(results, System.currentTimeMillis())
+        val totalMs = (System.nanoTime() - refreshStart) / 1_000_000
+        val okCount = results.count { it.error == null }
+        DebugLog.log(
+            "FEED",
+            "刷新总计 ${totalMs}ms · ${results.size} 源（成功 $okCount / 失败 ${results.size - okCount}）· 新增 $addedTotal 条，本地共 ${merged.size} 条",
+        )
+        SyncReport(results, System.currentTimeMillis(), (System.nanoTime() - refreshStart) / 1_000_000)
     }
 
     // ── 竞赛平台补比赛窗口 ────────────────────────────────

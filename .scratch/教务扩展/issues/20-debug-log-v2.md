@@ -5,7 +5,7 @@ D1 耗时字段 → D2 落盘（含脱敏）→ D3 分级与错误保底。
 
 **Blocked by:** 无
 
-**Status:** ready-for-agent
+**Status:** ready-for-human
 
 ---
 
@@ -59,3 +59,77 @@ D1 耗时字段 → D2 落盘（含脱敏）→ D3 分级与错误保底。
 
 - 2026-11-14 lead：主人提供的计划文档质量足够，本票只是把它接到工单板上。
   D1 先做，D2 的脱敏与 D3 的分级可并行，但都不许压缩。
+
+## Comments
+
+### 2026-11-14 交付（agent）—— D1 + D2 + D3 全部完成
+
+`compile-check.bat`：**BUILD SUCCESSFUL / EXIT=0**；全量单测 **437 条 / 35 类 / 0 失败**（基线 406 未弄红）。
+
+#### D1 耗时（规格 §1）
+- `DebugLog.http()` 增 `elapsedMs: Long = -1`（<0 不输出），输出
+  `← 200 12.3KB 820ms GET jwc.syau.edu.cn/index/jwtz.htm`（`DebugLog.kt` 的 `http()` / `levelOf()`）
+- `DebugLog.timed(tag, label) { }` 便捷包装，用 `System.nanoTime()`
+- 计时点：`UrpClient.request()`（全部教务请求的唯一咽喉，含跳转循环的总耗时）、`FeedHttp.get()`（自计时并回填 `Resp.elapsedMs`）
+- `FeedRepository`：每源 `教务通知：820ms · 1 页 · 15 条`；结束
+  `刷新总计 xxxxms · N 源（成功 a / 失败 b）· 新增 n 条`；`SyncReport.elapsedMs` 已加
+- 真机数字待 lead 装机后填进 `docs/调试日志-实测记录.md` §1
+
+#### D2 落盘（规格 §2）
+- 新文件 `data/DebugLogFile.kt`（**根目录为构造参数** `DebugLogFile(root)`，单测用临时目录）
+  - `filesDir/debug/YYYY-MM-DD.log`，**追加写**不重写
+  - **每 20 行或每 500ms flush**（不依赖 `onTerminate`）
+  - `MAX_DAYS = 7` / `MAX_BYTES = 2MB`，启动时 `rotate()` 删最旧
+  - `usageBytes()` / `read()` / `clear()` / `logFiles()`
+- `DebugLog.attachFile(sink)`；`Prefs.debugLogToFile`（默认开，release 同样生效，未用 `BuildConfig.DEBUG`）
+- ViewModel 启动时 `rotate()` + `attachFile`（全程 `runCatching`）；`setDebugLogToFile()` 关掉即摘通道，**连文件都不再创建**
+- 设置页：开关 + 「已占用 xxKB · 保留 7 天 · 上限 2MB」+ 「清空」（不动内存）
+- 调试页：顶部「· 落盘 xxKB」+ 「清空历史」
+- **脱敏**（红线）：`DebugLogFile.redact()` 命中 Cookie/Session、CAS 票据（lt/ticket/execution）、
+  密码字段、通用 token、`Authorization:`/`Cookie:`/`Set-Cookie:` 头部，值一律 `***`；
+  头部形态整段替换（未知 cookie 名也挡得住）
+
+#### D3 分级（规格 §3）
+- `Level = DEBUG/INFO/WARN/ERROR`；`log()→INFO`、`step()→DEBUG`、`error()→ERROR`、
+  `http()` 按状态码（2xx INFO / 4xx·5xx WARN / -1 ERROR）
+- **ERROR 保底**：主环形 400 之外另存最近 **50 条 ERROR**（独立 `StateFlow`）
+- 调试页 chips：全部 / 警告+ / 仅错误（读 ERROR 缓冲）；**过滤只在读取侧**，写入不丢数据
+
+#### 单测（规格 §5，要求 ≥6 条，实际 12 条）
+`DebugLogFileTest`（11）：脱敏（8 组凭证全 `***`、保留键名、落盘文件搜不到真值）、
+行格式与 `formatLine` 一致、轮转只留 7 天且删最旧、3MB→≤2MB、清空历史、
+级别映射、**3 ERROR + 500 DEBUG 后「仅错误」仍在**、ERROR 只留最近 50 且有序、耗时字段落行。
+`DebugLogEvidenceTest`（1）：生成 `app/build/debuglog-evidence/2026-11-14.log` 供命令级校验。
+
+#### 命令级证据（lead 要求的「搜不到明文」）
+```
+$ Select-String -Path app\build\debuglog-evidence\*.log `
+    -Pattern 'JSESSIONID=[^*.\s]|CASTGC=[^*.\s]|ticket=[^*.\s]|token=[^*.\s]|password=[^*.\s]'
+NO PLAINTEXT CREDENTIALS FOUND (0 matches)
+```
+落盘文件实际内容（6 行，敏感值全为 `***`）见 `docs/调试日志-实测记录.md` §3。
+
+#### 未做（本轮范围外，如实记录）
+- 「全部导出 7 天日志」按钮：`vm.exportAllDebug()` 已就绪（返回拼好的文本），
+  但设置页还没接 SAF 启动器 —— 现有「导出文档（当日内存）」够用，等 lead 决定要不要加。
+
+**Status:** ready-for-human（待统一装机验证）
+
+### 2026-11-14 追加：「全部导出 7 天日志」已接上（lead 要求）
+
+**为什么该做**：原来的「导出文档」导的是**当日内存**缓冲，而落盘的价值恰恰在**跨天** ——
+用户昨天出问题、今天来反馈，得能拿到昨天的日志。
+
+- `DebugScreen.kt`：第二个 SAF 启动器（照 `:75-86` 同一套 `CreateDocument` 写法，不新造存储路径、
+  不需要存储权限）+ 工具条「导出全部」按钮 + 成功/失败 `Toast` 人话提示
+- 文件名带**日期范围**：`在途日志_2026-11-08_2026-11-14.txt`
+  （纯函数 `DebugLogFile.exportFileName(days, today)`；没有落盘文件时退化成今天单日，**不编范围**）
+- **导出前再脱敏一遍**（`vm.exportAllDebugText()` 对每一行再过 `DebugLogFile.redact`）：
+  导出是日志**第二次离开设备**的机会（SAF 到 SD 卡 / 被别的 App 读 / 被同步盘上传都在这一步之后），
+  不假设「落盘时脱过就安全」。`redact` 幂等，重复调用无副作用。
+- 导出头三行写清楚：只存本机、不上传、导出前已再次脱敏。
+
+**新增单测 2 条**（`DebugLogFileTest`）：
+`导出文件名带日期范围`（乱序/单日/无文件退化/空串忽略）、`二次脱敏是幂等的`。
+
+**当前总量：440 条 / 35 类 / 0 失败**；`compile-check.bat` BUILD SUCCESSFUL / EXIT=0。

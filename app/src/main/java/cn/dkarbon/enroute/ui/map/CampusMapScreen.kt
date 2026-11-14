@@ -547,6 +547,8 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 feature = selected,
                 edits = ui.mapEdits,
                 kindOptions = manifest.kindOptions(),
+                // 官方基线字段名（票 13 B 路）：只读层，来自 asset 的 manifest.customFields
+                officialFields = manifest.customFields,
                 onChangeName = { vm.setMapFeatureName(selected.id, it) },
                 onChangeKind = { vm.setMapFeatureKind(selected.id, it) },
                 onChangeField = { f, v -> vm.setMapFeatureField(selected.id, f, v) },
@@ -630,6 +632,8 @@ private fun PropertyPanel(
     feature: MapFeature,
     edits: MapEdits,
     kindOptions: List<Pair<String, String>>,
+    /** 官方基线自带的字段名（`manifest.customFields`）；空表＝这一版没有官方标注 */
+    officialFields: List<String> = emptyList(),
     onChangeName: (String) -> Unit,
     onChangeKind: (String) -> Unit,
     onChangeField: (String, String) -> Unit,
@@ -690,13 +694,32 @@ private fun PropertyPanel(
         }
 
         // 自定义字段（全局共享）：长按字段名可删
-        edits.fieldOrder.forEach { field ->
-            LabeledInput(
-                label = field,
-                value = row.fields.firstOrNull { it.first == field }?.second.orEmpty(),
-                singleLine = field.length > 6,
-                onLongPressLabel = { onDeleteField(field) },
-                onChange = { onChangeField(field, it) },
+        // 票 13「B 路」：这里除了用户自己加的字段，还会列出**官方基线**带的字段（只读层）。
+        // 同一个字段两边都有值 → 用户的值优先（不再标「官方」）；用户清空 → 退回显示官方值。
+        val views = MapEditsOps.fieldViews(feature, edits, officialFields)
+        val hasOfficial = views.any { it.official }
+        views.forEach { view ->
+            val mine = !view.official
+            Column(Modifier.fillMaxWidth()) {
+                LabeledInput(
+                    label = view.name,
+                    value = view.value,
+                    singleLine = view.name.length > 6,
+                    onLongPressLabel = if (mine) ({ onDeleteField(view.name) }) else null,
+                    onChange = { if (mine) onChangeField(view.name, it) },
+                    // 官方字段：可读、不可直接改（改它要先「＋ 添加字段」变成自己的一列，
+                    // 这样「谁填的」永远是清楚的，不会把官方数据悄悄变成用户标注）
+                    readOnly = !mine,
+                    badge = if (view.official) "官方" else null,
+                )
+            }
+        }
+        if (hasOfficial) {
+            Text(
+                "标「官方」的是随地图包下发的基线，不是你填的 —— 它不会被「清除数据」删掉，也不计入「已标注」。",
+                fontSize = 8.5.sp,
+                lineHeight = 12.sp,
+                color = t.inkFaint,
             )
         }
 
@@ -726,6 +749,10 @@ private fun LabeledInput(
     singleLine: Boolean,
     onChange: (String) -> Unit,
     onLongPressLabel: (() -> Unit)? = null,
+    /** 只读（官方基线字段）：显示值但不给编辑 —— 让「谁填的」一目了然 */
+    readOnly: Boolean = false,
+    /** 标签右侧的小徽（「官方」） */
+    badge: String? = null,
 ) {
     val t = InkTokens.current
     Column(Modifier.fillMaxWidth()) {
@@ -738,26 +765,53 @@ private fun LabeledInput(
                     Modifier.combinedLongClick(onLongPressLabel)
                 } else Modifier).padding(vertical = 2.dp),
             )
+            if (badge != null) {
+                Spacer(Modifier.width(5.dp))
+                Box(
+                    Modifier
+                        .border(StrokeTokens.hairline, t.outline.copy(alpha = 0.7f))
+                        .padding(horizontal = 4.dp, vertical = 0.5.dp),
+                ) {
+                    Text(badge, fontSize = 7.5.sp, color = t.inkFaint)
+                }
+            }
             if (onLongPressLabel != null) {
                 Spacer(Modifier.width(4.dp))
                 Text("长按可删字段", fontSize = 8.sp, color = t.inkFaint)
             }
         }
-        TextField(
-            value = value,
-            onValueChange = onChange,
-            singleLine = singleLine,
-            textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp, color = t.ink),
-            modifier = Modifier.fillMaxWidth(),
-            shape = RectangleShape,
-            colors = TextFieldDefaults.colors(
-                focusedContainerColor = t.paper,
-                unfocusedContainerColor = t.paper,
-                focusedIndicatorColor = t.primary,
-                unfocusedIndicatorColor = t.outline,
-                cursorColor = t.primary,
-            ),
-        )
+        if (readOnly) {
+            // 官方值：不可编辑。要改它 → 先「＋ 添加字段」自建同名列（用户值优先）
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .border(StrokeTokens.hairline, t.outline.copy(alpha = 0.5f))
+                    .background(t.cardAlt)
+                    .padding(horizontal = 8.dp, vertical = 7.dp),
+            ) {
+                Text(
+                    value.ifBlank { "—" },
+                    fontSize = 12.sp,
+                    color = t.inkSoft,
+                )
+            }
+        } else {
+            TextField(
+                value = value,
+                onValueChange = onChange,
+                singleLine = singleLine,
+                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.sp, color = t.ink),
+                modifier = Modifier.fillMaxWidth(),
+                shape = RectangleShape,
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = t.paper,
+                    unfocusedContainerColor = t.paper,
+                    focusedIndicatorColor = t.primary,
+                    unfocusedIndicatorColor = t.outline,
+                    cursorColor = t.primary,
+                ),
+            )
+        }
     }
 }
 

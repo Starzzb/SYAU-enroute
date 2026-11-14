@@ -232,6 +232,12 @@ data class AppState(
     /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效） */
     val colorSource: Int = 0,
 
+    // ── 调试日志（票 20）──
+    /** 是否保存日志到本机（开关状态） */
+    val debugFileEnabled: Boolean = true,
+    /** 「已占用 412KB · 保留 7 天」 */
+    val debugFileUsage: String = "",
+
     // ── 自定义课程（票 19）──
     /** 本机存的自定义课程（只存本机，不上传） */
     val customCourses: List<cn.dkarbon.enroute.data.custom.CustomCourse> = emptyList(),

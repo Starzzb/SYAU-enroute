@@ -342,6 +342,51 @@ fun SettingsScreen(
             )
         }
 
+        // 票 20 / D2：日志落盘开关 + 占用状态（落盘 = 崩溃/被杀也能事后看，默认开）
+        Row(
+            Modifier.fillMaxWidth().padding(vertical = 9.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("保存日志到本机", fontSize = 13.sp, color = t.ink)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    if (ui.debugFileEnabled) {
+                        ui.debugFileUsage.ifBlank { "已开启 · 保留 7 天 · 上限 2MB" } + "（只存本机，不上传）"
+                    } else {
+                        "已关闭 · 日志只留在内存，退出即丢"
+                    },
+                    fontSize = 10.5.sp,
+                    lineHeight = 15.sp,
+                    color = t.inkFaint,
+                )
+            }
+            androidx.compose.material3.Switch(
+                checked = ui.debugFileEnabled,
+                onCheckedChange = { vm.setDebugLogToFile(it) },
+            )
+        }
+        Row(
+            Modifier.fillMaxWidth().padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "清空历史日志文件（不动当前内存缓冲）",
+                fontSize = 10.5.sp,
+                color = t.inkFaint,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "清空",
+                fontSize = 12.sp,
+                color = t.brick,
+                modifier = Modifier
+                    .heightIn(min = 32.dp)
+                    .clickable { vm.clearDebugHistory() }
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+            )
+        }
+
         // 示例数据入口：只在 debug 源码集存在（release 变体 available = false，这里整块不显示）
         if (cn.dkarbon.enroute.data.AcademicSample.available) {
             Row(
