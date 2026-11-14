@@ -62,11 +62,21 @@ object MapContribute {
         return null
     }
 
+    /**
+     * 上传前的字段名校验。
+     *
+     * ⚠️ **不能复用 [MapEdits.RESERVED]**：那里面含 `name` / `kind`，
+     * 而这两个恰恰是众包最缺的一等信息（界面自己写着「仅 1 个有名称、0 个有类别」）。
+     * 曾经的写法在生成侧要传 `name`/`kind`、在校验侧又把它们拒掉 ——
+     * 用户标完类别点上传，提示「没有可上传的内容」，功能看起来在、实际什么都没发生。
+     *
+     * 现在只拒 [MapEdits.DERIVED]（面积/颜色/色组/id：服务端没有几何，传了没意义）。
+     */
     fun fieldError(field: String): String? {
         val f = field.trim()
         if (f.isEmpty()) return "字段名为空"
         if (f.length > MAX_FIELD) return "字段名超过 $MAX_FIELD 字"
-        if (f in MapEdits.RESERVED) return "「$f」是保留字段名，不能作为自定义字段上传"
+        if (f in MapEdits.DERIVED) return "「$f」是按几何算出来的派生量，服务端没有几何，不需要上传"
         return null
     }
 

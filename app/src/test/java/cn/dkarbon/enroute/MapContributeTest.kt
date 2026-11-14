@@ -146,12 +146,51 @@ class MapContributeTest {
     }
 
     @Test
-    fun `field rule rejects empty, too long and reserved names`() {
+    fun `field rule rejects empty, too long and derived names - but allows name and kind`() {
         assertNull(MapContribute.fieldError("层数"))
         assertNotNull(MapContribute.fieldError(""))
         assertNotNull(MapContribute.fieldError("一二三四五六七八九十一二三四五六七八九十一"))  // 21 字
-        assertNotNull("保留字段名不能当自定义字段上传", MapContribute.fieldError("name"))
-        assertNotNull(MapContribute.fieldError("kind"))
+        // name / kind 是**一等可上传字段**（众包最缺的就是名称与类别），绝不能拒
+        assertNull("名称必须能上传", MapContribute.fieldError("name"))
+        assertNull("类别必须能上传", MapContribute.fieldError("kind"))
+        // 派生量仍然拒（服务端没有几何，传了没意义）
+        listOf("id", "colorGroup", "color", "areaPx").forEach {
+            val why = MapContribute.fieldError(it)
+            assertNotNull("派生量 $it 必须被拒", why)
+            assertTrue("要说人话：$why", why!!.contains("派生量"))
+        }
+    }
+
+    @Test
+    fun `name and kind actually survive sanitize as two set patches`() {
+        // 真机踩过的坑：生成侧要传 name/kind，校验侧又把它们拒掉 →「没有可上传的内容」
+        val e = MapEdits(
+            fieldOrder = emptyList(),
+            features = mapOf("f19" to MapEdit(name = "九州体育场", kind = "sport")),
+        )
+        val raw = MapContribute.patchesFrom(e)
+        val clean = MapContribute.sanitize(raw, "2026.11.14-1")
+
+        assertEquals("名称 + 类别 = 2 条", 2, clean.ok.size)
+        assertTrue("不能被当成不合格跳过", clean.dropped.isEmpty())
+        val byField = clean.ok.associateBy { it.field }
+        assertEquals("九州体育场", byField["name"]!!.value)
+        assertEquals("sport", byField["kind"]!!.value)
+        assertEquals("set", byField["name"]!!.op)
+        assertEquals("set", byField["kind"]!!.op)
+    }
+
+    @Test
+    fun `derived keys are dropped with a human reason`() {
+        val raw = listOf(
+            MapContribute.Patch("f19", "areaPx", "12704.5", "set", "t"),
+            MapContribute.Patch("f19", "层数", "3", "set", "t"),
+        )
+        val clean = MapContribute.sanitize(raw, "2026.11.14-1")
+        assertEquals(1, clean.ok.size)
+        assertEquals("层数", clean.ok.first().field)
+        assertEquals(1, clean.dropped.size)
+        assertTrue(clean.dropped.first().second.contains("派生量"))
     }
 
     @Test

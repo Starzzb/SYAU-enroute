@@ -199,7 +199,7 @@ internal fun ContributeSection(ui: AppState) {
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
                     Text(
-                        "开启后，你在地图里填的属性可以**手动**上报到学校的补丁服务，" +
+                        "开启后，你在地图里填的属性可以手动上报到学校的补丁服务，" +
                             "审核通过后其他同学也能看到。默认不会自动上传。",
                         fontSize = 12.sp,
                         lineHeight = 18.sp,

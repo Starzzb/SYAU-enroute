@@ -40,6 +40,17 @@ data class MapEdits(
         const val SCHEMA = 1
         /** 固定字段的保留名（自定义字段不能叫这些，否则会和固定字段打架） */
         val RESERVED = listOf("name", "kind", "id", "colorGroup", "color", "areaPx")
+
+    /**
+     * **派生量**：由几何算出来、服务端没有的东西（票 13 阶段 B 修正）。
+     *
+     * 与 [RESERVED] 的区别必须说清，否则会自相矛盾（曾经就是）：
+     * - [RESERVED] = 「**不是自定义字段**」的键 → 解析 `edits.json` 时排除、字段列表里不出现。
+     *   其中 `name` / `kind` 是**固定槽位**，但它们**是**一等可上传字段（众包最缺的就是它们）。
+     * - `DERIVED` = 「**连上传都不该传**」的键 → 面积/颜色/色组/id 都是本地从几何算的，
+     *   服务端没有几何，传上去没有意义，还会污染数据。
+     */
+    val DERIVED = listOf("id", "colorGroup", "color", "areaPx")
     }
 }
 
