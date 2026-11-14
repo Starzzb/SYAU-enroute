@@ -135,7 +135,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            EnRouteTheme(themeMode = ui.themeMode) {
+            EnRouteTheme(themeMode = ui.themeMode, styleSet = ui.styleSet) {
                 EnRouteRoot(ui = ui, vm = vm)
             }
         }

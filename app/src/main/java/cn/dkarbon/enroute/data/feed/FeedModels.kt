@@ -38,6 +38,13 @@ data class FeedSource(
      * 这时靠路径前缀把文章和导航分开：挑战杯的文章全是 `/article/{id}/`。
      */
     val urlInclude: String = "",
+    /**
+     * 翻页时要抓的额外页（完整 URL，按顺序串行抓，页间 400ms）。
+     *
+     * 只给**翻页语义已实测确认**的源用：创新创业平台 `?page=N` 正序、每页 7 条。
+     * 博达站群的倒序分页（`cxcyjs/6.htm`→`/1.htm`）语义不统一，不在此列。
+     */
+    val extraPages: List<String> = emptyList(),
 )
 
 /**
@@ -75,6 +82,15 @@ data class FeedItem(
      * 也不能编一个日期出来（误了截止时间是真的会误事）。
      */
     val deadline: String = "",
+    /** 报名开始日（竞赛平台列表/详情的结构化字段；其它源为空） */
+    val regStart: String = "",
+    /** 比赛开始/结束日（竞赛平台详情字段；列表拿不到就空） */
+    val contestStart: String = "",
+    val contestEnd: String = "",
+    /** 主办方（竞赛平台列表自带；其它源为空） */
+    val organizer: String = "",
+    /** 平台自报状态原文：`比赛中` / `已结束`（只转述，不自己推算） */
+    val platformState: String = "",
 )
 
 /** 一次同步的结果 */
@@ -167,17 +183,42 @@ object FeedSources {
             category = "竞赛",
         ),
         // 创新创业**管理平台**的竞赛报名列表（内网 10.2.0.110，免登录）。
-        // 和其它源的区别：这里能拿到**报名窗口**（`报名时间：A 至 B`），
-        // 所以它是唯一能算「还剩几天报名」的源。列表页没有日期，
-        // 日期在详情页里 —— 由 FeedRepository 对新条目补抓一次（每轮最多 6 个，间隔 400ms）。
+        // 2026-11-13 实测升级：**列表页本身就带**「报名时间：2026.08.01至2027.10.31」、
+        // 主办方、平台状态（比赛中/已结束）——不再需要逐条进详情补日期。
+        // 翻页 ?page=N 正序、每页 7 条、共 993 条；只抓前 3 页（21 条）覆盖进行中的赛，
+        // 更老的多为已结束，不放大请求量。
         FeedSource(
             key = "cxcycomp",
             name = "竞赛平台",
             listUrl = "http://cxcy.syau.edu.cn/comp/front/comp/list",
             category = "竞赛",
             kind = "cxcy",
+            extraPages = listOf(
+                "http://cxcy.syau.edu.cn/comp/front/comp/list?page=2",
+                "http://cxcy.syau.edu.cn/comp/front/comp/list?page=3",
+            ),
         ),
-        // 挑战杯官网「挑战杯动态」：/article/{id}/，不是 VSB，走 generic 解析。        // 站点偶尔在同一列表里混进活动页，用 urlInclude 只留 /article/ 下面的。
+        // 同一平台的「大创项目」列表：大学生创新训练计划立项（每年 5-6 月报名）。
+        // 结构与竞赛列表同族（dcplan/info?id=），报名时间同样在列表页。
+        FeedSource(
+            key = "cxcydc",
+            name = "大创项目",
+            listUrl = "http://cxcy.syau.edu.cn/dcplan/front/dcplan/list",
+            category = "竞赛",
+            kind = "cxcy",
+        ),
+        // 同一平台的「成果公示」：获奖名单/获奖作品展（日期在列表左侧 day+year 块）。
+        // 注意真实路径是 /comp/front/comp/articlelist?cid=12，
+        // 文档里旧地址 /comp/articlelist?cid=12 实测 404（2026-11-13）。
+        FeedSource(
+            key = "cxcyart",
+            name = "竞赛成果",
+            listUrl = "http://cxcy.syau.edu.cn/comp/front/comp/articlelist?cid=12",
+            category = "竞赛",
+            kind = "cxcy",
+        ),
+        // 挑战杯官网「挑战杯动态」：/article/{id}/，不是 VSB，走 generic 解析。
+        // 站点偶尔在同一列表里混进活动页，用 urlInclude 只留 /article/ 下面的。
         FeedSource(
             key = "tzb",
             name = "挑战杯",
@@ -195,6 +236,40 @@ object FeedSources {
             category = "竞赛",
             kind = "generic",
             titleInclude = listOf("大赛", "竞赛", "挑战杯", "创新大赛", "职业规划大赛", "学科竞赛", "创新创业"),
+        ),
+
+        // ── 2026-11-13 新增：打破信息差的三块拼图 ─────────────
+        // 校团委「通知公告」：校级活动赛事（演讲/短视频/社团科创）。
+        // 日期被拆成 <b>日</b>+<span>年-月</span> 两段，走专用 tw 解析族；
+        // 列表 <p> 自带正文首段摘要，不用进详情就有摘要。
+        FeedSource(
+            key = "tw",
+            name = "校团委",
+            listUrl = "https://tw.syau.edu.cn/channel.jsp?urltype=tree.TreeTempUrl&wbtreeid=1053",
+            category = "通知",
+            kind = "tw",
+        ),
+        // 中国高等教育学会「业务公告」：全国权威口径（竞赛目录/榜单赛事的出处）。
+        // 日期拆成 <span class=date>日</span>+<span class=year>年/月</span>，标题在 <h6>。
+        // 什么都发（招聘/课题/声明），标题白名单只留竞赛相关。
+        FeedSource(
+            key = "cahe",
+            name = "高教学会",
+            listUrl = "https://www.cahe.edu.cn/site/term/373.html",
+            category = "竞赛",
+            kind = "cahe",
+            titleInclude = listOf("大赛", "竞赛", "挑战杯", "创新大赛", "华灿", "教学创新"),
+        ),
+        // 我爱竞赛网「榜单竞赛」：教育部榜单赛事的商业聚合视角，补全国覆盖面。
+        // ⚠️ GB18030 编码（FeedHttp 已按 charset 探测）；列表无日期 → 日期留空，
+        // 截止日只在标题里写明（如【11月13日截止报名】）时由解析器抽出；
+        // 文章真实地址在站点根（article-NNNNN-1.html），不在分类目录下。
+        FeedSource(
+            key = "jingsai",
+            name = "我爱竞赛网",
+            listUrl = "https://www.52jingsai.com/bisai/xkjn/bangdan/",
+            category = "竞赛",
+            kind = "jingsai",
         ),
     )
 

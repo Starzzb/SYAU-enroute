@@ -309,10 +309,59 @@ object FeedParser {
     }
 
     private val GENERIC_BODY_MARKERS = listOf(
+        // Discuz 系（我爱竞赛网等）：正文在 <td id="article_content">，必须先命中它，
+        // 否则会落到后面的 class="content"（那是侧栏推荐块，抓出来全是别的比赛链接）
+        "id=\"article_content\"",
         "class=\"zoom\"", "id=\"zoom\"", "class=\"TRS_Editor\"", "class=\"detail_con\"",
         "class=\"article-content\"", "class=\"article\"", "id=\"content\"", "class=\"content\"",
         "class=\"main_rcont\"",
     )
+
+    // ── 我爱竞赛网（Discuz）正文 / 摘要 / 时间 ─────────────
+
+    /**
+     * 我爱竞赛网文章页（2026-11-13 实测结构）：
+     * ```html
+     * <div class="xg1"> 2026-10-15 14:12 | 评论: 0 | 43054 </div>
+     * <h1 class="ph">全标题</h1>
+     * <div class="s zhaiyao"><div><strong>摘要</strong>: …</div></div>
+     * <table class="vwtb"><tr><td id="article_content"> 正文… </td></tr></table>
+     * <div id="comment" class="bm">
+     * ```
+     * 通用提取器会撞到后面的 `class="content"`（侧栏推荐），所以单独精确切一刀。
+     */
+    fun parseBodyJingsai(html: String, baseUrl: String = ""): BodyPayload {
+        val start = html.indexOf("id=\"article_content\"")
+        if (start < 0) return parseBodyGeneric(html, baseUrl)
+        val tagEnd = html.indexOf('>', start).let { if (it < 0) return BodyPayload() else it }
+        var body = html.substring(tagEnd + 1, minOf(html.length, tagEnd + 1 + 120_000))
+        // 正文结束：评论区 / 内容表格结束，二者取先到的
+        val cut = listOf("id=\"comment\"", "</td></tr></table>", "class=\"pi\"")
+            .map { body.indexOf(it) }
+            .filter { it > 200 }
+            .minOrNull()
+        if (cut != null) body = body.substring(0, cut)
+
+        val (links, attachments) = collectLinks(body, baseUrl)
+        val text = htmlToText(body).trim()
+        return BodyPayload(
+            text = if (text.length < 20) "" else text,
+            links = links.take(40),
+            attachments = attachments.take(20),
+        )
+    }
+
+    /** 我爱竞赛网的摘要块 + 发布时间（有就返回，没有给空串 —— 不猜） */
+    fun parseJingsaiMeta(html: String): Pair<String, String> {
+        val summary = Regex("""<div class="s zhaiyao">.*?<strong>摘要</strong>[：:]\s*(.*?)</div>""",
+            setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+            .find(html)?.groupValues?.get(1)
+            ?.let { htmlToText(it, keepNewlines = false) }?.take(120).orEmpty()
+        val date = Regex("""<div class="xg1">.*?(\d{4})-(\d{2})-(\d{2})\s+\d{1,2}:\d{2}""",
+            setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+            .find(html)?.let { "${it.groupValues[1]}-${it.groupValues[2]}-${it.groupValues[3]}" }.orEmpty()
+        return summary to date
+    }
 
     private fun collectLinks(body: String, baseUrl: String): Pair<List<FeedLink>, List<FeedLink>> {
         val links = LinkedHashMap<String, FeedLink>()
@@ -337,17 +386,26 @@ object FeedParser {
     private fun cjkCount(s: String): Int = Regex("""[\u4e00-\u9fa5]""").findAll(s).count()
 
     /**
-     * 从正文里捞报名/提交截止日期。
+     * 从正文里捞**报名/申报**截止日期。
      *
      * 只在**真的写明了**的时候返回；捞不到返回空串。界面上宁可不显示倒计时，
      * 也不能猜一个日期 —— 竞赛截止日猜错是真的会害人错过。
+     *
+     * 语义锚（评审 B3）：只认「报名/申报/报送/提交材料」语境下的截止；
+     * 「作品提交截止」「比赛截止」不是报名截止，不抽 —— 错标比不标更害人。
      */
     fun extractDeadline(text: String): String {
-        val d = """(20\d{2})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})"""
-        // ①「报名截止时间：2026年11月20日」
-        Regex("""(?:截止|截至)[^。；\n]{0,16}?$d""").find(text)?.let { return normalizeDate(it) }
-        // ②「请于2026年11月20日前提交」
-        Regex("""$d\s*(?:前|之前)[^。；\n]{0,10}?(?:提交|报送|报名|上传|申报|完成)""")
+        // 日期串：2026年11月20日 / 2026-11-20 / 2026.11.20（结尾「日」可选）
+        val d = """(20\d{2})\s*[-/.年]\s*(\d{1,2})\s*[-/.月]\s*(\d{1,2})日?"""
+        // ①「报名截止时间：2026年11月20日」—— 截止前 16 字内要有报名语境词
+        Regex("""(?:截止|截至)[^。；\n]{0,16}?$d""").findAll(text).forEach { m ->
+            val before = text.substring(maxOf(0, m.range.first - 16), m.range.first)
+            if (Regex("""报名|申报|报送|提交材料""").containsMatchIn(before)) {
+                return normalizeDate(m)
+            }
+        }
+        // ②「请于2026年11月20日前完成报名 / 提交材料」
+        Regex("""$d\s*(?:前|之前)[^。；\n]{0,10}?(?:报名|申报|报送|提交材料|完成)""")
             .find(text)?.let { return normalizeDate(it) }
         return ""
     }
@@ -355,19 +413,24 @@ object FeedParser {
     // ── 竞赛管理平台（cxcy）────────────────────────────────
 
     /**
-     * 沈阳农业大学**创新创业管理平台**的竞赛列表。
+     * 沈阳农业大学**创新创业管理平台**的三种列表（2026-11-13 实测重写）：
      *
-     * 为什么单独一套：它的文章地址是 `comp/info?id=1542`，既不是 VSB 的 `info/{栏目}/{id}.htm`，
-     * 也不是「标题 + 日期」——它的**列表页根本没有日期**。
-     * 但详情页有比日期值钱得多的东西：
      * ```
-     * 比赛时间：2026-08-01 00:00 至 2027-10-31 23:59
-     * 报名时间：2026-08-01 00:00 至 2027-10-31 23:59
-     * 主办方：全国大学生生命科学竞赛委员会
+     * /comp/front/comp/list          科技竞赛（每页 7 条，?page=N 正序，共 993）
+     * /dcplan/front/dcplan/list      大创项目（6 条，一年一条立项通知）
+     * /comp/front/comp/articlelist?cid=12   成果公示（获奖作品展/名单）
      * ```
-     * 所以这里只负责「把 id 和标题拿到」，日期交给 [parseCxcyDetail] 在抓详情时补。
      *
-     * 列表页免登录（实测 2026-11-11），一页 7 条，翻页 `?page=N`。
+     * **关键升级：列表页本身就带结构化字段**，不用再逐条进详情补日期：
+     * ```html
+     * <span class="state underway">比赛中</span>
+     * <a href="../comp/info?id=1542" title="全标题">…</a>
+     * <div class="txt">摘要…</div>
+     * <div class="msg">…报名时间：2026.08.01至2027.10.31</div>
+     * <div class="msg">…主办方：全国大学生生命科学竞赛委员会</div>
+     * ```
+     * 成果公示的日期在左侧 `<div class="day">08</div><div class="year">2025.12</div>`。
+     * 比赛窗口（contestStart/End）列表没有，仍由 [parseCxcyDetail] 在抓详情时补。
      */
     fun parseListCxcy(
         html: String,
@@ -376,34 +439,95 @@ object FeedParser {
         now: Long = System.currentTimeMillis(),
     ): List<FeedItem> {
         val out = LinkedHashMap<String, FeedItem>()
-        for (m in RE_CXCY_LINK.findAll(html)) {
-            val id = m.groupValues[1]
-            val title = cleanTitle(m.groupValues[2])
+        for (m in RE_CXCY_LI.findAll(html)) {
+            val block = m.groupValues[1]
+
+            val link = RE_CXCY_LINK.find(block) ?: continue
+            val href = link.groupValues[1]
+            val id = link.groupValues[2]
+            val title = cleanTitle(link.groupValues[3])
             if (id.isBlank() || title.length < 4) continue
 
             val key = "${source.key}|$id"
             if (out.containsKey(key)) continue
 
-            val abs = resolve(baseUrl, "../comp/info?id=$id")
+            val state = RE_CXCY_STATE.find(block)?.groupValues?.get(1)?.trim().orEmpty()
+            val reg = RE_CXCY_REG.find(block)
+            val regStart = reg?.let { dotDate(it.groupValues[1], it.groupValues[2], it.groupValues[3]) }.orEmpty()
+            val regEnd = reg?.let { dotDate(it.groupValues[4], it.groupValues[5], it.groupValues[6]) }.orEmpty()
+            val organizer = RE_CXCY_ORG.find(block)?.groupValues?.get(1)
+                ?.let { stripTags(it).trim() }?.take(60).orEmpty()
+            val summary = RE_CXCY_TXT.find(block)?.groupValues?.get(1)
+                ?.let { htmlToText(it, keepNewlines = false) }?.take(100).orEmpty()
+
+            // 成果公示：日期在 day + year 两个块里
+            val artDate = RE_CXCY_DAY.find(block)?.let {
+                dotDate(it.groupValues[2], it.groupValues[3], it.groupValues[1])
+            }.orEmpty()
+
+            val abs = resolve(baseUrl, href)
+            // 备用地址：comp 的根路由 /comp/info?id= 实测也通（2026-11-13）；
+            // articledetail 只有 front 路由（根路由 404），dcplan 只有 front 路由 → 无备用
+            val alt = if (href.contains("articledetail") || href.contains("dcplan")) ""
+            else "http://cxcy.syau.edu.cn/comp/info?id=$id"
+
             out[key] = FeedItem(
                 key = key,
                 sourceKey = source.key,
                 sourceName = source.name,
                 category = source.category,
                 title = title,
+                summary = summary,
                 url = abs,
-                // 日期未知：抓详情时用「报名开始日」补上
-                publishedAt = "",
+                urlAlt = if (alt != abs) alt else "",
+                // 成果公示有真实发布日；竞赛/大创**不拿报名开始日冒充发布日**
+                //（评审 B4）：publishedAt 留空，排序由 firstSeenAt 兜底，
+                // 报名开始日在 regStart 字段里单独展示
+                publishedAt = artDate,
                 firstSeenAt = now,
+                deadline = regEnd,
+                regStart = regStart,
+                organizer = organizer,
+                platformState = state,
             )
         }
         return out.values.toList()
     }
 
+    /** `<li class="clearfix">…</li>` 整块（平台三种列表共用这一种行结构） */
+    private val RE_CXCY_LI = Regex(
+        """<li\s+class="clearfix">(.*?)</li>""",
+        setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE),
+    )
+
+    /** 行内详情链接：comp/info、dcplan/info、articledetail 三种形态，title 属性带全标题 */
     private val RE_CXCY_LINK = Regex(
-        """<a[^>]+href="[^"]*comp/info\?id=(\d+)"[^>]*title="([^"]+)"""",
+        """<a[^>]+href="([^"]*(?:comp/info|dcplan/info|articledetail)\?id=(\d+))"[^>]*title="([^"]+)"""",
         RegexOption.IGNORE_CASE,
     )
+
+    private val RE_CXCY_STATE = Regex("""class="state[^"]*"\s*>([^<]+)<""", RegexOption.IGNORE_CASE)
+
+    /** `报名时间：2026.08.01至2027.10.31`（点分隔；兼容 - / 年月日、可选时刻、至两侧空白） */
+    private val RE_CXCY_REG = Regex(
+        """报名时间[：:]\s*(\d{4})[.\-/年](\d{1,2})[.\-/月](\d{1,2})日?(?:\s+\d{1,2}:\d{2})?\s*至\s*(\d{4})[.\-/年](\d{1,2})[.\-/月](\d{1,2})""",
+    )
+
+    private val RE_CXCY_ORG = Regex("""主办方[：:]\s*([^<]{2,80})""")
+
+    private val RE_CXCY_TXT = Regex(
+        """<div class="txt">(.*?)</div>""",
+        setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE),
+    )
+
+    /** 成果公示左侧日期块：`<div class="day">08</div> <div class="year">2025.12</div>` */
+    private val RE_CXCY_DAY = Regex(
+        """<div class="day">(\d{1,2})</div>\s*<div class="year">(\d{4})[.\-/](\d{1,2})</div>""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    private fun dotDate(y: String, mo: String, d: String): String =
+        "$y-${mo.padStart(2, '0')}-${d.padStart(2, '0')}"
 
     /** 竞赛详情页里那几个结构化字段 */
     data class CompInfo(
@@ -439,6 +563,220 @@ object FeedParser {
             contestStart = con?.first.orEmpty(),
             contestEnd = con?.second.orEmpty(),
         )
+    }
+
+    // ── 校团委（tw）：日期拆两段 ─────────────────────────────
+
+    /**
+     * 校团委列表：`<div class="date"><b>5</b><span>2026-11</span></div>` +
+     * `<div class="txt"><a href="info/1053/8419.htm">标题</a><p>正文首段摘要</p></div>`。
+     *
+     * 日期被拆成「日」+「年-月」两段，必须拼起来；只取 span 会只有月份。
+     * 列表 `<p>` 是正文首段摘要（每项都有），直接当 summary，不必进详情。
+     */
+    fun parseListTw(
+        html: String,
+        baseUrl: String,
+        source: FeedSource,
+        now: Long = System.currentTimeMillis(),
+    ): List<FeedItem> {
+        val out = LinkedHashMap<String, FeedItem>()
+        for (m in RE_TW_LI.findAll(html)) {
+            val block = m.groupValues[1]
+            val day = RE_TW_DAY.find(block) ?: continue
+            val link = RE_A_BLOCK.find(block) ?: continue
+            val href = RE_HREF.find(link.groupValues[1])?.groupValues?.get(1) ?: continue
+            val hit = RE_ARTICLE_HREF.find(href) ?: continue
+            val colId = hit.groupValues[1].ifBlank { hit.groupValues[3] }
+            val artId = hit.groupValues[2].ifBlank { hit.groupValues[4] }
+            if (colId.isBlank() || artId.isBlank()) continue
+
+            val rawTitle = RE_TITLE_ATTR.find(link.groupValues[1])?.groupValues?.get(1)
+                ?: stripTags(link.groupValues[2])
+            val title = cleanTitle(rawTitle)
+            if (title.length < 6) continue
+
+            val date = "${day.groupValues[2]}-${day.groupValues[3].padStart(2, '0')}-${day.groupValues[1].padStart(2, '0')}"
+            val summary = RE_TW_P.find(block)?.groupValues?.get(1)
+                ?.let { htmlToText(it, keepNewlines = false) }?.take(100).orEmpty()
+
+            val key = "${source.key}|$colId|$artId"
+            if (out.containsKey(key)) continue
+            val abs = resolve(baseUrl, href)
+            out[key] = FeedItem(
+                key = key,
+                sourceKey = source.key,
+                sourceName = source.name,
+                category = source.category,
+                title = title,
+                summary = summary,
+                url = abs,
+                urlAlt = "https://${hostOf(baseUrl)}/content.jsp?urltype=news.NewsContentUrl&wbtreeid=$colId&wbnewsid=$artId",
+                publishedAt = date,
+                firstSeenAt = now,
+                titleTruncated = rawTitle.trim().let { it.endsWith("...") || it.endsWith("…") },
+            )
+        }
+        return out.values.sortedWith(compareByDescending<FeedItem> { it.publishedAt })
+    }
+
+    private val RE_TW_LI = Regex("""<li>(.*?)</li>""", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+    private val RE_TW_DAY = Regex("""<div class="date">\s*<b>(\d{1,2})</b>\s*<span>(\d{4})-(\d{1,2})</span>""", RegexOption.IGNORE_CASE)
+    private val RE_TW_P = Regex("""<p>(.*?)</p>""", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+
+    // ── 中国高等教育学会（cahe）：日期拆两段 + h6 标题 ────────
+
+    /**
+     * 高教学会「业务公告」：锚点内部是
+     * `<div class="time_section"><span class="date">31</span><span class="year">2026/10</span></div>`
+     * + `<div class="item_cont"><h6>标题</h6><p>摘要</p></div>`。
+     *
+     * 直接用 a.text() 会把标题+日期+摘要糊成一串，所以逐块取：
+     * h6 标题、p 摘要、date+year 拼日期。标题白名单（source.titleInclude）筛竞赛相关。
+     */
+    fun parseListCahe(
+        html: String,
+        baseUrl: String,
+        source: FeedSource,
+        now: Long = System.currentTimeMillis(),
+    ): List<FeedItem> {
+        val out = LinkedHashMap<String, FeedItem>()
+        for (m in RE_CAHE_A.findAll(html)) {
+            val href = m.groupValues[1]
+            val inner = m.groupValues[2]
+            val id = Regex("""/site/content/(\d+)\.html""").find(href)?.groupValues?.get(1) ?: continue
+
+            val title = RE_CAHE_H6.find(inner)?.groupValues?.get(1)
+                ?.let { cleanTitle(stripTags(it)) }.orEmpty()
+            if (title.length < 6) continue
+            if (source.titleInclude.isNotEmpty() && source.titleInclude.none { title.contains(it) }) continue
+
+            val day = RE_CAHE_DATE.find(inner) ?: continue
+            val date = "${day.groupValues[2]}-${day.groupValues[3].padStart(2, '0')}-${day.groupValues[1].padStart(2, '0')}"
+            val summary = RE_CAHE_P.find(inner)?.groupValues?.get(1)
+                ?.let { htmlToText(it, keepNewlines = false) }?.take(100).orEmpty()
+
+            val key = "${source.key}|$id"
+            if (out.containsKey(key)) continue
+            out[key] = FeedItem(
+                key = key,
+                sourceKey = source.key,
+                sourceName = source.name,
+                category = source.category,
+                title = title,
+                summary = summary,
+                url = resolve(baseUrl, href),
+                publishedAt = date,
+                firstSeenAt = now,
+            )
+        }
+        return out.values.sortedWith(compareByDescending<FeedItem> { it.publishedAt })
+    }
+
+    private val RE_CAHE_A = Regex(
+        """<a\s+href="(/site/content/\d+\.html)"[^>]*>(.*?)</a>""",
+        setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE),
+    )
+    private val RE_CAHE_DATE = Regex(
+        """<span class="date">(\d{1,2})</span>\s*<span class="year">(\d{4})/(\d{1,2})</span>""",
+        RegexOption.IGNORE_CASE,
+    )
+    private val RE_CAHE_H6 = Regex("""<h6>(.*?)</h6>""", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+    private val RE_CAHE_P = Regex("""<p>(.*?)</p>""", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+
+    // ── 我爱竞赛网（jingsai）：无日期 + img@title + 站点根链接 ──
+
+    /**
+     * 我爱竞赛网「榜单竞赛」列表（GB18030，FeedHttp 已按 charset 解码）。
+     *
+     * 三个实测坑（2026-11-11 调研 + 2026-11-13 复核）：
+     * 1. 列表**完全没有日期** → publishedAt 留空，排序靠 firstSeenAt；
+     * 2. 可见标题被截断，全标题在 `<img title="…">` 或 `<a title="…">` 里；
+     * 3. `article-NNNNN-1.html` 的 base 是**站点根**，不是当前分类目录。
+     *
+     * 截止日：标题里常写【11月13日截止报名】——只有这种**写明了**的才抽，
+     * 年份用当前年兜底（12 月写 1 月的截止按下一年算）。抽不到就不显示。
+     */
+    fun parseListJingsai(
+        html: String,
+        baseUrl: String,
+        source: FeedSource,
+        now: Long = System.currentTimeMillis(),
+        today: java.time.LocalDate = java.time.LocalDate.now(),
+    ): List<FeedItem> {
+        val out = LinkedHashMap<String, FeedItem>()
+        val root = "https://www.52jingsai.com/"
+        // 只扫「榜单竞赛」主列表块（<ul><li><a href="article-…）：
+        // 顶部横幅和侧栏热榜会重复同一批文章且标题截断更狠。
+        // 主列表的 li 以图片链接开头，侧栏热榜的 li 以 <em> 开头 —— 用这个区分。
+        val listStart = RE_JINGSAI_UL.find(html)?.range?.first ?: 0
+        val listEnd = html.indexOf("</ul>", listStart).let { if (it < 0) html.length else it }
+        val window = html.substring(listStart, listEnd)
+        for (m in RE_JINGSAI_LI.findAll(window)) {
+            val block = m.groupValues[1]
+            val id = RE_JINGSAI_ID.find(block)?.groupValues?.get(1) ?: continue
+            // 全标题优先 img@title，其次 a@title，最后可见文本
+            val title = RE_JINGSAI_IMG_TITLE.find(block)?.groupValues?.get(1)
+                ?: RE_TITLE_ATTR.find(block)?.groupValues?.get(1)
+                ?: RE_JINGSAI_SPAN.find(block)?.groupValues?.get(1)?.let { stripTags(it) }
+                ?: continue
+            val clean = cleanTitle(title)
+            if (clean.length < 8) continue
+
+            val key = "${source.key}|$id"
+            if (out.containsKey(key)) continue
+
+            out[key] = FeedItem(
+                key = key,
+                sourceKey = source.key,
+                sourceName = source.name,
+                category = source.category,
+                title = clean,
+                url = root + "article-$id-1.html",
+                publishedAt = "",
+                firstSeenAt = now,
+                deadline = deadlineFromTitle(clean, today),
+            )
+        }
+        return out.values.toList()
+    }
+
+    private val RE_JINGSAI_UL = Regex("""<ul><li><a href="article-""", RegexOption.IGNORE_CASE)
+    private val RE_JINGSAI_LI = Regex("""<li>(.*?)</li>""", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+    private val RE_JINGSAI_ID = Regex("""article-(\d{3,6})-1\.html""")
+    private val RE_JINGSAI_IMG_TITLE = Regex("""<img[^>]+title="([^"]{8,})"""", RegexOption.IGNORE_CASE)
+    private val RE_JINGSAI_SPAN = Regex("""<span><a[^>]*>(.*?)</a></span>""", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
+
+    /**
+     * 从标题里抽「X月X日截止报名」这类**写明了的**截止日。
+     *
+     * 年份规则（评审 B1/B2 收紧，宁可不显示）：
+     * 1. 标题里写明了 `(20xx)年` → 直接采信；
+     * 2. 没写年：候选日在「今天」之后 → 用今年；
+     * 3. 候选日已过但**只过了 ≤30 天**且现在是 12 月、截止在 1 月 → 按下一年
+     *    （12 月发「1月10日截止」的真实场景）；
+     * 4. 其它已过期的（年中陈旧条目）→ 返回空串，**不造未来日期**。
+     */
+    internal fun deadlineFromTitle(title: String, today: java.time.LocalDate): String {
+        val m = Regex("""(\d{1,2})月(\d{1,2})日[^】\]]{0,8}(?:截止|截至)|(?:截止|截至)[^【\[]{0,8}(\d{1,2})月(\d{1,2})日""")
+            .find(title) ?: return ""
+        val mo = (m.groupValues[1].ifBlank { m.groupValues[3] }).toIntOrNull() ?: return ""
+        val d = (m.groupValues[2].ifBlank { m.groupValues[4] }).toIntOrNull() ?: return ""
+        if (mo !in 1..12 || d !in 1..31) return ""
+
+        // 标题写明了年份 → 优先采信
+        val explicitYear = Regex("""(20\d{2})年""").find(title)?.groupValues?.get(1)?.toIntOrNull()
+        if (explicitYear != null) {
+            return runCatching { java.time.LocalDate.of(explicitYear, mo, d).toString() }.getOrDefault("")
+        }
+
+        val candidate = runCatching { java.time.LocalDate.of(today.year, mo, d) }.getOrNull() ?: return ""
+        if (!candidate.isBefore(today)) return candidate.toString()
+        // 只允许「12 月看到 1 月截止」这一种跨年；其余过期一律不显示
+        if (today.monthValue == 12 && mo == 1) {
+            return runCatching { java.time.LocalDate.of(today.year + 1, mo, d).toString() }.getOrDefault("")
+        }
+        return ""
     }
 
     // ── 正文 ──────────────────────────────────────────────

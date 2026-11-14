@@ -1,0 +1,43 @@
+[
+  {
+    "_note": "未实测：本文件据 2026-11-13 已知返回形态（[{\"xqzs\":\"21\",\"pageData\":{\"pageContext\":{\"totalCount\":295},...}}]）+ 教室课表页面真实表头补全，用于锁解析骨架。请求参数与完整 records 字段仍缺一次当面实测，见 docs/URP-学生端接口清单.md §6.1。",
+    "xqzs": "21",
+    "pageData": {
+      "pageContext": { "totalCount": 295 },
+      "pageNum": 1,
+      "pageSize": 30,
+      "records": [
+        {
+          "campusName": "主校",
+          "teachingBuildingName": "第二教学楼",
+          "classroomNumber": "719",
+          "classroomName": "719",
+          "classNumberOfSeats": 72.0,
+          "classroomTypeDirections": "多媒体教室",
+          "departmentName": "全院",
+          "executiveEducationPlanNumber": "2026-2027-1-1"
+        },
+        {
+          "campusName": "主校",
+          "teachingBuildingName": "第二教学楼",
+          "classroomNumber": "713",
+          "classroomName": "713",
+          "classNumberOfSeats": 1.0,
+          "classroomTypeDirections": "多媒体教室",
+          "departmentName": "全院",
+          "executiveEducationPlanNumber": "2026-2027-1-1"
+        },
+        {
+          "campusName": "主校",
+          "teachingBuildingName": "第一教学楼",
+          "classroomNumber": "2机房",
+          "classroomName": "5楼2机房",
+          "classNumberOfSeats": 106.0,
+          "classroomTypeDirections": "机房",
+          "departmentName": "信电",
+          "executiveEducationPlanNumber": "2026-2027-1-1"
+        }
+      ]
+    }
+  }
+]

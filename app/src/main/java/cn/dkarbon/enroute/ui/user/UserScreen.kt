@@ -27,6 +27,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,8 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.BuildConfig
 import cn.dkarbon.enroute.data.Reminders
+import cn.dkarbon.enroute.data.SessionState
 import cn.dkarbon.enroute.ui.AppState
+import cn.dkarbon.enroute.ui.SessionText
 import cn.dkarbon.enroute.ui.TimetableViewModel
+import cn.dkarbon.enroute.ui.home.HomeModel
 import cn.dkarbon.enroute.ui.academic.ExamScreen
 import cn.dkarbon.enroute.ui.academic.ScoreScreen
 import cn.dkarbon.enroute.ui.debug.DebugScreen
@@ -56,8 +61,15 @@ import java.time.LocalDate
 /** 用户页下的子页面（用一个小栈做导航，系统返回键直接可用） */
 private enum class UserPage(val title: String) {
     Root("我的"),
-    Exam("考试"),
-    Score("成绩"),
+    Exam("考试安排"),
+    Score("成绩查询"),
+    Curriculum("培养方案"),
+    Syllabus("课程大纲"),
+    History("历年课表"),
+    CampusMap("校园地图"),
+    Rooms("空闲教室"),
+    Teacher("查教师"),
+    TeacherDetail("教师详情"),
     Settings("设置"),
     Debug("调试日志"),
     Login("登录"),
@@ -95,17 +107,46 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
                     onOpenSettings = { stack.add(UserPage.Settings) },
                     onOpenExam = { stack.add(UserPage.Exam) },
                     onOpenScore = { stack.add(UserPage.Score) },
+                    onOpenCurriculum = { stack.add(UserPage.Curriculum) },
+                    onOpenSyllabus = { stack.add(UserPage.Syllabus) },
+                    onOpenHistory = { stack.add(UserPage.History) },
+                    onOpenMap = { stack.add(UserPage.CampusMap) },
+                    onOpenRooms = { stack.add(UserPage.Rooms) },
+                    onOpenTeacher = { stack.add(UserPage.Teacher) },
                     onOpenLogin = { stack.add(UserPage.Login) },
                 )
                 UserPage.Exam -> ExamScreen(ui = ui, vm = vm)
                 UserPage.Score -> ScoreScreen(ui = ui, vm = vm)
-                UserPage.Settings -> SettingsScreen(
+                UserPage.Curriculum -> cn.dkarbon.enroute.ui.curriculum.CurriculumScreen(ui = ui, vm = vm)
+                UserPage.Syllabus -> cn.dkarbon.enroute.ui.curriculum.SyllabusSearchScreen(ui = ui, vm = vm)
+                UserPage.History -> cn.dkarbon.enroute.ui.timetable.HistoryTimetableScreen(ui = ui, vm = vm)
+                UserPage.CampusMap -> cn.dkarbon.enroute.ui.map.CampusMapScreen(ui = ui, vm = vm)
+                UserPage.Rooms -> cn.dkarbon.enroute.ui.home.RoomsScreen(ui = ui, vm = vm)
+                UserPage.Teacher -> cn.dkarbon.enroute.ui.home.TeacherScreen(
                     ui = ui,
                     vm = vm,
-                    onOpenDebug = { stack.add(UserPage.Debug) },
+                    // 点某位老师 → 压一页「教师详情」（票 08 要求：独立页面，不是浮层）
+                    onOpenTeacher = { hit ->
+                        vm.openTeacherDetail(hit)
+                        stack.add(UserPage.TeacherDetail)
+                    },
                 )
+                UserPage.TeacherDetail -> cn.dkarbon.enroute.ui.home.TeacherDetailScreen(ui = ui, vm = vm)
+                UserPage.Settings -> {
+                    // 进设置页先把本机凭据状态读准（票 14）
+                    androidx.compose.runtime.LaunchedEffect(Unit) { vm.refreshCredStatus() }
+                    SettingsScreen(
+                        ui = ui,
+                        vm = vm,
+                        onOpenDebug = { stack.add(UserPage.Debug) },
+                    )
+                }
                 UserPage.Debug -> DebugScreen()
-                UserPage.Login -> LoginScreen(vm = vm, onDone = { stack.removeAt(stack.lastIndex) })
+                UserPage.Login -> LoginScreen(
+                    vm = vm,
+                    sessionState = ui.sessionState,
+                    onDone = { stack.removeAt(stack.lastIndex) },
+                )
             }
         }
     }
@@ -137,6 +178,12 @@ private fun UserRoot(
     onOpenSettings: () -> Unit,
     onOpenExam: () -> Unit,
     onOpenScore: () -> Unit,
+    onOpenCurriculum: () -> Unit,
+    onOpenSyllabus: () -> Unit,
+    onOpenHistory: () -> Unit,
+    onOpenMap: () -> Unit,
+    onOpenRooms: () -> Unit,
+    onOpenTeacher: () -> Unit,
     onOpenLogin: () -> Unit,
 ) {
     val t = InkTokens.current
@@ -144,6 +191,13 @@ private fun UserRoot(
     val cal = remember { TermCalendar(ctx.applicationContext) }
     val week = remember(ui.timetable) { cal.currentWeek() }
     val summer = remember { SchoolClock.isSummerTime(LocalDate.now()) }
+    val today = remember { LocalDate.now() }
+
+    // 进「我的」就顺手刷新主页三件套（有**有效**会话且上次抓空了才刷，避免每次切页都打网络）。
+    // 键是 sessionState 而不是布尔 loggedIn：过期→有效也会重跑一次（续期后立刻有数据）。
+    LaunchedEffect(ui.sessionState) {
+        if (ui.sessionState == SessionState.Active && ui.credit.isEmpty && !ui.homeLoading) vm.refreshHome()
+    }
 
     Column(
         Modifier
@@ -151,56 +205,82 @@ private fun UserRoot(
             .verticalScroll(rememberScrollState())
             .padding(horizontal = 16.dp),
     ) {
-        // ── 抬头：头像 + 姓名 + 齿轮 ──
-        Spacer(Modifier.height(10.dp))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .clickable(enabled = !ui.loggedIn, onClick = onOpenLogin)
-                .padding(vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                Modifier
-                    .size(42.dp)
-                    .clip(CircleShape)
-                    .background(t.cardAlt),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    ui.userName.take(1).ifBlank { "?" },
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = t.ink,
-                )
-            }
-            Spacer(Modifier.width(11.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    ui.userName.ifBlank { if (ui.loggedIn) "已登录" else "未登录" },
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = t.ink,
-                )
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    when {
-                        !ui.loggedIn -> "点此登录"
-                        ui.userName.isBlank() -> "已登录"
-                        else -> "已登录 · 本次运行有效"
-                    },
-                    fontSize = 10.5.sp,
-                    color = t.inkFaint,
-                )
+        // ── 顶条：只留操作，不重复「我的」标题（底部 tab 已经写了）──
+        Spacer(Modifier.height(6.dp))
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(Modifier.weight(1f))
+            if (ui.sessionState == SessionState.Active) {
+                TextButton(onClick = { vm.refreshHome() }, enabled = !ui.homeLoading) {
+                    Text(if (ui.homeLoading) "读取中" else "刷新", fontSize = 12.sp)
+                }
             }
             IconButton(onClick = onOpenSettings) {
                 Icon(Icons.Default.Settings, contentDescription = "设置", tint = t.inkSoft)
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        // ── ① 身份 ──
+        cn.dkarbon.enroute.ui.home.IdentityCard(
+            profile = ui.profile,
+            fallbackName = ui.userName,
+            sessionState = ui.sessionState,
+            sessionCheckMsg = ui.sessionCheckMsg,
+            loading = ui.homeLoading,
+            onLogin = onOpenLogin,
+        )
+
+        // 会话过期时在身份卡下面补一条**常驻**入口（卡片可点，但可点这件事要写出来）
+        if (ui.sessionState == SessionState.Expired) {
+            Spacer(Modifier.height(6.dp))
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "会话已过期 · 重新登录一次即可继续，课表还在",
+                    fontSize = 10.5.sp,
+                    lineHeight = 15.sp,
+                    color = t.brick,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = onOpenLogin) {
+                    Text("续期登录", fontSize = 12.sp, color = t.brick)
+                }
+            }
+        }
+
+        cn.dkarbon.enroute.ui.home.CardGap()
+
+        // ── ② 下一场考试（时间最敏感，放最上面）──
+        cn.dkarbon.enroute.ui.home.NextExamCard(
+            exams = ui.exams,
+            today = today,
+            loading = ui.examsLoading,
+            onOpen = onOpenExam,
+        )
+
+        cn.dkarbon.enroute.ui.home.CardGap()
+
+        // ── ③ 学分进度 ──
+        cn.dkarbon.enroute.ui.home.CreditProgressCard(
+            credit = ui.credit,
+            loading = ui.homeLoading,
+            onOpen = onOpenScore,
+        )
+
+        cn.dkarbon.enroute.ui.home.CardGap()
+
+        // ── ④ 成绩概览 ──
+        cn.dkarbon.enroute.ui.home.ScoreOverviewCard(
+            stats = ui.scoreStats,
+            loading = ui.homeLoading,
+            onOpen = onOpenScore,
+        )
+
+        if (ui.homeMsg.isNotBlank()) {
+            Spacer(Modifier.height(6.dp))
+            cn.dkarbon.enroute.ui.home.HomeFootNote(ui.homeMsg)
+        }
 
         // ── 数据概览 ──
+        cn.dkarbon.enroute.ui.home.SectionLabel("本机数据")
         GroupCard {
             StatRow("课表", "${ui.timetable?.courses?.size ?: 0} 门课")
             Divider()
@@ -213,15 +293,40 @@ private fun UserRoot(
             )
             Divider()
             StatRow("上课提醒", if (ui.remindersEnabled) "开 · 课前 ${Reminders.LEADS_MIN.joinToString(" / ")} 分钟" else "关")
+            Divider()
+            // 三态在「本机数据」里也要看得见：这是学生判断「要不要去重登」的唯一依据
+            StatRow("登录态", SessionText.stateLabel(ui.sessionState))
         }
 
         Spacer(Modifier.height(14.dp))
 
         // ── 子页面入口 ──
+        cn.dkarbon.enroute.ui.home.SectionLabel("教务")
         GroupCard {
+            // 登录/续期入口一直在，只是三态说法不同：没登过叫「登录」，过期叫「续期」
+            if (ui.sessionState != SessionState.Active) {
+                NavRow(SessionText.actionLabel(ui.sessionState), "", onOpenLogin)
+                Divider()
+            }
             NavRow("考试安排", if (ui.exams.isEmpty()) "—" else "${ui.exams.size} 场", onOpenExam)
             Divider()
             NavRow("成绩查询", if (ui.scores.isEmpty()) "—" else "${ui.scores.size} 条", onOpenScore)
+            Divider()
+            NavRow("培养方案", ui.planMajor.ifBlank { "" }, onOpenCurriculum)
+            Divider()
+            NavRow("课程大纲", if (ui.syllabusIndex.isEmpty()) "" else "${ui.syllabusIndex.size} 门", onOpenSyllabus)
+            Divider()
+            NavRow("历年课表", ui.historyPlanCode.takeIf { ui.historyTimetable != null }?.let { HomeModel.termLabel(it) }.orEmpty(), onOpenHistory)
+            Divider()
+            NavRow("校园地图", "相对位置", onOpenMap)
+            Divider()
+            NavRow(
+                "空闲教室",
+                if (ui.freeRooms.roomCount > 0) "第 ${ui.roomsSession} 节 · ${ui.freeRooms.roomCount} 间" else "",
+                onOpenRooms,
+            )
+            Divider()
+            NavRow("查教师", if (ui.teachers.isEmpty()) "" else "${ui.teachers.size} 位", onOpenTeacher)
             Divider()
             NavRow("设置", "", onOpenSettings)
         }

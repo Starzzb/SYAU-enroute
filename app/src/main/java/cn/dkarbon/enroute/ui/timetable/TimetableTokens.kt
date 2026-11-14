@@ -41,7 +41,7 @@ import kotlin.math.floor
  */
 object Tt {
 
-    /** 浅色：14% 墨格线 / 深色：14% 亮墨，否则暗底上完全看不见 */
+    /** 14% 墨格线（浅）/ 18% 亮墨（暗）：普通网格的竖线与行线 */
     fun gridRule(dark: Boolean): Color =
         if (dark) Color(0x2EE8E2D6) else Color(0x24262221)
 
@@ -56,10 +56,6 @@ object Tt {
     /** 22% 砖红：今天列两侧竖线 */
     fun todayRule(dark: Boolean): Color =
         if (dark) Color(0x4DD9796A) else Color(0x38A63D2F)
-
-    /** 55% 砖红：现在刻度 */
-    fun nowTick(dark: Boolean): Color =
-        if (dark) Color(0xB3D9796A) else Color(0x8CA63D2F)
 
     /**
      * 四色课程洗色：低彩度暖纸区，满彩只用在 2.5dp 竖脊。
@@ -86,129 +82,26 @@ object Tt {
     fun spineOf(fam: Fam, dark: Boolean): Color = if (dark) fam.wash else fam.spine
 }
 
-/**
- * 网格唯一度量对象：渲染和小人共用，避免坐标漂移。
- */
-data class GridMetrics(
-    val gridW: Dp,
-    val rowH: Dp,
-    val axisW: Dp = 36.dp,
-    val bandH: Dp = 20.dp,
-) {
-    val colW: Dp get() = (gridW - axisW) / 7
-
-    /** 第 d 列（1..7）的左边界 */
-    fun xOfCol(d: Int): Dp = axisW + colW * (d - 1)
-
-    /** 第 d 列中心 */
-    fun centerXOfCol(d: Int): Dp = xOfCol(d) + colW / 2
-
-    /** 第 i 行（0..5）的顶部 y，含时段条 */
-    fun yOfRow(i: Int): Dp = rowH * i + bandH * bandsBefore(i)
-
-    /** 第 i 行之前有几个时段条 */
-    fun bandsBefore(i: Int): Int =
-        BigSession.entries.take(i).map { it.part }.distinct().size
-}
-
-/**
- * 咬痕：用纸色小圆盖住裁切硬边，形成不规则缺口。
- * 相位由 floor(p*25) 决定，避免逐帧抖动。
- */
-fun DrawScope.biteMarks(p: Float, paperColor: Color) {
-    if (p <= 0.02f) return
-    val phase = floor(p * 25f).toInt()
-    val r = 2.8.dp.toPx()
-    repeat(4) { i ->
-        val x = size.width * (0.22f + i * 0.226f)
-        val jitter = if ((phase + i) % 2 == 0) 1.2.dp.toPx() else -1.0.dp.toPx()
-        drawCircle(paperColor, r, Offset(x, jitter))
-    }
-}
-
-/** 吃过的痕迹：吃完后留在格子里的一道短划，而不是完全空白 */
-@Composable
-fun EatenTrace(modifier: Modifier = Modifier) {
-    Row(modifier.fillMaxWidth().padding(start = 3.dp, top = 4.dp)) {
-        Box(
-            Modifier
-                .width(6.dp)
-                .height(2.dp)
-                .background(Color(0x59A63D2F), RoundedCornerShape(1.dp)),
-        )
-    }
-}
-
-/** 时段条：上午 / 下午 / 晚上 */
-@Composable
-fun BandRow(label: String) {
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .height(20.dp)
-            .padding(start = 40.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(Modifier.width(2.dp).height(7.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)))
-        Spacer(Modifier.width(5.dp))
-        Text(
-            label,
-            fontSize = 9.5.sp,
-            letterSpacing = 1.5.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-        )
-    }
-}
-
-/** 左轴一行的标签：3-4 + 起止时刻 */
-@Composable
-fun AxisRowLabel(sections: String, startTime: String) {
-    Column(
-        Modifier.width(36.dp).fillMaxHeight().padding(top = 3.dp, end = 2.dp),
-        horizontalAlignment = Alignment.End,
-    ) {
-        Text(
-            sections,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            startTime,
-            fontSize = 8.5.sp,
-            fontFamily = FontFamily.Monospace,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f),
-        )
-    }
-}
-
-/** 网格空白格：完全透明，只靠格线说话 */
-@Composable
-fun EmptyCell(modifier: Modifier = Modifier) {
-    Box(modifier)
-}
-
 /** 时段起始时刻（用于轴与小人定位） */
 fun BigSession.startMinute(summer: Boolean = false): Int = SchoolClock.rangeOf(this, summer).first
 
-fun BigSession.startMinuteStatic(): Int = when (this) {
-    BigSession.S1 -> 8 * 60
-    BigSession.S2 -> 10 * 60
-    BigSession.S3 -> 13 * 60 + 30
-    BigSession.S4 -> 15 * 60 + 30
-    BigSession.S5 -> 18 * 60 + 30
-    BigSession.S6 -> 20 * 60 + 20
-}
-
 fun BigSession.endMinute(summer: Boolean = false): Int = SchoolClock.rangeOf(this, summer).second
 
-fun BigSession.endMinuteStatic(): Int = when (this) {
-    BigSession.S1 -> 9 * 60 + 40
-    BigSession.S2 -> 11 * 60 + 40
-    BigSession.S3 -> 15 * 60 + 10
-    BigSession.S4 -> 17 * 60 + 10
-    BigSession.S5 -> 20 * 60 + 10
-    BigSession.S6 -> 22 * 60
-}
+/**
+ * 第 i 大节的行顶偏移，用「行高 × 行数 + 时段条高 × 条数」表示：
+ * ```
+ * rowTop(i) = rowH * first + bandH * second
+ * ```
+ *
+ * ⚠️ 时段条是渲染在**该行前面**的 Column 子项，所以第一条大节（上午）顶上也有条：
+ * `i=0 → (0, 1)`，`i=2 → (2, 2)`，`i=4 → (4, 3)`。
+ * 早期只数「之前」的时段条（不含本行），Canvas 格线就整体上移一个 bandH，
+ * 卡片和格线错开 —— 2026-11-13 真机验收抓到，见 [GridMetrics] 注释。
+ *
+ * 放在这里而不是 UI 文件里：纯 Int 逻辑，JVM 单测能直接钉死（GridGeometryTest）。
+ */
+internal fun gridRowTop(i: Int): Pair<Int, Int> =
+    i to BigSession.entries.take(i + 1).map { it.part }.distinct().size
 
 /**
  * 吞噬进度：0 = 完整，1 = 完全吃掉。

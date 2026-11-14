@@ -69,6 +69,16 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
     val feedVm: FeedViewModel = viewModel()
     val feedUi by feedVm.ui.collectAsStateWithLifecycle()
 
+    // 回到前台：资讯距上次成功刷新 >30 分钟 → 静默刷新；顺带跨天重算日期基准
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) feedVm.refreshIfStale()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     Scaffold(
         containerColor = t.paper,
         bottomBar = {
@@ -105,7 +115,8 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
                         icon = Icons.AutoMirrored.Filled.Article,
                         selected = tab == 1,
                         index = 1,
-                        badge = feedUi.unread,
+                        // 正在看资讯时不挂徽标（未读数页头已承载）；切走恢复
+                        badge = if (tab == 1) 0 else feedUi.unread,
                     ) { tab = 1 }
                     HardTab("我的", Icons.Default.Person, tab == 2, 2) { tab = 2 }
                 }
@@ -122,6 +133,17 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
                 0 -> TimetableScreen(ui = ui, vm = vm)
                 1 -> FeedScreen(ui = feedUi, vm = feedVm)
                 else -> UserScreen(ui = ui, vm = vm)
+            }
+
+            // 课程大纲浮层（票 10）：课表详情 / 培养方案课程行 / 大纲搜索页三处入口共用，
+            // 统一挂在根节点上渲染一次 —— 各入口只调 vm.openSyllabus(...)，不必各页各写一套。
+            if (ui.syllabusOpenId.isNotBlank()) {
+                cn.dkarbon.enroute.ui.curriculum.SyllabusSheet(ui = ui, vm = vm)
+            }
+
+            // 「保持登录」一次性说明卡（票 14）：首次登录成功后弹一次，挂在根节点免得漏掉
+            if (ui.credPromptVisible) {
+                cn.dkarbon.enroute.ui.user.KeepLoginPrompt(vm = vm)
             }
         }
     }
@@ -146,7 +168,23 @@ private fun androidx.compose.foundation.layout.RowScope.HardTab(
         verticalArrangement = Arrangement.Center,
     ) {
         if (badge > 0) {
-            BadgedBox(badge = { Badge { Text(if (badge > 99) "99+" else "$badge") } }) {
+            // 未读不是错误：徽标用主色（农械橘），不用 M3 默认 error 红。
+            // 暗色底是浅橙 → 文字用深土色保证对比。
+            BadgedBox(
+                badge = {
+                    Badge(
+                        containerColor = t.primary,
+                        contentColor = if (t.isDark) androidx.compose.ui.graphics.Color(0xFF100E0B) else androidx.compose.ui.graphics.Color.White,
+                    ) {
+                        Text(
+                            if (badge > 99) "99+" else "$badge",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            fontFamily = cn.dkarbon.enroute.ui.theme.NumericFont,
+                        )
+                    }
+                },
+            ) {
                 Icon(icon, contentDescription = label, modifier = Modifier.size(20.dp))
             }
         } else {

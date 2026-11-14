@@ -121,24 +121,19 @@ object Steel {
 }
 
 /**
- * 课程色环（6 色轮转）。
+ * 四级描边制（全 App 只用这四级，跳级就等于没有层级）。
  *
- * 规矩：色块内文字**永远用 ink**，不用彩色文字；彩色只出现在左侧 3dp 色条。
- * 这样 8 节课连排时不会变成调色盘，色盲/灰度截图也还能靠色条位置区分。
+ * | 级别 | 值 | 用在哪 |
+ * |---|---|---|
+ * | 网格线 | 0.75–1dp `rule@14%` | 大节之间的田垄、格线 |
+ * | 卡片 | 1dp `outline@22%` | 课程卡外框 |
+ * | 浮层 | 1.5dp `outline`（n300） | 详情 / 长按菜单的板子 |
+ * | 当前 | 2dp `primary` | 今天那一列、「本周」戳、正在上的卡 |
+ *
+ * ⚠️ 课程色只有一套：[cn.dkarbon.enroute.ui.timetable.Tt.Fams]（4 色）。
+ * 这里原先还有一个 6 色的 `CoursePalette` + `courseTint()`，0 引用且与 `Tt.Fams`
+ * 并存 —— 新页面接错源就会「同一门课两种颜色」，已删除（2026-11-11）。
  */
-val CoursePalette: List<Color> = listOf(
-    Machine.n500,  // 农械橘
-    Color(0xFF96700F), // 麦秆黄（压深，保证白底可读）
-    Crop.n600,     // 阜绿
-    Color(0xFF2C5A56), // 田水青
-    Color(0xFF5A3A46), // 壤紫褐
-    Color(0xFF37516B), // 农机蓝灰
-)
-
-/** 课程底色：主色 12%（亮）/ 22%（暗）叠在 surface 上 */
-fun courseTint(base: Color, dark: Boolean): Color =
-    base.copy(alpha = if (dark) 0.22f else 0.12f)
-
 /** 线宽档位。1dp 必须是整 dp，否则某些 DPI 会发灰 */
 object Stroke {
     val hairline = 1.dp

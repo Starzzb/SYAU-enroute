@@ -49,11 +49,14 @@ fun ErodedCard(
     val faded = if (isDark) Color(0xFF3A362E) else Color(0xFFDDD8CF)   // 掉色后的灰
     val gone = if (isDark) Color(0xFF211E18) else Color(0xFFEFEBE2)    // 完全侵蚀后的底
 
+    // 2026-11-13 回退 CET6 普通样式：卡片允许 4dp 小圆角（主人点名「和 cet6 一样」，
+    // 这是课表卡的局部例外；资讯页/浮层仍然 0 圆角）。
+    val shape = RoundedCornerShape(4.dp)
     Box(
         modifier
-            .clip(RectangleShape)
+            .clip(shape)
             .background(wash)
-            .border(0.75.dp, spine.copy(alpha = 0.30f), RectangleShape)
+            .border(0.75.dp, spine.copy(alpha = 0.30f), shape)
             .drawWithContent {
                 val cut = size.height * progress.coerceIn(0f, 1f)
 
@@ -73,18 +76,20 @@ fun ErodedCard(
                         size = Size(size.width, cut),
                     )
 
-                    // 3) 咬痕：一排纸色半圆盖住裁切硬边，形成不规则缺口
-                    val teeth = 7
-                    val step = size.width / teeth
-                    for (i in 0 until teeth) {
-                        // 用 progress 驱动相位，避免咬痕逐帧跳动
-                        val wobble = sin((progress * 40f + i * 1.7f)) * size.height * 0.035f
-                        val r = step * (0.34f + (i % 3) * 0.06f)
-                        drawCircle(
-                            color = paper,
-                            radius = r,
-                            center = Offset(step * (i + 0.5f), cut + wobble),
-                        )
+                    // 3) 咬痕：一排纸色半圆盖住裁切硬边，形成不规则缺口（CET6 同款）。
+                    //    相位由 progress 驱动，避免逐帧跳动。
+                    if (progress > 0.05f) {
+                        val teeth = 7
+                        val step = size.width / teeth
+                        for (i in 0 until teeth) {
+                            val wobble = sin((progress * 40f + i * 1.7f)) * size.height * 0.035f
+                            val r = step * (0.34f + (i % 3) * 0.06f)
+                            drawCircle(
+                                color = paper,
+                                radius = r,
+                                center = Offset(step * (i + 0.5f), cut + wobble),
+                            )
+                        }
                     }
 
                     // 4) 侵蚀区里的细小裂纹（短竖线，随进度增多）

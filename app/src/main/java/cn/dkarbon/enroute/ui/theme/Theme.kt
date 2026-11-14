@@ -34,8 +34,8 @@ object Ink {
     val Card = Color(0xFFFAF8F4)  // 卡片面（比底略亮，靠 1dp 边线区分，不靠阴影）
     val CardAlt = Soil.n100       // #EDE8DF 次级面（表头、选中态）
     val Ink = Soil.n900           // #1A1611 正文（纯黑太硬，用带土的红黑）
-    val InkSoft = Soil.n600       // #5F574C 二级文字
-    val InkFaint = Soil.n500      // #7E7468 三级文字（9–11sp 用这档）
+    val InkSoft = Soil.n700       // #443E36 二级文字（原 n600，9.45:1）
+    val InkFaint = Soil.n600      // #5F574C 三级文字（9–11sp 用这档，6.36:1；原 n500 只有 4.10:1）
     val Rule = Soil.n200          // #D7D0C4 分割线/网格线
 
     // ── 语义色 ──
@@ -147,10 +147,14 @@ object InkTokens {
  *
  * 注意：**关掉了 dynamicColor**。动态取色会把我们的农业色板整个换掉
  * （Android 12+ 从壁纸取色），那样「硬朗农业」就白设计了。
+ *
+ * @param styleSet 风格语汇（[StyleSet.HARD] 硬朗农业 / [StyleSet.SCHOLAR] 学院纸本）。
+ *   与明暗正交 —— 深色纸本是合法组合，所以刻意不塞进 [ThemeMode]。
  */
 @Composable
 fun EnRouteTheme(
     themeMode: Int = ThemeMode.System,
+    styleSet: Int = StyleSet.HARD,
     content: @Composable () -> Unit,
 ) {
     val darkTheme = when (themeMode) {
@@ -158,11 +162,23 @@ fun EnRouteTheme(
         ThemeMode.Dark -> true
         else -> isSystemInDarkTheme()
     }
-    val tokens = if (darkTheme) InkTokenSet.Dark else InkTokenSet.Light
+    val scholar = styleSet == StyleSet.SCHOLAR
+    val tokens = when {
+        scholar && darkTheme -> ScholarDarkTokens
+        scholar -> ScholarLightTokens
+        darkTheme -> InkTokenSet.Dark
+        else -> InkTokenSet.Light
+    }
+    val scheme = when {
+        scholar && darkTheme -> ScholarDarkScheme
+        scholar -> ScholarLightScheme
+        darkTheme -> HardDarkScheme
+        else -> HardLightScheme
+    }
 
     CompositionLocalProvider(LocalInkTokens provides tokens) {
         MaterialTheme(
-            colorScheme = if (darkTheme) HardDarkScheme else HardLightScheme,
+            colorScheme = scheme,
             typography = EnRouteTypography,
             shapes = HardShapes,
             content = content,

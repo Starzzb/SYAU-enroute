@@ -51,19 +51,82 @@ data class ExamItem(
     /** 原始 start（ISO 风格，排序用） */
     val startAt: String = "",
     val raw: String = "",
+    // ── 结构化字段（2026-11-13 补齐）────────────────────────
+    // 为什么要把 title 拆成字段：`title` 是「课程名\n时间\n校区\n教学楼\n教室」五行模板，
+    // 上一版把后三行拼成一个 `place` 字符串再用空格 split —— 那是猜。模板固定就按行落位，
+    // 界面上「主信息 / 次信息 / 原始」三层才有东西可分层。
+    /** 开考日期 `2026-11-15`（取自 start） */
+    val date: String = "",
+    /** 开考时刻 `10:00` */
+    val startClock: String = "",
+    /** 结束时刻 `11:40` */
+    val endClock: String = "",
+    /** 时长（分钟）；起止解析不出来就是 0 —— 绝不按 100 分钟脑补 */
+    val durationMin: Int = 0,
+    /** 校区 `主校` */
+    val campus: String = "",
+    /** 教学楼 `第二教学楼` / `线上考场` */
+    val building: String = "",
+    /** 教室 `201` / `线上虚拟考场1` */
+    val room: String = "",
+    /** title 第 6 行及以后（目前没见过，但学校加字段时不能静默丢弃） */
+    val extraLines: List<String> = emptyList(),
+    /** 接口里的 id（URP 给的是 "0"/"1"，不是学号意义上的唯一号） */
+    val apiId: String = "",
+    /** 接口给的卡片色 `#3a87ad`（只存档，界面不用 —— 全 App 只有一套课程色） */
+    val colorHex: String = "",
+    /** 原始 key 全量：json 对象里出现过的每个键原样保留，供「看原始 JSON」自查 */
+    val fields: Map<String, String> = emptyMap(),
 )
 
 @Serializable
 data class ScoreItem(
     val name: String = "",
     val credit: String = "",
-    /** 百分制分数，如 "73" */
+    /** 百分制分数，如 "73"；等级制课程这里可能是「优秀」这类文字 */
     val score: String = "",
     /** 等级：优 / 良 / 中 / 及格 / 不及格（URP 只给等级，没有绩点算法） */
     val grade: String = "",
     val term: String = "",
     val raw: String = "",
-)
+    // ── 结构化字段（2026-11-13 补齐）────────────────────────
+    // 上一版只吃了 KCM/KCCJ/XF/DJM/ZXJXJHM 五个键，接口里还有一堆字段被丢掉。
+    /** 英文课程名 `Fundamentals of Ecology`（YWKCM） */
+    val englishName: String = "",
+    /** 课程属性 `限修课`（KCSXMC） */
+    val category: String = "",
+    /** 课程类型（KCLXMC，实测为空） */
+    val courseType: String = "",
+    /** 课程号（KCH） */
+    val code: String = "",
+    /** 课序号（KXH） */
+    val classNo: String = "",
+    /** 学时（XS） */
+    val hours: String = "",
+    /** 学期代码 `2024-2025-1-1`（ZXJXJHH），比中文学期名好排序 */
+    val termCode: String = "",
+    /** 考试日期 `20250101`（KSSJ） */
+    val examDate: String = "",
+    /** 原始 key 全量（同 [ExamItem.fields]） */
+    val fields: Map<String, String> = emptyMap(),
+) {
+    /** 学分数值；缺失或非数字 → null（统计只认真实数字，见 [ScoreRows]） */
+    val creditValue: Double?
+        get() = credit.trim().toDoubleOrNull()?.takeIf { it > 0.0 }
+
+    /** 百分制分数字值；「优秀」「合格」这类文字 → null */
+    val scoreValue: Double?
+        get() = score.trim().toDoubleOrNull()?.takeIf { it in 0.0..150.0 }
+
+    /**
+     * 是否明确不及格。
+     *
+     * 只认两种**有据可查**的证据：分数 < 60，或等级写明「不及格」。
+     * 「合格/不合格」考查课、空格子一律按「不知道」处理 —— 宁可少判，不误伤。
+     */
+    val failed: Boolean
+        get() = scoreValue?.let { it < 60.0 } ?: grade.contains("不及格")
+}
 
 /** 诊断面板的一行 */
 data class ProbeResult(
@@ -95,6 +158,12 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
     private val TOKEN_RE = Regex("""scoreQuery/([A-Za-z0-9]{10,14})/allTermScores/""")
 
     private val DASH = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+    /** 接口里 start/end 的形状：`2026-11-15 10:00` */
+    private val MINUTE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+    /** title 里的座位行。这套部署暂不返回，先认着 —— 学校加了字段不用改代码 */
+    private val SEAT_RE = Regex("""^(?:座位号|座位|座号)\s*[:：]?\s*(\S+)$""")
 
     // ── 考试 ──────────────────────────────────────────────
 
@@ -132,30 +201,70 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         val arr = el as? JsonArray ?: return emptyList()
         return arr.filterIsInstance<JsonObject>().map { o ->
             val title = str(o, "title")
-            // title 的格式是「课程名 \n 时间段 \n 校区 \n 楼 \n 教室」
+            // title 的格式是「课程名 \n 时间段 \n 校区 \n 教学楼 \n 教室」（模板固定，逐行落位）
             val parts = title.split("\n").map { it.trim() }.filter { it.isNotEmpty() }
             val name = parts.getOrNull(0).orEmpty()
             val rawTime = parts.getOrNull(1).orEmpty()
-            val place = parts.drop(2).joinToString(" ")
 
             val start = str(o, "start")   // 2026-11-15 10:00
             val end = str(o, "end")       // 2026-11-15 11:40
+            val date = start.substringBefore(' ').trim()
+            val startClock = start.substringAfter(' ', "").trim()
+            val endClock = end.substringAfter(' ', "").trim()
             val timeLabel = buildString {
-                val day = start.substringBefore(' ').ifBlank { "" }
-                val s = start.substringAfter(' ', "")
-                val e = end.substringAfter(' ', "")
-                if (day.isNotBlank()) append(day).append(' ')
-                if (s.isNotBlank() && e.isNotBlank()) append("$s-$e") else append(rawTime)
+                if (date.isNotBlank()) append(date).append(' ')
+                if (startClock.isNotBlank() && endClock.isNotBlank()) {
+                    append("$startClock-$endClock")
+                } else {
+                    append(rawTime)
+                }
             }.trim()
+
+            // 第 3 行起是地点三件套；第 6 行以后是学校自己加的，不许丢
+            val campus = parts.getOrNull(2).orEmpty()
+            val building = parts.getOrNull(3).orEmpty()
+            val roomLine = parts.getOrNull(4).orEmpty()
+            val tail = parts.drop(5)
+
+            // 座位号目前这套部署不返回；只有真出现「座位…」行才认，否则留空（不编）
+            val seatLine = (listOf(roomLine) + tail).firstOrNull { SEAT_RE.matches(it) }
+            val seat = seatLine?.let { SEAT_RE.find(it)?.groupValues?.get(1)?.trim() }.orEmpty()
+            val extra = if (seatLine == null) tail else tail - seatLine
+
+            // 「主校 第二教学楼 201」这个拼串是上一版的展示契约，AppState/Widget 还在用，保留
+            val place = (listOf(campus, building, roomLine) + tail)
+                .filter { it.isNotBlank() && it != seatLine }
+                .joinToString(" ")
 
             ExamItem(
                 name = name,
                 time = timeLabel,
                 place = place,
+                seat = seat,
                 startAt = start,
-                raw = o.toString().take(400),
+                raw = o.toString(),
+                date = date,
+                startClock = startClock,
+                endClock = endClock,
+                durationMin = minutesBetween(start, end),
+                campus = campus,
+                building = building,
+                // 若这一行其实是座位行，教室就是空 —— 不把「座位 33」当教室
+                room = if (seatLine != null && seatLine == roomLine) "" else roomLine,
+                extraLines = extra,
+                apiId = str(o, "id"),
+                colorHex = str(o, "color"),
+                fields = fieldsOf(o),
             )
         }.sortedBy { it.startAt }
+    }
+
+    /** 起止时刻算时长；任何一端解析不出来就返回 0（表示「不知道」，不是 100 分钟） */
+    private fun minutesBetween(start: String, end: String): Int {
+        val s = runCatching { LocalDateTime.parse(start, MINUTE_FMT) }.getOrNull() ?: return 0
+        val e = runCatching { LocalDateTime.parse(end, MINUTE_FMT) }.getOrNull() ?: return 0
+        val m = java.time.Duration.between(s, e).toMinutes()
+        return if (m in 1..600) m.toInt() else 0
     }
 
     // ── 成绩 ──────────────────────────────────────────────
@@ -186,10 +295,46 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
                 score = str(o, "KCCJ"),
                 grade = str(o, "DJM"),
                 term = str(o, "ZXJXJHM"),
-                raw = o.toString().take(400),
+                raw = o.toString(),
+                englishName = str(o, "YWKCM"),
+                category = str(o, "KCSXMC"),
+                courseType = str(o, "KCLXMC"),
+                code = str(o, "KCH"),
+                classNo = str(o, "KXH"),
+                hours = str(o, "XS"),
+                termCode = str(o, "ZXJXJHH"),
+                examDate = str(o, "KSSJ"),
+                fields = fieldsOf(o),
             )
         }.filter { it.name.isNotBlank() }
     }
+
+    /**
+     * json 对象的全部键原样收进 Map。
+     *
+     * 空值和 null 也保留键名：用户自查时「这个字段存在但是空的」和「根本没这个字段」
+     * 是两条不同的结论，少一条就没法判断是不是学校改了 schema。
+     */
+    private fun fieldsOf(o: JsonObject): Map<String, String> {
+        val m = LinkedHashMap<String, String>(o.size)
+        o.forEach { (k, v) ->
+            m[k] = if (v is JsonNull) "" else (v as? JsonPrimitive)?.content.orEmpty()
+        }
+        return m
+    }
+
+    // ── 诊断文案（不发请求，只拼给人看的地址）──────────────
+
+    /** 考试数据实际打的地址（诊断浮层显示用） */
+    fun examPathPreview(): String {
+        val today = LocalDate.now()
+        return "$EXAM_DETAIL?start=${today.minusDays(100).format(DASH)}" +
+            "&end=${today.plusDays(150).format(DASH)}&_=<ts>"
+    }
+
+    /** 成绩两步流的地址形态（token 每次都变，所以只能给形态） */
+    fun scorePathPreview(): String =
+        "$SCORE_INDEX → /student/integratedQuery/scoreQuery/<token>/allTermScores/data"
 
     // ── 诊断 ──────────────────────────────────────────────
 

@@ -37,7 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.Reminders
+import cn.dkarbon.enroute.data.SessionState
 import cn.dkarbon.enroute.ui.AppState
+import cn.dkarbon.enroute.ui.SessionText
 import cn.dkarbon.enroute.ui.TimetableViewModel
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
@@ -92,6 +94,35 @@ fun SettingsScreen(
             }
         }
 
+        // 风格：管语汇（农业硬朗 / 学院纸本），与上面的明暗正交
+        Spacer(Modifier.height(10.dp))
+        Text(
+            "学院纸本是给考试、成绩这类长读页面准备的：强调色收敛成一种，纸白 + 石墨 + 细格线。",
+            fontSize = 10.5.sp,
+            lineHeight = 15.sp,
+            color = t.inkFaint,
+        )
+        Spacer(Modifier.height(6.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(0 to "硬朗农业", 1 to "学院纸本").forEach { (style, label) ->
+                val on = ui.styleSet == style
+                Box(
+                    Modifier
+                        .clip(RectangleShape)
+                        .background(if (on) t.cardAlt else t.card)
+                        .clickable { vm.setStyleSet(style) }
+                        .padding(horizontal = 12.dp, vertical = 6.dp),
+                ) {
+                    Text(
+                        label,
+                        fontSize = 11.5.sp,
+                        color = if (on) t.ink else t.inkFaint,
+                        fontWeight = if (on) FontWeight.Medium else FontWeight.Normal,
+                    )
+                }
+            }
+        }
+
         // ── 上课提醒 ──
         SectionTitle("上课提醒")
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -124,10 +155,11 @@ fun SettingsScreen(
             Column(Modifier.weight(1f)) {
                 Text("已载入 ${ui.timetable?.courses?.size ?: 0} 门课", fontSize = 13.sp, color = t.ink)
                 Spacer(Modifier.height(2.dp))
+                // 三态分开说（票 04）：过期就说过期，不混成一句「未登录」
                 Text(
-                    if (ui.loggedIn) "本次运行已登录 URP（凭据只在内存）" else "未登录",
+                    SessionText.settingsLine(ui.sessionState),
                     fontSize = 10.5.sp,
-                    color = t.inkFaint,
+                    color = if (ui.sessionState == SessionState.Expired) t.brick else t.inkFaint,
                 )
             }
             TextButton(onClick = { confirmClearTimetable = true }) {
@@ -144,13 +176,67 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(10.dp))
 
+        // ── 保持登录（票 14）──
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("保持登录（自动续期）", fontSize = 13.sp, color = t.ink)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    ui.credStatus.ifBlank { if (ui.credEnabled) "已开启" else "未开启" },
+                    fontSize = 10.5.sp,
+                    lineHeight = 15.sp,
+                    color = t.inkFaint,
+                )
+            }
+            Switch(
+                checked = ui.credEnabled,
+                onCheckedChange = { on ->
+                    if (on) {
+                        // 打开：没有当次登录凭据就提示去登录一次（绝不凭空编凭据）
+                        vm.enableKeepLogin()
+                    } else {
+                        vm.disableKeepLogin()
+                    }
+                },
+            )
+        }
+        if (ui.credEnabled) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("清除本机保存的密码", fontSize = 12.sp, color = t.brick)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        "立刻删除本机密文与设备密钥，之后会话过期要手动登录一次。",
+                        fontSize = 10.5.sp,
+                        lineHeight = 15.sp,
+                        color = t.inkFaint,
+                    )
+                }
+                TextButton(onClick = { vm.clearSavedPassword() }) {
+                    Text("清除", fontSize = 12.sp, color = t.brick)
+                }
+            }
+        }
+        if (ui.reloginMsg.isNotBlank()) {
+            Text(
+                ui.reloginMsg,
+                fontSize = 10.sp,
+                lineHeight = 15.sp,
+                color = t.primary,
+                modifier = Modifier.padding(top = 2.dp),
+            )
+        }
+
+        Spacer(Modifier.height(10.dp))
+
         // ── 全部清除 ──
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("清除所有数据", fontSize = 13.sp, color = t.brick)
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    "课表、周次校准、主题、提醒开关、已排提醒、调试日志，以及当前登录态。\n" +
+                    "课表、周次校准、主题、提醒开关、已排提醒、调试日志、登录会话（含加密存档与密钥）、" +
+                        "本机保存的密码、校园地图标注。\n" +
                         "清完像新装一样，可以重新登录。",
                     fontSize = 10.5.sp,
                     lineHeight = 15.sp,
@@ -202,6 +288,31 @@ fun SettingsScreen(
                 tint = t.inkFaint,
                 modifier = Modifier.size(16.dp),
             )
+        }
+
+        // 示例数据入口：只在 debug 源码集存在（release 变体 available = false，这里整块不显示）
+        if (cn.dkarbon.enroute.data.AcademicSample.available) {
+            Row(
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 9.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(Modifier.weight(1f)) {
+                    Text("载入示例考试 / 成绩", fontSize = 13.sp, color = t.ink)
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        "示例数据（仅调试包）：真实抓包的 4 场考试 + 2 条成绩。" +
+                            "考试/成绩接口只在校内网可用，这个入口用来在没网时自查版式。",
+                        fontSize = 10.5.sp,
+                        lineHeight = 15.sp,
+                        color = t.inkFaint,
+                    )
+                }
+                TextButton(onClick = { vm.loadAcademicSample() }) {
+                    Text("载入", fontSize = 12.sp, color = t.inkSoft)
+                }
+            }
         }
 
         Spacer(Modifier.height(8.dp))
@@ -268,7 +379,8 @@ fun SettingsScreen(
         Spacer(Modifier.height(3.dp))
         Text(
             "课表来自沈阳农业大学教务系统（校内网 10.2.0.47）。校外请用 JSON 导入。\n" +
-                "账号密码只在你点登录的那一次使用，不写入任何文件。",
+                "账号密码只在你点登录的那一次使用，不写入任何文件；登录会话（cookie）" +
+                "用设备密钥加密后存在本机，用于冷启动免重登 —— 「清除所有数据」会连密钥一起销毁。",
             fontSize = 10.sp,
             lineHeight = 15.sp,
             color = t.inkFaint,

@@ -22,13 +22,46 @@ import javax.net.ssl.HttpsURLConnection
  *
  * 只在**校园网**内可用（目标 10.2.0.47 是内网地址）。
  *
- * ⚠️ 凭据只在内存里用，不落盘。这点是刻意的 —— App 没有安全的密钥库使用场景，
- * 明文存账号密码风险太大，宁可每次登录都手输。
+ * ⚠️ 凭据只在内存里用，不落盘。这点是刻意的 —— 密码明文存盘风险太大，宁可每次登录都手输。
+ * 但**会话 cookie** 是另一回事：它是教务系统发给本机的、会自然过期的登录凭证，
+ * 冷启动恢复它就能免掉「每天重登一次」（票 04）。所以 cookie 走加密存档
+ * （[SessionStore]），密码永不落盘。
  */
 object UrpClient {
 
     private const val SSO = "https://pass.syau.edu.cn"
+
+    /**
+     * 学校统一认证（CAS）地址 —— **凭据唯一允许发往的主机**（票 14 安全要求 §1）。
+     *
+     * 写成**一个字面量常量**，任何需要提交凭据的地方都只能引用它，
+     * 不许把用户输入、配置、接口返回拼进这里（单测断言它的 host 就是 pass.syau.edu.cn）。
+     */
+    const val CAS_LOGIN_URL = "https://pass.syau.edu.cn"
+
+    /** 校验用：凭据提交目标的 host，必须恒等于 [CAS_LOGIN_URL] 的 host */
+    internal const val CAS_LOGIN_HOST = "pass.syau.edu.cn"
+
+    /**
+     * 拼出「带 service 回跳参数的 CAS 登录地址」。
+     *
+     * 只有 **service（回跳地址）** 参与拼接，主机部分永远是常量 ——
+     * 这样即便将来有人把 service 换成可变值，凭据也只会发到学校认证页。
+     */
+    internal fun casLoginUrl(service: String): String =
+        CAS_LOGIN_URL + "/tpass/login?service=" + java.net.URLEncoder.encode(service, "UTF-8")
     private const val URP = "http://10.2.0.47"
+
+    /**
+     * 验活用的只读接口：空闲教室的校区列表。
+     *
+     * 挑它的理由（对比另外几个候选）：
+     *   · 只读、GET、无参数、无 token —— 不需要「先取页面抠 token」那种两步流；
+     *   · 响应很小（几百字节 JSON 数组），不拉整页 HTML（学籍页 100KB+）；
+     *   · 会话失效时 CAS 会 302 回登录页，信号明确。
+     * 实测形态见 `docs/URP-学生端接口清单.md`（与 UrpHomeApi.CAMPUS_LIST 同一支）。
+     */
+    private const val CAMPUS_LIST = "/student/teachingResources/freeClassroom/queryCodeCampusList"
 
     private val UA = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 " +
         "(KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
@@ -53,6 +86,14 @@ object UrpClient {
         internal fun cookieHeader(): String =
             cookies.entries.joinToString("; ") { "${it.key}=${it.value}" }
 
+        /**
+         * cookie 快照（**给加密存档用**）。
+         *
+         * 只有 [SessionStore] 该调它；返回副本，调用方改不动会话。
+         * 注意：这是真凭证 —— 只许进加密存档，绝不许进日志/导出/分享。
+         */
+        internal fun cookiesSnapshot(): Map<String, String> = cookies.toMap()
+
         internal fun absorb(conn: java.net.URLConnection) {
             conn.headerFields?.entries
                 ?.filter { it.key.equals("Set-Cookie", ignoreCase = true) }
@@ -64,6 +105,20 @@ object UrpClient {
                             cookies[pair.substring(0, i).trim()] = pair.substring(i + 1).trim()
                         }
                     }
+                }
+        }
+
+        companion object {
+            /**
+             * 从**加密存档**里还原一个会话（冷启动用，票 04）。
+             *
+             * 走这里而不是让调用方 new：cookie 字典是 internal 的，
+             * 还原入口收在一处，将来换存储格式只需改这里。
+             */
+            internal fun fromStored(cookies: Map<String, String>, displayName: String = ""): Session =
+                Session().also {
+                    it.cookies.putAll(cookies)
+                    it.displayName = displayName
                 }
         }
     }
@@ -136,7 +191,8 @@ object UrpClient {
             DebugLog.step(
                 "URP",
                 "已回跳 URP/index（${html.length} 字节），cookie 数=${session.cookies.size}，" +
-                    "姓名=${session.displayName.ifBlank { "未识别" }}",
+                    // ⚠️ 只记「识别到了没有」，姓名本身不进日志（红线：日志无姓名/学号）
+                    "姓名=${if (session.displayName.isBlank()) "未识别" else "已识别"}",
             )
         }
 
@@ -154,11 +210,60 @@ object UrpClient {
     }
 
     /**
+     * **验活**：这份会话现在还能不能用（票 04）。
+     *
+     * 冷启动从加密存档恢复 cookie 后**必须先问一句**，否则界面会拿着过期 cookie
+     * 显示「已登录」，然后每个页面各自报一堆「没抓到数据」—— 学生根本看不懂发生了什么。
+     *
+     * 判定只认响应里**看得见**的东西（见 [judgeSession]），连不上就是连不上，
+     * 不当成过期也不当成有效。
+     */
+    suspend fun verifySession(session: Session): SessionProbe = withContext(Dispatchers.IO) {
+        val body = runCatching {
+            httpGet(
+                session, "$URP$CAMPUS_LIST",
+                extraHeaders = mapOf(
+                    "X-Requested-With" to "XMLHttpRequest",
+                    "Accept" to "application/json, text/javascript, */*; q=0.01",
+                    "Referer" to "$URP/",
+                ),
+            )
+        }.getOrElse {
+            // 超时/拒绝连接/不在校园网：会话可能还活着，我们只是问不到 —— 不能判过期
+            DebugLog.step("SESSION", "验活未完成：${it.javaClass.simpleName}（多半不在校园网）")
+            return@withContext SessionProbe.Unreachable
+        }
+        val probe = judgeSession(body)
+        DebugLog.step(
+            "SESSION",
+            "验活：${body.length} 字节 → $probe" +
+                // 只看开头几个字符判断「是不是数据页」，不记内容（里面是校区名）
+                "（首字符=${body.trimStart().take(1).ifBlank { "空" }}）",
+        )
+        probe
+    }
+
+    /**
+     * 验活判定的**纯函数**部分（单测直接打）。
+     *
+     * - 拿到 JSON（`[` 或 `{`）→ [SessionProbe.Ok]：只读接口肯给数据，会话就是活的；
+     * - 其余一律 [SessionProbe.Expired]：CAS 踢回登录页是 HTML、非 2xx 时 [request]
+     *   返回空串、错误页也是 HTML —— 这三种都表示「服务器没把我们当已登录用户」。
+     *
+     * ⚠️ 注意它**不处理网络异常**：异常由 [verifySession] 映射成
+     * [SessionProbe.Unreachable]，两者语义完全不同（见该枚举的注释）。
+     */
+    internal fun judgeSession(body: String): SessionProbe {
+        val t = body.trimStart()
+        if (t.startsWith("[") || t.startsWith("{")) return SessionProbe.Ok
+        return SessionProbe.Expired
+    }
+
+    /**
      * 拉本学期课表。
      * 返回原始 xkxx JSON（结构见 syau-cas-reverse docs/06 第二节）。
      */
-    suspend fun fetchSchedule(session: Session): String = withContext(Dispatchers.IO) {
-        // 先访问门户建立应用会话
+    suspend fun fetchSchedule(session: Session): String = withContext(Dispatchers.IO) {        // 先访问门户建立应用会话
         runCatching { httpGet(session, "$URP/index") }
 
         val url = "$URP/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback"
@@ -170,6 +275,44 @@ object UrpClient {
                 "Referer" to "$URP/student/courseSelect/thisSemesterCurriculum/index",
                 "Accept" to "application/json, text/javascript, */*; q=0.01",
             ),
+        )
+    }
+
+    /**
+     * 历年课表：**按学期**取课表（票 11，2026-11-14 实测）。
+     *
+     * 关键点（`docs/URP-学生端接口清单.md` §6.4）：
+     * - 是 **POST**，表单只有 `planCode`，且**开头要有一个 `&`**（首字段为空）——
+     *   `GET ...?xnxq=` 与 `GET index?planCode=` 实测都无效；
+     * - 返回 schema 与「本学期课表」**完全同构**，所以调用方直接复用 [parseSchedule]，
+     *   不要再写第二个解析器。
+     */
+    suspend fun fetchScheduleForTerm(session: Session, planCode: String): String = withContext(Dispatchers.IO) {
+        // 先回一次门户，确保会话处于「已进入选课管理」的状态（与 fetchSchedule 同款预热）
+        runCatching { httpGet(session, "$URP/index") }
+        val url = "$URP/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback"
+        DebugLog.step("URP", "按学期拉课表：planCode=${planCode.trim()}")
+        httpPost(
+            session, url,
+            body = HistorySemesters.scheduleBody(planCode),
+            extraHeaders = mapOf(
+                "X-Requested-With" to "XMLHttpRequest",
+                "Referer" to "$URP/student/courseSelect/calendarSemesterCurriculum/index",
+                "Accept" to "application/json, text/javascript, */*; q=0.01",
+            ),
+        )
+    }
+
+    /**
+     * 历年学期课表页面（只为读 `select[name="planCode"]` 里的学期候选）。
+     *
+     * 学期列表**不写死**：服务器按会话只给最近 5 个（含当前），所以必须从页面取。
+     */
+    suspend fun fetchSemesterCalendarPage(session: Session): String = withContext(Dispatchers.IO) {
+        httpGet(
+            session,
+            "$URP/student/courseSelect/calendarSemesterCurriculum/index",
+            extraHeaders = mapOf("Referer" to "$URP/index"),
         )
     }
 
