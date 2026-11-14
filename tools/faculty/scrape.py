@@ -17,6 +17,7 @@
     python tools/faculty/scrape.py --max-pages 2        # 调试：每站最多翻几页
 """
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -46,6 +47,9 @@ NAV_WORDS = {
     "研究生教育", "专业设置", "学科建设", "科研团队", "学科团队", "教师名录", "教师队伍",
 }
 
+# 职称词表：与下面 list_entries 里各处内联表保持一致（内联表没动，避免影响别家站点）
+TITLE_WORDS = ("教授", "副教授", "讲师", "助教", "研究员", "副研究员", "高级实验师", "实验师")
+
 # 详情页字段：标签 → 输出键。**顺序即优先级**（同一人多个同义标签时取第一个有值的）
 LABELS = [
     ("title",      ["职称", "专业技术职务", "职务职称"]),
@@ -72,11 +76,17 @@ COLLEGES = [
     {"code": "spxy", "name": "食品学院", "mode": "A", "lists": ["/szdw/jsml1.htm", "/szdw/dsfc.htm"], "base": "https://spxy.syau.edu.cn/"},
     {"code": "swxy", "name": "生物科学技术学院", "mode": "A", "lists": ["/szdw/zzjs.htm"], "base": "https://swxy.syau.edu.cn/"},
     {"code": "lxy", "name": "理学院", "mode": "A", "lists": ["/szdw1/js.htm", "/szdw1/fjs.htm"], "base": "https://lxy.syau.edu.cn/"},
-    {"code": "wyb", "name": "外语教学部", "mode": "A", "lists": ["/szdw/szdw.htm"], "base": "https://wyb.syau.edu.cn/"},
-    {"code": "gcxy", "name": "工程学院", "mode": "B", "lists": ["/szdw1/jsml.htm"], "base": "https://gcxy.syau.edu.cn/"},
+    # titleGroups：职称只写在**列表页的分组标题**里（详情页多半只有照片）。
+    # 目前只有 wyb 是这个形态，别家一律不许开 —— 见 list_entries() 里的说明。
+    {"code": "wyb", "name": "外语教学部", "mode": "A", "titleGroups": True,
+     "lists": ["/szdw/szdw.htm"], "base": "https://wyb.syau.edu.cn/"},
+    # 工程学院：教授目录（jsml，正文有名）+ 教职员工（jzyg，12 条详情链接）→ 两种成分都要
+    {"code": "gcxy", "name": "工程学院", "mode": "AB", "lists": ["/szdw1/jsml.htm", "/szdw1/jzyg.htm"], "base": "https://gcxy.syau.edu.cn/"},
     # D = 列表由 JS 渲染（静态 HTML 没有姓名），只留隐藏的 /info/ 锚点 → 逐条去详情页 title 取名
     {"code": "tyb", "name": "体育教学部", "mode": "D", "lists": ["/bmgk/jsdw.htm"], "base": "https://tyb.syau.edu.cn/"},
-    {"code": "yyxy", "name": "园艺学院", "mode": "C", "lists": ["/xkjs/szdw.htm"], "base": "https://yyxy.syau.edu.cn/"},
+    # 园艺学院：`xkjs/szdw.htm` 实测是「人才/团队荣誉表」，不是教师名录（只有院士/头衔汇总）；
+    # 真正的名单在「导师队伍」页（162 条带姓名的详情节链接）。见 docs 源表 §2 的更正。
+    {"code": "yyxy", "name": "园艺学院", "mode": "A", "lists": ["/yjsjy1/dsdw.htm"], "base": "https://yyxy.syau.edu.cn/"},
     # C = 按教研室分页罗列「姓名（职称）」，没有详情页
     {"code": "marx", "name": "马克思主义学院", "mode": "C", "base": "https://marx.syau.edu.cn/",
      "lists": ["/szll/sxddyfzjys.htm", "/szll/zgjxdsjys.htm", "/szll/mkszyjbyljys.htm",
@@ -126,16 +136,86 @@ def next_page_url(html, current_url, page_no):
     return None
 
 
-def list_entries(html, page_url_, mode):
+# 职称组名（列表页分组标题）。**只在开了 titleGroups 的站点用**，见下方说明。
+GROUP_HEADING_RE = re.compile(r"<(h[1-4])\b[^>]*>(.*?)</\1>", re.I | re.S)
+# 「工勤」这类是**岗位类别不是职称**：认得它是为了让状态归零（防止上一组的职称漏染到下一组），
+# 但绝不写进 title 字段 —— 写进去等于把「工勤」冒充成职称。
+GROUP_NON_TITLE = ("工勤", "其他", "其它", "无职称")
+
+
+def group_title_map(html, page_url_=""):
+    """列表页「分组标题 + 该组姓名链接」→ {详情页绝对URL: 组名或 None}。
+
+    为什么需要它（2026-11-14 外语教学部实测）：
+      该站把师资按职称分组，职称**只写在组标题上** ——
+      ```html
+      <h2 style="…font-weight:bold;">教授</h2>
+      <h2><a href="…/info/1094/2661.htm">姚岚</a>　<a href="…">王岩</a></h2>
+      <h2 style="…font-weight:bold;">副教授</h2>
+      ```
+      而 `info/1095/*`（副教授）、`info/1096/*`（讲师）里**绝大多数详情页只有一张照片、正文是空的**
+      （缓存 HTML 全文里连「教授/副教授/讲师」三个词都没有），
+      `info/1098/*` 是「工勤」岗，站点本来就没给职称。
+      所以 54 人里只有 8 人有职称 —— 不是解析器漏了，是详情页没有。
+
+    三条保守规则：
+      1. 只认**整行文本恰好等于**「教授/副教授/讲师/助教/研究员/副研究员/高级实验师/实验师/工勤」的标题；
+         带链接的标题（那是姓名行）一律不当组名 → 不会把「姚岚」当成职称。
+      2. 组名只作用到**下一个标题之前**的链接；中途出现别的文本标题就把状态归零，
+         宁可丢字段也不串组。
+      3. 「工勤」这类非职称组 → 值为 None（上层留空，不写「工勤」）。
+    """
+    start = html.find('id="vsb_content"')
+    seg = html[start:] if start >= 0 else html
+    cut = min((i for i in (seg.find(x) for x in ('id="div_vote_id"', 'class="footer', 'id="footer')) if i > 0),
+              default=-1)
+    if cut > 0:
+        seg = seg[:cut]
+
+    words = TITLE_WORDS + GROUP_NON_TITLE
+    out, cur = {}, ""
+    pos = 0
+
+    def abs_url(href):
+        return urljoin(page_url_, href) if page_url_ else href
+
+    for m in GROUP_HEADING_RE.finditer(seg):
+        between = seg[pos:m.start()]
+        for b in A_RE.finditer(between):
+            if "info/" not in b.group(1):
+                continue
+            out.setdefault(abs_url(b.group(1)), cur if cur in TITLE_WORDS else None)
+        text = re.sub(r"\s+", "", re.sub(r"(?s)<[^>]+>", "", m.group(2)))
+        # 带链接的标题行 = 该组的花名册（外语教学部把姓名也包在 <h2> 里），
+        # 所以链接要按**当前组名**收，但这一行本身不能当组名。
+        if "<a" in m.group(2).lower():
+            for b in A_RE.finditer(m.group(2)):
+                if "info/" not in b.group(1):
+                    continue
+                out.setdefault(abs_url(b.group(1)), cur if cur in TITLE_WORDS else None)
+            pos = m.end()
+            continue
+        cur = text if text in words else ""
+        pos = m.end()
+    for b in A_RE.finditer(seg[pos:]):
+        if "info/" not in b.group(1):
+            continue
+        out.setdefault(abs_url(b.group(1)), cur if cur in TITLE_WORDS else None)
+    return out
+
+
+def list_entries(html, page_url_, mode, cfg=None):
     """列表页 → [(name, detail_url|None)]；正则只认 `/info/` 链接，避开导航"""
     out, seen = [], set()
+    # 职称在列表页分组标题上的站点（只有 titleGroups=True 才走这条路）
+    groups = group_title_map(html, page_url_) if (cfg or {}).get("titleGroups") else {}
     for m in A_RE.finditer(html):
         href, inner = m.group(1), m.group(2)
         if href.lower().startswith(("javascript:", "mailto:", "#")):
             continue
         full = urljoin(page_url_, href)
         label = text_of(inner)
-        if mode == "A":
+        if mode in ("A", "AB"):
             if not DETAIL_RE.search(href):
                 continue
             if full in seen:
@@ -151,7 +231,8 @@ def list_entries(html, page_url_, mode):
                 if m2:
                     nm = m2.group(1)
             seen.add(full)
-            out.append({"name": nm, "url": full})
+            g = groups.get(full)
+            out.append({"name": nm, "url": full, "titleFromList": g or ""})
         else:  # mode B/C：从正文里找「姓名 + 职称」
             pass
 
@@ -168,7 +249,7 @@ def list_entries(html, page_url_, mode):
             seen.add(full)
             out.append({"name": "", "url": full})
 
-    if mode in ("B", "C"):
+    if mode in ("B", "C", "AB"):
         # 先按表格行抽：体育教学部这类「姓名 | 职称」的可见列表在 <tr> 里，
         # /info/ 链接被放在 display:none 的 div 中（按 id 顺序映射太脆，这里不赌）
         for tr in re.findall(r"<tr[^>]*>(.*?)</tr>", html, re.I | re.S):
@@ -251,7 +332,7 @@ def scrape_college(cfg, at, refresh=False, max_pages=20, dry=False):
     for li, path in enumerate(cfg["lists"]):
         url = page_url(cfg["base"], path)
         for page in range(1, max_pages + 1):
-            key = os.path.join(CACHE, code, "p%d_%d.html" % (li, page))
+            key = os.path.join(CACHE, code, "p%d_%d_%s.html" % (li, page, hashlib.sha1(url.encode("utf-8")).hexdigest()[:8]))
             try:
                 html = fetch_page(url, key, refresh)
             except urllib.error.HTTPError as e:
@@ -261,7 +342,7 @@ def scrape_college(cfg, at, refresh=False, max_pages=20, dry=False):
                 problems.append("%s %s" % (url, e))
                 break
 
-            entries = list_entries(html, url, cfg["mode"])
+            entries = list_entries(html, url, cfg["mode"], cfg)
             if page == 1 and not entries:
                 problems.append("%s 解析出 0 条（%s 模式）" % (url, cfg["mode"]))
                 break
@@ -269,7 +350,7 @@ def scrape_college(cfg, at, refresh=False, max_pages=20, dry=False):
             for e in entries:
                 nm = e["name"]
                 # mode D 的姓名本来就要去详情页 title 取，列表页为空是正常的
-                if not nm and cfg["mode"] != "D":
+                if not nm and cfg["mode"] not in ("A", "AB", "D"):
                     continue
                 rec = {
                     "name": nm,
@@ -301,6 +382,10 @@ def scrape_college(cfg, at, refresh=False, max_pages=20, dry=False):
                     except Exception as ex:  # noqa: BLE001 —— 单页失败不毁整站，但要记
                         problems.append("详情页失败 %s: %s" % (e["url"], ex))
                 # 去重键：姓名 + 来源（同名不同人 → 两条，宁重不错并）
+                if not rec["name"]:
+                    # 图链 + 详情页 title 也取不到名字：如实记进 problems，不编名字
+                    problems.append("无姓名（详情页 title 也未取到）：%s" % (e["url"] or url))
+                    continue
                 teachers[(rec["name"], rec["source"])] = rec
 
             nxt = next_page_url(html, url, page)

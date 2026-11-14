@@ -3,17 +3,13 @@
  "college": "外语教学部",
  "code": "wyb",
  "mode": "A",
- "generatedAt": "2026-11-14T21:00:00+08:00",
+ "generatedAt": "2026-11-14T21:54:00+08:00",
  "count": 54,
- "withTitle": 8,
+ "withTitle": 52,
  "withEmail": 0,
  "withResearch": 2,
- "withPhoto": 51,
- "problems": [
-  "详情页失败 https://wyb.syau.edu.cn/info/1095/2657.htm: Remote end closed connection without response",
-  "详情页失败 https://wyb.syau.edu.cn/info/1095/2647.htm: Remote end closed connection without response",
-  "详情页失败 https://wyb.syau.edu.cn/info/1096/2691.htm: Remote end closed connection without response"
- ],
+ "withPhoto": 54,
+ "problems": [],
  "teachers": [
   {
    "name": "何英",
@@ -27,12 +23,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1094/2663.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "何雨鸿",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "何雨鸿-外语教学部",
    "research": "",
@@ -42,12 +38,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2688.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "刘一鸣",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "刘一鸣-外语教学部",
    "research": "",
@@ -57,12 +53,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/4592.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "刘桂芳",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "刘桂芳-外语教学部",
    "research": "",
@@ -72,26 +68,27 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2645.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "刘海燕",
-   "title": "",
+   "title": "副教授",
    "duty": "",
-   "dept": "",
+   "dept": "刘海燕-外语教学部",
    "research": "",
    "office": "",
    "email": "",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2657.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
+   "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "周昱彤",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "周昱彤-外语教学部",
    "research": "",
@@ -101,12 +98,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/3558.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "唐帅",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "唐帅-外语教学部",
    "research": "",
@@ -116,22 +113,23 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2652.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "唐晓光",
-   "title": "",
+   "title": "讲师",
    "duty": "",
-   "dept": "",
+   "dept": "唐晓光-外语教学部",
    "research": "",
    "office": "",
    "email": "",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2691.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
+   "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "姚岚",
@@ -145,12 +143,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1094/2661.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "孟可心",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "孟可心-外语教学部",
    "research": "",
@@ -160,12 +158,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2654.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "宋静芳",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "宋静芳-外语教学部",
    "research": "",
@@ -175,12 +173,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2649.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "尹伟",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "尹伟-外语教学部",
    "research": "",
@@ -190,12 +188,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2699.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "张丽莉",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "张丽莉-外语教学部",
    "research": "",
@@ -205,12 +203,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/3551.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "张晓倩",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "",
    "research": "",
@@ -220,12 +218,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/4594.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "张晶",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "张晶-外语教学部",
    "research": "",
@@ -235,7 +233,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2687.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -250,12 +248,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1094/4589.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "徐畅",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "",
    "research": "",
@@ -265,12 +263,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/4593.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "房冰",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "房冰-外语教学部",
    "research": "",
@@ -280,12 +278,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/4591.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "朱伶俐",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "朱伶俐-外语教学部",
    "research": "",
@@ -295,12 +293,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2704.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "朱琳",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "朱琳-外语教学部",
    "research": "",
@@ -310,12 +308,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2640.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "朱翠华",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "朱翠华-外语教学部",
    "research": "",
@@ -325,7 +323,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2653.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -340,12 +338,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1094/2664.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "杨晗",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "杨晗-外语教学部",
    "research": "",
@@ -355,12 +353,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2693.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "杨柳",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "杨柳-外语教学部",
    "research": "",
@@ -370,12 +368,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2761.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "林琳",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "林琳-外语教学部",
    "research": "",
@@ -385,7 +383,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/4590.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -400,7 +398,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1098/2712.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -415,12 +413,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1094/3582.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "潘新宁",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "潘新宁-外语教学部",
    "research": "",
@@ -430,7 +428,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/3552.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -445,12 +443,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1098/3575.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "王冰营",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "王冰营-外语教学部",
    "research": "",
@@ -460,12 +458,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2642.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "王子慧",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "王子慧-外语教学部",
    "research": "",
@@ -475,7 +473,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2684.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -490,12 +488,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1094/2662.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "王琦",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "王琦-外语教学部",
    "research": "",
@@ -505,12 +503,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2707.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "王红",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "王红-外语教学部",
    "research": "",
@@ -520,12 +518,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2696.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "王莉",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "王莉-外语教学部",
    "research": "",
@@ -535,12 +533,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2656.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "王金悦",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "王金悦-外语教学部",
    "research": "",
@@ -550,12 +548,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2690.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "禹霓",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "禹霓-外语教学部",
    "research": "",
@@ -565,12 +563,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2686.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "秦晓峰",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "秦晓峰-外语教学部",
    "research": "",
@@ -580,12 +578,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2702.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "胡鹏鹏",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "胡鹏鹏-外语教学部",
    "research": "",
@@ -595,12 +593,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2689.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "葛莉",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "葛莉-外语教学部",
    "research": "",
@@ -610,7 +608,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2701.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -625,12 +623,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2697.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "许宁",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "许宁-外语教学部",
    "research": "",
@@ -640,26 +638,27 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2648.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "赫易",
-   "title": "",
+   "title": "副教授",
    "duty": "",
-   "dept": "",
+   "dept": "赫易-外语教学部",
    "research": "",
    "office": "",
    "email": "",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2647.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
+   "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "赵兰玉",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "赵兰玉-外语教学部",
    "research": "",
@@ -669,12 +668,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2643.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "赵彤",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "赵彤-外语教学部",
    "research": "",
@@ -684,12 +683,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2705.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "郎锡东",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "郎锡东-外语教学部",
    "research": "",
@@ -699,12 +698,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2655.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "郝鑫浩",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "郝鑫浩-外语教学部",
    "research": "",
@@ -714,12 +713,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2698.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "陈嘉梅",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "陈嘉梅-外语教学部",
    "research": "",
@@ -729,12 +728,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2703.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "顾红",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "顾红-外语教学部",
    "research": "",
@@ -744,7 +743,7 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2670.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
@@ -759,12 +758,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1094/4588.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "马馨",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "马馨-外语教学部",
    "research": "",
@@ -774,12 +773,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2685.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "马黎",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "马黎-外语教学部",
    "research": "",
@@ -789,12 +788,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/3557.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "高燕",
-   "title": "",
+   "title": "讲师",
    "duty": "",
    "dept": "高燕-外语教学部",
    "research": "",
@@ -804,12 +803,12 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1096/2695.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   },
   {
    "name": "黄立安",
-   "title": "",
+   "title": "副教授",
    "duty": "",
    "dept": "黄立安-外语教学部",
    "research": "",
@@ -819,10 +818,10 @@
    "work": "",
    "photo": "https://wyb.syau.edu.cn/images/logo.png",
    "source": "https://wyb.syau.edu.cn/info/1095/2641.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
+   "fetchedAt": "2026-11-14T21:54:00+08:00",
    "photoThumb": "photos/054c7956254bc88b.jpg"
   }
  ],
- "photosAt": "2026-11-14T21:39:58+0800",
- "withThumb": 51
+ "photosAt": "2026-11-14T21:56:39+0800",
+ "withThumb": 54
 }

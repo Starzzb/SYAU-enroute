@@ -3,14 +3,13 @@
  "college": "理学院",
  "code": "lxy",
  "mode": "A",
- "generatedAt": "2026-11-14T21:00:00+08:00",
+ "generatedAt": "2026-11-14T21:30:00+08:00",
  "count": 7,
- "withTitle": 6,
+ "withTitle": 7,
  "withEmail": 0,
  "withResearch": 4,
- "withPhoto": 6,
+ "withPhoto": 7,
  "problems": [
-  "详情页失败 https://lxy.syau.edu.cn/info/1025/1510.htm: Remote end closed connection without response",
   "https://lxy.syau.edu.cn/szdw1/fjs.htm 解析出 0 条（A 模式）"
  ],
  "teachers": [
@@ -26,8 +25,7 @@
    "work": "",
    "photo": "https://lxy.syau.edu.cn/images/logo.png",
    "source": "https://lxy.syau.edu.cn/info/1025/1113.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
-   "photoThumb": "photos/1783a7a457b5e20f.jpg"
+   "fetchedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "name": "刘晓宇",
@@ -41,8 +39,7 @@
    "work": "",
    "photo": "https://lxy.syau.edu.cn/images/logo.png",
    "source": "https://lxy.syau.edu.cn/info/1025/1774.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
-   "photoThumb": "photos/1783a7a457b5e20f.jpg"
+   "fetchedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "name": "吕振环",
@@ -56,22 +53,21 @@
    "work": "",
    "photo": "https://lxy.syau.edu.cn/images/logo.png",
    "source": "https://lxy.syau.edu.cn/info/1025/2073.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
-   "photoThumb": "photos/1783a7a457b5e20f.jpg"
+   "fetchedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "name": "唐树戈",
-   "title": "",
+   "title": "教授",
    "duty": "",
-   "dept": "",
+   "dept": "工作至今，2007年获得植物病理学博士学位， 2020年晋升为教授，硕士研究生导师，先后承担农、工类本科生《普通化学》、《普通化学实验》、《物理化学》、《物理化学验》等课程的教学任务。",
    "research": "",
    "office": "",
    "email": "",
    "education": "",
    "work": "",
-   "photo": "",
+   "photo": "https://lxy.syau.edu.cn/images/logo.png",
    "source": "https://lxy.syau.edu.cn/info/1025/1510.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00"
+   "fetchedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "name": "宋贽",
@@ -85,8 +81,7 @@
    "work": "",
    "photo": "https://lxy.syau.edu.cn/images/logo.png",
    "source": "https://lxy.syau.edu.cn/info/1025/2467.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
-   "photoThumb": "photos/1783a7a457b5e20f.jpg"
+   "fetchedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "name": "张阚",
@@ -100,8 +95,7 @@
    "work": "",
    "photo": "https://lxy.syau.edu.cn/images/logo.png",
    "source": "https://lxy.syau.edu.cn/info/1025/1289.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
-   "photoThumb": "photos/1783a7a457b5e20f.jpg"
+   "fetchedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "name": "王倩",
@@ -115,10 +109,7 @@
    "work": "",
    "photo": "https://lxy.syau.edu.cn/images/logo.png",
    "source": "https://lxy.syau.edu.cn/info/1025/2394.htm",
-   "fetchedAt": "2026-11-14T21:00:00+08:00",
-   "photoThumb": "photos/1783a7a457b5e20f.jpg"
+   "fetchedAt": "2026-11-14T21:30:00+08:00"
   }
- ],
- "photosAt": "2026-11-14T21:39:44+0800",
- "withThumb": 6
+ ]
 }

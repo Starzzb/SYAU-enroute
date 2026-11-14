@@ -9,9 +9,11 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -35,10 +37,13 @@ import cn.dkarbon.enroute.R
 import cn.dkarbon.enroute.ui.home.CardGap
 import cn.dkarbon.enroute.ui.home.SectionLabel
 import cn.dkarbon.enroute.ui.settings.UpdateSection
+import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
+import cn.dkarbon.enroute.ui.timetable.MathBackdropMotion
+import cn.dkarbon.enroute.ui.timetable.tesseractAlpha
 
 /**
  * 关于 / 开源信息。
@@ -63,6 +68,22 @@ fun AboutScreen() {
             ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }
     }
+
+    Box(Modifier.fillMaxSize()) {
+    /*
+     * 背景：四维超立方体（票 29）。1 物理像素线宽 + 0.075~0.13 不透明度，
+     * 只当纸纹 —— 它一旦和正文抢注意力就说明画重了。
+     *
+     * 为什么挂在「关于」页：这一页没有数据、常驻可达、留白最多；
+     * 「我的」「设置」内容铺满，背景图几乎全被不透明卡片盖住，等于白做。
+     *
+     * 动画的省电约定（可见才跑 / 每帧零分配 / 关动画就静止）在 MathBackdropMotion 里。
+     */
+    MathBackdropMotion(
+        modifier = Modifier.fillMaxSize(),
+        color = t.ink,
+        alpha = tesseractAlpha(Form.current.editorial, t.isDark),
+    )
 
     Column(
         modifier = Modifier
@@ -234,6 +255,7 @@ fun AboutScreen() {
             color = t.inkFaint,
         )
     }
+    }   // ← 背景 Box（票 29）：上面的 `}` 闭合 Column，这一行闭合 Box
 }
 
 @Composable

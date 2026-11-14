@@ -2,10 +2,23 @@ package cn.dkarbon.enroute.ui.timetable
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import cn.dkarbon.enroute.ui.common.Tesseract4D
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -166,5 +179,164 @@ fun MathBackdrop(modifier: Modifier, color: Color, alpha: Float, turns: Float) {
                 strokeWidth = kotlin.math.ceil(1f * density),
             )
         }
+    }
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// 四维「转换」动效（票 29）
+//
+// 主人原话：「背景的超立方体可以有转换的效果」。
+// 静态那张图已经能看出是个四维体，但"四维"这件事只有**动起来**才成立：
+// 内外两层立方体交换的那一下，就是第四维在转身。
+//
+// 三条硬约束（与静态版同源）：
+//   ① 是四维旋转，不是三维自转 —— 3D 相机角固定，只让 6 个 4D 平面转；
+//   ② 是背景不是主角 —— 1 物理像素线宽、alpha 0.075–0.13；
+//   ③ 省电 —— 只在可见时跑、用 withFrameNanos 推进、每帧零对象分配、
+//      系统开「移除动画」时完全静止。
+// ═══════════════════════════════════════════════════════════
+
+/**
+ * 背景线框的默认强度（按主题分档）。
+ *
+ * 账页最低（0.075）：那边有成行的色带（BandTint），线框再浓就会和色带打架，
+ * 变成一层"脏底"而不是纸纹。
+ */
+fun tesseractAlpha(editorial: Boolean, isDark: Boolean): Float = when {
+    editorial -> if (isDark) 0.115f else 0.085f
+    isDark -> 0.14f
+    else -> 0.12f
+}
+
+/**
+ * 每帧复用的缓冲。**进组合时建一次，之后一直复用** —— 60fps 下每帧 new 16 顶点 + 32 条线
+ * 的数组，一秒钟就是几百个短命对象，GC 抖动的代价远大于画 32 条线。
+ */
+internal class TesseractBuffers {
+    val angles = FloatArray(Tesseract4D.PLANES)
+    val xy = FloatArray(Tesseract4D.VERTEX_COUNT * 2)
+    val depth = FloatArray(Tesseract4D.VERTEX_COUNT)
+    val scratch = FloatArray(4)
+}
+
+/**
+ * 画一帧四维超立方体。
+ *
+ * @param phase 0..1 的周期相位（0 与 1 是同一个姿态，所以循环无接缝）
+ * @param alpha 整体不透明度
+ * @param radiusFactor 外接半径相对「短边」的倍数。0.55 时图形大约占短边的 6 成 ——
+ *   再大就成了主角，再小四维结构看不清（这是「看得见」与「不抢戏」之间的实测取值）
+ */
+internal fun DrawScope.drawTesseract4D(
+    color: Color,
+    phase: Float,
+    alpha: Float,
+    strokeWidth: Float,
+    buffers: TesseractBuffers,
+    radiusFactor: Float = 0.55f,
+) {
+    val cx = size.width / 2f
+    val cy = size.height * 0.52f
+    val radius = kotlin.math.min(size.width, size.height) * radiusFactor
+
+    Tesseract4D.anglesInto(buffers.angles, phase)
+    Tesseract4D.projectInto(buffers.xy, buffers.depth, buffers.scratch, buffers.angles, cx, cy, radius)
+
+    val base = color.copy(alpha = alpha)
+    val edges = Tesseract4D.EDGES
+    var i = 0
+    while (i < edges.size) {
+        val a = edges[i]
+        val b = edges[i + 1]
+        // 近实远虚：透视因子越大越靠前，线就越实（一层"体积感"，不加面也能读出差深）
+        // 下限给到 0.55 而不是 0.42：远处那半圈线太淡时，整张图会"缺一半"，看不出是个闭合体
+        val near = (Tesseract4D.depthNormalize(buffers.depth[a]) +
+            Tesseract4D.depthNormalize(buffers.depth[b])) * 0.5f
+        drawLine(
+            color = base.copy(alpha = alpha * (0.55f + 0.45f * near)),
+            start = Offset(buffers.xy[a * 2], buffers.xy[a * 2 + 1]),
+            end = Offset(buffers.xy[b * 2], buffers.xy[b * 2 + 1]),
+            strokeWidth = strokeWidth,
+        )
+        i += 2
+    }
+}
+
+/**
+ * 会「转换」的四维背景。默认挂在「关于」页（页面留白最多，且没有数据要抢）。
+ *
+ * ## 省电三条（代码里能看出来）
+ * 1. **只在可见时跑**：[LaunchedEffect] 的 key 是 [visible]，页面离开组合或 Activity 退到后台
+ *    （`Lifecycle` 不到 STARTED）时协程直接停；回来重新起算，不做"补帧"。
+ * 2. **每帧零分配**：顶点/棱/角度全在 [TesseractBuffers] 里复用；`Color`/`Offset` 都是
+ *    Compose 的 value class，`copy`/构造不进堆。
+ * 3. **不逐帧重组**：相位用 `mutableFloatStateOf` 存，但只在 [Canvas] 的 draw lambda 里读 ——
+ *    Compose 会把这次读取算作"绘制阶段依赖"，只重绘、不重组。
+ *
+ * 另外：系统设置里把「动画时长」调到 0（开发者选项的"移除动画"/无障碍"减少动态效果"）时，
+ * 整个动画不启动，只留一个静态姿态 —— 眩晕敏感的用户不该被背景逼着看动效。
+ *
+ * @param periodSeconds 一个完整周期。34 秒是有意的：快到能看出"在变"，慢到不会让人盯着看
+ */
+@Composable
+fun MathBackdropMotion(
+    modifier: Modifier = Modifier,
+    color: Color,
+    alpha: Float,
+    periodSeconds: Float = 34f,
+    initialPhase: Float = 0.31f,
+) {
+    val ctx = LocalContext.current
+    // 只读一次：这个值在会话中不会变，不值得为它挂监听
+    val animScaleOff = remember(ctx) {
+        runCatching {
+            android.provider.Settings.Global.getFloat(
+                ctx.contentResolver,
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            )
+        }.getOrDefault(1f) == 0f
+    }
+
+    val phase = remember { mutableFloatStateOf(Tesseract4D.normalizePhase(initialPhase)) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var visible by remember { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) }
+
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START, Lifecycle.Event.ON_RESUME -> visible = true
+                Lifecycle.Event.ON_STOP, Lifecycle.Event.ON_PAUSE -> visible = false
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(visible, animScaleOff) {
+        if (!visible || animScaleOff) return@LaunchedEffect
+        var startNanos = 0L
+        while (true) {
+            // 注意写成 `withFrameNanos { it }`：这个 lambda **不捕获任何变量**，
+            // Kotlin 会把它编成单例，每帧不 new（写成捕获块的形式在 60fps 下每秒 60 个短命闭包）
+            val now = withFrameNanos { it }
+            if (startNanos == 0L) startNanos = now
+            val elapsed = (now - startNanos) / 1_000_000_000f
+            phase.floatValue = Tesseract4D.normalizePhase(elapsed / periodSeconds + initialPhase)
+        }
+    }
+
+    val buffers = remember { TesseractBuffers() }
+    Canvas(modifier) {
+        drawTesseract4D(
+            color = color,
+            phase = phase.floatValue,
+            alpha = alpha,
+            // 1 物理像素 —— 不乘 density：它要的是"纸上一根细线"，不是 1dp 的 UI 元素
+            strokeWidth = 1f,
+            buffers = buffers,
+        )
     }
 }

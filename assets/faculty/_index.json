@@ -1,8 +1,8 @@
 {
  "schema": 1,
- "generatedAt": "2026-11-14T21:41:23+0800",
+ "generatedAt": "2026-11-14T21:58:39+0800",
  "colleges": 16,
- "total": 741,
+ "total": 881,
  "fields": [
   "title",
   "duty",
@@ -19,22 +19,22 @@
   {
    "code": "gcxy",
    "college": "工程学院",
-   "mode": "B",
-   "count": 18,
+   "mode": "AB",
+   "count": 79,
    "coverage": {
-    "title": 18,
+    "title": 79,
     "duty": 0,
-    "dept": 0,
+    "dept": 1,
     "research": 0,
     "office": 0,
     "email": 0,
     "education": 0,
     "work": 0,
-    "photo": 0,
+    "photo": 1,
     "photoThumb": 0
    },
    "problems": 0,
-   "generatedAt": "2026-11-14T21:00:00+08:00"
+   "generatedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "code": "jgxy",
@@ -82,19 +82,19 @@
    "mode": "A",
    "count": 7,
    "coverage": {
-    "title": 6,
+    "title": 7,
     "duty": 0,
-    "dept": 0,
+    "dept": 1,
     "research": 4,
     "office": 0,
     "email": 0,
     "education": 0,
     "work": 0,
-    "photo": 6,
-    "photoThumb": 6
+    "photo": 7,
+    "photoThumb": 0
    },
-   "problems": 2,
-   "generatedAt": "2026-11-14T21:00:00+08:00"
+   "problems": 1,
+   "generatedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "code": "marx",
@@ -262,19 +262,19 @@
    "mode": "A",
    "count": 54,
    "coverage": {
-    "title": 8,
+    "title": 52,
     "duty": 1,
-    "dept": 40,
+    "dept": 43,
     "research": 2,
     "office": 0,
     "email": 0,
     "education": 0,
     "work": 0,
-    "photo": 51,
-    "photoThumb": 51
+    "photo": 54,
+    "photoThumb": 54
    },
-   "problems": 3,
-   "generatedAt": "2026-11-14T21:00:00+08:00"
+   "problems": 0,
+   "generatedAt": "2026-11-14T21:54:00+08:00"
   },
   {
    "code": "xdxy",
@@ -299,22 +299,22 @@
   {
    "code": "yyxy",
    "college": "园艺学院",
-   "mode": "C",
-   "count": 3,
+   "mode": "A",
+   "count": 82,
    "coverage": {
-    "title": 1,
-    "duty": 0,
-    "dept": 0,
-    "research": 0,
-    "office": 0,
-    "email": 0,
-    "education": 0,
-    "work": 0,
-    "photo": 0,
+    "title": 78,
+    "duty": 11,
+    "dept": 71,
+    "research": 76,
+    "office": 2,
+    "email": 74,
+    "education": 8,
+    "work": 7,
+    "photo": 78,
     "photoThumb": 0
    },
-   "problems": 0,
-   "generatedAt": "2026-11-14T21:00:00+08:00"
+   "problems": 36,
+   "generatedAt": "2026-11-14T21:30:00+08:00"
   },
   {
    "code": "zbxy",
@@ -338,16 +338,16 @@
   }
  ],
  "totals": {
-  "title": 654,
-  "duty": 147,
-  "dept": 305,
-  "research": 379,
-  "office": 293,
-  "email": 412,
-  "education": 103,
-  "work": 170,
-  "photo": 648,
-  "photoThumb": 544
+  "title": 837,
+  "duty": 158,
+  "dept": 381,
+  "research": 455,
+  "office": 295,
+  "email": 486,
+  "education": 111,
+  "work": 177,
+  "photo": 731,
+  "photoThumb": 541
  },
  "note": "本文件每次都由 tools/faculty/summary.py 重扫整个 assets 目录生成，不是逐站中间产物"
 }

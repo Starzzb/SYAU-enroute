@@ -341,7 +341,10 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
                                         // 先把内容"摆到"滑动反方向的一侧，再动画回 0 ——
                                         // 观感就是新一周从手指来的方向推进来
                                         trySwipeNow.value(step)
-                                        swipeOffset = -step * swipeWidth
+                                        // 新一周从**手指来的那一侧**推进来：
+                                        // 向左滑（step=+1，下一周）→ 新内容从右侧(+w)进；向右滑 → 从左侧(-w)进。
+                                        // 所以起点是 `step * w`（不是 -step），这一步符号写反了会看起来"倒着走"。
+                                        swipeOffset = step * swipeWidth
                                         animateSwipeTo(0f)
                                     }
                                     // 到边界：回弹，周次不变（不静默）
