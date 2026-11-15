@@ -2,8 +2,8 @@
   "versionCode": 210,
   "versionName": "0.3.0+m20",
   "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m20/app-release.apk",
-  "sha256": "d467154d227109a9db6d2195ef75ad2552d3fc7d5492b0eb6dc1b70860de5bec",
-  "size": 5537192,
-  "notes": "地图属性共建、自定义课程、2023 级培养方案、笺主题、调试日志；修复教师搜索崩溃、空闲教室查不出结果、登录态反复失效、地图拖动回弹",
+  "sha256": "bde3b6f362f01a804e303cd5567d44af6c4f7b5d790fee445f037ae5cdf488cf",
+  "size": 5569960,
+  "notes": "笺主题重设计（含设置/开关行组件）、资讯页页眉按需隐藏与密度优化、我的页功能入口按归属归组、培养方案表格修正、两套主题对比度全面达标（暗色次要文字 3.27→4.61:1）、课表底纹改为独立背景层、新增 6 个证书/竞赛信息源",
   "minSupported": 0
 }
