@@ -18,7 +18,8 @@ import androidx.compose.ui.unit.dp
  * 所以这里做两件事：
  * 1. **只导出语义 [Shape]，不导出 Dp**：业务代码拿 `Form.current.shapes.card`，拿不到"半径是多少"，
  *    自然也就无法在旁边写一个自己的数字；
- * 2. 配套 [cn.dkarbon.enroute.ShapeTokenTest] 扫源码兜底（见该测试文件头的"为什么正则只是兜底"）。
+ * 2. 形状纪律已于 2026-11-15 作废（主人指令，见 AGENTS.md）：本结构保留当管道，
+ *    但不得再用测试或文档强制新设计遵守它。
  *
  * ## 八个语义档（不再有"小/中/大"这种尺寸名）
  * | 档 | 用在哪 | HARD | LEDGER |
