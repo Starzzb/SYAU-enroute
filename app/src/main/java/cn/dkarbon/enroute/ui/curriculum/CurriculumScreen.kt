@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -311,11 +312,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.creditItems(plan: Cur
             if (min.isNotBlank()) {
                 Text("最低毕业学分  $min", fontSize = 16.sp, color = t.ink, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    "取自下方「学分结构表」的『总学分』行 —— 不是课程行求和",
-                    fontSize = 10.sp,
-                    color = t.inkFaint,
-                )
+                Text("按学分结构表", fontSize = 11.5.sp, color = t.inkFaint)
             } else if (CurriculumParse.creditTableMissing(plan)) {
                 Text("学分结构表暂缺", fontSize = 14.sp, color = t.ink, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
@@ -490,7 +487,139 @@ private fun Note(text: String) {
 }
 
 /**
- * 原表渲染：保留行列，横向可滚（表头随表一起滚）。
+ * 表格渲染入口：
+ * - 学分结构表（5 个逻辑列）→ [CreditStructureTable]，按屏宽比例分配，不横向滚动；
+ * - 其余表（各学期学分分配表等 8/10/12 列）→ [RawTable]，保留横向滚动。
+ */
+@Composable
+private fun TableBlock(title: String, rows: List<List<String>>) {
+    val t = InkTokens.current
+    val cols = rows.maxOfOrNull { it.size } ?: 0
+    if (rows.isEmpty() || cols <= 0) return
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(title, fontSize = 12.sp, color = t.ink, fontWeight = FontWeight.Bold)
+        if (isCreditStructure(rows)) CreditStructureTable(rows) else RawTable(rows)
+    }
+}
+
+/** 学分结构表：首行 `教育环节 / 课程平台 / 各平台课程性质 / 必修课 / 选修课` */
+private fun isCreditStructure(rows: List<List<String>>): Boolean {
+    val head = rows.firstOrNull() ?: return false
+    return head.size >= 5 && head[0] == "教育环节" &&
+        head.any { it == "必修课" } && head.any { it == "选修课" }
+}
+
+/**
+ * 学分结构表：多层表头压平为单行短标签，5 列按比例分配屏宽，始终适配屏宽。
+ *
+ * 原始表是 6/7 列（「选修课」下再分「限制性选修课 / 非限制性选修课」，部分年份还有一列合并备注），
+ * 这里把第 4、5 列并进「选修」一列，子类全称带进该列数据单元格里换行显示；
+ * 表头为空的合并备注列（第 6 列长说明）直接删掉，不进「选修」列。
+ */
+@Composable
+private fun CreditStructureTable(rows: List<List<String>>) {
+    val cols = rows.maxOfOrNull { it.size } ?: 0
+    val headerRows = leadingHeaderRows(rows)
+    val subNames = creditSubNames(rows, cols, headerRows)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth()) {
+            CREDIT_HEADER.forEachIndexed { j, label ->
+                CreditCell(label, CREDIT_WEIGHTS[j], isHeader = true, right = j == 3)
+            }
+        }
+        for (i in headerRows until rows.size) {
+            Row(Modifier.fillMaxWidth()) {
+                for (j in 0..3) {
+                    CreditCell(
+                        creditCell(rows[i], j),
+                        CREDIT_WEIGHTS[j],
+                        isHeader = false,
+                        right = j == 3,
+                    )
+                }
+                CreditCell(
+                    mergeElective(rows[i], cols, subNames),
+                    CREDIT_WEIGHTS[4],
+                    isHeader = false,
+                    right = false,
+                )
+            }
+        }
+    }
+}
+
+private val CREDIT_HEADER = listOf("教育环节", "课程平台", "课程性质", "必修", "选修")
+/**
+ * 5 个逻辑列的屏宽权重（合计 4.95）。
+ *
+ * 2026-11-15 真机二次校准：初版 1.05/1.0/1.5/0.62/0.78 把「选修」列压到 56dp 左右，
+ * 「限制性选修课（限修课）」被截成「限修课…」。观察真机实际内容宽度后重分：
+ *   · 课程性质最长 7 字（专业限修课（专业方向课）换行两行即可）→ 1.5 → 1.35
+ *   · 必修列只需放「27.5」这类 4 字符数字 → 0.62 → 0.50
+ *   · 把省下的宽度全部给选修列（它有「限制性选修课（限修课）/非限制性选修课 通识选修课」这种长名）→ 0.78 → 1.15
+ */
+private val CREDIT_WEIGHTS = listOf(1.0f, 0.95f, 1.35f, 0.50f, 1.15f)
+
+/** 第 4 列起的选修子类名（取自末行表头），用于把长名带进数据单元格 */
+private fun creditSubNames(rows: List<List<String>>, cols: Int, headerRows: Int): List<String> {
+    val head = rows.getOrNull(headerRows - 1) ?: return emptyList()
+    return (4 until cols).map { s -> head.getOrElse(s) { "" }.trim() }
+}
+
+/** 空值仍是「——」，数据诚实（不改 0、不留空白） */
+private fun creditCell(row: List<String>, j: Int): String {
+    val v = row.getOrElse(j) { "" }.trim()
+    return if (v.isEmpty()) "——" else v
+}
+
+/** 选修列：合并第 4、5 列选修子列，子类全称带进单元格；表头为空的合并备注列（长说明）删掉；全空时显示「——」 */
+private fun mergeElective(row: List<String>, cols: Int, subNames: List<String>): String {
+    val parts = mutableListOf<String>()
+    for (s in 4 until cols) {
+        val v = row.getOrElse(s) { "" }.trim()
+        if (v.isEmpty() || v == "—" || v == "——") continue
+        val name = subNames.getOrNull(s - 4).orEmpty().trim()
+        if (name.isEmpty()) continue // 表头为空的合并备注列：长说明删掉，不进选修列
+        parts += "$name $v"
+    }
+    return if (parts.isEmpty()) "——" else parts.joinToString("\n")
+}
+
+/** 学分结构表单元格：按 weight 分配屏宽，数字列右对齐、文字列左对齐，长文最多 3 行 */
+@Composable
+private fun RowScope.CreditCell(
+    text: String,
+    weight: Float,
+    isHeader: Boolean,
+    right: Boolean,
+) {
+    val t = InkTokens.current
+    Box(
+        Modifier
+            .weight(weight)
+            .heightIn(min = 30.dp)
+            .background(if (isHeader) t.cardAlt else t.card)
+            .border(Stroke.hairline, t.outline)
+            .padding(horizontal = 4.dp, vertical = 4.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text,
+            fontSize = 9.sp,
+            lineHeight = 13.sp,
+            color = if (isHeader) t.ink else t.inkSoft,
+            fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+            textAlign = if (right) TextAlign.End else TextAlign.Start,
+            maxLines = if (isHeader) 1 else 3,
+            overflow = TextOverflow.Ellipsis,
+            softWrap = true,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+/**
+ * 原表渲染：保留行列，横向可滚（表头随表一起滚）。用于各学期学分分配表等 >5 列的表。
  *
  * 表格类硬要求（票 09 复审）：
  * 1. 列宽固定（同一个 `j → 列宽` 映射同时用于表头与数据，不会写两套）
@@ -499,15 +628,13 @@ private fun Note(text: String) {
  * 4. 空值原样（空格子=原表为空，绝不填 0）
  */
 @Composable
-private fun TableBlock(title: String, rows: List<List<String>>) {
+private fun RawTable(rows: List<List<String>>) {
     val t = InkTokens.current
     val cols = rows.maxOfOrNull { it.size } ?: 0
-    if (rows.isEmpty() || cols <= 0) return
     val headerRows = leadingHeaderRows(rows)
     val numeric = BooleanArray(cols) { j -> isNumericColumn(rows, headerRows, j) }
 
-    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(title, fontSize = 12.sp, color = t.ink, fontWeight = FontWeight.Bold)
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
             Column {
                 rows.forEachIndexed { i, row ->
@@ -543,7 +670,6 @@ private fun TableBlock(title: String, rows: List<List<String>>) {
                 }
             }
         }
-        // 表头按原文照排（学分结构表两行、各学期学分分配表一行）；空格子=原表为空
         Text(
             "表头按原文照排；空格子=原表为空",
             fontSize = 9.sp,
