@@ -28,7 +28,11 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -575,7 +579,7 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                         Text("图例", fontSize = 10.sp, color = t.ink, fontWeight = FontWeight.Bold)
                         if (present.isEmpty()) {
                             Text(
-                                "本图还没有标类别 —— 点要素加类别后会出现在这里",
+                                "本图还没有标类别",
                                 fontSize = 9.5.sp,
                                 lineHeight = 14.sp,
                                 color = t.inkFaint,
@@ -607,15 +611,6 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                         }
                     }
                 }
-
-                // ── 一行操作提示 ──
-                Text(
-                    "双指缩放 · 单指拖动 · 点击要素编辑属性",
-                    fontSize = 9.sp,
-                    lineHeight = 13.sp,
-                    color = t.inkFaint,
-                    modifier = Modifier.padding(start = Space.l, end = Space.l, bottom = 2.dp),
-                )
 
                 // ── 常驻提示条（票 12 §8.1：不可关闭；数字从实际数据算，不许写死）──
                 MapNudgeBar(
@@ -856,7 +851,7 @@ private fun PropertyPanel(
         if (hasNonLocal) {
             Text(
                 "「待上传」= 你填的、还没生效到服务器；「共建」= 服务器共享数据；" +
-                    "「内置」= 安装包里的基线。\n服务器有同名字段时以服务器为准；要覆盖共建值，点「＋ 添加字段」用同名列。",
+                    "「内置」= 安装包里的基线。\n服务器有同名字段时以服务器为准；要覆盖共建值，「＋ 添加字段」加同名列。",
                 fontSize = 8.5.sp,
                 lineHeight = 12.sp,
                 color = t.inkFaint,
@@ -916,8 +911,15 @@ private fun LabeledInput(
                 }
             }
             if (onLongPressLabel != null) {
-                Spacer(Modifier.width(4.dp))
-                Text("长按可删字段", fontSize = 8.sp, color = t.inkFaint)
+                Spacer(Modifier.weight(1f))
+                IconButton(onClick = onLongPressLabel) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = "删除字段",
+                        tint = t.inkFaint,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
             }
         }
         if (readOnly) {

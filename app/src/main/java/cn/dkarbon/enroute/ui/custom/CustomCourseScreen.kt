@@ -104,7 +104,7 @@ private fun CustomCourseList(ui: AppState, vm: TimetableViewModel) {
                 Modifier.fillMaxWidth().border(Stroke.hairline, t.outline).padding(Space.l),
             ) {
                 Text(
-                    "还没有自定义课。\n"+ "点右上角「＋ 新增」加一门：可以按周次排（第 3–16 周），也可以只排某一天。",
+                    "还没有自定义课。\n"+ "可以按周次排（第 3–16 周），也可以只排某一天。",
                     fontSize = 11.sp,
                     lineHeight = 17.sp,
                     color = t.inkFaint,

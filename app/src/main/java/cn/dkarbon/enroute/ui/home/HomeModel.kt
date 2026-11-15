@@ -207,7 +207,7 @@ object HomeModel {
                 "没拿到数据（不是「没有空教室」）。教务登录态可能已失效，或当前不在校园网 —— " +
                     "回「课表」页重新登录、连上校园网再刷新"
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.PICK_LOST ->
-                "服务器返回的不是你选的那栋楼（「先选楼再查」这步没生效）。点「刷新」再试一次；" +
+                "服务器返回的不是你选的那栋楼（「先选楼再查」这步没生效）。刷新后再试一次；" +
                     "若一直这样，说明教务接口行为改了，去设置页跑一次接口诊断"
         }
     }
@@ -345,9 +345,9 @@ object HomeModel {
             cn.dkarbon.enroute.data.faculty.FacultyFail.NotParsed ->
                 "找到页面了，但这一页正文只在图片里，解析不到可读信息"
             cn.dkarbon.enroute.data.faculty.FacultyFail.Ambiguous ->
-                "官网上同名老师有 ${res.candidates.size} 位，不替你猜 —— 点下面的原文自己看"
+                "官网上同名老师有 ${res.candidates.size} 位，不替你猜"
             cn.dkarbon.enroute.data.faculty.FacultyFail.Network ->
-                "没连上学院官网（校园网/网络不通都可能这样），联网后点右上角刷新"
+                "没连上学院官网（校园网/网络不通都可能这样），联网后刷新"
         } + cachedNote
     }
 

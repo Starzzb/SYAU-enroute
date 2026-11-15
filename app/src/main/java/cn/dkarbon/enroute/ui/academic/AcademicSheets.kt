@@ -136,17 +136,6 @@ fun AcademicToolbar(
     }
 }
 
-/** 工具条下方的一行小提示（教交互，但不占交互） */
-@Composable
-fun AcademicHint(t: InkTokenSet, text: String) {
-    Text(
-        text,
-        fontSize = 9.5.sp,
-        color = t.inkFaint,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 2.dp),
-    )
-}
-
 /** 浮层菜单的一行：动作 + 一句它会做什么（48dp 触区，行间 1dp 线由调用方加） */
 @Composable
 fun SheetMenuRow(
@@ -391,14 +380,7 @@ fun ExamDetailSheet(
         Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.rule))
         // 第三层：原始
         RawJsonBlock(t, exam.raw, exam.fields)
-        if (showRawFirst) {
-            Text(
-                "长按进入的浮层直接显示原文，方便接口改版时对照。",
-                fontSize = 9.5.sp,
-                color = t.inkFaint,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
+
     }
 }
 
@@ -478,8 +460,7 @@ fun AcademicProblem(
         }
         Spacer(Modifier.height(14.dp))
         Text(
-            "「接口诊断」会真的去请求一次，并把状态码、字节数、返回原文前 200 字列出来；" +
-                "「看原始」在每个条目的详情里（点开 / 长按）。",
+            "「接口诊断」会真的去请求一次，并把状态码、字节数、返回原文前 200 字列出来。",
             fontSize = 10.sp,
             lineHeight = 16.sp,
             color = t.inkFaint,

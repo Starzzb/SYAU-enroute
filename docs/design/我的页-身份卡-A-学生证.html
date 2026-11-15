@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>沈农在途 · 我的页 · 身份卡（学生证方向）A/B 变体</title>
+<style>
+:root{
+  --bg:#EFE7DC;      /* 页面背景 */
+  --ink:#23201B;     /* 正文 / 深墨 */
+  --sec:#6B6257;     /* 次要 */
+  --weak:#8F7E61;    /* 弱化（“暂缺”必须用它） */
+  --pri:#C2521F;     /* 主色 · 农械橘 */
+  --line:#7E7468;    /* 卡片描边 */
+  --cream:#EFE7DC;   /* 深墨卡面上的奶油字 */
+  --cream-dim:#C9BEAD; /* 深墨卡面上的次级字 */
+  --pri-hi:#E08A55;  /* 深底上的高亮橘（#C2521F 提亮，保证深墨上可读） */
+  --paper:#F7F0E3;   /* 竖版卡纸面（仍在暖色域内，略浅于页面底） */
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#241F1A;}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,"Courier New",monospace;}
+.wrap{padding:28px; min-width:1520px;}
+
+/* 文档标题区 */
+.doc-head{color:var(--cream); margin-bottom:6px;}
+.doc-head h1{font-size:20px; font-weight:700; letter-spacing:.02em;}
+.doc-head .meta{margin-top:8px; font-size:12px; color:#C9BEAD; line-height:1.8;}
+.doc-head .meta b{color:#EFE7DC; font-weight:600;}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid rgba(255,255,255,.22);vertical-align:-1px;margin:0 3px 0 8px;}
+
+.stage{display:flex; gap:32px; align-items:flex-start; margin-top:20px;}
+.group{display:flex; flex-direction:column; gap:12px;}
+.group-head{display:flex; align-items:baseline; gap:10px;}
+.group-head .gname{color:var(--cream); font-size:15px; font-weight:700;}
+.group-head .gintent{color:#A99A85; font-size:11px;}
+.phones{display:flex; gap:16px; align-items:flex-start;}
+
+/* ===== 手机容器：严格 360dp ===== */
+.phone{width:360px; flex:0 0 360px; background:var(--bg); border:1px solid var(--line); border-radius:10px; padding:0 12px 18px; overflow:hidden;}
+.phone-top{display:flex; justify-content:space-between; align-items:baseline; padding:14px 2px 10px;}
+.phone-top .pagename{font-size:17px; font-weight:700; color:var(--ink);}
+.phone-top .wordmark{font-size:10px; color:var(--weak); letter-spacing:.08em;}
+.phone-cap{text-align:center; font-size:11px; color:#8F8372; margin-top:10px; letter-spacing:.04em;}
+
+/* 灰色示意块：教务 / 校园 / 本机，刻意压灰，不抢身份卡的戏 */
+.gray{margin-top:10px; border:1px solid var(--line); border-radius:10px; background:#DFD3C0; color:#9A8B74; font-size:11px; text-align:center;}
+.g1{height:78px; line-height:78px;}
+.g2{height:56px; line-height:56px;}
+.g3{height:56px; line-height:56px;}
+
+.card{border-radius:10px; border:1px solid var(--line);}
+
+/* ════════════════════════════════════════════════════════════════
+   变体 A —— 横向学生证（深墨底）
+   设计意图：
+   1) 「有分量」：整卡做成深墨底的真证件；左侧 3px 农械橘压边像证件封皮折边；
+      校名作发证单位小字 + 右上「学生证」钢印味标签；头像用橘色块 + 姓氏首字；
+      学号用等宽字体字距拉开（NO. 2024 0000 00），像证件编号而非普通字段。
+   2) 「一眼可辨可点开」：不写小字，而是把动作做成卡面右下角的实心橘色胶囊按钮
+      「↻ 翻面 · 看成绩」——高饱和主色 + 旋转图标 + 动词文案，像卡上的真实控件。
+   3) 展开态 = 翻到背面：顶部「学生证 · 背面」+ 黑色磁条，成绩 2×2 网格呈现；
+      「暂缺」用弱化色 #8F7E61，绝不填 0；培养方案「查看」用橘色实心小胶囊（非蓝链）。
+   ════════════════════════════════════════════════════════════════ */
+.ida{position:relative; background:var(--ink); color:var(--cream); padding:12px 14px 10px; margin-top:10px;}
+.ida::before{content:""; position:absolute; left:0; top:12px; bottom:12px; width:3px; background:var(--pri); border-radius:0 3px 3px 0;}
+.ida-top{display:flex; justify-content:space-between; align-items:center;}
+.ida-brand{display:flex; align-items:center; gap:8px;}
+.emblem{width:28px; height:28px; border-radius:50%; background:var(--pri); color:var(--cream); display:grid; place-items:center; font-size:13px; font-weight:700; flex:0 0 auto;}
+.ida-school{font-size:12px; letter-spacing:.18em; color:var(--cream); opacity:.92;}
+.ida-tag{font-size:9px; letter-spacing:.14em; color:var(--cream); opacity:.6; border:1px solid rgba(239,231,220,.4); padding:2px 6px; border-radius:6px;}
+.ida-main{display:flex; align-items:center; gap:12px; margin-top:12px;}
+.avatar{width:52px; height:52px; border-radius:10px; background:var(--pri); color:var(--cream); display:grid; place-items:center; font-size:24px; font-weight:600; flex:0 0 auto;}
+.ida-id{min-width:0;}
+.ida-name{font-size:19px; font-weight:700; letter-spacing:.06em;}
+.ida-no{margin-top:4px; font-size:12px; letter-spacing:.16em; color:var(--cream-dim);}
+.no-label{font-size:9px; letter-spacing:.1em; color:var(--weak); margin-right:6px;}
+.ida-bottom{display:flex; justify-content:space-between; align-items:center; margin-top:12px;}
+.ida-major{font-size:11px; color:var(--cream-dim); letter-spacing:.04em;}
+.flip-chip{display:inline-flex; align-items:center; gap:6px; background:var(--pri); color:var(--cream); font-size:11px; font-weight:600; padding:7px 10px; border-radius:10px; box-shadow:0 2px 0 rgba(0,0,0,.3); cursor:pointer;}
+.flip-chip .ico{width:13px; height:13px;}
+
+.ida-back-head{display:flex; justify-content:space-between; align-items:center;}
+.back-label{font-size:10px; letter-spacing:.2em; color:var(--cream-dim);}
+.back-flip{display:inline-flex; align-items:center; gap:5px; font-size:10px; color:var(--cream); opacity:.75; border:1px solid rgba(239,231,220,.4); padding:3px 8px; border-radius:8px; cursor:pointer;}
+.back-flip .ico{width:12px; height:12px;}
+.magstripe{height:7px; margin:10px 0; border-radius:2px; background:linear-gradient(180deg,#4A4338,#5E5648 50%,#4A4338);}
+.ida-title{font-size:12px; letter-spacing:.24em; color:var(--cream); opacity:.75; margin:2px 0 8px;}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.g{border:1px solid rgba(239,231,220,.16); border-radius:8px; padding:9px 10px;}
+.g-label{font-size:10px; color:var(--cream); opacity:.5;}
+.g-val{margin-top:4px; font-size:17px; font-weight:700; color:var(--cream);}
+.g-val .hi{color:var(--pri-hi);}
+.g-val .sub{font-size:11px; font-weight:400; opacity:.55; margin-left:2px;}
+.g-val.weak{color:var(--weak);} /* “暂缺”弱化，绝不填 0 */
+.link-chip{display:inline-flex; align-items:center; gap:3px; background:var(--pri); color:var(--cream); font-size:10px; font-weight:600; padding:3px 9px; border-radius:8px; cursor:pointer;}
+
+/* ════════════════════════════════════════════════════════════════
+   变体 B —— 竖向学生证（纸面 + 农械橘校名横带）
+   设计意图：
+   1) 与 A 的差异：A 是「横向证件正面像」，B 是「竖版学生证」——顶部农械橘校名横带
+      （真学生证最常见形制），纸面奶油底、头像居中放大，更像一张实体卡。
+   2) 「可点开」更重：翻面提示做成整条通栏的橘色实心触控条（占满卡宽），
+      任何人都会把它当按钮；卡底再印 SYAU 字样增强证件感。
+   3) 展开态 = 背面：横带下压一条全幅深墨磁条，成绩网格浅底呈现，「暂缺」弱化，
+      「查看」用橘色描边小胶囊；底部「翻回正面」弱化为描边条，保持主次。
+   ════════════════════════════════════════════════════════════════ */
+.idb{margin-top:10px; background:var(--paper); overflow:hidden;}
+.idb-band{display:flex; justify-content:space-between; align-items:center; background:var(--pri); color:var(--cream); padding:7px 14px;}
+.idb-band .school{font-size:11px; letter-spacing:.16em; font-weight:600;}
+.idb-band .tag{font-size:9px; letter-spacing:.14em; border:1px solid rgba(239,231,220,.75); padding:2px 7px; border-radius:6px;}
+.idb-body{padding:14px 14px 12px; text-align:center;}
+.avatar-lg{width:58px; height:58px; margin:0 auto 9px; border-radius:10px; background:var(--pri); color:var(--cream); display:grid; place-items:center; font-size:26px; font-weight:600;}
+.idb-name{font-size:19px; font-weight:700; letter-spacing:.08em; color:var(--ink);}
+.idb-no{margin-top:5px; font-size:12px; letter-spacing:.22em; color:var(--sec);}
+.idb-no .no-label{color:var(--weak);}
+.idb-major{margin-top:6px; font-size:11px; color:var(--sec); letter-spacing:.03em;}
+.idb-flip{margin-top:13px; display:flex; align-items:center; justify-content:center; gap:7px; background:var(--pri); color:var(--cream); font-size:12px; font-weight:600; padding:9px; border-radius:10px; box-shadow:0 2px 0 rgba(35,32,27,.22); cursor:pointer;}
+.idb-flip .ico{width:14px; height:14px;}
+.idb-foot{padding:0 0 10px; text-align:center; font-size:9px; letter-spacing:.14em; color:var(--weak);}
+
+/* B 展开态（背面）专属覆盖 */
+.idb .magstripe{margin:0; border-radius:0; background:var(--ink); height:7px;}
+.idb-title{margin:12px 14px 8px; text-align:left; font-size:12px; letter-spacing:.24em; color:var(--sec);}
+.idb .grid{margin:0 14px;}
+.idb .g{border:1px solid #D9CCB5; background:#FBF5E9;}
+.idb .g-label{color:var(--weak);}
+.idb .g-val{color:var(--ink);}
+.idb .g-val .hi{color:var(--pri);}
+.idb .g-val .sub{color:var(--sec);}
+.idb .g-val.weak{color:var(--weak);}
+.idb .link-chip{background:transparent; color:var(--pri); border:1px solid var(--pri);}
+.idb-flip-outline{margin:13px 14px 12px; display:flex; align-items:center; justify-content:center; gap:6px; border:1px solid var(--line); color:var(--sec); font-size:11px; padding:8px; border-radius:10px; cursor:pointer;}
+.idb-flip-outline .ico{width:12px; height:12px;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="doc-head">
+    <h1>沈农在途 · 我的页 — 身份卡（学生证方向）A / B 变体</h1>
+    <div class="meta">
+      四台 <b>360dp</b> 真机宽原型 · 左右：变体 A / 变体 B，每变体「收起态（正面）」+「展开态（背面）」并排。<br>
+      假数据：张三 / 2024000000 / 土地资源管理 · 2024级 · 绩点 3.37 · 排名 12 / 341 · 已修学分「暂缺」。<br>
+      主题色<span class="sw" style="background:#C2521F"></span>农械橘 <span class="sw" style="background:#23201B"></span>深墨 <span class="sw" style="background:#7E7468"></span>描边 <span class="sw" style="background:#8F7E61"></span>弱化
+    </div>
+  </div>
+
+  <div class="stage">
+
+    <!-- ================= 变体 A ================= -->
+    <div class="group">
+      <div class="group-head">
+        <span class="gname">变体 A · 横向学生证（深墨底）</span>
+        <span class="gintent">证件正面像：校名发证单位 + 证件编号式学号 + 橘色「翻面」胶囊</span>
+      </div>
+      <div class="phones">
+
+        <!-- A 收起态 -->
+        <div class="phone">
+          <div class="phone-top"><span class="pagename">我的</span><span class="wordmark">沈农在途</span></div>
+
+          <div class="card ida">
+            <div class="ida-top">
+              <div class="ida-brand">
+                <div class="emblem">农</div><!-- 校徽位：色块 + 字，避免外部图片 -->
+                <div class="ida-school">沈阳农业大学</div>
+              </div>
+              <div class="ida-tag">学生证</div>
+            </div>
+            <div class="ida-main">
+              <div class="avatar">张</div><!-- 头像位：橘色块 + 姓氏首字 -->
+              <div class="ida-id">
+                <div class="ida-name">张三</div>
+                <div class="ida-no mono"><span class="no-label">NO.</span>2024 0000 00</div><!-- 证件编号式处理 -->
+              </div>
+            </div>
+            <div class="ida-bottom">
+              <div class="ida-major">土地资源管理 · 2024级</div>
+              <div class="flip-chip">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                翻面 · 看成绩
+              </div>
+            </div>
+          </div>
+
+          <div class="gray g1">教务卡片 · 6 入口（灰块示意）</div>
+          <div class="gray g2">校园卡片（灰块示意）</div>
+          <div class="gray g3">本机卡片（灰块示意）</div>
+          <div class="phone-cap">变体 A · 收起态（正面）</div>
+        </div>
+
+        <!-- A 展开态 -->
+        <div class="phone">
+          <div class="phone-top"><span class="pagename">我的</span><span class="wordmark">沈农在途</span></div>
+
+          <div class="card ida">
+            <div class="ida-back-head">
+              <span class="back-label">学生证 · 背面</span>
+              <span class="back-flip">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64 6.36"/><path d="M3 21v-6h6"/></svg>
+                翻回正面
+              </span>
+            </div>
+            <div class="magstripe"></div><!-- 磁条：背面感的物理暗示 -->
+            <div class="ida-title">学业成绩</div>
+            <div class="grid">
+              <div class="g"><div class="g-label">加权绩点</div><div class="g-val"><span class="hi">3.37</span></div></div>
+              <div class="g"><div class="g-label">已修学分</div><div class="g-val weak">暂缺</div></div>
+              <div class="g"><div class="g-label">专业排名</div><div class="g-val">12<span class="sub">/ 341</span></div></div>
+              <div class="g"><div class="g-label">培养方案</div><div class="g-val"><span class="link-chip">查看 ›</span></div></div>
+            </div>
+          </div>
+
+          <div class="gray g1">教务卡片 · 6 入口（灰块示意）</div>
+          <div class="gray g2">校园卡片（灰块示意）</div>
+          <div class="gray g3">本机卡片（灰块示意）</div>
+          <div class="phone-cap">变体 A · 展开态（背面）</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ================= 变体 B ================= -->
+    <div class="group">
+      <div class="group-head">
+        <span class="gname">变体 B · 竖向学生证（纸面 + 橘横带）</span>
+        <span class="gintent">竖版实体卡：校名横带 + 居中头像 + 通栏橘色「翻面」触控条</span>
+      </div>
+      <div class="phones">
+
+        <!-- B 收起态 -->
+        <div class="phone">
+          <div class="phone-top"><span class="pagename">我的</span><span class="wordmark">沈农在途</span></div>
+
+          <div class="card idb">
+            <div class="idb-band"><span class="school">沈阳农业大学</span><span class="tag">学生证</span></div>
+            <div class="idb-body">
+              <div class="avatar-lg">张</div>
+              <div class="idb-name">张三</div>
+              <div class="idb-no mono"><span class="no-label">NO.</span>2024 0000 00</div>
+              <div class="idb-major">土地资源管理 · 2024级</div>
+              <div class="idb-flip">
+                <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+                翻面 · 看成绩
+              </div>
+            </div>
+            <div class="idb-foot">SYAU · 沈农在途</div>
+          </div>
+
+          <div class="gray g1">教务卡片 · 6 入口（灰块示意）</div>
+          <div class="gray g2">校园卡片（灰块示意）</div>
+          <div class="gray g3">本机卡片（灰块示意）</div>
+          <div class="phone-cap">变体 B · 收起态（正面）</div>
+        </div>
+
+        <!-- B 展开态 -->
+        <div class="phone">
+          <div class="phone-top"><span class="pagename">我的</span><span class="wordmark">沈农在途</span></div>
+
+          <div class="card idb">
+            <div class="idb-band"><span class="school">沈阳农业大学</span><span class="tag">背面</span></div>
+            <div class="magstripe"></div><!-- 全幅深墨磁条：翻到背面的物理暗示 -->
+            <div class="idb-title">学业成绩</div>
+            <div class="grid">
+              <div class="g"><div class="g-label">加权绩点</div><div class="g-val"><span class="hi">3.37</span></div></div>
+              <div class="g"><div class="g-label">已修学分</div><div class="g-val weak">暂缺</div></div>
+              <div class="g"><div class="g-label">专业排名</div><div class="g-val">12<span class="sub">/ 341</span></div></div>
+              <div class="g"><div class="g-label">培养方案</div><div class="g-val"><span class="link-chip">查看 ›</span></div></div>
+            </div>
+            <div class="idb-flip-outline">
+              <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 2.64 6.36"/><path d="M3 21v-6h6"/></svg>
+              翻回正面
+            </div>
+          </div>
+
+          <div class="gray g1">教务卡片 · 6 入口（灰块示意）</div>
+          <div class="gray g2">校园卡片（灰块示意）</div>
+          <div class="gray g3">本机卡片（灰块示意）</div>
+          <div class="phone-cap">变体 B · 展开态（背面）</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -4,12 +4,15 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -211,6 +214,12 @@ fun tesseractAlpha(editorial: Boolean, isDark: Boolean): Float = when {
     else -> 0.12f
 }
 
+/** 手势驱动：最后一点位移之后多久没动静就算「静止」（纳秒） */
+private const val DRIVE_IDLE_NANOS = 600_000_000L
+
+/** 手势驱动：变化量小于这个值的 drive 视为无位移（浮点噪声，不算输入） */
+private const val DRIVE_EPSILON = 1e-5f
+
 /**
  * 每帧复用的缓冲。**进组合时建一次，之后一直复用** —— 60fps 下每帧 new 16 顶点 + 32 条线
  * 的数组，一秒钟就是几百个短命对象，GC 抖动的代价远大于画 32 条线。
@@ -280,6 +289,10 @@ internal fun DrawScope.drawTesseract4D(
  * 整个动画不启动，只留一个静态姿态 —— 眩晕敏感的用户不该被背景逼着看动效。
  *
  * @param periodSeconds 一个完整周期。34 秒是有意的：快到能看出"在变"，慢到不会让人盯着看
+ * @param drive 手势驱动量。为 null 时维持 34 秒自转（关于页）；非 null 时**忽略时间自转**，
+ *   只按 drive 的变化量推进 phase（drive 的值单位是「圈」，1.0 = 一个完整四维周期）。
+ *   静止判定：最后一次 drive 变化 600ms 内无新位移 → 彻底停帧（连帧循环都不空转），
+ *   等下一次 drive 变化再用 [snapshotFlow] 唤醒。
  */
 @Composable
 fun MathBackdropMotion(
@@ -288,6 +301,7 @@ fun MathBackdropMotion(
     alpha: Float,
     periodSeconds: Float = 34f,
     initialPhase: Float = 0.31f,
+    drive: State<Float>? = null,
 ) {
     val ctx = LocalContext.current
     // 只读一次：这个值在会话中不会变，不值得为它挂监听
@@ -319,14 +333,35 @@ fun MathBackdropMotion(
 
     LaunchedEffect(visible, animScaleOff) {
         if (!visible || animScaleOff) return@LaunchedEffect
-        var startNanos = 0L
-        while (true) {
-            // 注意写成 `withFrameNanos { it }`：这个 lambda **不捕获任何变量**，
-            // Kotlin 会把它编成单例，每帧不 new（写成捕获块的形式在 60fps 下每秒 60 个短命闭包）
-            val now = withFrameNanos { it }
-            if (startNanos == 0L) startNanos = now
-            val elapsed = (now - startNanos) / 1_000_000_000f
-            phase.floatValue = Tesseract4D.normalizePhase(elapsed / periodSeconds + initialPhase)
+        if (drive == null) {
+            // 原行为：无条件按 periodSeconds 自转（关于页那处调用走这里）
+            var startNanos = 0L
+            while (true) {
+                // 注意写成 `withFrameNanos { it }`：这个 lambda **不捕获任何变量**，
+                // Kotlin 会把它编成单例，每帧不 new（写成捕获块的形式在 60fps 下每秒 60 个短命闭包）
+                val now = withFrameNanos { it }
+                if (startNanos == 0L) startNanos = now
+                val elapsed = (now - startNanos) / 1_000_000_000f
+                phase.floatValue = Tesseract4D.normalizePhase(elapsed / periodSeconds + initialPhase)
+            }
+        } else {
+            // 手势驱动：drive 的值就是相位贡献（单位=圈），只吃它的变化量。
+            // 手指停 600ms 后彻底停机 —— 用 snapshotFlow 挂起等下一次变化，不空转帧循环。
+            var lastDrive = drive.value
+            var lastInputAt = 0L
+            while (true) {
+                val now = withFrameNanos { it }
+                val d = drive.value
+                val delta = d - lastDrive
+                lastDrive = d
+                if (kotlin.math.abs(delta) > DRIVE_EPSILON) {
+                    phase.floatValue = Tesseract4D.normalizePhase(phase.floatValue + delta)
+                    lastInputAt = now
+                }
+                if (now - lastInputAt > DRIVE_IDLE_NANOS) {
+                    snapshotFlow { drive.value }.first { it != lastDrive }
+                }
+            }
         }
     }
 

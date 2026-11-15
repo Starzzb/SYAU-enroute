@@ -780,7 +780,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 syllabusCandidates = match.candidates,
                 syllabusDetailMsg = when {
                     entry == null && match.candidates.isNotEmpty() ->
-                        "有 ${match.candidates.size} 门课名字对得上，不替你猜 —— 点一门看它的大纲"
+                        "有 ${match.candidates.size} 门课名字对得上，不替你猜"
                     entry == null ->
                         "这本院级大纲册子里没有「${name.ifBlank { code }}」—— 册子只收土地与环境学院的 " +
                             "$count 门（2021 版），通识课与外院课通常不在其中"
@@ -2014,7 +2014,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             val msg = withContext(Dispatchers.IO) {
                 val f = store.findPushedFile()
                 if (f == null) {
-                    "没找到课表文件。用 adb push 到 /data/local/tmp/enroute-data/，或点「选择 JSON 文件」"
+                    "没找到课表文件。用 adb push 到 /data/local/tmp/enroute-data/，或通过「选择 JSON 文件」导入"
                 } else {
                     runCatching { parseAndSave(f.readText()) }
                         .getOrElse { "读取 ${f.name} 失败：${it.message}" }

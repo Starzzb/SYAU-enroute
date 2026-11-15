@@ -102,7 +102,7 @@ class MapUploader(ctx: Context) {
         val now = System.currentTimeMillis()
         if (!force && !MapContribute.shouldTryNow(now, store.nextTryAt())) {
             val mins = ((store.nextTryAt() - now) / 60_000L).coerceAtLeast(1)
-            return@withContext Outcome.Failed("上次失败了，约 $mins 分钟后自动重试（也可以手动点重试）")
+            return@withContext Outcome.Failed("上次失败了，约 $mins 分钟后自动重试")
         }
 
         val key = store.anonymousKey()

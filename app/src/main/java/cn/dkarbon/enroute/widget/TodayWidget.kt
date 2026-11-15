@@ -75,7 +75,7 @@ class TodayWidget : GlanceAppWidget() {
             ?: return WidgetData(
                 dateLabel = now.format(fmt),
                 headline = "还没导入课表",
-                detail = "点开 App 导入一次",
+                detail = "去 App 里导入课表",
                 rows = emptyList(),
                 hasTimetable = false,
             )

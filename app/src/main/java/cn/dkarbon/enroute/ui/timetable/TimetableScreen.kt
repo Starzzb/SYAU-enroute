@@ -49,11 +49,15 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -96,6 +100,13 @@ import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.util.Calendar
 
+// ── 底纹手势驱动（滑动才转）────────────────────────────────
+// drive 单位 = 「圈」（1.0 = 超立方体一个完整四维周期，与 MathBackdropMotion 的 phase 同单位）。
+// 横向：翻一页（pager 位置变化 1.0）转 1/6 圈 —— 换周的「转换」被看见，又不会转花眼。
+// 纵向：滚 1px 转 1/2400 圈，滚满一屏课表（约 400px）约 1/6 圈，量级与切周一致。
+private const val TURNS_PER_PAGE = 1f / 6f
+private const val TURNS_PER_VERTICAL_PX = 1f / 2400f
+
 /**
  * 课程表：**恒定 6 行 × 7 列的普通网格**（2026-11-13 按主人要求回退到 CET6 同款）。
  *
@@ -119,8 +130,9 @@ import java.util.Calendar
  * · 小幽灵按真实时间在网格里定位，上课啃、下课漂、没课躺
  *
  * ## 本 App 保留的差异（主人点名「背景还是那个」）
- * · **数学底纹** 是**固定背景层**：铺在整屏最底，按自己的 34 秒节奏原地「转换」
- *   （六平面四维旋转），不跟着 Pager 左右滑、也不跟着页内网格上下滚（票 33 分层）
+ * · **数学底纹** 是**固定背景层**：铺在整屏最底，改由手势驱动 —— 手指在滑
+ *   （横滑切周 / 纵向滚课表）它才跟着「转换」，手停 600ms 就静止；
+ *   横滑一页约转 1/6 圈，纵向滚满一屏也约 1/6 圈（票 33 分层 + 滑动才转）
  * · 点卡片 → 详情浮层；长按卡片 → 快捷菜单（CET6 没有，这里保留）
  * · 未排课列表 + 周次校准对话框保留
  * · 配色走 [InkTokens]（农械橘体系），不是 CET6 的砖红 —— 只换结构不换皮
@@ -257,15 +269,50 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
         }
     }
 
+    // ── 底纹手势驱动（滑动才转）──────────────────────────────
+    // 两个方向合并成一个 drive：横滑切周（pager 位置）× 1/6 圈/页 + 纵向滚动 px × 1/2400 圈/px。
+    // MathBackdropMotion 只吃 drive 的变化量；手指停 600ms 它自己判静止、彻底停帧。
+    val backdropDrive = remember { mutableFloatStateOf(0f) }
+
+    // 横向：page 位置（currentPage + 偏移）的变化 → 圈。animateScrollToPage（按钮跳周）也走这里。
+    val lastPagePos = remember {
+        mutableFloatStateOf(pagerState.currentPage + pagerState.currentPageOffsetFraction)
+    }
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.currentPage + pagerState.currentPageOffsetFraction }
+            .collect { pos ->
+                val delta = pos - lastPagePos.floatValue
+                if (kotlin.math.abs(delta) > 1e-4f) {
+                    backdropDrive.floatValue += delta * TURNS_PER_PAGE
+                }
+                lastPagePos.floatValue = pos
+            }
+    }
+
+    // 纵向：在底纹宿主层（外层 Box）旁听子级 verticalScroll 的 onPreScroll available.y。
+    // 返回 Offset.Zero —— 只旁听、不消费，课表滚动行为一行不改。
+    val backdropScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                backdropDrive.floatValue += kotlin.math.abs(available.y) * TURNS_PER_VERTICAL_PX
+                return Offset.Zero
+            }
+        }
+    }
+
     // 编辑版（票 17）：整页铺一层极低对比度纸纹，替代「卡片+描边」的空间感。
     // 老主题不铺 —— 这一段是新分支，HARD / SCHOLAR 渲染不变。
     val form = Form.current
     val tone = InkTokens.current
 
-    Box(Modifier.fillMaxSize()) {
+    Box(
+        Modifier
+            .fillMaxSize()
+            .nestedScroll(backdropScrollConnection),
+    ) {
         // 票 33（分层）：数学底纹是**固定背景层**，铺满整屏、画在最底，
-        // 不参与 Pager 的左右滑动、不参与页内 verticalScroll —— 它按自己的
-        // 34 秒节奏原地「转换」（六平面四维旋转），内容层透明地叠在它上面。
+        // 不参与 Pager 的左右滑动、不参与页内 verticalScroll —— 它改由手势驱动：
+        // 手指在滑（横滑切周 / 纵向滚课表）它才跟着转，手停 600ms 就静止。内容层透明地叠在它上面。
         //
         // 可见性修复（2026-11-15 真机）：分层后底纹从「GridArea 网格之上」挪到最底层，
         // 上面压着交错行带（zebra）、今日列 wash、不透明课卡。原先 0.075/0.042 是
@@ -278,6 +325,7 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
             modifier = Modifier.fillMaxSize(),
             color = if (tone.isDark) tone.ink else tone.outlineStrong,
             alpha = if (tone.isDark) 0.17f else 0.11f,
+            drive = backdropDrive,
         )
         Column(
             Modifier
@@ -1058,7 +1106,6 @@ private fun FootNote(
                 append("本周 $weekTotal 格")
                 if (unscheduled > 0) append(" · 另有 $unscheduled 门未排/冲突")
                 append(" · ").append(SchoolClock.hintOf(summer))
-                append("\n点卡片看详情 · 长按卡片复制/跳周")
             },
             fontSize = 9.5.sp,
             lineHeight = if (ed) 15.sp else 14.sp,

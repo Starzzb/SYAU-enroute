@@ -252,11 +252,8 @@ fun WoodenFish(
             }
         }
 
-        Row(horizontalArrangement = Arrangement.Center) {
-            Text("点一下 +1 · 按住连敲", fontSize = 10.sp, color = t.inkFaint)
-        }
         Spacer(Modifier.height(3.dp))
-        Text("赛博功德 · 不联网 · 只是给你按的", fontSize = 9.5.sp, color = t.inkFaint)
+        Text("赛博功德 · 不联网", fontSize = 9.5.sp, color = t.inkFaint)
         Spacer(Modifier.height(2.dp))
         Text(
             "木鱼图形：IvanHanloth/wooden-fish（MIT）",

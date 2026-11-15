@@ -3,8 +3,11 @@ package cn.dkarbon.enroute.ui.feed
 import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -58,7 +61,6 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -222,60 +224,61 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
             }
     }
 
-    // 180ms 竖直收放：高度塌缩到 0，下面内容上移。
+    // 180ms 竖直收放：页眉 + 搜索行 + 截止/失败行 + 频道筛选整体塌缩，下面内容上移。
     // 页眉在 Scaffold 内容区内，状态栏 inset 由父级保留 —— 收起不会顶到状态栏。
-    val headerHeight by animateDpAsState(
-        targetValue = if (headerHidden) 0.dp else FeedHeaderHeight,
-        animationSpec = tween(180),
-        label = "feedHeaderHide",
-    )
-
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            // 页眉按需隐藏只动这一条；筛选栏留在 pager 外，收起后仍吸顶保留
-            Box(Modifier.fillMaxWidth().height(headerHeight).clipToBounds()) {
-                LedgerHeader(
-                    title = "资讯",
-                    status = headerStatus,
-                    onSearch = { searchFocus.requestFocus() },
-                    onMore = { headerMenu = true },
-                    modifier = Modifier.requiredHeight(FeedHeaderHeight),
-                )
+            // 全收：页眉（标题/状态/⋯/查）、搜索行、频道筛选一起收一起回。
+            // AnimatedVisibility 按真实高度塌缩，收起后不留空白；内容区 weight(1f) 自动补高。
+            AnimatedVisibility(
+                visible = !headerHidden,
+                enter = expandVertically(animationSpec = tween(180)),
+                exit = shrinkVertically(animationSpec = tween(180)),
+            ) {
+                Column {
+                    LedgerHeader(
+                        title = "资讯",
+                        status = headerStatus,
+                        onSearch = { searchFocus.requestFocus() },
+                        onMore = { headerMenu = true },
+                        modifier = Modifier.requiredHeight(FeedHeaderHeight),
+                    )
+
+                    SearchRow(
+                        query = ui.query,
+                        onlyUnread = ui.onlyUnread,
+                        starredOnly = ui.starredOnly,
+                        hasFilter = ui.hasFilter,
+                        focusRequester = searchFocus,
+                        onQuery = vm::setQuery,
+                        onToggleUnread = vm::toggleOnlyUnread,
+                        onToggleStarred = vm::toggleStarredOnly,
+                        onClear = vm::clearFilter,
+                    )
+
+                    // 待办层：竞赛截止行（只在「全部」频道 + 有今天/明天截止条目时出现，账页行样式）
+                    if (currentCat == "全部") {
+                        DeadlineRow(
+                            urgent = ui.urgentCompetitions,
+                            today = ui.today,
+                            onOpen = { scope.launch { pagerState.animateScrollToPage(cats.indexOf("竞赛")) } },
+                        )
+                    }
+
+                    // 刷新失败行：只有源失败才出现的一行小字；成功横幅不显示（页眉「HH:mm 更新」已交代）
+                    ui.banner?.takeIf { it.failed.isNotEmpty() }?.let { b ->
+                        RefreshFailLine(banner = b, onDetail = { failDetail = true })
+                    }
+
+                    // 分流层：频道筛选文字行（账页式，36dp，选中项下 2dp 短横线）。
+                    // 与页眉同收同回；停手 1.2s / 到顶 / 回滚即展开，筛选入口不会丢。
+                    ChannelFilterRow(
+                        cats = cats,
+                        currentPage = pagerState.currentPage,
+                        onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
+                    )
+                }
             }
-
-            SearchRow(
-                query = ui.query,
-                onlyUnread = ui.onlyUnread,
-                starredOnly = ui.starredOnly,
-                hasFilter = ui.hasFilter,
-                focusRequester = searchFocus,
-                onQuery = vm::setQuery,
-                onToggleUnread = vm::toggleOnlyUnread,
-                onToggleStarred = vm::toggleStarredOnly,
-                onClear = vm::clearFilter,
-            )
-
-            // 待办层：竞赛截止行（只在「全部」频道 + 有今天/明天截止条目时出现，账页行样式）
-            if (currentCat == "全部") {
-                DeadlineRow(
-                    urgent = ui.urgentCompetitions,
-                    today = ui.today,
-                    onOpen = { scope.launch { pagerState.animateScrollToPage(cats.indexOf("竞赛")) } },
-                )
-            }
-
-            // 刷新失败行：只有源失败才出现的一行小字；成功横幅不显示（页眉「HH:mm 更新」已交代）
-            ui.banner?.takeIf { it.failed.isNotEmpty() }?.let { b ->
-                RefreshFailLine(banner = b, onDetail = { failDetail = true })
-            }
-
-            // 分流层：频道筛选文字行（账页式，36dp，选中项下 2dp 短横线）。
-            // 它固定在 pager 之外，页眉收起后仍吸顶保留（导航不能跟着消失）。
-            ChannelFilterRow(
-                cats = cats,
-                currentPage = pagerState.currentPage,
-                onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
-            )
 
             HorizontalPager(
                 state = pagerState,
@@ -358,7 +361,7 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
                 title = { Text("全部标为已读？", fontSize = 16.sp, fontWeight = FontWeight.Bold) },
                 text = {
                     Text(
-                        "${ui.unread} 条未读的红点会消失，收藏和正文缓存不受影响。之后可用长按「标为未读」逐条恢复。",
+                        "${ui.unread} 条未读的红点会消失，收藏和正文缓存不受影响。",
                         fontSize = 13.sp,
                         lineHeight = 20.sp,
                         color = t.inkSoft,
@@ -702,7 +705,7 @@ private fun FeedPageFooter(shown: Int, total: Int) {
         horizontalArrangement = Arrangement.Center,
     ) {
         Text(
-            if (shown < total) "上滑加载 · 已显示 $shown/$total" else "已到底 · 共 $total 条",
+            if (shown < total) "已显示 $shown/$total" else "已到底 · 共 $total 条",
             fontSize = 11.sp,
             lineHeight = 16.sp,
             color = t.inkFaint,
@@ -744,11 +747,11 @@ private fun EmptyChannel(ui: FeedUiState, channel: String, vm: FeedViewModel) {
     val unread = ui.unreadOf(channel)
     val branch = when {
         ui.query.isNotBlank() -> EmptyBranch("无", "没有符合条件的资讯", "换个词，或清空筛选", "清空筛选")
-        ui.starredOnly && ui.items.none { it.starred } -> EmptyBranch("藏", "还没有收藏", "长按条目，点「收藏」", "看全部")
+        ui.starredOnly && ui.items.none { it.starred } -> EmptyBranch("藏", "还没有收藏", "", "看全部")
         ui.onlyUnread && unread == 0 && total > 0 -> EmptyBranch("完", "都读完了", "「$channel」共 $total 条已读", "看全部")
         // 首次无缓存且上次刷新全失败：给可操作的重试（规格 §9.2）
         total == 0 && ui.banner?.tone == FeedBanner.Tone.FAIL -> EmptyBranch("空", "还没有内容", "检查网络后重试", "刷新")
-        total == 0 -> EmptyBranch("空", if (channel == "全部") "还没有内容" else "「$channel」暂时没有内容", "点页眉 ⋯ 刷新", null)
+        total == 0 -> EmptyBranch("空", if (channel == "全部") "还没有内容" else "「$channel」暂时没有内容", "", null)
         else -> EmptyBranch("空", "没有符合条件的资讯", "换个筛选条件", "清空筛选")
     }
     Box(Modifier.fillMaxSize().padding(Space.l), contentAlignment = Alignment.TopCenter) {
@@ -957,7 +960,7 @@ private fun FeedQuickActions(
         MenuRow(
             "02",
             if (item.starred) "取消收藏" else "收藏",
-            if (item.starred) "从「藏」筛选中移除" else "在搜索行点「藏」只看收藏",
+            if (item.starred) "从「藏」筛选中移除" else "只看收藏",
         ) { onToggleStar(); onDismiss() }
         MenuRow(
             "03",
@@ -1012,7 +1015,7 @@ private fun HeaderMenu(
         MenuRow(
             "04",
             "密度：${if (ui.compactOf(category)) "紧凑" else "标准"}",
-            "只影响「$category」，点一下切换",
+            "只影响「$category」",
         ) { onToggleDensity(); onDismiss() }
         if (failed.isNotEmpty()) {
             MenuRow("05", "刷新失败详情", "${failed.size} 个源失败") { onFailDetail(); onDismiss() }

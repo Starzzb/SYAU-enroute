@@ -71,7 +71,7 @@ internal fun UpdateSection() {
     // 进页面时把「上次检查发现的版本」用上，省一次请求（红点逻辑同源）
     LaunchedEffect(Unit) {
         if (state is Ui.Idle) {
-            center.pendingUpdateName()?.let { state = Ui.Hint("上次检查发现新版本 $it，点「检查更新」看详情") }
+            center.pendingUpdateName()?.let { state = Ui.Hint("上次检查发现新版本 $it") }
         }
     }
 
@@ -106,7 +106,7 @@ internal fun UpdateSection() {
                             } else {
                                 // 权限被拒：给一条可执行的路，而不是只说「失败了」
                                 runCatching { ctx.startActivity(center.unknownSourcesIntent(s.apk)) }
-                                state = Ui.NeedPermission("系统还没允许本 App 安装应用。请在上面打开的设置里允许「安装未知应用」，回来再点安装。")
+                                state = Ui.NeedPermission("系统还没允许本 App 安装应用。请在上面打开的设置里允许「安装未知应用」。")
                             }
                         },
                     )
@@ -209,7 +209,7 @@ internal fun UpdateSection() {
             }
             is Ui.Ready -> {
                 Spacer(Modifier.height(6.dp))
-                StatusLine("已下载并通过 sha256 校验，点「安装」交给系统安装器（${fmt(s.apk.length())}）", t.olive)
+                StatusLine("已下载并通过 sha256 校验，交给系统安装器（${fmt(s.apk.length())}）", t.olive)
             }
             is Ui.Error -> {
                 Spacer(Modifier.height(6.dp))

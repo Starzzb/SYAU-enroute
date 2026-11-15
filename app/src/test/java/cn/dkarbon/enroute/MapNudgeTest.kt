@@ -100,7 +100,7 @@ class MapNudgeTest {
     @Test
     fun `引导卡五步与隐私小字都在`() {
         assertEquals(5, MapNudge.GUIDE_STEPS.size)
-        assertEquals("点中地块", MapNudge.GUIDE_STEPS[0].first)
+        assertEquals("选中地块", MapNudge.GUIDE_STEPS[0].first)
         assertEquals("想帮到所有人", MapNudge.GUIDE_STEPS[4].first)
         assertTrue(MapNudge.GUIDE_STEPS[2].second.contains("字段名是所有地块共用的"))
         assertTrue(MapNudge.GUIDE_FOOTNOTE.contains("先只存在本机"))

@@ -202,7 +202,7 @@ internal fun ContributeSection(ui: AppState) {
                 enabled = true
                 uploader.setEnabled(true)
                 uploader.setAcknowledged(true)
-                status = "已开启：上传要你自己点「立即上传」"
+                status = "已开启：上传为手动触发"
             },
         )
     }
@@ -234,9 +234,6 @@ internal fun ContributeSection(ui: AppState) {
                             fontSize = 10.5.sp,
                             lineHeight = 15.sp,
                         )
-                    }
-                    if (clean.ok.size > 20) {
-                        Text("…还有 ${clean.ok.size - 20} 条", fontSize = 10.5.sp, color = InkTokens.current.inkFaint)
                     }
                     if (clean.dropped.isNotEmpty()) {
                         Spacer(Modifier.height(8.dp))

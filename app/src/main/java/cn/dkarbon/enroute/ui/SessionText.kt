@@ -19,7 +19,7 @@ object SessionText {
 
     /** [SessionState.Expired] 的通用说明：既讲清发生了什么，也讲清密码怎么处理 */
     const val EXPIRED_NOTE: String =
-        "上次登录的会话已过期（教务系统那边超时了）。点此重新登录一次即可继续，课表和成绩都还在；" +
+        "上次登录的会话已过期（教务系统那边超时了）。重新登录一次即可继续，课表和成绩都还在；" +
             "密码只在校内网那一次登录时使用，不保存。"
 
     /** 验活没做成（多半不在校园网）时的说明：保留会话，但**不谎称已确认有效** */
@@ -63,8 +63,8 @@ object SessionText {
         loading: Boolean,
         checkMsg: String,
     ): String = when {
-        state == SessionState.Expired -> "会话已过期 · 点此续期（密码只在校内网用一次，不保存）"
-        state == SessionState.None -> "点此登录教务 · 只在校内网可用"
+        state == SessionState.Expired -> "会话已过期 · 续期（密码只在校内网用一次，不保存）"
+        state == SessionState.None -> "登录教务 · 只在校内网可用"
         profileSubtitle.isNotBlank() -> profileSubtitle
         loading -> "正在读取学籍…"
         checkMsg.isNotBlank() -> checkMsg
@@ -89,7 +89,7 @@ object SessionText {
     fun noSessionHint(s: SessionState): String = when (s) {
         SessionState.None -> "还没登录。回「课表」页登录一次即可（只在校内网可用）"
         SessionState.Active -> "" // 有会话却走到这里说明是别的错误，不给误导性提示
-        SessionState.Expired -> "会话已过期。去「我的」页点身份卡续期一次即可（只在校内网可用）"
+        SessionState.Expired -> "会话已过期。到「我的」页身份卡续期一次即可（只在校内网可用）"
     }
 
     /** 设置页「数据」块那一行小字 */

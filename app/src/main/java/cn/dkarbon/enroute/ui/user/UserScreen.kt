@@ -218,6 +218,8 @@ private fun UserRoot(
     val cal = remember { TermCalendar(ctx.applicationContext) }
     val week = remember(ui.timetable) { cal.currentWeek() }
     var headerMenu by remember { mutableStateOf(false) }
+    // 身份卡展开态（票 28）：rememberSaveable 记住 —— 切到资讯再回来，展开/收起不丢
+    var identityExpanded by rememberSaveable { mutableStateOf(false) }
 
     // 进「我的」就顺手刷新主页三件套（有**有效**会话且上次抓空了才刷，避免每次切页都打网络）。
     // 键是 sessionState 而不是布尔 loggedIn：过期→有效也会重跑一次（续期后立刻有数据）。
@@ -260,29 +262,17 @@ private fun UserRoot(
             ) {
                 Spacer(Modifier.height(4.dp))
 
-                // ── 身份/学籍（1 行）：登录入口就在这里（门禁 B3），整行身份即入口 ──
-                UserLedgerGroup(
-                    title = "身份/学籍",
-                    startIndex = 1,
-                    firstGroup = true,
-                    entries = listOf(
-                        UserLedgerEntry(
-                            subject = name,
-                            sub = identitySub,
-                            value = ui.profile.studentNo.ifBlank {
-                                MyPageModel.sessionPremiseLabel(ui.sessionState)
-                            },
-                            onClick = if (SessionText.identityClickable(ui.sessionState)) onOpenLogin else null,
-                        ),
-                    ),
-                )
-
-                // ── 学业（2×2 四方格）：绩点/学分/排名/培养方案 ──
-                // 为什么四方格比平铺更适合数值：四个数并排成两行两列，一眼就能横向比较
-                // 「绩点 vs 学分」「排名 vs 培养方案」；平铺成行要上下扫四行才凑齐四个数，
-                // 数值之间的比较关系被行间距拆散。空值仍「暂缺」，绝不填 0。
-                UserStatGroup(
-                    title = "学业",
+                // ── 可展开身份卡（2026-11-15 主人定：身份/学籍 + 学业合并成一张卡）──
+                // 为什么合并：首屏第一块只留一张「学生证」——身份是常驻第一层，
+                // 成绩（绩点/学分/排名/培养方案）是按需看的第二层，收进卡内展开；
+                // 未登录时整卡就是登录门禁（点此登录教务，不展开），B3 入口不丢。
+                UserIdentityCard(
+                    state = ui.sessionState,
+                    name = name,
+                    studentNo = ui.profile.studentNo.ifBlank {
+                        MyPageModel.sessionPremiseLabel(ui.sessionState)
+                    },
+                    subtitle = identitySub,
                     cells = listOf(
                         UserStatCell(
                             label = "加权绩点",
@@ -311,13 +301,16 @@ private fun UserRoot(
                             onClick = onOpenCurriculum,
                         ),
                     ),
+                    expanded = identityExpanded,
+                    onToggle = { identityExpanded = !identityExpanded },
+                    onLogin = onOpenLogin,
                 )
 
                 // ─────────────────────────────────────────────────────────────
                 // 功能入口从这里进分组 box（主人 2026-11-15：「教务的按钮放入一个 box 内，其余的也是，确定归属」）。
                 // 注意：这与「资讯流无容器」不冲突 —— 资讯是阅读流（不放盒子），
                 // 功能入口是可点的集合（放盒子更清楚）。下一个代理不要再给资讯页加盒子。
-                // 身份/学籍（单行门禁）与学业（2×2 四方格）保持上面的无盒形态。
+                // 首屏第一块的身份/学籍也已收进可展开身份卡（见 UserIdentityCard），与下面三个 box 同族。
                 // ─────────────────────────────────────────────────────────────
                 UserGroupBox(
                     title = "教务",

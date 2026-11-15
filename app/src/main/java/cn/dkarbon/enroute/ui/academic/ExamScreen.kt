@@ -125,7 +125,6 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                     )
                 }
-                AcademicHint(t, "点开看三层详情 · 长按直接看原始 JSON")
                 LazyColumn(
                     Modifier.fillMaxSize(),
                     state = listState,
@@ -494,7 +493,7 @@ private fun ExamCard(
         }
         if (exam.name.isBlank() && place.isBlank() && timeRange.isBlank()) {
             Spacer(Modifier.height(2.dp))
-            Text("这条返回里没有可用的课程名与地点，点开看原始 JSON", fontSize = 10.sp, color = t.brick)
+            Text("这条返回里没有可用的课程名与地点", fontSize = 10.sp, color = t.brick)
         }
     }
 }

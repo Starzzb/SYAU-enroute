@@ -194,7 +194,7 @@ class MapTest {
     @Test
     fun `射线未中时用距离兜底二十dp`() {
         val tiny = square("gate", 100.0, 100.0, 104.0, 104.0)   // 4x4 的小面
-        assertEquals("点偏出去 2px 也该点中", "gate", MapHit.nearest(listOf(tiny), 106.0, 102.0, 5.0)?.id)
+        assertEquals("偏移 2px 也应命中", "gate", MapHit.nearest(listOf(tiny), 106.0, 102.0, 5.0)?.id)
         assertNull("超出兜底半径就不给", MapHit.nearest(listOf(tiny), 200.0, 200.0, 5.0))
 
         // pickOrNearest：命中优先，未中再兜底（24dp 由调用方换算成源距离）

@@ -161,8 +161,11 @@ class SessionStateTest {
             "这次没连上教务（多半不在校园网）",
             SessionText.identitySubtitle(SessionState.Active, "", false, "这次没连上教务（多半不在校园网）"),
         )
-        // 有有效会话时绝不能显示「点此登录」
-        assertFalse(SessionText.identitySubtitle(SessionState.Active, "", false, "").contains("点此登录"))
+        // 有有效会话时副标题只交代会话状态，不给登录入口提示
+        assertEquals(
+            "已登录 · 会话已加密保存，下次打开不用重登",
+            SessionText.identitySubtitle(SessionState.Active, "", false, ""),
+        )
     }
 
     @Test

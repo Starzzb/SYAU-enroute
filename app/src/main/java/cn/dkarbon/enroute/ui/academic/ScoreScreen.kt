@@ -113,7 +113,6 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                 )
             }
-            AcademicHint(t, "点开看英文名 / 课程属性 / 原始 JSON")
             if (shown.isEmpty()) {
                 // 筛选后空了：不是「没有成绩」，是筛掉了
                 Column(Modifier.fillMaxWidth().padding(24.dp)) {

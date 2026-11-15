@@ -80,9 +80,9 @@ object MyPageModel {
      * 它同时满足门禁 B2「每组第 1 行是该组的状态前提」。
      */
     fun sessionRowLabel(state: SessionState): String = when (state) {
-        SessionState.None -> "未登录 · 点此登录教务"
+        SessionState.None -> "未登录 · 登录教务"
         SessionState.Active -> "已登录（会话有效）· 重新登录"
-        SessionState.Expired -> "会话已过期 · 点此续期"
+        SessionState.Expired -> "会话已过期 · 续期"
     }
 
     /** 组头右侧的**短**状态（空间只有几个字，不能放整句） */

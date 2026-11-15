@@ -314,7 +314,7 @@ private fun WeekMatrix(
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("上课周次", fontSize = 10.5.sp, color = t.inkFaint)
             Spacer(Modifier.weight(1f))
-            Text("共 ${weeks.size} 周 · 点格子跳到那一周", fontSize = 9.sp, color = t.inkFaint)
+            Text("共 ${weeks.size} 周", fontSize = 9.sp, color = t.inkFaint)
         }
         Spacer(Modifier.height(6.dp))
 
