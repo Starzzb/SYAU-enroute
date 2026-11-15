@@ -57,3 +57,6 @@ build-log.txt
 build-verify-done.txt
 # 教师抓取的页面缓存（票 27：原始 HTML 不进仓库）
 .cache/
+
+# 真机验收截图（本地产物，不入库）
+.shots/
