@@ -195,9 +195,19 @@ object FeedParser {
             if (title in GENERIC_SKIP) continue
             if (source.urlInclude.isNotEmpty() && !href.contains(source.urlInclude)) continue
 
-            // 日期：链接结束之后 300 字以内的第一个
+            // 日期：默认在链接结束之后 300 字以内找第一个
             val after = html.substring(m.range.last + 1, minOf(html.length, m.range.last + 301))
-            val d = RE_ANY_DATE.find(after) ?: continue
+            var d: MatchResult? = null
+            if (source.dateLookback) {
+                // 「日期在前」的站点（如服务外包大赛：<span class="time">日期</span><a>标题</a>）：
+                // **必须先看前**。只看后会把**下一条**的日期当成本条的
+                // （2026-11-15 实测：关掉回看仍能解析出条目，但日期整体错位到下一条）。
+                // 回看 200 字取最后一个：窗口里可能带上一条的日期，离本条最近的那个才可信。
+                val before = html.substring(maxOf(0, m.range.first - 200), m.range.first)
+                d = RE_ANY_DATE.findAll(before).lastOrNull()
+            }
+            if (d == null) d = RE_ANY_DATE.find(after)
+            d ?: continue
             val date = normalizeDate(d)
 
             // 站点级标题过滤（省教育厅那种「什么通知都有」的源，只留竞赛相关）
@@ -206,7 +216,16 @@ object FeedParser {
             ) continue
 
             val abs = resolve(baseUrl, href)
-            val key = "${source.key}|${idFromUrl(abs)}"
+            var key = "${source.key}|${idFromUrl(abs)}"
+            // 主键去重：idFromUrl 取「路径里最长的一串数字」，但有的站点路径是按
+            // 年月分目录的（中国教育考试网 `/html1/report/2610/14-1.htm` —— 同月所有文章
+            // 最长数字都是 2610），会让整个月的条目挤成同一个键、只留第一条。
+            // 这里做**局部兜底**：同键不同址时补一段地址短哈希。
+            // 只在真撞车时补，没撞车的源主键一个字节都不变。
+            val prev = out[key]
+            if (prev != null && prev.url != abs) {
+                key = "$key|${abs.hashCode().toUInt().toString(16).take(6)}"
+            }
             if (out.containsKey(key)) continue
 
             val truncated = title.endsWith("...") || title.endsWith("…")
@@ -880,7 +899,18 @@ object FeedParser {
 
     // ── 工具 ──────────────────────────────────────────────
 
-    fun cleanTitle(s: String): String = s
+    /**
+     * 标题清洗。
+     *
+     * 2026-11-15 加「解实体 + 去残留标签」：政府 CMS 的 `title` 属性里会写
+     * `&#60;br>` 这种**编码过的换行标签**（如中国教育考试网的四六级公告），
+     * 只在 `title` 属性里出现、锚文本是空的。不处理的话标题里会留一串 `&#60;br>`。
+     *
+     * 顺序是「先解实体、再剥标签」：解完之后 `&#60;br>` 才变成真正的 `<br>`，
+     * 才能被第二道剥掉 —— 反过来先剥就剥不到。
+     */
+    fun cleanTitle(s: String): String = decodeEntities(s)
+        .replace(Regex("""(?s)<[^>]+>"""), " ")
         .replace(Regex("""\s+"""), " ")
         .replace("&nbsp;", " ")
         .trim()

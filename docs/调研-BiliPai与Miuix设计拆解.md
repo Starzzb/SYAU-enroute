@@ -358,3 +358,381 @@ MD3 档走普通 `Text` + `appSearchHighlightedText(title)`（标题也能被搜
 这一行把「Miuix 档用原生搜索栏时，设置行不画箭头」串了起来 ——
 一个能力开关同时决定两处外观，保证成套。
 
+
+---
+
+## 3. 动效参数实测 ★ 本节给票 33（课表 Pager）直接用 ★
+
+> **抄数值的许可边界**：以下**数值**（stiffness / damping / response / ms / dp / alpha）
+> 与**缓动曲线控制点**属思想层面，可以直接用；**函数名、注释文案、代码结构不得复制**。
+> 每条都标了出处文件，便于回查。BiliPai 侧的出处是 GPL 仓库（只读数），
+> Miuix 侧的出处是 Apache-2.0 仓库（可读数也可引依赖）。
+
+### 3.1 ★ Pager：这是课表那侧要的三行 ★
+
+```kotlin
+// 出处：miuix / miuix-ui / top.yukonga.miuix.kmp.utils.PagerGestureUtils.kt:80（Apache-2.0，可直接采用）
+val PagerNavigationSpringSpec = spring<Float>(
+    stiffness           = 322.2f,
+    dampingRatio        = 32.31f / (2f * sqrt(322.2f)),   // ≈ 0.899（欠阻尼，轻微过冲后收敛）
+    visibilityThreshold = 0.5f,
+)
+```
+
+配套用法（三条都是实测，不是猜的）：
+
+| 项 | 值 / 做法 | 出处 |
+|---|---|---|
+| snap 动画 | `PagerDefaults.flingBehavior(state, snapAnimationSpec = PagerNavigationSpringSpec)` | BiliPai `AppHorizontalPager.kt` + Miuix 注释 |
+| 程序翻页 | `scroll(MutatePriority.UserInput) { animateToPage(...) }` —— **用 UserInput 优先级，让焦点滚动打不断翻页** | Miuix `springAnimateToPage` |
+| 跨轴手势 | 自定义 NestedScrollConnection：`onPostFling = Velocity(available.x, 0f)` —— **只吃横轴剩余速度，纵轴整条留给页面内容** | Miuix `PagerGestureNestedScrollConnection` |
+| 翻页驱动方式 | `animate(0f → distance)` 累积 `scrollBy(delta)`，而不是 `animateScrollToPage`；**在同一个 mutation 内收口**，注释写明「取消时不会把新手势 snap 到旧目标」 | Miuix `animateToPage` |
+| 默认 beyondViewportPageCount / snapPosition | 沿用 `PagerDefaults.BeyondViewportPageCount` 与 `SnapPosition.Start` | BiliPai 直接透传 |
+
+**对课表周翻页的具体建议**：`dampingRatio ≈ 0.90` 是「有一点点落位感但不晃」的值。
+一周 7 天这种短距离 Pager，我建议直接用 `stiffness=322.2f, dampingRatio=0.9f, visibilityThreshold=0.5f`；
+若想更跟手就只把 stiffness 提到 `~420f`（BiliPai 自己的 `interactiveSnapSpring` 就是 420f/0.78）。
+**别用 `dampingRatio=1f` 做 Pager** —— 那是「死到位」，滑动翻页会显得迟钝。
+
+### 3.2 弹簧总表（BiliPai 侧，按用途）
+
+| 用途 | dampingRatio | stiffness | 备注 | 出处 |
+|---|---|---|---|---|
+| 软落位（通用） | 0.86 | `StiffnessMediumLow`（≈1660） | 面板/卡片归位 | `AppMotionTokens.softLandingSpring` |
+| 交互吸附 | **0.78** | **420** | 开关、拖拽吸附 | `interactiveSnapSpring` |
+| 底栏展开 | **0.74** | **420** | 注释：一条连续轨迹 + 克制的过冲 | `scrollCompactExpansionSpring` |
+| 下拉刷新释放 | **0.96** | **520** | 几乎临界阻尼，不回弹 | `pullRefreshReleaseSpring` |
+| 表达性吸附 | 0.72 | 520 | internal | `expressiveSnapSpring` |
+| 按压反馈 | **1f** | **1000** | visibilityThreshold `0.001f`，**不过冲** | `pressFeedbackSpring` |
+| 选中态 | 0.82 | 500 | | `selectionSpring` |
+| Tab 指示器 | 0.70 | `StiffnessMedium`（≈3800） | 弹性最明显的一档 | `indicatorSpring` |
+| 空间/几何 | 0.82 | **380** | `resolveSpatialSpec`，尺寸变化 | `AppMotionTokens` |
+| 底栏图标 scaleX | **0.60** | **250** | threshold 0.001 | `BottomBarMotionSpec` L62 |
+| 底栏图标 scaleY | **0.70** | **250** | 与上行成对（X 比 Y 更弹） | `BottomBarMotionSpec` L67 |
+
+### 3.3 Folme（HyperOS 官方阻尼体系）—— Miuix 侧，Apache-2.0
+
+`folmeSpring` 的参数是 **(damping, response 秒)**，换算公式（记下来就有用）：
+
+```
+stiffness = (2π / response)²        →  response 0.35s ⇒ stiffness ≈ 322.2f
+damping   = dampingRatio
+```
+
+**注意这条**：上面 Pager 那个 `322.2f` 就是 `response = 0.35s` 的换算结果。
+也就是说 BiliPai 的 Pager 弹簧和 Miuix 的「默认交互弹簧」是**同一个物理量**，不是两套体系。
+
+| 用途 | damping | response | 换算 stiffness | 出处 |
+|---|---|---|---|---|
+| Miuix 默认交互 | 0.95 | 0.35s | 322.2 | BiliPai `folmeDefaultSpring` / Miuix `PressExitSpring` |
+| 弹窗窗口 | 0.90 | 0.30s | ≈438.6 | `folmeDialogSpring` |
+| 底部抽屉回弹 | 0.85 | 0.40s | ≈246.7 | `folmeBottomSheetSpring` |
+| 按压下沉回弹 | 0.80 | — | 直接用 **stiffness 600** | `folmePressSpring` |
+| 按压进入 | **1.0** | **0.2s** | ≈986.9 | Miuix `PressEnterSpring` |
+| 按压离开 | 0.95 | 0.35s | 322.2 | Miuix `PressExitSpring` |
+| 悬停进入 | 1.0 | **0.6s** | ≈109.7 | Miuix `HoverEnterSpring` |
+| 悬停离开 | 0.96 | 0.2s | ≈986.9 | Miuix `HoverExitSpring` |
+| 展开（不折叠回弹） | **1.0** | **0.35s** | 322.2 | BiliPai `folmeExpandSpringSpec` |
+| 展开时淡入 | **1.0** | **0.25s** | ≈631.7 | `folmeExpandFadeSpec` |
+
+**按压的手感配方（这套值得整体搬）**：进**快且硬**（damping 1.0 / 0.2s），出**慢且软**（0.95 / 0.35s）。
+配合 Miuix 的 alpha 增量表：hover `+0.06`、focus `+0.08`、press `+0.10`、holdDown `+0.10`（可叠加）。
+`damping=1.0` 用在按压上是刻意的 —— 手指按下的反馈**绝对不能过冲**，否则像果冻。
+
+### 3.4 过渡时长（单一真相源，两档各一套）
+
+`AndroidNativeVariantThemePolicy.kt` → `resolveAndroidNativeChromeTokens(uiStyle)`：
+
+| token | Miuix 档 | MD3 档 |
+|---|---|---|
+| `motionStandardMillis` | **180** | **200** |
+| `motionEmphasizedMillis` | **240** | **300** |
+| `expressiveMotionDurationMillis` | **180** | **200** |
+| `resolveExpressiveSpec` 时长 | 150ms（曲线 EmphasizedExit） | 180ms（Md3EmphasizedAccelerate） |
+| `containerCornerRadiusDp` | 20 | 24 |
+| `pillCornerRadiusDp` | 22 | 28 |
+| `selectedContainerAlpha` | 0.18 | 0.14 |
+| `tonalSurfaceElevationDp` | **0**（Miuix 不用阴影，靠色差分层） | 3 |
+| `denseHorizontalSpacingDp` | 16 | 18 |
+| `rowMinTouchTargetDp` | 44 | 48 |
+
+**规律**：Miuix 全线比 MD3 **快 20~60ms、更扁平（elevation 0）**。
+`AppMotionTokens` 的注释也点明了这一点：「MIUIX resolves to denser tween durations」，
+并且「Durations are single-sourced from `resolveAndroidNativeChromeTokens` so both token layers stay in sync」——
+**时长只在一个函数里定义，motion token 层只是读它**。我们没有这层，值散在各屏。
+
+### 3.5 缓动曲线全表（`AppMotionEasing.kt`，design-tokens）
+
+| 名字 | cubic-bezier | 用途 / 注释 |
+|---|---|---|
+| `EmphasizedEnter` | **0.22, 1, 0.36, 1** | 入场（Apple 式强调减速） |
+| `EmphasizedExit` | **0.32, 0, 0.67, 0** | 离场（先快出） |
+| `Continuity` | **0.20, 0.90, 0.22, 1.00** | 连续位移（BiliPai 自定义，Miuix 档 standard 用它） |
+| `GentleEnter` | 0.18, 0.80, 0.20, 1.00 | 柔和入场（internal） |
+| `IosEaseInOut` | 0.42, 0, 0.58, 1 | 可逆的原位变形 |
+| `SoftClear` | **0.40, 0, 0.55, 0.30** | 景深返回「先留住模糊再柔化」，注释：避免 Continuity 在 1→0 时过早掐清 |
+| `M1Standard` | 0.4, 0, 0.2, 1 | 与平台 `FastOutSlowInEasing` **同值**，注释明确「替换仅收编引用来源，不改变任何现有手感」 |
+| `M1Decelerate` | 0, 0, 0.2, 1 | |
+| `Md3EmphasizedDecelerate` | 0.05, 0.70, 0.10, 1.00 | MD3 官方 |
+| `Md3EmphasizedAccelerate` | 0.30, 0, 0.80, 0.15 | MD3 官方 |
+| `Md3Standard` | 0.20, 0, 0, 1 | MD3 官方 |
+| `Md3StandardDecelerate` | 0, 0, 0, 1 | MD3 官方 |
+| `Md3StandardAccelerate` | 0.30, 0, 1, 1 | MD3 官方 |
+| Tab 指示器 `ease` | 0.25, 0.1, 0.25, 1（Flutter 默认曲线） | 注释：Flutter TabController 的 ease + TabBar 弹性边缘 |
+| Nagram 借鉴的 `EASE_OUT_QUINT` | 0.23, 1, 0.32, 1 | 出处见 `THIRD_PARTY_NOTICES.md`（GPL，仅数值） |
+
+Tab 指示器还配了 `DurationMillis = 300` 与两条**三角函数边沿曲线**：
+`decelerate = sin(ease(t) · π/2)`、`accelerate = 1 − cos(ease(t) · π/2)` —— 让指示器在首尾边缘弹性伸缩。
+
+### 3.6 入场动效：一个 progress 派生三个属性（最值得搬的结构）
+
+`AppEntranceMotion.kt`。核心思想：**不要用 `AnimatedVisibility` 分别淡入+平移+缩放**，
+而是让一个 `spring` 驱动单一 `progress 0→1`，再从 progress **非线性派生**三个属性：
+
+```
+alpha        = clamp(progress / alphaLeadFraction, 0, 1)     ← 淡入快于位移：先看清、再落位
+translationY = offsetDp · (1 − progress)
+scale        = initialScale + (1 − initialScale) · progress
+```
+
+按设备屏宽分三档（`MotionTier`），实测参数：
+
+| 档位 | dampingRatio | stiffness | staggerStep | maxStagger | offsetDp | initialScale | alphaLead |
+|---|---|---|---|---|---|---|---|
+| Reduced（小屏/降级） | 0.96 | 520 | **12ms** | **72ms** | 8dp | 0.99 | 0.70 |
+| Normal（主流） | 0.90 | 380 | **22ms** | **160ms** | 16dp | 0.97 | 0.55 |
+| Enhanced（大屏） | 0.82 | 320 | **26ms** | **220ms** | 22dp | 0.94 | 0.50 |
+
+`progress` 弹簧阈值 `visibilityThreshold = 0.001f`；错峰延迟 `min(index · step, maxStagger)`。
+
+**两个设计决定值得注意**：
+1. **`maxStagger` 有上限** —— 第 30 项和第 8 项延迟一样，长列表尾部不会等到天荒地老。
+   这是所有 staggered 入场都应该有、但常常没有的一行。
+2. **`alphaLeadFraction < 1` 的意思**是「alpha 比几何先到 1」，
+   注释：「让淡入快于位移收敛，视觉上先看清、再落位，更干净」。
+   这条能直接治「入场动画看着糊成一团」的问题。
+
+### 3.7 骨架屏 / Shimmer（★ 这里要纠正线索 ★）
+
+**BiliPai 没有用 compose-shimmer，而且是主动移除的**（根 `build.gradle.kts:507` 原话：
+「compose-shimmer 已移除：全仓 0 处 import」，并有 `VideoDetailSkeletonStructureTest` 断言不再使用）。
+它换成了自研的**线性扫光 + 双色脉冲**，实测参数：
+
+```
+扫光位移：infiniteRepeatable(tween(1000ms, LinearEasing), RepeatMode.Restart)
+          initialPosition = -0.5f → targetValue = 1.5f     （即 2.0 个宽度 / 秒）
+渐变停靠： 0.1f→base  0.3f→highlight  0.5f→highlight  0.7f→base
+渐变端点： start = (w·pos, h·0.35)   end = (w·pos + w, h·0.95)    ← 斜着扫，不是纯横向
+脉冲底色 alpha（light）：min 0.06 / max 0.11      ← 极淡
+脉冲底色 alpha（dark） ：min 0.10 / max 0.16
+静态骨架 alpha（light / dark）：0.10 / 0.14       ← 取脉冲区间中值
+骨架块几何：封面内缩 inset = 高度 · 0.18；文字行宽 0.9 / 0.5、0.92 / 0.62 / 0.4 等
+```
+
+四条**判得比我们细的规则**，比数值更有价值：
+
+1. **`NaN` 当哨兵表示「静态占位」**：`rememberSkeletonSweepState` 在不该动时返回 `Float.NaN`，
+   下游 `if (!position.isFinite()) return SolidColor(base)` —— **不调动画、不建 infiniteTransition**。
+   省的是每帧 recomposition，不是 if 判断。
+2. **四重门控**：`!animated || !用户开关 || 页面不可见(rememberVisualWorkActive) || 系统减弱动效` → 一律静态。
+   骨架呼吸默认**关**（`SkeletonSettingsStore breathingEnabled ?: false`），是个用户可开选项。
+3. **「原地替换」的骨架必须用固定色**，注释解释得非常清楚：
+   > 「与脉冲扫光不同：凡是『骨架与真实内容共用同一个 LazyList、靠 item 身份原地替换』的页面，
+   > 都应该用固定色。运动中的灰块与随后的内容淡入叠加，观感上就是『闪』；
+   > 固定色只负责占位，切换时只剩『内容淡入』这一件事。」
+4. 骨架里 `userScrollEnabled = false` —— 加载中的列表**不给滚**。
+
+### 3.8 系统「减弱动效」的处理（一行代码的量，但必须做）
+
+`ReduceMotion.kt`：读 `Settings.Global.ANIMATOR_DURATION_SCALE == 0f`，
+并用 `ContentObserver` 注册 `Settings.Global.getUriFor(ANIMATOR_DURATION_SCALE)` 实时跟随，
+注释特别写了「注册后再同步一次，避免注册窗口内的变更被漏掉」。
+命中时入场参数直接换成 `INSTANT_ENTRANCE_SPEC`（`animate=false`，等价于定格终态）——
+**不是把时长除以 2，是直接不播**。
+
+### 3.9 其它零散数值（可查）
+
+- 底栏形变/惯性：`baseResistance 1.04`、`overscrollResistance 0.34`、
+  `flingProjectionTimeSeconds 0.24`、`movingVelocityThresholdPxPerSecond 32`、
+  `speedProgressDivisorPxPerSecond 1150`、`dragProgressFloor 0.24`、`panelOffsetMaxDp 6`、
+  `deformationScaleXDelta 0.42`、`deformationScaleYCompressionRatio 0.58`（`BottomBarMotionSpec.kt`）。
+- 导航滑动弹簧的**时长↔刚度换算**（`NavigationSlideSpring.kt`）：
+  基准 `350ms ↔ stiffness 700`，公式 `stiffness = 700 · (350/duration)²`，上限 `2000`，`dampingRatio 1f`。
+  意思是「想让某段滑动更快，只调时长，刚度按平方反比自动跟上」—— 避免只缩短时长导致动画没劲。
+- 搜索弹性反馈：`strength 0.6f`；高光叠加 `White.copy(alpha = 0.08 · amount)`（BlendMode.Plus）与 `0.25 · amount`。
+
+### 3.10 一句总结给票 33
+
+**Pager 用 `stiffness 322.2 / dampingRatio ≈0.90 / visibilityThreshold 0.5f`；
+程序翻页用 `MutatePriority.UserInput`；跨轴 fling 只吃横轴剩余速度；
+时长统一到 180（Miuix 档）/ 200（MD3 档）ms；入场若要加，用单 progress 派生 + stagger 上限 160ms。**
+数值出处全部标了文件，抄数值合规，抄代码不合规（见 §4）。
+
+
+---
+
+## 4. 协议结论
+
+### 4.1 三张牌照，三种做法
+
+| 对象 | 协议 | 实测出处 | 我们能做什么 |
+|---|---|---|---|
+| **BiliPai**（`jay3-yy/BiliPai`） | **GPL-3.0** | 仓库 `LICENSE` 首行 GPLv3；README 徽章 `License-GPLv3`；`THIRD_PARTY_NOTICES.md` 多处声明派生代码按 GPL-3.0 分发 | ❌ **一行代码、一个资源文件都不能进我们仓库**。我们 MIT，引入 GPL 源码会把整个组合作品的分发条件变成 GPL。只能读、只能记思想 |
+| **Miuix**（`compose-miuix-ui/miuix`） | **Apache-2.0** | `LICENSE` = Apache 2.0；每个源文件头两行 `SPDX-License-Identifier: Apache-2.0` | ✅ **可以直接引依赖**。若引，需在关于我们页列 Apache-2.0 声明 + NOTICE（若有） |
+| **Haze**（`chrisbanes/haze` 2.0.1） | **Apache-2.0** | 上游 `LICENSE` 实测为 Apache 2.0 | ✅ 可引 |
+| **Compose Cupertino**（`alexzhirkevich` 0.1.0-alpha04） | ⚠️ **本轮未取得 LICENSE 文件**（raw 抓取 404，未继续核对） | 未确认 | ❌ **别引**。且我们只需要它「居中文本项」那一个形态，自己写 30 行比引入一个 alpha 依赖划算 |
+| **ITGSA SharedViewKit**（`gsai.sdk:sharedview-kit:1.0.0.5`） | **未知**，来自联盟 Nexus `http://nexus.itgsa.com:5566`（明文 HTTP） | BiliPai `settings.gradle.kts` + notices | ❌ 别碰：来源不透明 + 非 HTTPS 仓库 |
+| **Telegram / Nagram / PiliPlus 资源与动效代码** | GPL-2.0-or-later / GPL-3.0 | notices 逐条列了 commit 号 | ❌ 这些是 BiliPai 里**传染性最强**的部分（ThanosEffect 着色器、Profile 头部几何、缓冲 webp），更是碰都不能碰 |
+
+### 4.2 「抄数值」这条线画在哪
+
+- **纯数值不构成受版权保护的表达**：`stiffness = 322.2f`、`durationMillis = 180`、
+  `cubic-bezier(0.22, 1, 0.36, 1)`、`offset 0.3/0.5/0.7 的渐变停靠`、`alpha 0.06/0.11` ——
+  这些是**参数事实**，不是代码。BiliPai 自己也是这么处理上游的：
+  notices 里写「Motion parameter observations were taken from a Xiaomi HyperOS device ROM…
+  The application fallback motion controller is **authored locally** with Compose animation APIs;
+  **no decompiled ROM implementation is bundled**」。
+  它划的线就是「观察数值 → 自己写实现」。我们照这条线走。
+- **反过来，函数名 + 注释文案 + 代码结构是表达**。
+  尤其 BiliPai 那些中文注释（「分组名描述内容范围,不复读分类名」这类）是作者原话，
+  **不要往我们代码里粘**。要在文档里引用可以（文档注明出处），进源码不行。
+- **BiliPai 的 `App*` facade 命名风格别照抄成 `App*`**。
+  它叫 `AppSwitch` 是因为它要同时桥接 Miuix 与 MD3；我们只有 Material 3 一套后端，
+  这层桥接目前没有收益（理由见 §5.3）。
+
+### 4.3 若真要引 Miuix：可行性核对（本轮实测）
+
+**坐标可用**：Maven Central 实测 `top.yukonga.miuix.kmp` 下有
+`miuix-ui / miuix-ui-android / miuix-core / miuix-preference(-android) / miuix-blur / miuix-icons / miuix-squircle / miuix-shader / miuix-nav`，
+最新 **release = 0.9.4**（历史 0.9.0→0.9.4，含 0.9.4-rc01）。
+
+⚠️ 两个必须知道的坑：
+
+1. **BiliPai 用的不是 Central 的那份**。它锁 `0.9.4-b7a5f08f-SNAPSHOT`，走 GitHub Packages 且要凭据
+   （`settings.gradle.kts` 注释：「Authentication is required even for this public package」）。
+   也就是说它跑的是**带自家补丁的快照版**（另外还把 `miuix-navigation` 整个 fork 进仓库，
+   注释写「to retain the video-return patches」）。**别按 BiliPai 的坐标抄**。
+   `miuix-glass` 在 Central 上实测 **404**（只有源码仓库里有）—— 玻璃那套我们引不到。
+2. **SDK 版本**：Miuix 自身 `BuildConfig.COMPILE_SDK = 37`、`MIN_SDK = 24`。
+   我们 `compileSdk = 35 / minSdk = 26` —— minSdk 兼容，
+   **compileSdk 37 是风险项**（引依赖前必须单独验证，不是本轮结论）。
+
+**我的判断**：票 35 之后先**不要引**。理由是 §5.3 —— 它的价值在我们用不上的那一半，
+而我们要的那一小块（`SwitchPreference` 的行结构、扫光参数）自己实现的成本低于引一个 KMP 依赖的风险。
+
+---
+
+## 5. 与我们场景的适配判断
+
+### 5.1 两个 App 根本不在同一种内容密度上
+
+| 维度 | BiliPai | 沈农在途 |
+|---|---|---|
+| 设置项总量 | 数百项（`SettingsManager.kt` 单文件 **457KB**） | 约 20 项（`SettingsScreen.kt` 542 行一屏到底） |
+| 用户主动找设置吗 | **是**：画质/倍速/弹幕/解码/手势，人人调、天天调 | **基本不**：装完机调一次主题+提醒，之后不再进 |
+| 每屏信息密度 | 视频卡片流，缩略图+标题+UP+时间+播放数，必须做减法 | 课表/成绩/通知，字段少而**必须准** |
+| 主题是不是卖点 | **是**：Miuix/MD3 双档、液态玻璃、壁纸取色、开屏动画、图标、彩蛋 | 不是。主人要的是「像我们自己的」，不是「能换皮肤」 |
+| 动效预算 | 有：内容型 App，手感是留存 | 有限：工具型，卡顿一秒比不炫更伤 |
+
+**推论**：BiliPai 大量设计是「**因为它内容密度高才成立**」。搬错方向会让我们的设置页变成
+一个只有 20 项内容却穿着三级导航的壳。
+
+### 5.2 别误搬清单（每一条都给了「它为什么成立」）
+
+| 它的做法 | 它为什么需要 | 我们搬了会怎样 |
+|---|---|---|
+| **三跳结构**（目录 → 分类页 → 叶子页） | 设置项数量到「一屏放不下、搜索才有意义」的量级 | 20 项做三级，用户点两次才看到开关，比现在更差 |
+| **设置搜索 + 手工别名表 + 拼音** | 数百项找不到是真实投诉来源 | 收益≈0，成本很高（别名表要维护）。**等我们超过 50 项再考虑** |
+| **Miuix / MD3 双 UI 风格档** | 它把「换皮肤」当产品功能卖 | 我们上一轮刚因为「按纪律做出来仍不合格」把设计约定全废；再开双档等于把同一份设计做两遍 |
+| **液态玻璃 / Haze 全套** | Android 12+ 的视觉噱头，且有 `SDK_INT >= 33` 门控与降级 | 我们是工具 App，玻璃只让文字对比度变差；且真机是 vivo Android 16，不是它的目标场景 |
+| **`App*` facade + 双 renderer 30 个文件** | 为了后端可换 | 见 5.3，我们现在只有一套后端，这层是纯开销 |
+| **每行一个语义图标 + 同组多彩取色** | 数百行同构内容需要扫读锚点 | 20 行加图标会显得拥挤且像系统设置抄来的。**只在入口型行（调试日志/关于）用箭头不用图标** |
+| **44dp 视觉高度 + 内部补命中区** | 它的 Miuix 档字号小、行多 | 方向对，但具体 dp 要按我们自己的 13sp/10.5sp 字阶重测 |
+| **Consent 弹窗那 5 行长文** | 它的日志会记录请求与播放器状态，法务敏感 | 结构可以搬（见 5.4 第 4 条），**内容别搬** |
+
+### 5.3 关于「facade 是不是我们现在需要的东西」
+
+Lead 问「纪律是死规矩，facade 是活管道，区别在哪」—— 区别见 §2.3。但**要不要现在就建**是另一问。
+
+BiliPai 的 facade 之所以值钱，是因为它有**两个真实后端**且**用户会在运行时切换**。
+我们只有一个 Material 3、没有切换需求。此时套同款三层会得到：
+
+- 63 个契约文件 + 30 个 renderer 文件，**全部只有一个实现**；
+- 每次改设计要穿两层空壳；
+- 「活管道」的收益（一处 `resolve*()` 改动全局跟随）**在只有一档时等于零**。
+
+**所以正确答案不是照它的结构建层，而是把它最有用的那一半单独拿过来**：
+`policy = 纯函数返回数据类 + JVM 单测钉死数值`。
+即：不建 `AppSwitch` 这种转发壳，**建 `SettingsMetrics(style): RowMetrics` 这种函数**，
+让所有屏幕从这里取 44dp / 16dp / 24-8dp，测试断言 `assertEquals(...)`。
+这样「纪律」变成「有单一来源的可查数值」，而不是「禁值列表 + 棘轮」——
+既不重演上一轮被作废的禁值纪律，又拿到 BiliPai 分层里真正解决问题的部分。
+
+### 5.4 该搬的（就这 8 条，按性价比排）
+
+1. **`title / subtitle(说明) / value(当前值)` 三字段分离**，且 **subtitle 随状态换文案**。
+   → 直接治「设置项 + 长小字堆在一起」。落点：`保存日志到本机` 拆成
+   `value = "2 MB / 7 天"` + `subtitle = "只存本机，不上传"`。
+2. **长解释一律进弹窗/详情页，但隐私与不可撤销操作必须在决策点上说全**。
+   → 「清除所有数据」的 8 类明细从列表行搬进二次确认弹窗正文；
+   「保持登录（自动续期）」开启时也上确认弹窗（它涉及存密码，正好符合 AGENTS.md 那条仍然有效的例外）。
+3. **分组标题不许复读上级名**（「隐私与权限里还有隐私与权限」）。我们「外观」块下的取色/风格分组同样适用。
+4. **行的密度做单一来源**：`insideHorizontal 16 / insideVertical 12–16 / minTouch 44（视觉）+ 内部补命中 / 分组标题上 24 下 8 / 卡片圆角 16 或 24`，
+   用纯函数 + 单测锁住（§5.3）。**注意 Miuix 档 `dividerThickness = 0f` —— 靠留白分行而不画线**，
+   这跟我们账页风格「没有格线、用色带分区」是同一个手感方向。
+5. **Pager 与入场的动效参数整包搬**（§3.1 / §3.6）：
+   `322.2 / 0.90 / 0.5f`、`MutatePriority.UserInput`、单 progress 派生 + `alphaLeadFraction`、
+   `maxStagger` 上限、`ANIMATOR_DURATION_SCALE == 0` 即完全不播。
+   这几条与内容密度**无关**，是通用手感，可以照搬。
+6. **骨架屏的三条判断**（§3.7）：不可见/减弱动效/未开开关时**不建 infiniteTransition**；
+   原地替换的骨架用**固定色**不用脉冲；加载列表 `userScrollEnabled = false`。
+   → 我们课表/成绩的加载态正好是「原地替换」那种，第 2 条能直接解决"闪一下"的问题。
+7. **目录行带一句「这页里有什么」的副标题**（不是宣传语）。
+   → 我们若把「关于」「调试」「数据」做成入口行，副标题写成内容列举。
+8. **`value` 显示当前值而不是显示状态机输出串**。
+   → 我们的 `ui.credStatus.ifBlank { … }` 把状态文本当值，BiliPai 的写法是
+   `value = if (path != null) "自定义" else "默认"`：**值域是枚举的、短的**。
+
+### 5.5 一句话给主人
+
+BiliPai 教我们的不是「把设置页做成三级 + 搜索 + 玻璃」，而是两件事：
+**① 一行设置里，"是什么 / 会怎样 / 现在是哪个" 是三种不同文字，各占一个固定位置；
+② 长解释不在列表里，但在不可撤销的那一下必须给全。**
+再配上 §3 那批动效数值 —— 那是唯一一处我们可以直接、无损用上的硬通货。
+
+---
+
+## 附：本轮取证位置（复现用）
+
+```
+O:\dev\refs\BiliPai@35135a1
+  gradle/libs.versions.toml · settings.gradle.kts · build.gradle.kts:431,501-517
+  THIRD_PARTY_NOTICES.md · LICENSE
+  design-tokens/.../AppMotionEasing.kt · AppShapeTokens.kt · AppSpacingTokens.kt
+  design-system/.../theme/AndroidNativeVariantThemePolicy.kt · UiPreset.kt · DensityScale.kt
+  design-system/.../ui/motion/AppMotionTokens.kt · AppEntranceMotion.kt · AppTabIndicatorMotion.kt
+      · NavigationSlideSpring.kt · VerticalContentRevealMotionPolicy.kt · BottomBarMotionSpec.kt
+  brand-motion/.../ReduceMotion.kt
+  design-system/.../ui/components/  AppSwitch.kt AppSlider.kt AppHorizontalPager.kt
+      AdaptiveListItemPolicy.kt AdaptivePreferenceComponents.kt(76KB) AppPrimitiveRendererPolicy.kt
+      AppSelectionPreferenceComponents.kt AppPrimitiveComponents.kt(69KB) AppGlassMenu.kt
+  design-system/.../ui/renderer/{miuix,material3}/  各 15 文件
+  design-system/src/test/.../AdaptiveListComponentPolicyTest.kt
+  app/.../core/ui/skeleton/{SkeletonBreathing.kt,ContentLoadingSkeletons.kt}
+  app/.../core/store/SkeletonSettingsStore.kt · SettingsManager.kt(457KB)
+  app/.../feature/settings/SettingsSearchPolicy.kt · ui/SettingsSections.kt(2452 行)
+  app/.../feature/settings/screen/SettingsSearchScreen.kt · AppearanceSettingsScreen.kt(180KB)
+
+O:\dev\refs\miuix@d8efe18
+  LICENSE(Apache-2.0) · README.md（依赖坐标）
+  miuix-ui/.../anim/MiuixEasing.kt（folmeSpring 与 stiffness=(2π/response)² 换算）
+  miuix-ui/.../utils/PagerGestureUtils.kt:80（PagerNavigationSpringSpec）
+  miuix-ui/.../utils/MiuixIndication.kt:25-33（按压/悬停弹簧与 alpha 增量）
+  miuix-preference/.../preference/{SwitchPreference,ArrowPreference,SliderPreference,
+      RadioButtonPreference,CheckboxPreference,OverlaySpinnerPreference}.kt
+  miuix-ui/.../basic/{ListPopup.kt,Card,…} · layout/ListPopupLayout.kt · theme/MiuixTheme.kt
+  build-logic/src/main/kotlin/BuildConfig.kt:11,14（COMPILE_SDK 37 / MIN_SDK 24）
+
+Maven Central 实测（2026-11-15）：top.yukonga.miuix.kmp:* release=0.9.4；miuix-glass → 404
+```
+

@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<head>
+    <meta charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一堂开在高原上的社会实践课</title>
+        <link rel="shortcut icon" href='https://t1.chei.com.cn/chsi/favicon.ico' type="image/x-icon"/>
+    <link rel="apple-touch-icon" href="https://t2.chei.com.cn/common/wap/images/share_xxw.jpg">
+    <link rel="stylesheet" href="https://t1.chei.com.cn/common/ch/chicon/iconfont.css">
+    <link rel="stylesheet" href="https://t2.chei.com.cn/common/css/news-1.0.2.min.css">
+    <link rel="stylesheet" href="https://t3.chei.com.cn/chsi/css/chsi-news-pc.min.css?v=2025">
+    <script src="https://t1.chei.com.cn/common/jquery/1.8.3/jquery.min.js"></script>
+    <script src="https://t1.chei.com.cn/common/js/vue/2.6.10/vue.min.js"></script>
+    
+
+
+
+<script>
+function gaTrackerOutboundLink(ele,eventCategory,eventAction,eventLabel){
+gtag('event', eventAction, {
+  'event_category': eventCategory,
+  'event_label': eventLabel
+});
+return true;
+}
+</script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-100524-1"></script>
+<script>
+window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'UA-100524-1');
+</script>
+<script>
+  // 百度统计
+  var _hmt = _hmt || [];
+  (function() {
+      var hm = document.createElement("script");
+      hm.src = "https://hm.baidu.com/hm.js?9c8767bf2ffaff9d16e0e409bd28017b";
+      var s = document.getElementsByTagName("script")[0]; 
+      s.parentNode.insertBefore(hm, s);
+  })();
+</script>
+</head>
+<body  class="ch-sticky">
+    <div class="main-wrapper">
+        
+
+<div class="top-nav-wrapper">
+    <div class="top-nav">
+        <div class="top-nav-list">
+            <a href="/" class="top-nav-home">&ensp;</a>
+            <a class="seach-toggel" target="_blank" href="https://www.chsi.com.cn/">首页</a>
+            <a class="seach-toggel" target="_blank" href="https://my.chsi.com.cn/">学籍查询</a>
+            <a class="seach-toggel" target="_blank" href="https://www.chsi.com.cn/xlcx/">学历查询</a>
+            <a class="seach-toggel" target="_blank" href="https://www.chsi.com.cn/xwcx/index.jsp">学位查询</a>
+            <a class="seach-toggel" target="_blank" href="https://www.chsi.com.cn/xlcx/bgcx.jsp">在线验证</a>
+            <a class="seach-toggel" target="_blank" href="https://www.chsi.com.cn/xlrz/cgjy/">出国教育背景信息服务</a>
+            <a class="seach-toggel" target="_blank" href="https://my.chsi.com.cn/archive/index.jsp#txjd">图像校对</a>
+            <a class="seach-toggel" target="_blank" href="https://my.chsi.com.cn/">学信档案</a>
+            <a class="seach-toggel" target="_blank" title="教育部阳光高考信息平台" href="https://gaokao.chsi.com.cn/">高考</a>
+            <a class="seach-toggel" target="_blank" title="中国研究生招生信息网" href="https://yz.chsi.com.cn/">研招</a>
+            <a class="seach-toggel" target="_blank" href="https://www.gatzs.com.cn/">港澳台招生</a>
+            <a class="seach-toggel" target="_blank" href="https://www.gfbzb.gov.cn/">征兵</a>   
+            <a class="seach-toggel" target="_blank" onmousedown="gaTrackerOutboundLink(this,'ncssindex', 'click', 'fromzthz')"  href="https://www.ncss.cn/">就业</a>
+            <a class="seach-toggel" target="_blank" href="https://xz.chsi.com.cn/">学职平台</a>         
+        </div>
+        <div class="top-nav-load">
+            <div class="top-nav-search-input" id="top-nav-input">
+                <form class="site-search" action="https://cn.bing.com/search" target="_blank" method="get">
+                    <input type="hidden" class="realQuery" name="q" value="">
+                    <input placeholder="" type="text" name="query" autocomplete="off" id="top-nav-search-input" class="search-input" value="" maxlength="100">
+                    <button type="submit" class="search-button"></button>
+                </form>
+            </div>
+            <span class="search-cancel">取消</span>
+            <span class="top-nav-load-search" id="top-nav-search"></span>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const topNavSearch = document.getElementById('top-nav-search');
+    const searchCancel = document.querySelector('.search-cancel');
+    const searchInput = document.querySelector('.search-input');
+    const realQuery = document.querySelector('.realQuery');
+    const searchForm = document.querySelector('.site-search');
+
+    // 点击搜索图标：显示输入框（添加 active 类）
+    if (topNavSearch) {
+        topNavSearch.addEventListener('click', function (event) {
+            event.stopPropagation();
+            document.querySelector('.top-nav-wrapper').classList.add('active');
+            searchInput.focus();
+        });
+    }
+
+    // 点击取消按钮：移除 active 类
+    if (searchCancel) {
+        searchCancel.addEventListener('click', function (event) {
+            document.querySelector('.top-nav-wrapper').classList.remove('active');
+        });
+    }
+
+    // 点击文档其他地方：移除 active 类
+    document.addEventListener('click', function (event) {
+        const wrapper = document.querySelector('.top-nav-wrapper');
+        if (wrapper && !wrapper.contains(event.target)) {
+            wrapper.classList.remove('active');
+        }
+    });
+
+    // 提交表单前处理搜索词
+    if (searchForm) {
+        searchForm.addEventListener('submit', function (e) {
+            e.preventDefault(); // 阻止默认提交
+
+            const val = searchInput.value.trim();
+
+            if (!val) {
+                alert("请输入关键词");
+                return;
+            }
+
+            // 设置 realQuery 的值为关键词 + site:xxx
+            realQuery.value = val + ' site:www.chsi.com.cn';
+
+            // 手动提交表单
+            searchForm.submit();
+        });
+    }
+});
+</script>
+        <div class="wrap1180">
+             
+<div id="app" :class="'container font-a-'+fontSize" v-cloak>
+    <div class="nav-box">
+            <a href="/">首页</a>&ensp;>&ensp;教育资讯
+        </div>
+    <div class="title-box">
+        <h2>一堂开在高原上的社会实践课</h2>
+    </div>
+    <div class="news-msg-box">
+        <div class="news-msg">
+            <span>2026年11月10日</span>
+            <span>来源：光明日报 </span>
+        </div>
+        <div class="tool-warp">
+            <i class="ch-icon ch-icon-zjzh" :class="{'disabled': fontSize===4}" @click="fontUp" title="字体变大"></i>
+            <i class="ch-icon ch-icon-jxzh" :class="{'disabled': fontSize===1}" @click="fontDown" title="字体变小"></i>
+            <span class="cut-line"></span>
+            <div class="wx-share">
+                <i class="ch-icon ch-icon-wechat-fill share" title="微信"></i>
+                <div class="wx-popup">
+                    <span class="wx-popup-arrow"></span>
+                    <img src="https://www.chsi.com.cn/qrcodeImg.do" alt="二维码">
+                    <div>用微信扫描二维码<br>分享至好友和朋友圈</div>
+                </div>
+            </div>
+            <i class="ch-icon ch-icon-wb-fill share" title="新浪微博" @click="share('sinawb')"></i>
+            <i class="ch-icon ch-icon-kj share" title="QQ空间" @click="share('qqkj')"></i>
+        </div>
+    </div>
+    <div class="content-box">
+        <div class="content-l">
+            <div class="detail" id="article_dnull">
+                <p>11月，在山东建筑大学，虽已回到校园，但建筑电气与智能化专业学生王凡的思绪却总回到千里之外的青海金银滩草原。</p><p>今年夏天，他作为山东赴海北暑期交流实习队伍的一员，在青海海北藏族自治州海晏县应急管理局实习了两个月。“第一次参加降雨天气会商研判会议时，我连会议通知都起草得磕磕绊绊；现在，会商研判情况报告我都能独立完成了。”实习结束前，他整理完了最后一批防汛台账。</p><p>这段暑期交流实习，由山东省援青干部管理组和海北州委组织部共同组织。来自山东大学、中国海洋大学、西南大学、山东农业大学、山东财经大学、山东建筑大学、济宁学院等19所高校的50名青年学子，跨越千里来到青海省海北藏族自治州，在党政机关、事业单位和国有企业完成了两个月的实习，岗位覆盖宣传文旅、应急管理、干部教育、国资运营等。</p><p>在中共海北州委党校，山东大学核科学与能源动力学院学生杨天意担任班主任助理，全程跟进培训班次的全流程管理；在应急管理岗位，山东建筑大学的朱鑫华承担着会议记录、汛情数据统计汇总、文件收发等日常事务；在海晏县融媒体中心，山东财经大学的蔡凤华担任出镜记者，用镜头记录高原故事；在海北州文体旅游广电局，山东大学研究生张成龙主动协助推进“两弹一星”精神传承建设、金银滩—原子城景区智慧旅游等项目；山东财经大学的李芫媛参与撰写了社区文化广场改造工程批复汇报材料，为门源回族自治县加快推进改造工程提供了参考……</p><p>海北州是多民族聚居的藏族自治州。来实习的学生里，既有汉族学生，也有回族、彝族、仡佬族等各民族学生。两个月里，大家与当地各族干部群众同吃同住同工作，在真实岗位上感知海北发展，也在一次次并肩工作中结下情谊。</p><p>问起这段日子的收获，同学们有个共识：“跳出了书本理论的局限，真正走进基层一线与产业前沿，把专业知识落地为实操能力，也更深入了解海北，了解青海！”</p><p>这场跨越千里的实习，背后是一场接续16年的对口支援。鲁青两地立足“海北所需、山东所能”，把促进青年就业创业作为对口支援的重点：签订人力资源对口支援协议，明确就业创业、人才培养等五大领域14项具体措施，建立起“岗位精准对接、人员有序输送、全程跟踪服务”的长效机制。</p><p>山东四市与海北四县围绕岗位信息共享、高校毕业生“组团式”就业签订支援合作协议；海北州与山东多所高校建立常态化人才协作渠道，鲁青生态农牧产业技术研究院、博士工作站、鲁青高原病研究和治疗专家智库等平台陆续落地。</p><p>如今，金银滩上的秋草已经黄透，50名学子带着高原的阳光回到校园。有人把在基层收集的第一手资料做成了论文选题，有人在简历上添上了“青海海北”四个字，也有人珍藏着临别时收到的哈达。两个月很短，但这堂来自基层一线的社会实践课，才刚刚拉开序幕。（记者 王雯静 万玛加 通讯员 王克栋）</p>
+            </div>
+            <div id="dzz"></div>
+        </div>
+        
+
+
+<div class="content-r">
+    <div class="ewm-box-wrap">
+        <div class="ewm-box-top">
+            <img src='https://t4.chei.com.cn/chsi/images/news/chsi_chesicc.jpg' class="ewm-box-img">
+            <div class="ewm-box-des">
+                <h4 class="ewm-box-des_title">学信网官方微信</h4>
+                <div class="ewm-box-des_content">
+                    扫一扫，关注学信网<br>
+                    微信号：chsi_chesicc
+                </div>
+            </div>
+        </div>
+        <div class="ewm-box-bottom">
+            <a href="/jyzx/xmt.shtml" target="_blank">
+                学信网新媒体矩阵<span class="go-next"></span>
+            </a>
+        </div>
+    </div>
+    <div class="aside-box">
+        <div class="aside-title">高考热点</div>
+        <div class="aside-con">
+            <ul class="list-paddingleft-2">
+<li><a href="https://gaokao.chsi.com.cn/gkxx/ksbd/202610/20261030/2293983781.html" style="color:#FF0000;"  target="_blank">11月高考热点</a></li>
+<li><a href="https://gaokao.chsi.com.cn/gkzt/mhzf" style="color:#FF0000;"  target="_blank">2027年民航招飞报考指南</a></li>
+<li><a href="https://gaokao.chsi.com.cn/gkxx/zc/moe/202611/20261110/2293984002.html" style="color:#FF0000;" target="_blank">教育部等三部门部署实施服务乡村振兴高校招生专项计划</a></li>
+<li><a href="https://gaokao.chsi.com.cn/gkxx/ksbd/202611/20261105/2293983936.html" style="color:#FF0000;" target="_blank">教育部2027年高考报名防骗预警</a></li>
+<li><a href="https://gaokao.chsi.com.cn/gkxx/zt/gsxz.shtml" style="color:#FF0000;"  target="_blank">高三这一年，不能错过的N种选择</a></li>
+<li><a href="https://gaokao.chsi.com.cn/z/gkbmfslq/" style="color:#FF0000;" target="_blank">2027年高考报名分数录取查询</a></li>
+<li><a href="https://gaokao.chsi.com.cn/gkzt/hjzf" style="color:#FF0000;" target="_blank">2027年海军招飞报考指南</a></li>
+<li><a href="https://gaokao.chsi.com.cn/gkzt/kjzf" target="_blank">2027年空军招飞报考指南</a></li>
+<li><a href="https://gaokao.chsi.com.cn/gkxx/ksbd/202610/20261020/2293981959.html"  target="_blank">【图解】分类推进高校改革</a></li>
+<li><a href="https://gaokao.chsi.com.cn/zyk/zybk/zyjd/viewPage/30l3bfvirtug2njs"  target="_blank">【专业解读】生物制造：让细胞和酶成为“绿色工厂”</a></li> 
+</ul>
+
+        </div>
+    </div>
+    <div class="aside-box">
+        <div class="aside-title">考研热点</div>
+        <div class="aside-con">
+            <ul class="r_box_txt">
+<li><a href="https://yz.chsi.com.cn/kyzx/jybzc/202609/20260924/2293971511.html" style="color: #ff0000"  target="_blank">2027年研招管理规定</a></li>
+<li><a href="https://yz.chsi.com.cn/kyzx/jybzc/202609/20260924/2293971512.html" target="_blank">教育部部署2027年全国硕士研究生考试招生工作</a></li>
+<li><a href="https://yz.chsi.com.cn/kyzx/kydt/202609/20260924/2293971536.html" target="_blank">2027研考日程表</a></li>
+<li><a href="https://yz.chsi.com.cn/yzzt/zbft" target="_blank">2027研招访谈</a></li>
+<li><a href="https://yz.chsi.com.cn/kyzx/zt/lnfsx.shtml" target="_blank">近五年研考分数线及趋势图</a></li>
+<li><a href="https://yz.chsi.com.cn/kyzx/zcdh/202610/20261019/2293981260.html" target="_blank">关于做好专业学位研究生以实践成果申请学位工作的意见</a></li>
+</ul>
+
+        </div>
+    </div>
+</div>    
+    </div>
+</div>
+        </div>
+    </div>
+    
+
+
+
+<style>
+    .width1180 {
+        width:1180px;
+        margin:0 auto
+    } 
+    .foot-wrap {
+        background: #403e3f;
+        padding: 23px 0;
+        min-width: 1180px;
+        line-height: 30px
+    }
+    .foot-wrap,.foot-wrap a,.foot-wrap a:link,.foot-wrap a:visited {
+        color: hsla(0,0%,100%,.6)
+    }
+    .foot-wrap .footer-nav {
+        padding-bottom: 14px;
+        text-align: center
+    }
+    .foot-wrap .footer-nav a {
+        margin-right: 42px
+    }
+    .foot-wrap .footer {
+        display: -ms-flexbox;
+        display: flex;
+        -ms-flex-pack: center;
+        justify-content: center
+    }
+    .foot-wrap .footer-list {
+        float: left;
+        padding: 0 40px;
+        position: relative
+    }
+    .foot-wrap .footer-list.border-r:after {
+        content: "";
+        display: inline-block;
+        width: 1px;
+        height: 46px;
+        background: hsla(0,0%,100%,.4);
+        position: absolute;
+        top: 7px;
+        right: 0
+    }
+    .foot-wrap .footer-list img {
+        vertical-align: middle;
+        margin-bottom: 2px
+    }
+    .foot-wrap .padT15{padding-top:15px}
+</style>
+<div class="foot-wrap" id="footer">
+    <div class="footer-nav">
+        <a href="https://chesicc.chsi.com.cn/zxgw/zxjs/201604/20160418/1529506207.html" target="_blank">中心简介</a>
+        <a href="/about/about_site.shtml" target="_blank">网站简介</a>
+        <a href="/about/copyright.shtml" target="_blank">版权声明</a>
+        <a href="/ad/index.shtml" target="_blank">网站宣传</a>
+        <a href="/about/contact.shtml" target="_blank">联系我们</a>
+        <a href="/zhaopin/index.jsp" target="_blank">招聘信息</a>
+        <a href="/help" target="_blank">帮助中心</a>
+        <a href="/z/tenyears/index.jsp" target="_blank">学信十周年</a>
+        <a href="/about/ct16.shtml" target="_blank">大事记</a>
+    </div>
+    <div class="footer width1180 clearfix">
+        <div class="footer-list border-r" id="footerListFirst">
+            客服热线：010-67410388<br/>
+            <div id="kfEmail">客服邮箱：kefu@chsi.com.cn</div>
+        </div>
+        <div class="footer-list border-r">
+            主办单位：<a href="https://chesicc.chsi.com.cn/" target="_blank">教育部学生服务与素质发展中心</a><br>
+            Copyright © 2003-2026 <a href="https://www.chsi.com.cn/" target="_blank">学信网</a> All Rights Reserved
+        </div>
+        <div class="footer-list">
+            <a href="https://beian.miit.gov.cn" target="_blank">京ICP备19004913号-1</a><br/>
+            <a href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11010202009747" target="_blank" ><img src='https://t2.chei.com.cn/chsi/images/jgwab.svg' /> 京公网安备11010202009747号</a>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+function footerPst(id1,id2){
+    var subH = document.documentElement.clientHeight - document.body.offsetHeight;
+    if(document.getElementById("footer") && document.getElementById(id1) && subH > 0){
+        var leftH = document.getElementById(id1).offsetHeight;
+        var rightH = 0,new_subH = 0;
+        if(document.getElementById(id2)){
+            rightH = document.getElementById(id2).offsetHeight;
+        }else{
+            if(leftH<443){
+                new_subH = subH - (443 - leftH);
+            }
+            leftH = (leftH > 443) ? leftH : 443;//for news,news_right changed, the number change
+        }
+        if(leftH > rightH){
+            if(leftH==443){ //说明leftH小于443，上面已经重新赋值了
+                subH = new_subH;
+            }
+            document.getElementById(id1).style.height = leftH + subH - 20 + "px";
+        }else{
+            document.getElementById(id2).style.height = rightH + subH - 20 + "px";
+        }
+    }
+}
+function setFooterPos(){
+    var _top_H = 0,//头部高度
+        _footer_H = 170,//底部高度
+        _html_H = document.documentElement.clientHeight,//屏幕可见区域高度
+        _main_H;//中间内容高度
+    if(document.getElementsByClassName('t_top_nav_new').length>0){
+        _top_H = document.getElementsByClassName('t_top_nav_new')[0].offsetHeight + 109 +50; //顶部高度
+    }
+    if(document.getElementsByClassName('main').length>0){
+        _main_H = document.getElementsByClassName('main')[0].offsetHeight + 20;//带着margin-top:20px
+    }   
+    var _marH = _html_H - _top_H - _main_H -_footer_H;
+    if(_marH>0){
+        var _footer_url=window.location.href;
+        document.getElementById("footer").style.marginTop=_marH+20+"px";   
+    }
+}
+window.addEventListener('load', function () {
+    footerPst("leftH","rightH");
+    footerPst("leftMenu","rightCnt");
+    footerPst("leftHeight","");
+    if(window.location.href.indexOf("xlrz")>-1){
+        document.getElementById('kfEmail').style.display='none';
+        document.getElementById('footerListFirst').className='footer-list border-r padT15';
+
+    }
+    //设置底部在最下边
+    setFooterPos();
+})
+</script>
+    <script src="//t3.chei.com.cn/common/js/gototop2.0.js"></script>
+    <script src="https://t1.chei.com.cn/common/ch/browser/not-ie.min.js"></script>
+    <script src="https://t1.chei.com.cn/common/js/dianzan.js"></script>
+    <script type="text/javascript">
+        var gtt = new CreatGoToTop(1180,'/');
+        gtt.goToTop();
+        // 解决页面中写style无效问题
+        var styleTagNodeList = document.querySelector("#app").querySelectorAll('style');
+        for(var i = 0; i < styleTagNodeList.length; ++i){
+            document.body.appendChild(styleTagNodeList[i]);
+        }
+        new Vue({
+            el: '#app',
+            data: function() {
+                return {
+                    fontSize: 2,
+                    recordUrl: 'https://www.chsi.com.cn/snsshare.jsp',
+                    userId: '',
+                }
+            },
+            methods: {
+                fontUp: function() {
+                    if (this.fontSize<4) {
+                        this.fontSize++;
+                    }
+                },
+                fontDown: function() {
+                    if (this.fontSize>1) {
+                        this.fontSize--;
+                    }
+                },
+                share: function(target) {
+                    var url = encodeURIComponent(location.href.replace(/[\<\>\"\'\[\]\(\)]/g, ''));
+                    var title = encodeURIComponent(document.title);
+                    var weiboUrl = this.recordUrl +"?url="+url+"&title="+title+"&target="+target+"&userId="+this.userId;
+                    window.open(weiboUrl, '_blank', 'width=600,height=400');
+                },
+                clearQuit: function() {  //去除p标签前面空格
+                    var _article_bd = document.getElementById('article_dnull');
+                    _article_bd.innerHTML = _article_bd.innerHTML.replace(/^<p(.+?)>(\s+)/gim, '<p$1>');
+                }
+            },
+            mounted: function() {
+                var _this = this;
+                _this.$nextTick(function() {
+                    _this.clearQuit();
+                    showDianZan('dzz', 2293982243, '#2EAFBB');
+                });
+            }
+        });
+    </script>
+</body>
+</html>

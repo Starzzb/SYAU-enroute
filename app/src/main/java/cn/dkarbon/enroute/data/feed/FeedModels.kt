@@ -45,6 +45,18 @@ data class FeedSource(
      * 博达站群的倒序分页（`cxcyjs/6.htm`→`/1.htm`）语义不统一，不在此列。
      */
     val extraPages: List<String> = emptyList(),
+    /**
+     * 日期在链接**前面**时打开（2026-11-15 新增）。
+     *
+     * 通用解析器默认只在链接结束后 300 字内找日期。但有一类站点的列表是
+     * `<li><h6><span class="time">2026-08-27</span><a href="…">标题</a></h6></li>`
+     * —— 日期排在标题之前，正向找不到就该往前看。
+     *
+     * 默认 `false`：只有实测确认「日期在前」的源才开，否则会有"拿到上一条日期"的风险。
+     * 打开后仍**先正向找**，正向找不到才回看链接前 200 字并取其中**最后一个**日期。
+     * 实测：服务外包大赛（fwwb）首页是这个结构。
+     */
+    val dateLookback: Boolean = false,
 )
 
 /**
@@ -273,6 +285,66 @@ object FeedSources {
             category = "竞赛",
             kind = "jingsai",
         ),
+
+        // ── 证书考证（2026-11-15 新增，实测见 docs/竞赛证书信息源-探测报告.md）──
+        // 四家都是中国教育考试网（neea）体系：同一套政府 CMS，列表结构一致 ——
+        //   <li><span id='ReportIDname'><a href='/html1/report/…' title="标题">
+        //   </span><span id='ReportIDIssueTime'>2026-11-10</span></li>
+        // 标题在 title 属性里、锚文本可能为空（和校内水利学院那种一样），通用解析器已按此取值。
+        // robots: 四个子域全部 404（无限制），详情页不抓（列表已含标题+日期+链接）。
+        FeedSource(
+            key = "ncre",
+            name = "计算机等级考试",
+            listUrl = "https://ncre.neea.edu.cn/html1/category/1507/872-1.htm",
+            category = "证书",
+            kind = "generic",
+            urlInclude = "/html1/report/",
+        ),
+        FeedSource(
+            key = "cet",
+            name = "四六级考试",
+            listUrl = "https://cet.neea.edu.cn/html1/category/16093/1124-1.htm",
+            category = "证书",
+            kind = "generic",
+            urlInclude = "/html1/report/",
+        ),
+        FeedSource(
+            key = "ntce",
+            name = "教师资格考试",
+            listUrl = "https://ntce.neea.edu.cn/html1/category/1507/1148-1.htm",
+            category = "证书",
+            kind = "generic",
+            urlInclude = "/html1/report/",
+        ),
+        FeedSource(
+            key = "neea_gs",
+            name = "教育考试院公告",
+            listUrl = "https://www.neea.edu.cn/html1/category/1508/151-1.htm",
+            category = "证书",
+            kind = "generic",
+            urlInclude = "/html1/report/",
+        ),
+        // 中国人事考试网：专业技术人员职业资格考试（初级会计/经济师这类在校生能报的）。
+        // 列表 <a title="…">标题</a><i>[2026-02-28]</i>，日期在链接之后 —— 正向可找。
+        FeedSource(
+            key = "cpta",
+            name = "人事考试网",
+            listUrl = "http://www.cpta.com.cn/notice.html",
+            category = "证书",
+            kind = "generic",
+            urlInclude = "/notice/",
+        ),
+        // 服务外包创新创业大赛：日期在**链接之前**（<span class="time">），需回看。
+        // 这是唯一一家实测确认 `dateLookback` 的源；首页即列表（/news/index.html 是空壳）。
+        FeedSource(
+            key = "fwwb",
+            name = "服务外包大赛",
+            listUrl = "http://www.fwwb.org.cn/",
+            category = "竞赛",
+            kind = "generic",
+            urlInclude = "/news/show/",
+            dateLookback = true,
+        ),
     )
 
     fun byKey(key: String): FeedSource? = ALL.firstOrNull { it.key == key }
@@ -283,5 +355,5 @@ object FeedSources {
      * 排前面的先被点开：竞赛 → 教务 → 通知 → 学工 → 新闻。
      * 这里的字符串同时是 [FeedItem.category] 的取值，改动要同步 [FeedSource.category]。
      */
-    val CATEGORIES: List<String> = listOf("全部", "竞赛", "教务", "就业", "通知", "学工", "新闻")
+    val CATEGORIES: List<String> = listOf("全部", "竞赛", "证书", "教务", "就业", "通知", "学工", "新闻")
 }

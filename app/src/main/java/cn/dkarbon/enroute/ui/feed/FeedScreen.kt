@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,9 +30,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -59,25 +56,28 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.feed.FeedItem
 import cn.dkarbon.enroute.data.feed.SourceResult
 import cn.dkarbon.enroute.ui.common.rememberListScrollState
-import cn.dkarbon.enroute.ui.theme.Form
-import cn.dkarbon.enroute.ui.theme.cardFloat
-import cn.dkarbon.enroute.ui.theme.primaryInk
+import cn.dkarbon.enroute.ui.ledger.LedgerGroupBreak
+import cn.dkarbon.enroute.ui.ledger.LedgerGroupTitle
+import cn.dkarbon.enroute.ui.ledger.LedgerHeader
+import cn.dkarbon.enroute.ui.ledger.LedgerRow
+import cn.dkarbon.enroute.ui.ledger.LedgerTnum
 import cn.dkarbon.enroute.ui.theme.InkTokenSet
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Motion
@@ -85,6 +85,7 @@ import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Soil
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
+import cn.dkarbon.enroute.ui.theme.primaryInk
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -161,12 +162,26 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
     var failDetail by remember { mutableStateOf(false) }
 
     val currentCat = cats[pagerState.currentPage]
+    // 账页 v3 页眉状态：未读 + 总条数 + 最近更新时间。数字的衬线等宽由 LedgerHeader 内部统一处理。
+    val headerStatus = remember(ui.unread, ui.items.size, ui.lastSyncAt) {
+        buildString {
+            if (ui.unread > 0) append("${ui.unread} 未读 · ")
+            append("${ui.items.size} 条")
+            if (ui.lastSyncAt > 0) {
+                val f = java.text.SimpleDateFormat("HH:mm", java.util.Locale.ROOT)
+                append(" · ").append(f.format(java.util.Date(ui.lastSyncAt))).append(" 更新")
+            }
+        }
+    }
+    // 「查」只把焦点送进搜索框；搜索行仍常驻页眉下方，筛选能力一点没少
+    val searchFocus = remember { FocusRequester() }
 
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            FeedHeader(
-                ui = ui,
-                onRefresh = vm::refresh,
+            LedgerHeader(
+                title = "资讯",
+                status = headerStatus,
+                onSearch = { searchFocus.requestFocus() },
                 onMore = { headerMenu = true },
             )
 
@@ -175,6 +190,7 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
                 onlyUnread = ui.onlyUnread,
                 starredOnly = ui.starredOnly,
                 hasFilter = ui.hasFilter,
+                focusRequester = searchFocus,
                 onQuery = vm::setQuery,
                 onToggleUnread = vm::toggleOnlyUnread,
                 onToggleStarred = vm::toggleStarredOnly,
@@ -213,7 +229,6 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
                         label = c,
                         unread = ui.unreadOf(c),
                         selected = pagerState.currentPage == i,
-                        accent = if (c == "全部") t.primary else categoryColor(c, t),
                         onClick = { scope.launch { pagerState.animateScrollToPage(i) } },
                         onLongClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -288,6 +303,7 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
             HeaderMenu(
                 ui = ui,
                 category = currentCat,
+                onRefresh = vm::refresh,
                 onChannelRead = { vm.markChannelRead(currentCat) },
                 onAllRead = { confirmAllRead = true },
                 onToggleDensity = {
@@ -334,74 +350,26 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
     }
 }
 
-// ── 页头 ──────────────────────────────────────────────────
+// ── 搜索行 / 文字动作 ─────────────────────────────────────
 
+/** 小号文字动作按钮：纯文字、48dp 触区，不画任何盒子与胶囊（账页 v3 的「容器框退场」）。 */
 @Composable
-private fun FeedHeader(ui: FeedUiState, onRefresh: () -> Unit, onMore: () -> Unit) {
-    val t = InkTokens.current
-    val f = Form.current
-    Row(
-        Modifier.fillMaxWidth().padding(start = Space.l, end = Space.s, top = Space.s),
-        verticalAlignment = Alignment.CenterVertically,
+private fun TextAction(
+    label: String,
+    color: Color,
+    onClickLabel: String? = null,
+    onClick: () -> Unit,
+) {
+    Box(
+        Modifier
+            .height(48.dp)
+            .clickable(onClickLabel = onClickLabel, onClick = onClick)
+            .padding(horizontal = 8.dp),
+        contentAlignment = Alignment.Center,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text("资讯", fontSize = 20.sp, fontWeight = FontWeight.ExtraBold, color = t.ink)
-            Spacer(Modifier.height(2.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (ui.unread > 0) {
-                    Box(Modifier.size(6.dp).clip(f.shapes.circle).background(t.primary))
-                    Spacer(Modifier.width(Space.xs))
-                    Text(
-                        "${ui.unread} 未读",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = t.ink,
-                        fontFamily = NumericFont,
-                    )
-                    Text(" · ", fontSize = 11.sp, color = t.rule)
-                }
-                Text("${ui.items.size} 条", fontSize = 11.sp, color = t.inkFaint, fontFamily = NumericFont)
-                if (ui.lastSyncAt > 0) {
-                    Text(" · ", fontSize = 11.sp, color = t.rule)
-                    Text(
-                        remember(ui.lastSyncAt) {
-                            // Locale.ROOT：阿拉伯语等 locale 下也输出 ASCII 数字，与 tnum 对齐
-                            val f = java.text.SimpleDateFormat("HH:mm", java.util.Locale.ROOT)
-                            f.format(java.util.Date(ui.lastSyncAt)) + " 更新"
-                        },
-                        fontSize = 11.sp,
-                        color = t.inkFaint,
-                        fontFamily = NumericFont,
-                    )
-                }
-            }
-        }
-        TextButton(enabled = !ui.loading, onClick = onRefresh) {
-            Text(
-                if (ui.loading) "刷新中…" else "刷新",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (ui.loading) t.inkFaint else t.primary,
-            )
-        }
-        Box(
-            Modifier
-                .size(48.dp)
-                .clickable(onClickLabel = "更多操作", onClick = onMore),
-            contentAlignment = Alignment.Center,
-        ) {
-            // 视觉 32dp 字块，触区 48dp（规格 §2 触区红线）
-            Box(
-                Modifier.size(32.dp).border(Stroke.hairline, t.outline),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("⋯", fontSize = 14.sp, color = t.inkSoft)
-            }
-        }
+        Text(label, fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = color)
     }
 }
-
-// ── 搜索行 ────────────────────────────────────────────────
 
 @Composable
 private fun SearchRow(
@@ -409,98 +377,71 @@ private fun SearchRow(
     onlyUnread: Boolean,
     starredOnly: Boolean,
     hasFilter: Boolean,
+    focusRequester: FocusRequester,
     onQuery: (String) -> Unit,
     onToggleUnread: () -> Unit,
     onToggleStarred: () -> Unit,
     onClear: () -> Unit,
 ) {
     val t = InkTokens.current
-    val onAccentText = if (t.isDark) Soil.n950 else Color.White
     Row(
-        Modifier.fillMaxWidth().heightIn(min = Space.minTouch).padding(start = Space.l, end = Space.l, top = Space.xs),
+        Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = Space.l, end = Space.l, top = Space.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Row(
-            Modifier
-                .weight(1f)
-                .height(34.dp)
-                .background(t.card)
-                .border(Stroke.hairline, if (query.isBlank()) t.outline else t.primary),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(Modifier.width(32.dp).fillMaxHeight(), contentAlignment = Alignment.Center) {
-                Text("⌕", fontSize = 15.sp, color = if (query.isBlank()) t.inkFaint else t.primary)
-            }
-            BasicTextField(
-                value = query,
-                onValueChange = onQuery,
-                singleLine = true,
-                textStyle = androidx.compose.ui.text.TextStyle(fontSize = 12.5.sp, color = t.ink),
-                cursorBrush = androidx.compose.ui.graphics.SolidColor(t.primary),
-                modifier = Modifier.weight(1f).padding(end = 6.dp),
-                decorationBox = { inner ->
-                    if (query.isEmpty()) {
-                        Text("搜标题 / 关键词", fontSize = 12.5.sp, color = t.inkFaint)
-                    }
-                    inner()
-                },
-            )
-            if (query.isNotEmpty()) {
-                Box(
-                    Modifier.size(32.dp).clickable(onClickLabel = "清空搜索词") { onQuery("") },
-                    contentAlignment = Alignment.Center,
-                ) { Text("✕", fontSize = 12.sp, color = t.inkFaint) }
-            }
-        }
-
-        Spacer(Modifier.width(Space.xs))
-        FilterToggle("未读", onlyUnread, t.primary, onAccentText, onToggleUnread)
-        Spacer(Modifier.width(Space.xs))
-        FilterToggle("藏", starredOnly, t.amber, onAccentText, onToggleStarred, square = true)
-        if (hasFilter) {
-            Spacer(Modifier.width(Space.xs))
-            Box(
-                Modifier
-                    .height(48.dp)
-                    .width(34.dp)
-                    .clickable(onClickLabel = "清空筛选", onClick = onClear),
-                contentAlignment = Alignment.Center,
-            ) {
-                Box(
-                    Modifier.size(34.dp).border(Stroke.hairline, t.outline),
-                    contentAlignment = Alignment.Center,
-                ) { Text("清", fontSize = 11.sp, color = t.inkSoft) }
-            }
-        }
-    }
-}
-
-@Composable
-private fun FilterToggle(
-    label: String,
-    on: Boolean,
-    accent: Color,
-    onAccentText: Color,
-    onClick: () -> Unit,
-    square: Boolean = false,
-) {
-    val t = InkTokens.current
-    Box(
-        Modifier
-            .height(34.dp)
-            .then(if (square) Modifier.width(34.dp) else Modifier)
-            .background(if (on) accent else Color.Transparent)
-            .border(Stroke.hairline, if (on) accent else t.outline)
-            .clickable(onClick = onClick)
-            .padding(horizontal = if (square) 0.dp else Space.m),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            label,
-            fontSize = 12.sp,
-            fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
-            color = if (on) onAccentText else t.inkSoft,
+        Text("⌕", fontSize = 15.sp, color = if (query.isBlank()) t.inkFaint else t.inkSoft)
+        Spacer(Modifier.width(6.dp))
+        BasicTextField(
+            value = query,
+            onValueChange = onQuery,
+            singleLine = true,
+            textStyle = TextStyle(fontSize = 12.5.sp, color = t.ink),
+            cursorBrush = SolidColor(t.inkSoft),
+            modifier = Modifier.weight(1f).focusRequester(focusRequester),
+            decorationBox = { inner ->
+                if (query.isEmpty()) {
+                    Text("搜标题 / 关键词", fontSize = 12.5.sp, color = t.inkFaint)
+                }
+                inner()
+            },
         )
+        if (query.isNotEmpty()) {
+            Box(
+                Modifier.size(48.dp).clickable(onClickLabel = "清空搜索词") { onQuery("") },
+                contentAlignment = Alignment.Center,
+            ) { Text("✕", fontSize = 12.sp, color = t.inkFaint) }
+        }
+        // 筛选开关改成纯文字：选中靠字重 + 主色（未读）/ 琥珀（藏），不画方块底
+        Box(
+            Modifier
+                .height(48.dp)
+                .clickable(onClickLabel = "只看未读", onClick = onToggleUnread)
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                "未读",
+                fontSize = 12.sp,
+                fontWeight = if (onlyUnread) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (onlyUnread) primaryInk() else t.inkFaint,
+            )
+        }
+        Box(
+            Modifier
+                .height(48.dp)
+                .clickable(onClickLabel = "只看收藏", onClick = onToggleStarred)
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                "藏",
+                fontSize = 12.sp,
+                fontWeight = if (starredOnly) FontWeight.SemiBold else FontWeight.Normal,
+                color = if (starredOnly) t.amber else t.inkFaint,
+            )
+        }
+        if (hasFilter) {
+            TextAction("清", t.inkSoft, onClickLabel = "清空筛选", onClick = onClear)
+        }
     }
 }
 
@@ -511,37 +452,38 @@ private fun DeadlineBar(urgent: List<FeedItem>, today: java.time.LocalDate, onOp
     val t = InkTokens.current
     val first = urgent.firstOrNull() ?: return
     val days = FeedRows.daysLeft(first.deadline, today) ?: 0L
+    val label = if (urgent.size == 1) {
+        first.title.take(20) + (if (first.title.length > 20) "…" else "")
+    } else {
+        "${urgent.size} 项竞赛 3 天内截止"
+    }
+    // 提醒条是「一行提示」而不是色带块：整行可点，砖红只落在文字上
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = Space.l, end = Space.l, top = Space.s)
-            .height(40.dp)
-            .background(t.card)
-            .border(Stroke.hairline, t.brick)
+            .heightIn(min = 48.dp)
+            .padding(start = Space.l, end = Space.s, top = Space.xs)
             .clickable(onClickLabel = "查看竞赛频道", onClick = onOpen),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(Stroke.accentBar).fillMaxHeight().background(t.brick))
-        Spacer(Modifier.width(Space.s))
         Text(
-            if (urgent.size == 1) {
-                first.title.take(20) + (if (first.title.length > 20) "…" else "")
-            } else {
-                "${urgent.size} 项竞赛 3 天内截止"
-            },
+            label,
             fontSize = 12.sp,
-            fontWeight = FontWeight.Medium,
-            color = t.ink,
+            lineHeight = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = t.brick,
             maxLines = 1,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
+        Spacer(Modifier.width(8.dp))
         Text(
             if (days == 0L) "今天截止" else "最急剩 $days 天",
             fontSize = 12.sp,
-            fontWeight = FontWeight.Bold,
-            fontFamily = NumericFont,
+            lineHeight = 18.sp,
+            fontWeight = FontWeight.SemiBold,
             color = t.brick,
+            style = LedgerTnum,
         )
         Box(
             Modifier.size(48.dp).clickable(onClickLabel = "今日不再提醒", onClick = onDismiss),
@@ -566,37 +508,22 @@ private fun RefreshBanner(
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(start = Space.l, end = Space.l, top = Space.xs)
-            .height(36.dp)
-            .background(t.card)
-            .border(Stroke.hairline, accent),
+            .heightIn(min = 48.dp)
+            .padding(start = Space.l, end = Space.s, top = Space.xs),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.width(Stroke.accentBar).fillMaxHeight().background(accent))
-        Spacer(Modifier.width(Space.s))
         Text(
             banner.text,
             fontSize = 12.sp,
-            color = t.ink,
+            lineHeight = 18.sp,
+            color = accent,
             maxLines = 1,
-            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
         when (banner.tone) {
-            FeedBanner.Tone.FAIL -> Text(
-                "重试",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = t.brick,
-                modifier = Modifier.clickable(onClick = onRetry).padding(Space.s),
-            )
-            FeedBanner.Tone.PARTIAL -> Text(
-                "详情",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = t.amber,
-                modifier = Modifier.clickable(onClick = onDetail).padding(Space.s),
-            )
+            FeedBanner.Tone.FAIL -> TextAction("重试", t.brick, onClickLabel = "重试刷新", onClick = onRetry)
+            FeedBanner.Tone.PARTIAL -> TextAction("详情", t.amber, onClickLabel = "失败详情", onClick = onDetail)
             FeedBanner.Tone.OK -> Unit
         }
         if (banner.tone != FeedBanner.Tone.OK) {
@@ -616,63 +543,32 @@ private fun ChannelChip(
     label: String,
     unread: Int,
     selected: Boolean,
-    accent: Color,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
     val t = InkTokens.current
-    val f = Form.current
-    val ed = f.editorial
-    val onAccentText = if (t.isDark) Soil.n950 else Color.White
-    // 账页：频道 chip 是**胶囊**，选中态不再用分类色填充（分类色里含主色派生值，
-    // 壁纸取色会把它换掉）—— 改成「淡底 + 墨色描边 + 墨色文字」，
-    // 层级由字重/字距承担，颜色只在未读计数上出现。
-    val pill = f.shapes.pill
+    // 频道切页去胶囊化：选中靠字重 + ink，未读数只作小字点缀，不画底不描边
     Row(
         Modifier
-            .height(if (ed) 32.dp else 30.dp)
-            .then(if (ed) Modifier.clip(pill) else Modifier)
-            .background(
-                when {
-                    ed && selected -> t.cardAlt
-                    selected -> accent
-                    else -> Color.Transparent
-                },
-            )
-            .border(
-                if (ed && selected) 1.dp else Stroke.hairline,
-                when {
-                    ed && selected -> t.ink.copy(alpha = 0.55f)
-                    ed -> t.outline.copy(alpha = 0.55f)
-                    selected -> accent
-                    else -> t.outline
-                },
-                pill,
-            )
+            .height(48.dp)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = "$label 全部已读")
-            .padding(horizontal = if (ed) 14.dp else Space.m),
+            .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             label,
             fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            letterSpacing = if (ed) 0.3.sp else 0.sp,
-            fontFamily = if (ed) f.displayFamily else null,
-            color = if (selected && !ed) onAccentText else if (selected) t.ink else t.inkSoft,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+            color = if (selected) t.ink else t.inkSoft,
         )
         if (unread > 0) {
-            Spacer(Modifier.width(Space.xs))
+            Spacer(Modifier.width(4.dp))
             Text(
                 unread.toString(),
                 fontSize = 9.5.sp,
-                fontWeight = FontWeight.Bold,
-                fontFamily = if (ed) f.numberFamily else NumericFont,
-                color = when {
-                    ed -> primaryInk()
-                    selected -> onAccentText.copy(alpha = 0.75f)
-                    else -> t.primary
-                },
+                fontWeight = FontWeight.Medium,
+                color = primaryInk(),
+                style = LedgerTnum,
             )
         }
     }
@@ -701,38 +597,17 @@ private fun ChannelMetaRow(
                     if (category == "竞赛") append(" · 按截止排序")
                 }
             },
-            fontSize = 10.sp,
+            fontSize = 11.sp,
+            lineHeight = 16.sp,
             color = t.inkFaint,
-            fontFamily = NumericFont,
             maxLines = 1,
             modifier = Modifier.weight(1f),
         )
         if (ui.hasFilter) {
-            Text(
-                "清空筛选",
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Bold,
-                color = t.inkSoft,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier
-                    .heightIn(min = Space.minTouch)
-                    .clickable(onClick = onClearFilter)
-                    .padding(horizontal = Space.s, vertical = Space.xs),
-            )
+            TextAction("清空筛选", t.inkSoft, onClickLabel = "清空筛选", onClick = onClearFilter)
         }
         if (unread > 0) {
-            Text(
-                "全部已读",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                // 14sp 也算小字：品牌橙在纸底只有 4.15:1，改用小字主色（5.63:1）
-                color = primaryInk(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier
-                    .heightIn(min = Space.minTouch)
-                    .clickable(onClickLabel = "本频道全部已读", onClick = onMarkRead)
-                    .padding(horizontal = Space.s, vertical = Space.xs),
-            )
+            TextAction("全部已读", primaryInk(), onClickLabel = "本频道全部已读", onClick = onMarkRead)
         }
     }
 }
@@ -751,7 +626,6 @@ private fun FeedPage(
     onLoadMore: () -> Unit,
     resetKey: String,
 ) {
-    val t = InkTokens.current
     // 票 26：saveable + 频道页 key，进详情返回原位；换筛选由 resetKey 触发回顶部
     val listState = rememberListScrollState(resetKey)
 
@@ -768,31 +642,52 @@ private fun FeedPage(
         }
     }
 
+    // 账页 v3 的间距不走全局 spacedBy：条目间距 18dp 由 LedgerRow 内部的 9+1px+9 承担，
+    // 组间 28dp + 短横线由「group-gap」插页承担 —— 这样最后一条之后才不拖一条多余分隔线。
     LazyColumn(
         Modifier.fillMaxSize(),
         state = listState,
         contentPadding = PaddingValues(start = Space.l, end = Space.l, top = Space.xs, bottom = Space.xxl),
-        verticalArrangement = Arrangement.spacedBy(Space.s),
     ) {
-        // 分组头 sticky 吸顶（规格 §5.5）；卡片/分页脚按 contentType 回收。
-        // 行窗口 ≤ 30+组头，逐行发射的开销可忽略，换来吸顶语义。
-        rows.forEach { row ->
+        rows.forEachIndexed { index, row ->
             when (row) {
-                is FeedRow.Header -> stickyHeader(key = row.rowKey, contentType = row.contentType) {
-                    GroupHeader(
-                        row = row,
-                        onToggle = if (row.collapsible) ({ onToggleGroup(row.label) }) else null,
-                    )
-                }
-                is FeedRow.Card -> item(key = row.rowKey, contentType = row.contentType) {
-                    if (row.compact) {
-                        CompactCard(item = row.item, today = today, onClick = { onOpen(row.item) }, onLongClick = { onLongClick(row.item) })
-                    } else {
-                        StandardCard(item = row.item, today = today, onClick = { onOpen(row.item) }, onLongClick = { onLongClick(row.item) })
+                is FeedRow.Header -> {
+                    // 组间边界：上一组末尾之后放 28dp 留白 + 56dp 短横线（缩进到正文左沿）
+                    if (index > 0) {
+                        item(key = "gap:${row.rowKey}", contentType = "group-gap") {
+                            Column(Modifier.fillMaxWidth()) {
+                                Spacer(Modifier.height(14.dp))
+                                LedgerGroupBreak()
+                                Spacer(Modifier.height(14.dp))
+                            }
+                        }
+                    }
+                    stickyHeader(key = row.rowKey, contentType = "header") {
+                        LedgerGroupTitle(
+                            label = row.label,
+                            count = row.count,
+                            collapsible = row.collapsible,
+                            collapsed = row.collapsed,
+                            onToggle = if (row.collapsible) ({ onToggleGroup(row.label) }) else null,
+                        )
                     }
                 }
-                is FeedRow.Footer -> item(key = row.rowKey, contentType = row.contentType) {
-                    PageFooter(shown = row.shown, total = row.total)
+                is FeedRow.Card -> item(key = row.rowKey, contentType = "entry") {
+                    // 组内最后一条之后不加分隔线（修正 B）：下一条是组头/分页脚/列表尾都算
+                    val lastInGroup = index + 1 >= rows.size ||
+                        rows[index + 1] is FeedRow.Header ||
+                        rows[index + 1] is FeedRow.Footer
+                    LedgerRow(
+                        item = row.item,
+                        today = today,
+                        compact = row.compact,
+                        lastInGroup = lastInGroup,
+                        onClick = { onOpen(row.item) },
+                        onLongClick = { onLongClick(row.item) },
+                    )
+                }
+                is FeedRow.Footer -> item(key = row.rowKey, contentType = "footer") {
+                    FeedPageFooter(shown = row.shown, total = row.total)
                 }
             }
         }
@@ -800,382 +695,43 @@ private fun FeedPage(
 }
 
 @Composable
-private fun GroupHeader(row: FeedRow.Header, onToggle: (() -> Unit)?) {
+private fun FeedPageFooter(shown: Int, total: Int) {
     val t = InkTokens.current
-    val f = Form.current
-    val ed = f.editorial
     Row(
-        Modifier
-            .fillMaxWidth()
-            .background(t.paper)
-            .heightIn(min = 28.dp)
-            .then(
-                if (onToggle != null) Modifier.clickable(onClickLabel = "展开或折叠 ${row.label}", onClick = onToggle)
-                else Modifier,
-            )
-            .padding(
-                top = Space.xs,
-                start = if (ed) 14.dp else 0.dp,
-                end = if (ed) 14.dp else 0.dp,
-            ),
+        Modifier.fillMaxWidth().heightIn(min = 48.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
         Text(
-            row.label,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.Bold,
-            // 账页：分组名走衬线 + 大字距（账本的「抬头」），HARD 保持 1sp 无衬线
-            letterSpacing = if (ed) 1.6.sp else 1.sp,
-            fontFamily = if (ed) f.displayFamily else null,
+            if (shown < total) "上滑加载 · 已显示 $shown/$total" else "已到底 · 共 $total 条",
+            fontSize = 11.sp,
+            lineHeight = 16.sp,
             color = t.inkFaint,
         )
-        Spacer(Modifier.width(Space.xs))
-        Text(
-            row.count.toString(),
-            fontSize = 10.sp,
-            fontFamily = if (ed) f.numberFamily else NumericFont,
-            color = t.inkFaint,
-        )
-        if (onToggle != null) {
-            Spacer(Modifier.width(Space.xs))
-            Text(if (row.collapsed) "▸" else "▾", fontSize = 10.sp, color = t.inkFaint)
-        }
-        Spacer(Modifier.width(Space.s))
-        if (ed) {
-            // 账页：导引线用**点线**（2/4 间隔）—— 与「能不用线就不用线」的语汇一致，
-            // 实线在这里会把分组名读成「表格标题行」，那就退回 HARD 的语言了
-            Box(
-                Modifier
-                    .weight(1f)
-                    .height(1.dp)
-                    .drawBehind {
-                        drawLine(
-                            color = t.rule.copy(alpha = 0.85f),
-                            start = Offset(0f, size.height / 2f),
-                            end = Offset(size.width, size.height / 2f),
-                            strokeWidth = 1f,
-                            pathEffect = PathEffect.dashPathEffect(floatArrayOf(2f, 4f)),
-                        )
-                    },
-            )
-        } else {
-            Box(Modifier.weight(1f).height(Stroke.hairline).background(t.rule))
-        }
     }
 }
 
-@Composable
-private fun PageFooter(shown: Int, total: Int) {
-    val t = InkTokens.current
-    Column(Modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
-        Box(Modifier.fillMaxWidth().height(Space.minTouch), contentAlignment = Alignment.Center) {
-            Text(
-                if (shown < total) "上滑加载 · 已显示 $shown/$total" else "已到底 · 共 $total 条",
-                fontSize = 10.sp,
-                color = t.inkFaint,
-                fontFamily = NumericFont,
-            )
-        }
-    }
-}
-
-// ── 卡片：标准 / 紧凑 ─────────────────────────────────────
-
-/**
- * 标准卡（全部/竞赛/教务/通知/学工默认）：
- * 身份块 32dp + 元信息 + 标题 15sp + 摘要 2 行 + 底栏。
- * 已读降级：点消失、标题 700→500、ink→inkSoft（退后但不隐藏）。
- * 紧急竞赛（≤3 天）左侧 3dp brick 色条。
- */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun StandardCard(item: FeedItem, today: java.time.LocalDate, onClick: () -> Unit, onLongClick: () -> Unit) {
-    val t = InkTokens.current
-    val f = Form.current
-    val ed = f.editorial
-    val unread = item.readAt == null
-    val cat = categoryColor(item.category, t)
-    // 查表级计算，不值得 remember 的槽位开销（评审 B10）
-    val dl = if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
-    val urgent = dl?.tone == DeadlineTone.HOT
-    val haptic = LocalHapticFeedback.current
-    val shape = f.shapes.card
-
-    Row(
-        Modifier
-            .fillMaxWidth()
-            // 账页：卡片是「贴在账页上的一张便签」—— 两侧留白 + 圆角 + 软阴影。
-            // HARD 走原路径（满宽、方角、1dp 实线），一像素都没动。
-            .then(if (ed) Modifier.padding(horizontal = 14.dp) else Modifier)
-            .then(if (ed) Modifier.cardFloat(f, if (t.isDark) Color.Black else t.ink) else Modifier)
-            .then(if (ed) Modifier.clip(shape) else Modifier)
-            .background(t.card)
-            .border(
-                if (ed) f.ruleWidth else Stroke.hairline,
-                if (ed) t.outline.copy(alpha = 0.30f) else t.outline,
-                shape,
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onLongClick()
-                },
-                onLongClickLabel = "${item.title} 更多操作",
-            ),
-    ) {
-        if (urgent) {
-            Box(Modifier.width(Stroke.accentBar).fillMaxHeight().background(t.brick))
-        }
-        Column(Modifier.weight(1f)) {
-            Row(Modifier.padding(Space.m)) {
-                Box(
-                    Modifier
-                        .size(32.dp)
-                        // 账页：分类徽是一枚「小印章」（6dp 圆角），不是方块
-                        .then(if (ed) Modifier.clip(f.shapes.badge) else Modifier)
-                        .background(cat.copy(alpha = if (t.isDark) 0.22f else 0.10f))
-                        .border(Stroke.hairline, cat.copy(alpha = 0.45f), f.shapes.badge),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        item.category.take(2),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = if (ed) f.displayFamily else null,
-                        color = cat,
-                        maxLines = 1,
-                    )
-                }
-                Spacer(Modifier.width(Space.m))
-                Column(Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            item.sourceName,
-                            fontSize = 10.5.sp,
-                            fontWeight = if (ed) FontWeight.Normal else FontWeight.Medium,
-                            letterSpacing = if (ed) 0.4.sp else 0.sp,
-                            color = t.inkSoft,
-                            maxLines = 1,
-                            modifier = Modifier.weight(1f, fill = false),
-                        )
-                        Spacer(Modifier.width(Space.xs))
-                        Text("·", fontSize = 10.sp, color = t.rule)
-                        Spacer(Modifier.width(Space.xs))
-                        Text(
-                            shortDate(item.publishedAt),
-                            fontSize = 9.5.sp,
-                            color = t.inkFaint,
-                            fontFamily = if (ed) f.numberFamily else NumericFont,
-                        )
-                        Spacer(Modifier.weight(1f))
-                        if (item.starred) {
-                            StarMark()
-                            Spacer(Modifier.width(Space.xs))
-                        }
-                        if (unread) {
-                            Box(Modifier.size(6.dp).clip(f.shapes.circle).background(if (ed) primaryInk() else t.primary))
-                        }
-                    }
-                    Spacer(Modifier.height(Space.xs))
-                    Text(
-                        if (item.titleTruncated) item.title.trimEnd('.', '…') + "…" else item.title,
-                        // 账页：条目标题走衬线（与课表里的课名同一族），靠字族 + 字重做层级
-                        fontSize = 15.sp,
-                        lineHeight = 21.sp,
-                        color = if (unread) t.ink else t.inkSoft,
-                        fontWeight = if (unread) FontWeight.Bold else FontWeight.Medium,
-                        letterSpacing = if (ed) f.titleTracking else 0.sp,
-                        fontFamily = if (ed) f.displayFamily else null,
-                        maxLines = 2,
-                    )
-                    val s = sanitizeSummary(item.summary)
-                    if (s.isNotBlank()) {
-                        Spacer(Modifier.height(Space.xs))
-                        Text(s.take(100), fontSize = 12.sp, lineHeight = 18.sp, color = t.inkFaint, maxLines = 2)
-                    }
-                }
-            }
-            // 账页：卡片内部**不画分隔线**（与网格同一条规矩：能不用线就不用线），
-            // 靠 4dp 间距 + 底部那行小字的位置来分区。HARD 保留原来的 1dp 实线。
-            if (ed) {
-                Spacer(Modifier.height(Space.xs))
-            } else {
-                Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.outline.copy(alpha = 0.7f)))
-            }
-            Row(
-                Modifier.fillMaxWidth().heightIn(min = 28.dp).padding(horizontal = Space.m, vertical = Space.xs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    item.category,
-                    fontSize = 9.5.sp,
-                    fontWeight = FontWeight.Medium,
-                    letterSpacing = if (ed) 1.2.sp else 0.sp,
-                    color = cat,
-                )
-                dl?.let {
-                    Spacer(Modifier.width(Space.s))
-                    Text("·", fontSize = 9.sp, color = t.rule)
-                    Spacer(Modifier.width(Space.s))
-                    Text(
-                        it.text,
-                        fontSize = 9.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = if (ed) f.numberFamily else NumericFont,
-                        color = when (it.tone) {
-                            DeadlineTone.HOT -> t.brick
-                            DeadlineTone.WARM -> t.amber
-                            DeadlineTone.DEAD -> t.inkFaint
-                        },
-                    )
-                }
-                if (item.platformState.isNotBlank()) {
-                    Spacer(Modifier.width(Space.s))
-                    Text("·", fontSize = 9.sp, color = t.rule)
-                    Spacer(Modifier.width(Space.s))
-                    Text(item.platformState, fontSize = 9.5.sp, color = t.inkFaint)
-                }
-                Spacer(Modifier.weight(1f))
-                Text("›", fontSize = 13.sp, color = t.inkFaint)
-            }
-        }
-    }
-}
-
-/**
- * 紧凑卡（就业/新闻默认）：3dp 频道色条 + 标题 + 单行元信息。
- * 一屏 6–9 条快速扫过；整卡可点可长按。
- */
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun CompactCard(item: FeedItem, today: java.time.LocalDate, onClick: () -> Unit, onLongClick: () -> Unit) {
-    val t = InkTokens.current
-    val f = Form.current
-    val ed = f.editorial
-    val unread = item.readAt == null
-    val cat = categoryColor(item.category, t)
-    val dl = if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
-    val barColor = if (dl?.tone == DeadlineTone.HOT) t.brick else cat
-    val haptic = LocalHapticFeedback.current
-    val shape = f.shapes.card
-
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .then(if (ed) Modifier.padding(horizontal = 14.dp) else Modifier)
-            .then(if (ed) Modifier.cardFloat(f, if (t.isDark) Color.Black else t.ink) else Modifier)
-            .then(if (ed) Modifier.clip(shape) else Modifier)
-            .background(t.card)
-            .border(
-                if (ed) f.ruleWidth else Stroke.hairline,
-                if (ed) t.outline.copy(alpha = 0.30f) else t.outline,
-                shape,
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = {
-                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                    onLongClick()
-                },
-                onLongClickLabel = "${item.title} 更多操作",
-            ),
-    ) {
-        // 频道色条：账页里改成 4dp（更宽的「书签边」），靠 clip 自动带圆角
-        Box(Modifier.width(if (ed) 4.dp else Stroke.accentBar).fillMaxHeight().background(barColor))
-        Column(Modifier.weight(1f).padding(start = Space.m, end = Space.m, top = Space.s, bottom = Space.s)) {
-            Text(
-                if (item.titleTruncated) item.title.trimEnd('.', '…') + "…" else item.title,
-                fontSize = 14.sp,
-                lineHeight = 20.sp,
-                fontWeight = if (unread) FontWeight.Bold else FontWeight.Medium,
-                letterSpacing = if (ed) f.titleTracking else 0.sp,
-                fontFamily = if (ed) f.displayFamily else null,
-                color = if (unread) t.ink else t.inkSoft,
-                maxLines = 2,
-            )
-            Spacer(Modifier.height(Space.xxs))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    item.sourceName + " · " + shortDate(item.publishedAt),
-                    fontSize = 9.5.sp,
-                    lineHeight = 13.sp,
-                    color = t.inkFaint,
-                    fontFamily = if (ed) f.numberFamily else NumericFont,
-                    maxLines = 1,
-                    modifier = Modifier.weight(1f, fill = false),
-                )
-                dl?.let {
-                    Text(
-                        " · " + it.text,
-                        fontSize = 9.5.sp,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = if (ed) f.numberFamily else NumericFont,
-                        color = when (it.tone) {
-                            DeadlineTone.HOT -> t.brick
-                            DeadlineTone.WARM -> t.amber
-                            DeadlineTone.DEAD -> t.inkFaint
-                        },
-                        maxLines = 1,
-                    )
-                }
-                Spacer(Modifier.weight(1f))
-                if (item.starred) {
-                    StarMark()
-                    Spacer(Modifier.width(Space.xs))
-                }
-                if (unread) {
-                    Box(Modifier.size(6.dp).clip(f.shapes.circle).background(if (ed) primaryInk() else t.primary))
-                }
-            }
-        }
-    }
-}
-
-/** 收藏标：方角「藏」字块（16dp 高，amber） */
-@Composable
-private fun StarMark() {
-    val t = InkTokens.current
-    Box(
-        Modifier
-            .height(16.dp)
-            .border(Stroke.hairline, t.amber)
-            .padding(horizontal = Space.xs),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text("藏", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = t.amber)
-    }
-}
+// 标准卡 / 紧凑卡 / 组头 / 分页脚 / 收藏标已随账页 v3 移除 —— 条目改为 LedgerRow「行」，
+// 组头改 LedgerGroupTitle，分页脚改 FeedPageFooter。渲染入口见上方 FeedPage。
 
 // ── 骨架 / 空态 ───────────────────────────────────────────
 
-/** 静态骨架（红线：无 shimmer 无渐变）：3 张卡形 + 一句真实状态 */
+/** 静态骨架（红线：无 shimmer 无渐变）：纯色条模拟「行」，不画卡框 */
 @Composable
 private fun SkeletonList() {
     val t = InkTokens.current
     Column(
         Modifier.fillMaxSize().padding(Space.l),
-        verticalArrangement = Arrangement.spacedBy(Space.s),
+        verticalArrangement = Arrangement.spacedBy(18.dp),
     ) {
         Text("正在抓取…", fontSize = 12.sp, color = t.inkFaint, modifier = Modifier.align(Alignment.CenterHorizontally))
         repeat(3) {
-            Column(
-                Modifier.fillMaxWidth().background(t.card).border(Stroke.hairline, t.outline).padding(Space.m),
-            ) {
-                Row {
-                    Box(Modifier.size(32.dp).background(t.cardAlt))
-                    Spacer(Modifier.width(Space.m))
-                    Column(Modifier.weight(1f)) {
-                        Box(Modifier.fillMaxWidth().height(12.dp).background(t.rule))
-                        Spacer(Modifier.height(Space.s))
-                        Box(Modifier.fillMaxWidth(0.64f).height(12.dp).background(t.rule))
-                    }
-                }
-                Spacer(Modifier.height(Space.m))
-                Box(Modifier.fillMaxWidth().height(10.dp).background(t.rule))
-                Spacer(Modifier.height(Space.xs))
-                Box(Modifier.fillMaxWidth(0.8f).height(10.dp).background(t.rule))
+            Column(Modifier.fillMaxWidth()) {
+                Box(Modifier.fillMaxWidth(0.72f).height(16.dp).background(t.rule))
+                Spacer(Modifier.height(8.dp))
+                Box(Modifier.fillMaxWidth().height(12.dp).background(t.rule.copy(alpha = 0.7f)))
+                Spacer(Modifier.height(6.dp))
+                Box(Modifier.fillMaxWidth(0.56f).height(12.dp).background(t.rule.copy(alpha = 0.7f)))
             }
         }
     }
@@ -1189,42 +745,35 @@ private fun EmptyChannel(ui: FeedUiState, channel: String, vm: FeedViewModel) {
     val unread = ui.unreadOf(channel)
     val branch = when {
         ui.query.isNotBlank() -> EmptyBranch("无", "没有符合条件的资讯", "换个词，或清空筛选", "清空筛选")
-        ui.starredOnly && ui.items.none { it.starred } -> EmptyBranch("藏", "还没有收藏", "长按卡片，点「收藏」", "看全部")
+        ui.starredOnly && ui.items.none { it.starred } -> EmptyBranch("藏", "还没有收藏", "长按条目，点「收藏」", "看全部")
         ui.onlyUnread && unread == 0 && total > 0 -> EmptyBranch("完", "都读完了", "「$channel」共 $total 条已读", "看全部")
         // 首次无缓存且上次刷新全失败：给可操作的重试（规格 §9.2）
         total == 0 && ui.banner?.tone == FeedBanner.Tone.FAIL -> EmptyBranch("空", "还没有内容", "检查网络后重试", "刷新")
-        total == 0 -> EmptyBranch("空", if (channel == "全部") "还没有内容" else "「$channel」暂时没有内容", "点右上角刷新", null)
+        total == 0 -> EmptyBranch("空", if (channel == "全部") "还没有内容" else "「$channel」暂时没有内容", "点页眉 ⋯ 刷新", null)
         else -> EmptyBranch("空", "没有符合条件的资讯", "换个筛选条件", "清空筛选")
     }
     Box(Modifier.fillMaxSize().padding(Space.l), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.padding(top = 56.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            Box(Modifier.size(38.dp).border(Stroke.hairline, t.outline), contentAlignment = Alignment.Center) {
-                Text(branch.glyph, fontSize = 13.sp, color = t.inkFaint)
-            }
+            Text(branch.glyph, fontSize = 13.sp, color = t.inkFaint)
             Spacer(Modifier.height(Space.m))
             Text(branch.title, fontSize = 13.sp, color = t.inkSoft, fontWeight = FontWeight.Medium)
             Spacer(Modifier.height(Space.xs))
             Text(branch.sub, fontSize = 11.sp, color = t.inkFaint)
             if (branch.action != null) {
                 Spacer(Modifier.height(Space.m))
-                Box(
-                    Modifier
-                        .height(34.dp)
-                        .border(Stroke.hairline, t.outline)
-                        .clickable {
-                            when (branch.action) {
-                                "清空筛选" -> vm.clearFilter()
-                                "刷新" -> vm.refresh()
-                                "看全部" -> {
-                                    if (ui.onlyUnread) vm.toggleOnlyUnread()
-                                    if (ui.starredOnly) vm.toggleStarredOnly()
-                                }
-                            }
-                        }
-                        .padding(horizontal = Space.l),
-                    contentAlignment = Alignment.Center,
+                TextAction(
+                    branch.action,
+                    primaryInk(),
+                    onClickLabel = branch.action,
                 ) {
-                    Text(branch.action, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.primary)
+                    when (branch.action) {
+                        "清空筛选" -> vm.clearFilter()
+                        "刷新" -> vm.refresh()
+                        "看全部" -> {
+                            if (ui.onlyUnread) vm.toggleOnlyUnread()
+                            if (ui.starredOnly) vm.toggleStarredOnly()
+                        }
+                    }
                 }
             }
         }
@@ -1436,6 +985,7 @@ private fun FeedQuickActions(
 private fun HeaderMenu(
     ui: FeedUiState,
     category: String,
+    onRefresh: () -> Unit,
     onChannelRead: () -> Unit,
     onAllRead: () -> Unit,
     onToggleDensity: () -> Unit,
@@ -1452,19 +1002,21 @@ private fun HeaderMenu(
             Text("$category · $chUnread 未读", fontSize = 9.5.sp, color = t.inkFaint, fontFamily = NumericFont)
         }
         Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
-        MenuRow("01", "本频道全部已读", "将「$category」的 $chUnread 条未读标为已读", enabled = chUnread > 0) {
+        // 原页头「刷新」按钮在账页 v3 里收进菜单：页眉右侧只剩「⋯ / 查」，刷新能力不丢
+        MenuRow("01", "刷新", "重新抓取全部频道，旧数据可见") { onRefresh(); onDismiss() }
+        MenuRow("02", "本频道全部已读", "将「$category」的 $chUnread 条未读标为已读", enabled = chUnread > 0) {
             onChannelRead(); onDismiss()
         }
-        MenuRow("02", "全部频道全部已读", "共 ${ui.unread} 条未读，收藏不受影响", enabled = ui.unread > 0) {
+        MenuRow("03", "全部频道全部已读", "共 ${ui.unread} 条未读，收藏不受影响", enabled = ui.unread > 0) {
             onAllRead(); onDismiss()
         }
         MenuRow(
-            "03",
-            "卡片密度：${if (ui.compactOf(category)) "紧凑" else "标准"}",
+            "04",
+            "密度：${if (ui.compactOf(category)) "紧凑" else "标准"}",
             "只影响「$category」，点一下切换",
         ) { onToggleDensity(); onDismiss() }
         if (failed.isNotEmpty()) {
-            MenuRow("04", "刷新失败详情", "${failed.size} 个源失败") { onFailDetail(); onDismiss() }
+            MenuRow("05", "刷新失败详情", "${failed.size} 个源失败") { onFailDetail(); onDismiss() }
         }
     }
 }
