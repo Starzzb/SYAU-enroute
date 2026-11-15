@@ -1,0 +1,105 @@
+{
+ "neea": {
+  "code": "neea",
+  "name": "中国教育考试网",
+  "home": "https://www.neea.edu.cn/",
+  "kind": "证书公告",
+  "fetchedAt": "2026-11-15T08:47:31+0800",
+  "robots": {
+   "url": "https://www.neea.edu.cn/robots.txt",
+   "ok": false,
+   "error": "HTTPError: HTTP Error 404: Not Found",
+   "rules": []
+  },
+  "ok": true,
+  "error": null,
+  "status": 200,
+  "finalUrl": "https://www.neea.edu.cn/",
+  "bytes": 68105,
+  "contentType": "text/html",
+  "apiHints": [],
+  "title": "首页 - 中国教育考试网",
+  "candidates": [
+   {
+    "text": "考试资讯",
+    "url": "https://www.neea.edu.cn/html1/category/16093/615-1.htm"
+   },
+   {
+    "text": "公示公告",
+    "url": "https://www.neea.edu.cn/html1/category/1508/151-1.htm"
+   },
+   {
+    "text": "考试项目",
+    "url": "https://www.neea.edu.cn/html1/folder/16103/1271-1.htm"
+   },
+   {
+    "text": "考试报名",
+    "url": "https://www.neea.edu.cn/html1/folder/1607/298-1.htm"
+   },
+   {
+    "text": "考试研究",
+    "url": "https://research.neea.edu.cn"
+   },
+   {
+    "text": "研究生考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/5428-1.htm"
+   },
+   {
+    "text": "自学考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1512/422-1.htm"
+   },
+   {
+    "text": "中小学教师资格考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1507/1076-1.htm"
+   },
+   {
+    "text": "全国中小学教师教育技术水平考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/660-1.htm"
+   },
+   {
+    "text": "全国计算机等级考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1507/770-1.htm"
+   },
+   {
+    "text": "全国英语等级考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/1782-1.htm"
+   },
+   {
+    "text": "中国物流职业经理资格证书考试",
+    "url": "https://www.neea.edu.cn/"
+   },
+   {
+    "text": "中英合作金融管理专业证书课程考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/1453-1.htm"
+   },
+   {
+    "text": "中英合作商务管理专业证书课程考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/1308-1.htm"
+   },
+   {
+    "text": "全国外语水平考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/2411-1.htm"
+   },
+   {
+    "text": "医护英语水平考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1510/597-1.htm"
+   },
+   {
+    "text": "财税专业技能等级考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/2840-1.htm"
+   },
+   {
+    "text": "全国音乐等级考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1510/421-1.htm"
+   },
+   {
+    "text": "美国大学先修课程考试(AP)",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/3807-1.htm"
+   },
+   {
+    "text": "剑桥大学通用英语证书考试",
+    "url": "https://www.neea.edu.cn/html1/folder/1509/3561-1.htm"
+   }
+  ]
+ }
+}

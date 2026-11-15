@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -45,15 +47,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.runtime.mutableFloatStateOf
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.foundation.gestures.awaitEachGesture
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -187,49 +186,74 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
         if (cal.isCalibrated && week != null) runCatching { cal.mondayOfWeek(1) }.getOrNull() else null
     }
     val termCode = tt.term
-    val weekCustom: List<Course> = remember(ui.customCourses, week, week1Monday, termCode) {
-        if (week == null || week1Monday == null) emptyList()
-        else ui.customCourses.flatMap { c ->
-            cn.dkarbon.enroute.data.custom.CustomRules.toCourses(c, week, week1Monday, termCode)
-        }
-    }
 
-    // 一格一门课：同一格有多门（冲突）时取第一门，其余进未排课列表提示
-    // 合并规则（票 19）收在 `CustomRules.mergeIntoGrid` 里：教务先占位、自定义绝不覆盖，
+    // ── 按周计算抽成纯函数（票 33）──────────────────────────────
+    // Pager 的每一页都要算自己的周，而课表数据本来就全在内存 ——
+    // "预加载"因此零成本，只是渲染容器换了。
+    // 合并规则（票 19）收在 `CustomRules.mergeIntoGrid`：教务先占位、自定义绝不覆盖，
     // 被挤掉的那门进「同格冲突」列表 —— 两门都看得见，且这套规则有单测。
-    val merged = remember(tt, week, weekCustom) {
-        cn.dkarbon.enroute.data.custom.CustomRules.mergeIntoGrid(
-            urp = tt.courses,
-            custom = weekCustom,
-            week = week ?: 0,
-            bigsOf = { sec -> BigSession.ofCourse(sec).map { it.index } },
-        )
-    }
-    val cells = merged.first
+    fun customFor(w: Int): List<Course> =
+        if (week1Monday == null) emptyList()
+        else ui.customCourses.flatMap { c ->
+            cn.dkarbon.enroute.data.custom.CustomRules.toCourses(c, w, week1Monday, termCode)
+        }
+
+    fun mergedFor(w: Int) = cn.dkarbon.enroute.data.custom.CustomRules.mergeIntoGrid(
+        urp = tt.courses,
+        custom = customFor(w),
+        week = w,
+        bigsOf = { sec -> BigSession.ofCourse(sec).map { it.index } },
+    )
 
     // 排不上时间的课 + 同格冲突被挤掉的课：都不能静默丢
-    val unscheduled = remember(tt, week, cells, weekCustom, merged) {
-        // 被同格挤掉的自定义课（票 19）：必须单列出来，绝不静默丢
-        val bumpedCustom = merged.second
-        val all = tt.courses + weekCustom
+    fun unscheduledFor(w: Int): List<Course> {
+        val cellsW = mergedFor(w).first
+        val all = tt.courses + customFor(w)
         val noSlot = all.filter {
             it.weeks.isEmpty() || it.weekday !in 1..7 || it.sections.isEmpty()
         }
         val bumped = all.filter { c ->
-            c.weekday in 1..7 && week in c.weeks && c.sections.isNotEmpty() &&
+            c.weekday in 1..7 && w in c.weeks && c.sections.isNotEmpty() &&
                 BigSession.ofCourse(c.sections).any { b ->
-                    val owner = cells[c.weekday to b.index]
+                    val owner = cellsW[c.weekday to b.index]
                     owner != null && owner !== c && owner.courseNo != c.courseNo
                 }
         }
-        (noSlot + bumped + bumpedCustom).distinct()
+        return (noSlot + bumped + mergedFor(w).second).distinct()
     }
+
+    // 尾注/未排课改为随 pager 页计算（pageCells/pageUnscheduled），
+    // 顶层不再保留单周派生值 —— week 仍由 pagerState 回写，供头部与浮层用。
 
     var detail by remember { mutableStateOf<Course?>(null) }
     var quick by remember { mutableStateOf<Course?>(null) }
 
+    // ── 左右滑动切周（票 33：HorizontalPager）────────────────────
+    // 主人真机判票 28 的自研手势"涩"：64dp 阈值 + 25% 阻尼 + 松手 tween，
+    // 攒不出系统级手感。照片墙那种"跟手 1:1、前后内容全在"的效果，
+    // 现成件就是 HorizontalPager + beyondViewportPageCount —— 相邻周在屏外
+    // 就已组合好，滑动时内容跟手平移，零阻尼零等待。
+    // 纵向滚动天然分流：Pager 只吃横向 slop，页内 verticalScroll 照常。
+    // 声明放在外层：WeekHeader 的按钮、详情浮层的跳周、pager 本体都要用同一份状态。
+    val pageCount = maxOf(1, maxWeek - minWeek + 1)
+    val pagerState = rememberPagerState(
+        initialPage = (week - minWeek).coerceIn(0, pageCount - 1),
+    ) { pageCount }
+    val pagerScope = rememberCoroutineScope()
+
+    // 周次 ← pager：切周唯一事实源是 pagerState，week 变成派生值
+    LaunchedEffect(pagerState, minWeek) {
+        snapshotFlow { pagerState.currentPage }.collect { p ->
+            week = minWeek + p
+        }
+    }
+    // 按钮/跳周 → pager（animateScrollToPage 自带系统动画）
     val jumpToWeek: (Int) -> Unit = { w ->
-        week = w.coerceIn(minWeek, maxOf(minWeek, maxWeek))
+        val target = (w.coerceIn(minWeek, maxOf(minWeek, maxWeek)) - minWeek)
+            .coerceIn(0, pageCount - 1)
+        if (target != pagerState.currentPage) {
+            pagerScope.launch { pagerState.animateScrollToPage(target) }
+        }
     }
 
     // 编辑版（票 17）：整页铺一层极低对比度纸纹，替代「卡片+描边」的空间感。
@@ -256,138 +280,54 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
                 isThisWeek = isThisWeek,
                 term = tt.term,
                 courseCount = tt.courses.map { it.courseNo }.distinct().size,
-                onPrev = { if (week > minWeek) week-- },
-                onNext = { if (week < maxWeek) week++ },
-                onToday = { week = todayWeek },
+                onPrev = { jumpToWeek(week - 1) },
+                onNext = { jumpToWeek(week + 1) },
+                onToday = { jumpToWeek(todayWeek) },
                 onRecalibrate = { calibrating = true },
             )
 
-            // ── 左右滑动切周（票 28）──────────────────────────────
-            // 手势判定全部在 `WeekSwipeRules`（纯函数、可单测）；这里只做三件事：
-            // 把位移喂进去、把结果画出来、切换周次。**纵向滚动优先**是关键：
-            // 手指还没横着走够阈值之前，一次 `consume()` 都不发出，纵向滚动照常。
-            val swipeScope = rememberCoroutineScope()
-            val swipeDensity = androidx.compose.ui.platform.LocalDensity.current
-            val minSwipePx = with(swipeDensity) { WeekSwipeRules.MIN_SWIPE_DP.dp.toPx() }
-            val flingPx = with(swipeDensity) { WeekSwipeRules.FLING_VELOCITY_DP_S.dp.toPx() }
-            var swipeOffset by remember { mutableStateOf(0f) }
-            var swipeWidth by remember { mutableFloatStateOf(1f) }
-            // 切换动作要读到**最新**的 week / 边界；pointerInput(Unit) 里捕获的 lambda 会是旧的
-            val trySwipeNow = rememberUpdatedState<(Int) -> Boolean> { step ->
-                val target = week + step
-                if (target in minWeek..maxWeek) {
-                    week = target
-                    true
-                } else {
-                    false
-                }
-            }
-
-            fun animateSwipeTo(target: Float, ms: Int = WeekSwipeRules.TRANSITION_MS) {
-                swipeScope.launch {
-                    androidx.compose.animation.core.animate(
-                        initialValue = swipeOffset,
-                        targetValue = target,
-                        animationSpec = androidx.compose.animation.core.tween(ms),
-                    ) { v, _ -> swipeOffset = v }
-                }
-            }
-
-            BoxWithConstraints(Modifier.weight(1f)) {
-                val widthPx = with(swipeDensity) { maxWidth.toPx() }
-                androidx.compose.runtime.LaunchedEffect(widthPx) { swipeWidth = widthPx }
-
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        // 平移 + 淡入淡出：整块内容一起动，所以账页的色带不会错位
-                        // （错位只会发生在"分区各自位移"的写法里，这里不是）
-                        .graphicsLayer {
-                            translationX = swipeOffset
-                            alpha = WeekSwipeRules.alphaFor(swipeOffset, swipeWidth)
-                        }
-                        .pointerInput(Unit) {
-                            awaitEachGesture {
-                                val down = awaitFirstDown(requireUnconsumed = false)
-                                val tracker =
-                                    androidx.compose.ui.input.pointer.util.VelocityTracker()
-                                tracker.addPosition(down.uptimeMillis, down.position)
-                                var dx = 0f
-                                var dy = 0f
-                                var claimed = false
-                                while (true) {
-                                    val event = awaitPointerEvent()
-                                    val pressed = event.changes.filter { it.pressed }
-                                    if (pressed.isEmpty()) break
-                                    val c = pressed.first()
-                                    tracker.addPosition(c.uptimeMillis, c.position)
-                                    dx = c.position.x - down.position.x
-                                    dy = c.position.y - down.position.y
-                                    if (!claimed) {
-                                        // 够横向意图了才接管；在此之前一个事件都不 consume，
-                                        // 纵向滚动 / 点击 / 长按完全不受影响
-                                        if (WeekSwipeRules.shouldClaim(dx, dy, minSwipePx)) claimed = true
-                                    }
-                                    if (claimed) {
-                                        event.changes.forEach { it.consume() }
-                                        swipeOffset = WeekSwipeRules.dragOffset(dx, swipeWidth)
-                                    }
-                                }
-                                if (!claimed) return@awaitEachGesture
-                                val vx = runCatching { tracker.calculateVelocity().x }.getOrDefault(0f)
-                                val step = WeekSwipeRules.decide(dx, dy, vx, minSwipePx, flingPx)
-                                when (WeekSwipeRules.outcomeFor(step, week, minWeek, maxWeek)) {
-                                    WeekSwipeRules.SwipeOutcome.SWITCHED -> {
-                                        // 先把内容"摆到"滑动反方向的一侧，再动画回 0 ——
-                                        // 观感就是新一周从手指来的方向推进来
-                                        trySwipeNow.value(step)
-                                        // 新一周从**手指来的那一侧**推进来：
-                                        // 向左滑（step=+1，下一周）→ 新内容从右侧(+w)进；向右滑 → 从左侧(-w)进。
-                                        // 所以起点是 `step * w`（不是 -step），这一步符号写反了会看起来"倒着走"。
-                                        swipeOffset = step * swipeWidth
-                                        animateSwipeTo(0f)
-                                    }
-                                    // 到边界：回弹，周次不变（不静默）
-                                    WeekSwipeRules.SwipeOutcome.BOUNCE_AT_EDGE -> animateSwipeTo(0f)
-                                    WeekSwipeRules.SwipeOutcome.SNAP_BACK -> animateSwipeTo(0f)
-                                }
-                            }
-                        },
-                ) {
+            androidx.compose.foundation.pager.HorizontalPager(
+                state = pagerState,
+                beyondViewportPageCount = 1,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+            ) { page ->
+                val pageWeek = minWeek + page
+                val pageCells = mergedFor(pageWeek).first
+                val pageUnscheduled = unscheduledFor(pageWeek)
+                Column(Modifier.fillMaxSize()) {
                     GridArea(
-                        modifier = Modifier.fillMaxSize(),
-                        week = week,
-                        isThisWeek = isThisWeek,
+                        modifier = Modifier.weight(1f).fillMaxWidth(),
+                        week = pageWeek,
+                        isThisWeek = pageWeek == todayWeek,
                         todayWeekday = todayWeekday,
-                        cells = cells,
+                        cells = pageCells,
                         nowMin = nowMin,
                         summer = summer,
-                        monday = cal.mondayOfWeek(week),
+                        monday = cal.mondayOfWeek(pageWeek),
                         onCourseClick = { detail = it },
                         onCourseLongClick = { quick = it },
                     )
+                    // 未排课 + 尾注：上限高度，自己能滚，不抢网格地盘
+                    Column(
+                        Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 148.dp)
+                            .verticalScroll(rememberScrollState()),
+                    ) {
+                        if (pageUnscheduled.isNotEmpty()) {
+                            UnscheduledHeader(pageUnscheduled.size)
+                            pageUnscheduled.forEach { UnscheduledRow(it, onClick = { detail = it }) }
+                        }
+                        FootNote(
+                            weekTotal = pageCells.size,
+                            unscheduled = pageUnscheduled.size,
+                            summer = summer,
+                            eaten = if (pageWeek == todayWeek) eatenCount(pageCells, todayWeekday, nowMin, summer) else 0,
+                            todayTotal = if (pageWeek == todayWeek) pageCells.filterKeys { it.first == todayWeekday }.values.distinct().size else 0,
+                            isThisWeek = pageWeek == todayWeek,
+                        )
+                    }
                 }
-            }
-
-            // 未排课 + 尾注：上限高度，自己能滚，不抢网格地盘
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 148.dp)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                if (unscheduled.isNotEmpty()) {
-                    UnscheduledHeader(unscheduled.size)
-                    unscheduled.forEach { UnscheduledRow(it, onClick = { detail = it }) }
-                }
-                FootNote(
-                    weekTotal = cells.size,
-                    unscheduled = unscheduled.size,
-                    summer = summer,
-                    eaten = if (isThisWeek) eatenCount(cells, todayWeekday, nowMin, summer) else 0,
-                    todayTotal = if (isThisWeek) cells.filterKeys { it.first == todayWeekday }.values.distinct().size else 0,
-                    isThisWeek = isThisWeek,
-                )
             }
         }
 
