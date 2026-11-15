@@ -9,7 +9,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,11 +25,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
@@ -44,9 +43,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,14 +58,13 @@ import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -74,6 +75,8 @@ import cn.dkarbon.enroute.data.feed.FeedItem
 import cn.dkarbon.enroute.data.feed.SourceResult
 import cn.dkarbon.enroute.ui.common.rememberListScrollState
 import cn.dkarbon.enroute.ui.ledger.LedgerGroupBreak
+import cn.dkarbon.enroute.ui.ledger.LedgerGutter
+import cn.dkarbon.enroute.ui.ledger.LedgerGutterGap
 import cn.dkarbon.enroute.ui.ledger.LedgerGroupTitle
 import cn.dkarbon.enroute.ui.ledger.LedgerHeader
 import cn.dkarbon.enroute.ui.ledger.LedgerRow
@@ -86,8 +89,12 @@ import cn.dkarbon.enroute.ui.theme.Soil
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
 import cn.dkarbon.enroute.ui.theme.primaryInk
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
+/** 页眉整条高度：44dp 行 + 1dp 页眉线，收起动画按它塌缩。 */
+private val FeedHeaderHeight = 45.dp
 
 /**
  * 资讯页（2026-11-13 按设计评审规格重做，见 docs/评审-资讯页信息架构.md）。
@@ -135,7 +142,6 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
     val cats = FeedViewModel.CATEGORIES
     val pagerState = rememberPagerState(pageCount = { cats.size })
     val scope = rememberCoroutineScope()
-    val haptic = LocalHapticFeedback.current
 
     // 首帧后补抓一次：冷启动不被网络拖住
     LaunchedEffect(Unit) { vm.refreshIfEmpty() }
@@ -176,14 +182,66 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
     // 「查」只把焦点送进搜索框；搜索行仍常驻页眉下方，筛选能力一点没少
     val searchFocus = remember { FocusRequester() }
 
+    // 页眉按需隐藏（主人点名）：只观察「当前页」的滚动状态。
+    // 每个分类页在 pager 里是独立 LazyColumn，由 FeedPage 把它的 LazyListState 上报到这个槽位；
+    // 切页时旧页 dispose 清空、新页重报 —— 比较相等才清，避免旧页 onDispose 把新页刚报的抹掉。
+    val listStateSlot = remember { mutableStateOf<LazyListState?>(null) }
+    var headerHidden by remember { mutableStateOf(false) }
+
+    // 判定：位置单调增大 = 下滚 → 收起；减小 = 上滚 → 立即展开；到顶 → 展开。
+    // 不读 isScrollInProgress（非 snapshot 态，读它触发不了流），改看「位置变化」：
+    // 每次变化都重启 1.2s 计时，停滚 1.2s 没动就回显，入口不会丢。
+    LaunchedEffect(listStateSlot.value) {
+        val ls = listStateSlot.value
+        if (ls == null) {
+            headerHidden = false
+            return@LaunchedEffect
+        }
+        var lastPos = -1L
+        var stopJob: Job? = null
+        snapshotFlow { ls.firstVisibleItemIndex to ls.firstVisibleItemScrollOffset }
+            .collect { (idx, off) ->
+                val pos = idx * 1_000_000L + off
+                val atTop = idx == 0 && off == 0
+                if (atTop) {
+                    stopJob?.cancel(); stopJob = null
+                    if (headerHidden) headerHidden = false
+                } else {
+                    // 每次位置变化都重启回显计时：滚动中永远轮不到它，停 1.2s 才触发
+                    stopJob?.cancel()
+                    stopJob = launch {
+                        delay(1200)
+                        headerHidden = false
+                        stopJob = null
+                    }
+                    if (lastPos >= 0) {
+                        headerHidden = pos > lastPos
+                    }
+                }
+                lastPos = pos
+            }
+    }
+
+    // 180ms 竖直收放：高度塌缩到 0，下面内容上移。
+    // 页眉在 Scaffold 内容区内，状态栏 inset 由父级保留 —— 收起不会顶到状态栏。
+    val headerHeight by animateDpAsState(
+        targetValue = if (headerHidden) 0.dp else FeedHeaderHeight,
+        animationSpec = tween(180),
+        label = "feedHeaderHide",
+    )
+
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            LedgerHeader(
-                title = "资讯",
-                status = headerStatus,
-                onSearch = { searchFocus.requestFocus() },
-                onMore = { headerMenu = true },
-            )
+            // 页眉按需隐藏只动这一条；筛选栏留在 pager 外，收起后仍吸顶保留
+            Box(Modifier.fillMaxWidth().height(headerHeight).clipToBounds()) {
+                LedgerHeader(
+                    title = "资讯",
+                    status = headerStatus,
+                    onSearch = { searchFocus.requestFocus() },
+                    onMore = { headerMenu = true },
+                    modifier = Modifier.requiredHeight(FeedHeaderHeight),
+                )
+            }
 
             SearchRow(
                 query = ui.query,
@@ -197,54 +255,26 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
                 onClear = vm::clearFilter,
             )
 
-            // 待办层：截止提醒条（只在「全部」频道；可见性由 VM 算好，含关闭语义）
-            if (currentCat == "全部" && ui.deadlineBarVisible) {
-                DeadlineBar(
+            // 待办层：竞赛截止行（只在「全部」频道 + 有今天/明天截止条目时出现，账页行样式）
+            if (currentCat == "全部") {
+                DeadlineRow(
                     urgent = ui.urgentCompetitions,
                     today = ui.today,
                     onOpen = { scope.launch { pagerState.animateScrollToPage(cats.indexOf("竞赛")) } },
-                    onDismiss = vm::dismissDeadlineBar,
                 )
             }
 
-            // 刷新结果横幅（成功 4s / 部分失败常驻 / 全失败可重试）
-            ui.banner?.let { b ->
-                RefreshBanner(
-                    banner = b,
-                    onRetry = vm::refresh,
-                    onDetail = { failDetail = true },
-                    onDismiss = vm::dismissBanner,
-                )
+            // 刷新失败行：只有源失败才出现的一行小字；成功横幅不显示（页眉「HH:mm 更新」已交代）
+            ui.banner?.takeIf { it.failed.isNotEmpty() }?.let { b ->
+                RefreshFailLine(banner = b, onDetail = { failDetail = true })
             }
 
-            // 分流层：chips（数字=未读数；长按=频道全部已读）
-            LazyRow(
-                Modifier.fillMaxWidth().heightIn(min = Space.minTouch).padding(top = Space.xs),
-                contentPadding = PaddingValues(horizontal = Space.l),
-                horizontalArrangement = Arrangement.spacedBy(Space.xs),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                itemsIndexed(items = cats, key = { _, c -> c }) { i, c ->
-                    ChannelChip(
-                        label = c,
-                        unread = ui.unreadOf(c),
-                        selected = pagerState.currentPage == i,
-                        onClick = { scope.launch { pagerState.animateScrollToPage(i) } },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            if (c == "全部") confirmAllRead = true else vm.markChannelRead(c)
-                        },
-                    )
-                }
-            }
-
-            ChannelMetaRow(
-                ui = ui,
-                category = currentCat,
-                onMarkRead = {
-                    if (currentCat == "全部") confirmAllRead = true else vm.markChannelRead(currentCat)
-                },
-                onClearFilter = vm::clearFilter,
+            // 分流层：频道筛选文字行（账页式，36dp，选中项下 2dp 短横线）。
+            // 它固定在 pager 之外，页眉收起后仍吸顶保留（导航不能跟着消失）。
+            ChannelFilterRow(
+                cats = cats,
+                currentPage = pagerState.currentPage,
+                onSelect = { scope.launch { pagerState.animateScrollToPage(it) } },
             )
 
             HorizontalPager(
@@ -272,6 +302,7 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
                         onLoadMore = { vm.loadMore(cat) },
                         // 筛选签名：换筛选/搜索/密度就回顶部（新内容），只换频道不回顶部（同级回退）
                         resetKey = "${ui.query}|${ui.onlyUnread}|${ui.starredOnly}|${ui.compactByChannel[cat]}",
+                        listStateSlot = listStateSlot,
                     )
                 }
             }
@@ -445,169 +476,126 @@ private fun SearchRow(
     }
 }
 
-// ── 截止提醒条 / 刷新横幅 ─────────────────────────────────
+// ── 截止行 / 刷新失败行 ─────────────────────────────────
 
+/** 竞赛截止账页行：页边槽「截止」+ 标题 13sp/500 + 「今天/明天截止」brick。整行 ≤40dp。 */
 @Composable
-private fun DeadlineBar(urgent: List<FeedItem>, today: java.time.LocalDate, onOpen: () -> Unit, onDismiss: () -> Unit) {
+private fun DeadlineRow(urgent: List<FeedItem>, today: java.time.LocalDate, onOpen: () -> Unit) {
     val t = InkTokens.current
-    val first = urgent.firstOrNull() ?: return
-    val days = FeedRows.daysLeft(first.deadline, today) ?: 0L
-    val label = if (urgent.size == 1) {
-        first.title.take(20) + (if (first.title.length > 20) "…" else "")
-    } else {
-        "${urgent.size} 项竞赛 3 天内截止"
+    // 只在「今天/明天截止」才占一行（病根③：0..3 天的宽口径常驻条改成真正紧急才出）
+    val hot = urgent.filter {
+        FeedRows.daysLeft(it.deadline, today)?.let { d -> d == 0L || d == 1L } == true
     }
-    // 提醒条是「一行提示」而不是色带块：整行可点，砖红只落在文字上
+    if (hot.isEmpty()) return
+    // urgentCompetitions 已按 deadline 升序，first 即最近截止；多条只显示这一条 + 「等 N 条」
+    val first = hot.first()
+    val rest = hot.size - 1
+    val days = FeedRows.daysLeft(first.deadline, today) ?: 0L
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .padding(start = Space.l, end = Space.s, top = Space.xs)
-            .clickable(onClickLabel = "查看竞赛频道", onClick = onOpen),
+            .height(40.dp)
+            .clickable(onClickLabel = "查看竞赛频道", onClick = onOpen)
+            .padding(horizontal = Space.l),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        // 页边槽放「截止」二字，与 LedgerRow 日期槽同一竖线（10.5sp 等宽、inkFaint）
+        Box(Modifier.width(LedgerGutter + LedgerGutterGap).padding(end = LedgerGutterGap), contentAlignment = Alignment.CenterEnd) {
+            Text("截止", fontSize = 10.5.sp, color = t.inkFaint, style = LedgerTnum)
+        }
         Text(
-            label,
-            fontSize = 12.sp,
-            lineHeight = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = t.brick,
+            first.title,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = t.ink,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
         Spacer(Modifier.width(8.dp))
         Text(
-            if (days == 0L) "今天截止" else "最急剩 $days 天",
-            fontSize = 12.sp,
-            lineHeight = 18.sp,
-            fontWeight = FontWeight.SemiBold,
+            if (days == 0L) "今天截止" else "明天截止",
+            fontSize = 11.5.sp,
             color = t.brick,
-            style = LedgerTnum,
         )
-        Box(
-            Modifier.size(48.dp).clickable(onClickLabel = "今日不再提醒", onClick = onDismiss),
-            contentAlignment = Alignment.Center,
-        ) { Text("✕", fontSize = 12.sp, color = t.inkFaint) }
+        if (rest > 0) {
+            Text(" · 等 $rest 条", fontSize = 11.5.sp, color = t.inkFaint)
+        }
     }
 }
 
+/** 刷新失败行：只有部分/全部源失败才出现，一行小字无底色无圆角无图标，右端纯文字「详情」。 */
 @Composable
-private fun RefreshBanner(
-    banner: FeedBanner,
-    onRetry: () -> Unit,
-    onDetail: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+private fun RefreshFailLine(banner: FeedBanner, onDetail: () -> Unit) {
     val t = InkTokens.current
-    val accent = when (banner.tone) {
-        FeedBanner.Tone.OK -> t.olive
-        FeedBanner.Tone.PARTIAL -> t.amber
-        FeedBanner.Tone.FAIL -> t.brick
-    }
+    val n = banner.failed.size
+    if (n == 0) return
     Row(
         Modifier
             .fillMaxWidth()
-            .heightIn(min = 48.dp)
-            .padding(start = Space.l, end = Space.s, top = Space.xs),
+            .heightIn(min = 24.dp)
+            .padding(start = Space.l, end = Space.l),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
-            banner.text,
-            fontSize = 12.sp,
-            lineHeight = 18.sp,
-            color = accent,
+            "$n 个源本次没取到",
+            fontSize = 11.5.sp,
+            color = t.inkFaint,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.weight(1f),
         )
-        when (banner.tone) {
-            FeedBanner.Tone.FAIL -> TextAction("重试", t.brick, onClickLabel = "重试刷新", onClick = onRetry)
-            FeedBanner.Tone.PARTIAL -> TextAction("详情", t.amber, onClickLabel = "失败详情", onClick = onDetail)
-            FeedBanner.Tone.OK -> Unit
-        }
-        if (banner.tone != FeedBanner.Tone.OK) {
-            Box(
-                Modifier.size(48.dp).clickable(onClickLabel = "关闭提示", onClick = onDismiss),
-                contentAlignment = Alignment.Center,
-            ) { Text("✕", fontSize = 11.sp, color = t.inkFaint) }
-        }
+        Text(
+            "详情",
+            fontSize = 11.5.sp,
+            color = t.inkSoft,
+            modifier = Modifier.clickable(onClickLabel = "失败详情", onClick = onDetail).padding(start = Space.m),
+        )
     }
 }
 
-// ── chips / meta 行 ───────────────────────────────────────
+// ── 频道筛选文字行 ───────────────────────────────────────
 
-@OptIn(ExperimentalFoundationApi::class)
+/** 频道筛选：账页式一行 11.5sp 文字，选中 ink+SemiBold 且下方 2dp 短横线，未选中 inkSoft。 */
 @Composable
-private fun ChannelChip(
-    label: String,
-    unread: Int,
-    selected: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
+private fun ChannelFilterRow(
+    cats: List<String>,
+    currentPage: Int,
+    onSelect: (Int) -> Unit,
 ) {
     val t = InkTokens.current
-    // 频道切页去胶囊化：选中靠字重 + ink，未读数只作小字点缀，不画底不描边
     Row(
         Modifier
-            .height(48.dp)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick, onLongClickLabel = "$label 全部已读")
-            .padding(horizontal = 12.dp),
+            .fillMaxWidth()
+            .height(36.dp)
+            // 与正文左沿对齐：保留页边槽 LedgerGutter 缩进 + 日期间隙 LedgerGutterGap
+            .padding(start = Space.l + LedgerGutter + LedgerGutterGap, end = Space.l),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Space.m),
     ) {
-        Text(
-            label,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-            color = if (selected) t.ink else t.inkSoft,
-        )
-        if (unread > 0) {
-            Spacer(Modifier.width(4.dp))
-            Text(
-                unread.toString(),
-                fontSize = 9.5.sp,
-                fontWeight = FontWeight.Medium,
-                color = primaryInk(),
-                style = LedgerTnum,
-            )
-        }
-    }
-}
-
-@Composable
-private fun ChannelMetaRow(
-    ui: FeedUiState,
-    category: String,
-    onMarkRead: () -> Unit,
-    onClearFilter: () -> Unit,
-) {
-    val t = InkTokens.current
-    val unread = ui.unreadOf(category)
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 28.dp).padding(start = Space.l, end = Space.s),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            buildString {
-                if (ui.hasFilter) {
-                    append("筛选中 · 命中 ${ui.filteredCountOf(category)} 条")
-                } else {
-                    append("$category · ${ui.totalOf(category)} 条")
-                    if (unread > 0) append(" · $unread 未读")
-                    if (category == "竞赛") append(" · 按截止排序")
+        cats.forEachIndexed { i, c ->
+            val selected = currentPage == i
+            // 36dp 整行触区；Column 恒定高度（文字 + 2dp 间隙 + 2dp 线），切页时文字不跳
+            Box(
+                Modifier.height(36.dp).clickable(onClickLabel = "切到$c 频道") { onSelect(i) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        c,
+                        fontSize = 11.5.sp,
+                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                        color = if (selected) t.ink else t.inkSoft,
+                    )
+                    Spacer(Modifier.height(2.dp))
+                    Box(
+                        Modifier
+                            .width(16.dp)
+                            .height(2.dp)
+                            .background(if (selected) t.ink else Color.Transparent),
+                    )
                 }
-            },
-            fontSize = 11.sp,
-            lineHeight = 16.sp,
-            color = t.inkFaint,
-            maxLines = 1,
-            modifier = Modifier.weight(1f),
-        )
-        if (ui.hasFilter) {
-            TextAction("清空筛选", t.inkSoft, onClickLabel = "清空筛选", onClick = onClearFilter)
-        }
-        if (unread > 0) {
-            TextAction("全部已读", primaryInk(), onClickLabel = "本频道全部已读", onClick = onMarkRead)
+            }
         }
     }
 }
@@ -625,9 +613,20 @@ private fun FeedPage(
     onToggleGroup: (String) -> Unit,
     onLoadMore: () -> Unit,
     resetKey: String,
+    listStateSlot: MutableState<LazyListState?>,
 ) {
     // 票 26：saveable + 频道页 key，进详情返回原位；换筛选由 resetKey 触发回顶部
     val listState = rememberListScrollState(resetKey)
+
+    // 把自己的 LazyListState 上报给页头（页眉按需隐藏读它）。
+    // dispose 时只有槽里还是自己才清空：beyondViewportPageCount=0 只挂当前页，
+    // 切页瞬间旧页 onDispose 若直接置空，会把新页刚上报的 state 抹掉。
+    DisposableEffect(listState, listStateSlot) {
+        listStateSlot.value = listState
+        onDispose {
+            if (listStateSlot.value === listState) listStateSlot.value = null
+        }
+    }
 
     // 分页触发（评审 B13）：对**索引值**响应而非布尔边沿，
     // 「还有更多」纳入判定 —— 到底不空调，短列表全可见首帧后即触发
@@ -1056,7 +1055,6 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
     val t = InkTokens.current
     val ctx = LocalContext.current
     val item = detail.item ?: return
-    val cat = categoryColor(item.category, t)
     val today = remember { java.time.LocalDate.now() }
     val dl = remember(item.deadline, item.category, today) {
         if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
@@ -1081,20 +1079,19 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
             }
             Text("资讯", fontSize = 11.sp, color = t.inkFaint)
             Spacer(Modifier.weight(1f))
-            // 收藏开关（方角「藏」字块，选中 amber 实底）
+            // 收藏开关：账页 v3 去掉方角字块，纯文字 —— 选中靠字重 + amber，不画底不描边
             Box(
                 Modifier
-                    .size(32.dp)
-                    .background(if (item.starred) t.amber else Color.Transparent)
-                    .border(Stroke.hairline, t.amber)
-                    .clickable(onClickLabel = if (item.starred) "取消收藏" else "收藏") { vm.toggleStar(item.key) },
+                    .height(48.dp)
+                    .clickable(onClickLabel = if (item.starred) "取消收藏" else "收藏") { vm.toggleStar(item.key) }
+                    .padding(horizontal = 8.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     "藏",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (item.starred) (if (t.isDark) Soil.n950 else Color.White) else t.amber,
+                    fontSize = 12.sp,
+                    fontWeight = if (item.starred) FontWeight.SemiBold else FontWeight.Normal,
+                    color = if (item.starred) t.amber else t.inkFaint,
                 )
             }
             Spacer(Modifier.width(Space.s))
@@ -1111,19 +1108,14 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
                 .padding(horizontal = Space.l),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier
-                        .size(30.dp)
-                        .background(cat.copy(alpha = if (t.isDark) 0.22f else 0.10f))
-                        .border(Stroke.hairline, cat.copy(alpha = 0.45f)),
-                    contentAlignment = Alignment.Center,
-                ) { Text(item.category.take(2), fontSize = 9.sp, fontWeight = FontWeight.Bold, color = cat) }
-                Spacer(Modifier.width(Space.s))
+                // 账页 v3 去框：分类名排成来源上方的小字，不再用色块徽章
                 Column {
-                    Text(item.sourceName, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = t.ink)
+                    Text(item.category, fontSize = 11.5.sp, fontWeight = FontWeight.Medium, color = t.inkSoft)
                     Spacer(Modifier.height(1.dp))
-                    Text(item.publishedAt.ifBlank { "日期未标注" }, fontSize = 9.5.sp, color = t.inkFaint, fontFamily = NumericFont)
+                    Text(item.sourceName, fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = t.ink)
                 }
+                Spacer(Modifier.weight(1f))
+                Text(item.publishedAt.ifBlank { "日期未标注" }, fontSize = 9.5.sp, color = t.inkFaint, fontFamily = NumericFont)
             }
 
             Spacer(Modifier.height(Space.m))
@@ -1148,8 +1140,9 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
                 }
                 if (facts.isNotEmpty()) {
                     Spacer(Modifier.height(Space.s))
+                    // 账页 v3 去框：竞赛结构化事实改成纯文字列，不再衬色块底
                     Column(
-                        Modifier.fillMaxWidth().background(t.card).border(Stroke.hairline, t.outline).padding(Space.m),
+                        Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(Space.xs),
                     ) {
                         facts.forEach { f ->
@@ -1195,7 +1188,8 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
                     }
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                         paras.forEach { p ->
-                            Text(p, fontSize = 14.sp, lineHeight = 25.sp, color = t.ink)
+                            // 阅读参数：正文 16sp、行高 28sp（1.75，中文长读舒适带）
+                            Text(p, fontSize = 16.sp, lineHeight = 28.sp, color = t.ink)
                         }
                     }
                 } else {
@@ -1206,13 +1200,13 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
                     Spacer(Modifier.height(Space.m))
                     Row(horizontalArrangement = Arrangement.spacedBy(Space.s)) {
                         Box(
-                            Modifier.height(34.dp).border(Stroke.hairline, t.outline)
-                                .clickable(onClick = vm::retryDetail).padding(horizontal = Space.l),
+                            Modifier.height(48.dp)
+                                .clickable(onClick = vm::retryDetail).padding(horizontal = Space.m),
                             contentAlignment = Alignment.Center,
                         ) { Text("重试", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.primary) }
                         Box(
-                            Modifier.height(34.dp).border(Stroke.hairline, t.outline)
-                                .clickable { openUrl(item.url.ifBlank { item.urlAlt }) }.padding(horizontal = Space.l),
+                            Modifier.height(48.dp)
+                                .clickable { openUrl(item.url.ifBlank { item.urlAlt }) }.padding(horizontal = Space.m),
                             contentAlignment = Alignment.Center,
                         ) { Text("浏览器打开", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.primary) }
                     }
@@ -1226,15 +1220,12 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .background(t.card)
-                                .border(Stroke.hairline, t.outline)
+                                .heightIn(min = 48.dp)
                                 .clickable { openUrl(a.url) }
-                                .padding(horizontal = Space.m, vertical = Space.m),
+                                .padding(vertical = Space.s),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            Box(Modifier.size(20.dp).border(Stroke.hairline, t.inkFaint), contentAlignment = Alignment.Center) {
-                                Text("附", fontSize = 9.sp, color = t.inkSoft)
-                            }
+                            Text("附", fontSize = 11.5.sp, color = t.inkFaint)
                             Spacer(Modifier.width(Space.s))
                             Text(
                                 a.text.ifBlank { "附件" },
@@ -1270,9 +1261,8 @@ private fun FeedDetailView(detail: FeedDetailState, vm: FeedViewModel, onBack: (
                 Row(
                     Modifier
                         .fillMaxWidth()
-                        .border(Stroke.hairline, t.outline)
-                        .clickable { openUrl(item.url.ifBlank { item.urlAlt }) }
-                        .padding(horizontal = Space.m, vertical = Space.m),
+                        .heightIn(min = 48.dp)
+                        .clickable { openUrl(item.url.ifBlank { item.urlAlt }) },
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(

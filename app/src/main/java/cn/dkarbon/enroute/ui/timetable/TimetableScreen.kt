@@ -119,7 +119,8 @@ import java.util.Calendar
  * · 小幽灵按真实时间在网格里定位，上课啃、下课漂、没课躺
  *
  * ## 本 App 保留的差异（主人点名「背景还是那个」）
- * · **数学底纹 [MathBackdrop]** 继续压在网格下面当纸纹，随时间/周次转动
+ * · **数学底纹** 是**固定背景层**：铺在整屏最底，按自己的 34 秒节奏原地「转换」
+ *   （六平面四维旋转），不跟着 Pager 左右滑、也不跟着页内网格上下滚（票 33 分层）
  * · 点卡片 → 详情浮层；长按卡片 → 快捷菜单（CET6 没有，这里保留）
  * · 未排课列表 + 周次校准对话框保留
  * · 配色走 [InkTokens]（农械橘体系），不是 CET6 的砖红 —— 只换结构不换皮
@@ -262,6 +263,15 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
     val tone = InkTokens.current
 
     Box(Modifier.fillMaxSize()) {
+        // 票 33（分层）：数学底纹是**固定背景层**，铺满整屏、画在最底，
+        // 不参与 Pager 的左右滑动、不参与页内 verticalScroll —— 它按自己的
+        // 34 秒节奏原地「转换」（六平面四维旋转），内容层透明地叠在它上面。
+        // 强度沿用原来网格里的取值（0.042 / 0.075），本票只做分层、不调亮。
+        MathBackdropMotion(
+            modifier = Modifier.fillMaxSize(),
+            color = if (tone.isDark) tone.ink else tone.outlineStrong,
+            alpha = if (tone.isDark) 0.075f else 0.042f,
+        )
         Column(
             Modifier
                 .fillMaxSize()
@@ -501,7 +511,8 @@ internal fun GridArea(
             HorizontalDivider(color = Tt.gridRule(t.isDark), thickness = Stroke.hairline)
         }
 
-        // ── 网格主体：数学底纹 → 格线 → 卡片 → 小幽灵 ──
+        // ── 网格主体：格线 → 卡片 → 小幽灵 ──
+        // 数学底纹已抽到 TimetableScreen 的固定背景层（票 33）：网格这里只画格线与内容。
         BoxWithConstraints(
             Modifier
                 .weight(1f)
@@ -530,14 +541,6 @@ internal fun GridArea(
                     .fillMaxSize()
                     .verticalScroll(vScroll, enabled = metrics.totalH > availH),
             ) {
-                // 数学底纹：四维超立方体投影，压在格线下面只当纸纹（主人点名保留）
-                MathBackdrop(
-                    modifier = Modifier.width(metrics.gridW).height(metrics.totalH),
-                    color = if (t.isDark) t.ink else t.outlineStrong,
-                    alpha = if (t.isDark) 0.075f else 0.042f,
-                    turns = nowMin / 1440f + (week - 1) * 0.11f,
-                )
-
                 // 底层：今天竖带 + 竖格线 + 行分隔
                 Canvas(Modifier.width(metrics.gridW).height(metrics.totalH)) {
                     val colW = metrics.colW.toPx()

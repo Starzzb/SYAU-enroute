@@ -211,7 +211,7 @@ class FeedRepository(private val ctx: Context) {
                 contestStart = it0.contestStart.ifBlank { info.contestStart },
                 contestEnd = it0.contestEnd.ifBlank { info.contestEnd },
                 organizer = it0.organizer.ifBlank { info.organizer },
-                summary = it0.summary.ifBlank { payload.text.take(100) },
+                summary = it0.summary.ifBlank { FeedSummary.clean(payload.text) },
                 bodyFetched = !payload.isEmpty,
             )
         }
@@ -262,10 +262,11 @@ class FeedRepository(private val ctx: Context) {
             // 我爱竞赛网：列表没日期，进详情才拿得到发布时间与摘要
             val jm = if (kind == "jingsai") FeedParser.parseJingsaiMeta(resp.body) else null
             updateItem(item.key) { old ->
+                val bodySummary = FeedSummary.clean(payload.text)
                 old.copy(
                     title = if (old.titleTruncated && fullTitle.length > old.title.length) fullTitle else old.title,
                     summary = if (old.summary.length < 12) {
-                        jm?.first?.takeIf { it.isNotBlank() } ?: payload.text.take(100)
+                        FeedSummary.clean(jm?.first.orEmpty()).ifBlank { bodySummary }
                     } else old.summary,
                     publishedAt = old.publishedAt.ifBlank { jm?.second.orEmpty() },
                     bodyFetched = true,

@@ -125,8 +125,8 @@ object Steel {
  *
  * | 级别 | 值 | 用在哪 |
  * |---|---|---|
- * | 网格线 | 0.75–1dp `rule@14%` | 大节之间的田垄、格线 |
- * | 卡片 | 1dp `outline@22%` | 课程卡外框 |
+ * | 网格线 | 0.75–1dp `rule`(#8F7E61 亮 / #7F6F5A 暗) | 大节之间的田垄、格线 |
+ * | 卡片 | 1dp `outline`(#7E7468 亮 / #827767 暗) | 课程卡外框 |
  * | 浮层 | 1.5dp `outline`（n300） | 详情 / 长按菜单的板子 |
  * | 当前 | 2dp `primary` | 今天那一列、「本周」戳、正在上的卡 |
  *
@@ -264,8 +264,9 @@ val HardLightScheme = lightColorScheme(
     surfaceContainer = Soil.n50,
     surfaceContainerHigh = Soil.n100,
     surfaceContainerHighest = Color(0xFFE4DED2),
-    outline = Soil.n300,
-    outlineVariant = Soil.n200,
+    // 与 InkTokenSet 同步：outline=描边(≥3:1)、outlineVariant=网格线(≥3:1)
+    outline = Soil.n500,
+    outlineVariant = Color(0xFF8F7E61),
     inverseSurface = Soil.n800,
     inverseOnSurface = Soil.n100,
     inversePrimary = Machine.n200,
@@ -299,8 +300,9 @@ val HardDarkScheme = darkColorScheme(
     surfaceContainer = Soil.n900,
     surfaceContainerHigh = Soil.n800,
     surfaceContainerHighest = Soil.n700,
-    outline = Soil.n700,
-    outlineVariant = Color(0xFF3E362C),
+    // 与 InkTokenSet 同步：outline=描边(≥3:1)、outlineVariant=网格线(≥3:1)
+    outline = Color(0xFF827767),
+    outlineVariant = Color(0xFF7F6F5A),
     inverseSurface = Soil.n100,
     inverseOnSurface = Soil.n800,
     inversePrimary = Machine.n500,

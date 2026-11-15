@@ -52,7 +52,13 @@ import java.time.LocalDate
  */
 
 /** 页边槽宽：放「11-11」这类 5 字符日期（10.5sp 衬线等宽），右对齐。行号「01」只需 22dp，日期要更宽。 */
-internal val LedgerGutter = 34.dp
+val LedgerGutter = 34.dp
+
+/**
+ * 页边槽与正文之间的间隔（2026-11-15 加宽：真机日期「11-13」与标题贴死）。
+ * 槽宽同步扩到 [LedgerGutter] + [LedgerGutterGap]，保证 10.5sp 日期仍单行不折行。
+ */
+val LedgerGutterGap = 10.dp
 
 /** 账页数字：衬线 + tnum（等宽数字对齐）。正文仍用系统黑体，只有数字走衬线。 */
 val LedgerTnum = TextStyle(fontFamily = SerifFont, fontFeatureSettings = "tnum")
@@ -107,7 +113,7 @@ fun Modifier.ledgerPress(
 fun LedgerHeader(
     title: String,
     status: String,
-    onSearch: () -> Unit,
+    onSearch: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     onMore: (() -> Unit)? = null,
 ) {
@@ -135,10 +141,12 @@ fun LedgerHeader(
                     contentAlignment = Alignment.Center,
                 ) { Text("⋯", fontSize = 14.sp, color = t.inkSoft) }
             }
-            Box(
-                Modifier.size(48.dp).clickable(onClickLabel = "搜索", onClick = onSearch),
-                contentAlignment = Alignment.Center,
-            ) { Text("查", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = t.inkSoft) }
+            if (onSearch != null) {
+                Box(
+                    Modifier.size(48.dp).clickable(onClickLabel = "搜索", onClick = onSearch),
+                    contentAlignment = Alignment.Center,
+                ) { Text("查", fontSize = 13.sp, fontWeight = FontWeight.Medium, color = t.inkSoft) }
+            }
         }
         // 页眉线用 inkFaint：夜里不发亮（方案 §3 深色口径）
         Box(Modifier.fillMaxWidth().height(1.dp).background(t.inkFaint))
@@ -196,7 +204,7 @@ fun LedgerGroupTitle(
 fun LedgerGroupBreak(modifier: Modifier = Modifier) {
     val t = InkTokens.current
     Row(modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-        Spacer(Modifier.width(LedgerGutter))
+        Spacer(Modifier.width(LedgerGutter + LedgerGutterGap))
         Box(Modifier.width(56.dp).height(1.dp).background(t.inkFaint.copy(alpha = 0.5f)))
     }
 }
@@ -244,8 +252,10 @@ fun LedgerRow(
         verticalAlignment = Alignment.Top,
     ) {
         // 页边槽：日期右对齐、衬线等宽（修正 A：资讯流不放行号）
+        // 修正（2026-11-15）：日期与标题贴死，加 end=LedgerGutterGap 间隔；槽宽同步 +gap，
+        // 保证 10.5sp 日期仍按原 34dp 排版宽单行排布、不折行。
         Box(
-            Modifier.width(LedgerGutter).padding(top = 5.dp),
+            Modifier.width(LedgerGutter + LedgerGutterGap).padding(top = 5.dp, end = LedgerGutterGap),
             contentAlignment = Alignment.TopEnd,
         ) {
             Text(

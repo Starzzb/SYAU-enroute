@@ -36,7 +36,8 @@ object Ink {
     val Ink = Soil.n900           // #1A1611 正文（纯黑太硬，用带土的红黑）
     val InkSoft = Soil.n700       // #443E36 二级文字（原 n600，9.45:1）
     val InkFaint = Soil.n600      // #5F574C 三级文字（9–11sp 用这档，6.36:1；原 n500 只有 4.10:1）
-    val Rule = Soil.n200          // #D7D0C4 分割线/网格线
+    // 分割线/网格线。原 #D7D0C4 对纸底仅 1.37:1，调暗到同色相的 #8F7E61（纸 3.53 / 卡 3.72 / 卡Alt 3.23，≥3:1）
+    val Rule = Color(0xFF8F7E61)
 
     // ── 语义色 ──
     val Brick = RustRed.n500         // #9B2417 错误、不及格
@@ -51,7 +52,8 @@ object Ink {
     val CardAltDark = Soil.n800   // #2B2621
     val InkDark = Soil.n100       // #EDE8DF
     val InkSoftDark = Soil.n400   // #A1978A
-    val InkFaintDark = Soil.n500  // #7E7468
+    // 原 Soil.n500 #7E7468 对卡Alt 只有 3.27:1，提亮到同色相 #988D82（纸 5.94 / 卡 5.54 / 卡Alt 4.61，≥4.5:1）
+    val InkFaintDark = Color(0xFF988D82)
 
     val BrickDark = RustRed.n200     // #E7A093
     val SlateDark = Steel.n200    // #A0B6BB
@@ -108,7 +110,8 @@ data class InkTokenSet(
             isDark = false,
             primary = Machine.n500,
             accent = Machine.n400,
-            outline = Soil.n300,
+            // 卡片描边（1dp）：原 n300 #BEB5A6 对卡Alt 仅 1.66:1，加深到 n500 #7E7468（纸 4.10 / 卡 4.32 / 卡Alt 3.75）
+            outline = Soil.n500,
             outlineStrong = Soil.n900,
             hardShadow = Soil.n900,
             info = Steel.n500,
@@ -118,12 +121,14 @@ data class InkTokenSet(
         val Dark = InkTokenSet(
             paper = Ink.PaperDark, card = Ink.CardDark, cardAlt = Ink.CardAltDark,
             ink = Ink.InkDark, inkSoft = Ink.InkSoftDark, inkFaint = Ink.InkFaintDark,
-            rule = Color(0xFF3E362C), brick = Ink.BrickDark, slate = Ink.SlateDark,
+            // 原 #3E362C 对纸底仅 1.62:1，提亮到同色相 #7F6F5A（纸 3.97 / 卡 3.71 / 卡Alt 3.08，≥3:1）
+            rule = Color(0xFF7F6F5A), brick = Ink.BrickDark, slate = Ink.SlateDark,
             olive = Ink.OliveDark, amber = Ink.AmberDark, rust = Ink.RustDark,
             isDark = true,
             primary = Machine.n300,
             accent = Machine.n400,
-            outline = Soil.n700,
+            // 原 n700 #443E36 对卡Alt 仅 1.42:1，提亮到同色相 #827767（纸 4.39 / 卡 4.10 / 卡Alt 3.41）
+            outline = Color(0xFF827767),
             outlineStrong = Soil.n400,
             hardShadow = Color(0xFF000000),
             info = Steel.n200,

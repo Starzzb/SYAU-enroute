@@ -1,140 +1,86 @@
-# 账页 v3 批次 1 勘察笔记（只读，未改码）
+# 账页 v3 · 批次 1 勘察笔记（只读，未改码）
 
-日期：2026-11-15　勘察人：前端实施代理
-前置：已读 `docs/设计-账页v3-方案.md`、`AGENTS.md`（末节「前端设计纪律：全部作废」）、
-`FeedScreen.kt`、`UserScreen.kt`、`ui/theme/` 下 EditorialTokens / HardTokens / Theme。
+> 勘察日期：2026-11-15。依据：`docs/设计-账页v3-方案.md`、`AGENTS.md` 末节（前端纪律已作废）、
+> `FeedScreen.kt`、`UserScreen.kt`、`ui/theme/`、`ui/ledger/`、`ui/user/`、`ui/home/`。
+>
+> ⚠️ 重要现状：**批 1 的资讯页已经账页化落地**（`ui/ledger/LedgerKit.kt` 已存在且被 FeedScreen 引用），
+> 方案 §6「新建 ui/ledger/」已完成；「我的」页仍是旧磁贴网格，未动。
 
----
+## 1. 资讯页渲染结构（FeedScreen.kt，共 1324 行）
 
-## 0. 与方案 §6 的对齐结论
-
-方案说「替换 FeedScreen / UserScreen / SettingsScreen 的渲染层，数据与 ViewModel 一行不动」。
-勘察确认这条路走得通：
-
-- 资讯页：数据全在 `FeedViewModel` + `FeedRows`（纯函数），渲染在 `FeedScreen.kt`。
-  替换边界就是 `FeedListView` / `FeedPage` / `StandardCard` / `CompactCard` / `GroupHeader` / `PageFooter`。
-- 我的页：数据全在 `AppState`（`ui`）+ `TimetableViewModel`（`vm`）+ `MyPageModel`（纯函数派生）。
-  替换边界就是 `UserRoot` + `ui/user/UserTiles.kt` 的一整套磁贴件。
-- 两页**没有**共用任何页面级卡片/行组件，只有 theme 层共用（见 §4）。
-
----
-
-## 1. 资讯页现行渲染结构（`ui/feed/FeedScreen.kt`，共 1772 行）
-
-| 结构 | 位置 | 说明 |
+| 构件 | 行号 | 函数 |
 |---|---|---|
-| 入口 | `FeedScreen` L108 | detail/list 双路由（`SaveableStateHolder`） |
-| 列表主容器 | `FeedListView` L132 | Box → Column：页头/搜索/待办/横幅/chips/meta/pager 逐层叠 |
-| 页头 | `FeedHeader` L340（调用点 L167） | 「资讯」20sp + 未读数/条数/更新时间 |
-| 搜索栏 | `SearchRow` L407（调用点 L173） | BasicTextField 34dp 高 + 「未读/藏」toggle + 清空 |
-| 筛选 toggle | `FilterToggle` L479 | 「未读」「藏」小方块，描边/底色切换 |
-| **筛选栏（频道 chips）** | `LazyRow` **L205–224**（调用点）；`ChannelChip` **L615** 定义 | 数字=未读数；长按=频道已读 |
-| meta 行 | `ChannelMetaRow` L682（调用点 L226） | 「全部已读」入口 |
-| **分页器（频道横向翻页）** | `rememberPagerState` L135；`HorizontalPager` **L235–262** | `beyondViewportPageCount=0`，key=频道名 |
-| 页容器/列表容器 | `FeedPage` L744；**`LazyColumn` L771–799** | `contentPadding`、`spacedBy(8dp)`；行窗口 ≤30+组头 |
-| 分组头（sticky） | `GroupHeader` **L803**（`stickyHeader` L781） | 组名 + 条数 + 导引线（HARD 实线 / 账页点线） |
-| **分页器（条目渲染分页脚）** | `PageFooter` **L868**（`item` L794） | 「上滑加载 · 已显示 shown/total」，本地渲染分页 30+30 |
-| **卡片（标准）** | `StandardCard` **L893** | 32dp 身份块 + 标题 15sp + 摘要 2 行 + 底栏；紧急竞赛左侧 3dp brick 色条 |
-| **卡片（紧凑）** | `CompactCard` **L1053** | 3dp 频道色条 + 标题 + 单行元信息 |
-| 详情页 | `FeedDetailView` L1503 | 分支 2，不在本批范围 |
+| 页面入口（路由分流 详情/列表） | 108–127 | `FeedScreen` |
+| 列表容器（Box 包 Column 主骨架） | 179–278 | `FeedListView`（内部 Column 起于 180） |
+| 常驻页眉（账页） | 181–186 | `LedgerHeader`（`ui/ledger` 包，非本文件） |
+| 筛选栏（搜索+未读+藏+清） | 188；定义 374–446 | `SearchRow` |
+| 截止提醒条 / 刷新横幅 | 201–218；定义 450/495 | `DeadlineBar` / `RefreshBanner` |
+| 频道 chips（横滑） | 221–239；定义 540 | `LazyRow` + `ChannelChip` |
+| meta 行 | 241；定义 577 | `ChannelMetaRow` |
+| **pager** | 250–277 | `HorizontalPager`（`rememberPagerState`，`beyondViewportPageCount=0`） |
+| **列表容器（每频道一页）** | 619–695 | `FeedPage`，内部 `LazyColumn` 起于 **647** |
+| 分页脚 | 698–712 | `FeedPageFooter` |
+| 详情页 | 1054–1292 | `FeedDetailView` |
+| 长按菜单/页头菜单/失败明细 | 911/984/1024 | `FeedQuickActions` / `HeaderMenu` / `FailDetailSheet` |
 
-分页数据：`FeedRows.build`（`ui/feed/FeedRows.kt`，PAGE=30，L57）在 `FeedViewModel` 里算好，
-按频道缓存进 `FeedUiState.rowsByChannel`（FeedViewModel L34/L58）。`FeedViewModel.CATEGORIES`
-委托 `FeedSources.CATEGORIES`（FeedModels.kt L286：全部/竞赛/教务/就业/通知/学工/新闻）。
+- **卡片已不存在**：标准卡/紧凑卡/旧组头/分页脚已删除（714 行注释说明），条目改为 `LedgerRow`「行」（`ui/ledger`）。
+- 筛选/密度切换不丢：搜索常驻页眉下；密度切换收进页头「⋯」菜单（`HeaderMenu`）。
+- 条目行结构：页边槽日期（34dp 右对齐）＋标题 17sp/600＋摘要 13sp/22sp＋元信息 11.5sp（`LedgerKit.kt` 215–316）。
 
----
+## 2. 我的页磁贴网格（UserScreen.kt，共 581 行）
 
-## 2. 我的页磁贴网格（`ui/user/UserScreen.kt` 581 行 + `UserTiles.kt` 279 行）
+- 入口与子页栈：`UserScreen`（103–187），`UserRoot` 根页（**209–435**）。
+- 磁贴网格行号：
+  - 顶条（刷新+齿轮）247–259
+  - 教务组头 264；身份卡 274（`ui/home/HomeCards.kt:95 IdentityCard`）
+  - 下一场考试 `WideTile` 287；学业两格 `TileRow`+`HalfTile`（培养方案 305 / 加权绩点 312）
+  - 空闲教室 `WideTile` 324
+  - 工具格 2×2：`TileRow` 349（查教师 350 / 课程大纲 355）、`TileRow` 362（历年课表 363 / 成绩查询 371）
+  - 校园组 390–397（校园地图 392）；本机组 401–422（自定义课程 403；`FoldSection` 410 课表/周次/上课提醒/登录态）
+  - 版本行 425、`WoodenFish` 432
+- 磁贴组件本体在 `ui/user/UserTiles.kt`（`WideTile`/`TileRow`/`GroupHead`/`FoldSection`/`FoldRow`/`HalfTile`/`ToolTile`）；派生标签在 `ui/user/MyPageModel.kt` + `ui/home/HomeModel`。
+- **数据来源**：`TimetableViewModel`（`vm`）＋ `AppState`（`ui`）两路注入；渲染层无自己的数据。
+- **必须保留的入口**（替换渲染层时一行不能丢）：
+  设置、考试、成绩、培养方案、课程大纲、历年课表、校园地图、自定义课程、空闲教室、查教师、登录（身份卡）、手动刷新、
+  下一场考试、加权绩点、空闲教室、查教师、课程大纲、历年课表、成绩查询、校园地图、自定义课程、折叠区四项（课表/周次/上课提醒/登录态）。
 
-- 入口 `UserScreen` L103：子页栈（`UserPage` enum L70–86，saveable），`UserRoot` 是根页。
-- **磁贴网格 = `TileRow`（Row + spacedBy）**，定义在 `ui/user/UserTiles.kt` **L115**。
-  调用点（`UserScreen.kt`）：L304（学业 1×1 两个 HalfTile）、L349+L362（工具格 2×2）、
-  L391（校园）、L402（本机）。
-- 磁贴件全在 `UserTiles.kt`：`TileSurface` L61（面 + 1dp 边线 + 方角）、`WideTile` L94、
-  `HalfTile` L134、`ToolTile` L164、`GroupHead` L188、`FoldSection` L216、`FoldRow` L269。
-- **数据来源 ViewModel**：`UserScreen(ui: AppState, vm: TimetableViewModel)`（L103）——
-  状态来自 `AppState`（`ui.profile / ui.credit / ui.scoreStats / ui.freeRooms / ui.syllabusIndex / …`），
-  命令来自 `TimetableViewModel`（`refreshHome` 等）。文案派生全部走 `MyPageModel.kt`（纯函数，L16 object）。
-- 注意：**「我的」没有独立 UserViewModel**，直接复用 `TimetableViewModel`。v3 只动渲染层即可。
+## 3. InkTokens 颜色档（theme/Theme.kt:71–101 + 31–61）
 
----
+- `InkTokenSet` 三档墨色（账页方案 §1.2 只认这三档做「淡出」）：**ink / inkSoft / inkFaint**（76–78 行）。
+- 其余是面/语义色：paper、card、cardAlt、rule（纸/面/线）；brick、slate、olive、amber、rust（语义）；
+  新字段 primary、accent、outline、outlineStrong、hardShadow、info、infoBg（88–100）。
+- 亮/暗各一套值；取用入口 `InkTokens.current`（147–152），主色小字用 `primaryInk()`（EditorialTokens.kt:364）。
 
-## 3. InkTokens / NumericFont / Form 现状
+## 4. NumericFont / 衬线等宽
 
-### InkTokens（`ui/theme/Theme.kt`）
-- `data class InkTokenSet` 定义在 **Theme.kt L71**，共 **20 个字段**；
-  `object InkTokens { val current }` 在 **L147**（`LocalInkTokens` 提供，L135）。
-- **文字色档位 = 3 档**：`ink`（正文）/ `inkSoft`（二级）/ `inkFaint`（三级），
-  值定义在 `Ink` object（Theme.kt L36–38，农业色板）；语义色另有 brick/slate/olive/amber/rust +
-  primary/accent/outline/outlineStrong/hardShadow/info/infoBg 等。
-- 三套主题集：HARD（`InkTokenSet.Light/Dark` L103/L118）、SCHOLAR（`ScholarTokens.kt` L109）、
-  LEDGER/账页（`EditorialTokens.kt` L113/L136，亮色 `Ledger.Paper` 暖白、`Ink #16211B`、
-  `InkSoft #3C4A42`、`InkFaint #5A6A60`）。方案 §1.2 说「只用 ink/inkSoft/inkFaint 三档」→ 已够用。
+- `NumericFont`（HardTokens.kt:189）= **打包进 APK 的 IBM Plex Mono**（OFL，约 230KB），三档字重，
+  供数字/时间竖向对齐（等宽，但**不是衬线**）。
+- **衬线**：`SerifFont = FontFamily.Serif`（EditorialTokens.kt:109，系统衬线 → Noto Serif CJK）。
+- **衬线等宽（方案 §3 行号 10.5sp 的答案）**：`LedgerTnum = TextStyle(fontFamily = SerifFont, fontFeatureSettings = "tnum")`
+  （LedgerKit.kt:58）—— 衬线 + tnum 数字等宽。已用于行号/页边槽日期/folio。
+- 真正的「衬线 + 等宽」字体文件**未打包**，当前组合是系统衬线 + tnum 特性，够用但非严格 mono。
 
-### NumericFont（`ui/theme/HardTokens.kt` **L189**）
-- **IBM Plex Mono**（打包进 APK，OFL，约 230KB），三个字重 regular/semibold/bold。
-- 用途：数字/时间竖排对齐；`hardStyle` 给 `tnum, lnum`（L217）。
-- 账页（Ledger）模式在 `FormSpec.Ledger.numberFamily = SerifFont`（EditorialTokens.kt L311），
-  即账页数字**不用** NumericFont，改用衬线 + tnum。
+## 5. 两页共用的 Composable 清单（改了互相影响）
 
-### 现成「衬线等宽」？
-- `SerifFont = FontFamily.Serif`（系统 serif → Noto Serif CJK，EditorialTokens.kt L109）。
-- **没有**打包的衬线等宽字体；也没有任何 monospace 衬线。现有的两种竖排方案是：
-  ① `NumericFont`（IBM Plex Mono，无衬线等宽）② `SerifFont` + `tnum`（衬线但非等宽）。
-- 方案 §3 的「10.5sp 衬线等宽行号」→ **缺**：要么接受 `SerifFont+tnum`（0–9 宽度一致其实已够行号对齐），
-  要么新打包一款等宽衬线字体。二选一是批 1 需要拍板的点。
+- **真正两边都依赖的只有 theme 层**：`InkTokens.current`、`primaryInk()`、`NumericFont`、`SerifFont`、`Space`、`Stroke`、`Form.current`/`FormSpec`。
+- **ledger 包（当前只有 Feed 用）**：`LedgerHeader`、`LedgerGroupTitle`、`LedgerGroupBreak`、`LedgerRow`、`LedgerTnum`、`Modifier.ledgerPress`、`LedgerFooter`（已备好未挂）。改这里会动资讯页。
+- **FeedScreen 私有共用**：`TextAction`、`SheetScaffold`、`MenuRow`、`categoryColor`、`shortDate`/`hostOf`（本文件内部复用，不影响 UserScreen）。
+- **UserScreen 私有共用**：`SubHeader`、`GroupCard`、`Divider`、`StatRow`、`NavRow`（本文件）；`UserTiles.kt` 六件磁贴；`MyPageModel`。
+- **跨页共享的外部件**：`ui/home/HomeCards.kt` 的 `IdentityCard`、`HomeFootNote`（UserRoot 用；Feed 不用）→ 改它们会影响我的页。
+- 结论：改 `ui/ledger` 影响资讯页；改 `ui/user/UserTiles.kt`/`MyPageModel` 影响我的页；改 `ui/theme` 两页同变。
 
-### Form（`ui/theme/EditorialTokens.kt`）
-- `data class FormSpec` L236（20+ 字段，HARD 现值 + 账页开关），`LocalForm` L337，
-  `object Form.current` L340，`primaryInk()` L366。
-- `FormSpec.Hard` = 现状零回归；`FormSpec.Ledger`（L300）= 圆角 10dp / 软阴影 / 交错行带 /
-  衬线数字。注意：方案说「token 结构留着当管道，不新增强制语义」——`FormSpec` 里已有的
-  `shapes`（ShapeSet）旧纪律已废，但结构还在，可继续当版式参数包用。
+## 6. 现成按压态工具
 
----
+- **有**：`Modifier.ledgerPress(ink, onClick, onLongClick, ...)`（LedgerKit.kt:70–100）——
+  整行按压 = 行底色 +2% 墨（`ink.copy(alpha=0.02f)`）、`indication = null`（无水波纹/胶囊）、
+  基于 `MutableInteractionSource.collectIsPressedAsState`，支持可空长按。正合方案 §3「整行可点 + 2% 按压底色」。
+- 旧式裸 `.clickable`（默认水波纹）仍散落两页多处（如 SearchRow 48dp 块、MenuRow、磁贴）；无全局统一收口。
+- 批 1 若把「我的」账页化，直接复用 `ledgerPress` 即可。
 
-## 4. 两页共用的 Composable（改了会互相影响）
+## 替换边界（给实施者的最短摘要）
 
-结论：**页面级组件零共用**；共用面只有 theme 层与一个滚动工具。
-
-共用清单（FeedScreen 与 UserScreen 都直接 import/使用）：
-1. `InkTokens` / `InkTokenSet`（Theme.kt）—— 改色板两页全变。
-2. `NumericFont`（HardTokens.kt）—— 改字体两页数字全变。
-3. `Space` / `Stroke`（HardTokens.kt 常量）—— 间距/线宽两页共用。
-4. （仅 Feed）`Form` / `primaryInk` / `cardFloat`（EditorialTokens.kt）—— UserScreen **没**用 Form；
-   但 `primaryInk` 的取值逻辑在 Theme.kt，全仓生效。
-
-不共用（各自私有，可放心改）：
-- Feed：`FeedHeader / SearchRow / FilterToggle / ChannelChip / ChannelMetaRow / GroupHeader /
-  StandardCard / CompactCard / PageFooter / FeedDetailView`（全在 FeedScreen.kt）。
-- User：`WideTile / HalfTile / ToolTile / TileSurface / TileHead / GroupHead / FoldSection / FoldRow`
-  （全在 UserTiles.kt）+ `IdentityCard / HomeFootNote`（HomeCards.kt，只有 UserScreen 用，
-  FeedScreen 不用）。
-- `rememberListScrollState`（ui/common/ScrollMemory.kt）—— FeedScreen（L756）与 Exam/Score 页共用，
-  UserScreen 没用（UserRoot 用 `rememberScrollState`）。
-
----
-
-## 5. 现成的按压态工具函数
-
-**没有。** 全仓没有 press-scale / press-fade / 「行底色 +2%」这类统一按压工具。
-现状只有两种写法：
-- 默认 `clickable` / `combinedClickable`（水波纹 ripple，Material 默认）；
-- `indication = null` + 自绘（AcademicSheets L208、FeedScreen L1302、CourseDetail L109/L354、
-  CourseQuick L99/L184/L212、LedgerTimetable L88、TimetableScreen L809/L1211）。
-方案 §3「按压态 = 行底色 +2%」需要**新建**一个 Modifier/工具（例如 `pressInk(delta=0.02)`），
-批 1 内两个页面可共用这一个新工具，放到 `ui/ledger/` 即可，不动旧页。
-
----
-
-## 6. 批 1 落地缺口速览
-
-| 缺什么 | 位置建议 | 说明 |
-|---|---|---|
-| 页眉/页脚/行号页边/组短横线/folio 组件 | 新建 `ui/ledger/` | 方案 §6 已指定，只服务这套主题 |
-| 「衬线等宽」字族 | theme 或 ledger 内 | 现无；可用 `SerifFont+tnum` 替代或新打包字体 |
-| 按压态工具（行底色 +2%） | 新建（ledger 内） | 现无任何统一按压工具 |
-| 无卡片行布局（账目行右对齐成列） | `ui/ledger/` | UserScreen 磁贴整套替换时新建 |
-| folio 真实组序号 | 数据侧读取现有 rows/分组 | 方案 §7.4 要求不编造 |
-
-不动：`data/`、`FeedViewModel/FeedRows/MyPageModel/TimetableViewModel`、`ui/map/`、票 33 Pager 接口。
+- 资讯页：**已完成**（`FeedScreen.kt` 渲染层 + `ui/ledger/LedgerKit.kt`），数据/VM 未动。
+- 我的页：替换边界 = `UserScreen.kt` 的 `UserRoot`（209–435）+ `ui/user/UserTiles.kt`（磁贴六件）→
+  改为账目行（复用 `LedgerRow` 思路或新账目行件），12 个入口与数据源（`AppState` + `TimetableViewModel`）不动。
+- 共用件：theme 层（InkTokens/primaryInk/NumericFont/SerifFont/Space/Stroke）+ `ledgerPress` 按压态。
+- 缺：我的页账目行/页脚 folio 尚未做；`LedgerFooter` 已备但壳（底部导航）不在本批范围；无真正的衬线等宽字体（用 SerifFont+tnum 顶）。

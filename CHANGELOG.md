@@ -1,7 +1,7 @@
 # 更新日志
 
 版本号规则见 `docs/版本控制与发版流程.md` §2：
-`versionName` 用标准 SemVer + build metadata（`0.2.0+m19`，`mNN` = 第 N 轮开发批次），
+`versionName` 用标准 SemVer + build metadata（`0.3.0+m20`，`mNN` = 第 N 轮开发批次），
 `versionCode = major*10000 + minor*100 + patch`。
 
 ---

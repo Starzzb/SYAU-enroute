@@ -477,7 +477,7 @@ object FeedParser {
             val organizer = RE_CXCY_ORG.find(block)?.groupValues?.get(1)
                 ?.let { stripTags(it).trim() }?.take(60).orEmpty()
             val summary = RE_CXCY_TXT.find(block)?.groupValues?.get(1)
-                ?.let { htmlToText(it, keepNewlines = false) }?.take(100).orEmpty()
+                ?.let { FeedSummary.clean(htmlToText(it, keepNewlines = false)) }.orEmpty()
 
             // 成果公示：日期在 day + year 两个块里
             val artDate = RE_CXCY_DAY.find(block)?.let {
@@ -617,7 +617,7 @@ object FeedParser {
 
             val date = "${day.groupValues[2]}-${day.groupValues[3].padStart(2, '0')}-${day.groupValues[1].padStart(2, '0')}"
             val summary = RE_TW_P.find(block)?.groupValues?.get(1)
-                ?.let { htmlToText(it, keepNewlines = false) }?.take(100).orEmpty()
+                ?.let { FeedSummary.clean(htmlToText(it, keepNewlines = false)) }.orEmpty()
 
             val key = "${source.key}|$colId|$artId"
             if (out.containsKey(key)) continue
@@ -673,7 +673,7 @@ object FeedParser {
             val day = RE_CAHE_DATE.find(inner) ?: continue
             val date = "${day.groupValues[2]}-${day.groupValues[3].padStart(2, '0')}-${day.groupValues[1].padStart(2, '0')}"
             val summary = RE_CAHE_P.find(inner)?.groupValues?.get(1)
-                ?.let { htmlToText(it, keepNewlines = false) }?.take(100).orEmpty()
+                ?.let { FeedSummary.clean(htmlToText(it, keepNewlines = false)) }.orEmpty()
 
             val key = "${source.key}|$id"
             if (out.containsKey(key)) continue

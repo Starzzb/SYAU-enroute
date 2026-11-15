@@ -99,7 +99,7 @@ object StyleSet {
 
     fun name(v: Int): String = when (v) {
         SCHOLAR -> "学院纸本"
-        EDITORIAL -> "账页"
+        EDITORIAL -> "笺"
         else -> "硬朗农业"
     }
 }

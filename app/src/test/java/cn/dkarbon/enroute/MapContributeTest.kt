@@ -37,7 +37,7 @@ class MapContributeTest {
 
     private fun client() = MapContribute.ClientInfo(
         did = "anon-1234",
-        appVer = "0.2.0+m19",
+        appVer = "0.3.0+m20",
         manufacturer = "vivo",
         model = "V2301A",
         device = "PD2301",
@@ -66,7 +66,7 @@ class MapContributeTest {
         assertTrue(body.contains("\"release\":\"16\""))
         assertTrue(body.contains("\"ssaid\":\"ssaid-abcdef012345\""))
         assertTrue(body.contains("\"installId\":\"install-xyz\""))
-        assertTrue(body.contains("\"appVer\":\"0.2.0+m19\""))
+        assertTrue(body.contains("\"appVer\":\"0.3.0+m20\""))
         // **禁止的**（票 22 红线：学号仍然不传）
         assertFalse("不许出现学号字段 sid", body.contains("\"sid\""))
         assertFalse("服务端不认 userKey 这个名字", body.contains("userKey"))

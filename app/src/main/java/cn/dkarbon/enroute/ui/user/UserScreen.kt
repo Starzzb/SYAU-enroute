@@ -4,7 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,25 +12,19 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -38,33 +32,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.BuildConfig
-import cn.dkarbon.enroute.data.ExamItem
-import cn.dkarbon.enroute.data.Reminders
 import cn.dkarbon.enroute.data.SessionState
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.SessionText
 import cn.dkarbon.enroute.ui.TimetableViewModel
-import cn.dkarbon.enroute.ui.home.HomeModel
 import cn.dkarbon.enroute.ui.academic.ExamScreen
 import cn.dkarbon.enroute.ui.academic.ScoreScreen
 import cn.dkarbon.enroute.ui.debug.DebugScreen
+import cn.dkarbon.enroute.ui.home.HomeFootNote
+import cn.dkarbon.enroute.ui.home.HomeModel
+import cn.dkarbon.enroute.ui.ledger.LedgerHeader
 import cn.dkarbon.enroute.ui.settings.SettingsScreen
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
-import cn.dkarbon.enroute.ui.widget.WoodenFish
-import cn.dkarbon.enroute.ui.timetable.SchoolClock
 import cn.dkarbon.enroute.ui.timetable.TermCalendar
-import androidx.compose.ui.platform.LocalContext
-import java.time.LocalDate
+import cn.dkarbon.enroute.ui.widget.WoodenFish
 
 /** 用户页下的子页面（用一个小栈做导航，系统返回键直接可用） */
 private enum class UserPage(val title: String) {
@@ -137,6 +127,7 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
                     onOpenCustom = { vm.openCustomCourses(); stack.add(UserPage.CustomCourses) },
                     onOpenRooms = { stack.add(UserPage.Rooms) },
                     onOpenTeacher = { stack.add(UserPage.Teacher) },
+                    onOpenAbout = { stack.add(UserPage.About) },
                     onOpenLogin = { stack.add(UserPage.Login) },
                 )
                 UserPage.Exam -> ExamScreen(ui = ui, vm = vm)
@@ -219,15 +210,14 @@ private fun UserRoot(
     onOpenCustom: () -> Unit,
     onOpenRooms: () -> Unit,
     onOpenTeacher: () -> Unit,
+    onOpenAbout: () -> Unit,
     onOpenLogin: () -> Unit,
 ) {
     val t = InkTokens.current
     val ctx = LocalContext.current
     val cal = remember { TermCalendar(ctx.applicationContext) }
     val week = remember(ui.timetable) { cal.currentWeek() }
-    val summer = remember { SchoolClock.isSummerTime(LocalDate.now()) }
-    val today = remember { LocalDate.now() }
-    var localExpanded by rememberSaveable { mutableStateOf(false) }
+    var headerMenu by remember { mutableStateOf(false) }
 
     // 进「我的」就顺手刷新主页三件套（有**有效**会话且上次抓空了才刷，避免每次切页都打网络）。
     // 键是 sessionState 而不是布尔 loggedIn：过期→有效也会重跑一次（续期后立刻有数据）。
@@ -235,347 +225,289 @@ private fun UserRoot(
         if (ui.sessionState == SessionState.Active && ui.credit.isEmpty && !ui.homeLoading) vm.refreshHome()
     }
 
-    Column(
-        Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp),
-    ) {
-        // ── 顶条：只留操作，不重复「我的」标题（底部 tab 已经写了）──
-        // 设置只剩这一处齿轮入口（门禁 B3：同一目的地不许两个入口）
-        Spacer(Modifier.height(6.dp))
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Spacer(Modifier.weight(1f))
-            if (ui.sessionState == SessionState.Active) {
-                // 票 24：手动刷新**只刷这一组**（身份 + 学分/绩点），不连带考试/成绩/教室；
-                // force = 用户按了就得真抓，不看 24h 窗口
-                TextButton(onClick = { vm.refreshHome(force = true) }, enabled = !ui.homeLoading) {
-                    Text(if (ui.homeLoading) "读取中" else "刷新", fontSize = 12.sp)
-                }
-            }
-            IconButton(onClick = onOpenSettings) {
-                Icon(Icons.Default.Settings, contentDescription = "设置", tint = t.inkSoft)
-            }
-        }
+    // 页眉状态：登录态 + 读取中（原「教务」组头 premise 上移到常驻页眉）
+    val headerStatus = MyPageModel.sessionPremiseLabel(ui.sessionState) +
+        if (ui.homeLoading) " · 读取中" else ""
 
-        // ── 教务组（数据来源 = URP，前提是登录态）──
-        // 组头右侧就是本组的**状态前提**（门禁 B2），常驻不位移（A7）：
-        // 登录动作本身只在身份卡上（门禁 B3），这里不再多一条登录行。
-        GroupHead(
-            title = "教务",
-            premise = MyPageModel.sessionPremiseLabel(ui.sessionState) + if (ui.homeLoading) " · 读取中" else "",
-            premiseColor = when (ui.sessionState) {
-                SessionState.Expired -> t.brick
-                SessionState.None -> t.inkFaint
-                SessionState.Active -> t.olive
-            },
-        )
+    // 账目行的展示派生（纯函数，不建状态）。空值 → 「暂缺」，绝不填 0。
+    val name = ui.profile.name.ifBlank { ui.userName }
+        .ifBlank { SessionText.fallbackName(ui.sessionState) }
+    val identitySub = SessionText.identitySubtitle(
+        state = ui.sessionState,
+        profileSubtitle = HomeModel.profileSubtitle(ui.profile),
+        loading = ui.homeLoading,
+        checkMsg = ui.sessionCheckMsg,
+    )
+    val gpa = ui.scoreStats.weightedGpa?.let { String.format(java.util.Locale.US, "%.2f", it) }.orEmpty()
+    val creditHasData = ui.credit.earnedXf > 0.0 || ui.credit.requiredXf > 0.0
+    val freeRoomsValue = MyPageModel.freeRoomsTile(ui.roomsSession, ui.freeRooms.roomCount)
 
-        cn.dkarbon.enroute.ui.home.IdentityCard(
-            profile = ui.profile,
-            fallbackName = ui.userName,
-            sessionState = ui.sessionState,
-            sessionCheckMsg = ui.sessionCheckMsg,
-            loading = ui.homeLoading,
-            onLogin = onOpenLogin,
-        )
-
-        Spacer(Modifier.height(Space.cardGap))
-
-        // ① 下一场考试（时间最敏感，span2，倒计时 26sp 等宽）
-        val nextExam = HomeModel.nextExam(ui.exams, today)
-        WideTile(
-            title = "下一场考试",
-            hint = if (ui.exams.isNotEmpty()) "共 ${ui.exams.size} 场" else "",
-            onClick = onOpenExam,
-        ) {
-            ExamTileBody(
-                next = nextExam,
-                today = today,
-                loading = ui.examsLoading,
-                examCount = ui.exams.size,
-                finished = HomeModel.finishedExamCount(ui.exams, today),
+    Box(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize()) {
+            LedgerHeader(
+                title = "我的",
+                status = headerStatus,
+                // 搜索是批 3：本页还没有搜索框，页眉不挂「查」（不留死按钮）
+                onSearch = null,
+                // 原顶条的「刷新 / 设置」收进 ⋯ 菜单，入口不丢
+                onMore = { headerMenu = true },
             )
-        }
+            Column(
+                Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = Space.l),
+            ) {
+                Spacer(Modifier.height(4.dp))
 
-        Spacer(Modifier.height(Space.cardGap))
-
-        // ② 学业两个 1×1：培养方案进度（A1：点它去**培养方案页**，不是成绩页）｜加权绩点
-        TileRow {
-            HalfTile(
-                title = "培养方案",
-                value = MyPageModel.planPercentLabel(ui.credit),
-                sub = MyPageModel.planRemainLabel(ui.credit),
-                unknown = ui.credit.percent == null,
-                onClick = onOpenCurriculum,
-            )
-            HalfTile(
-                title = "加权绩点",
-                value = MyPageModel.gpaTileLabel(ui.scoreStats),
-                sub = MyPageModel.gpaSubLabel(ui.scoreStats),
-                unknown = ui.scoreStats.weightedGpa == null,
-                onClick = onOpenScore,
-            )
-        }
-
-        Spacer(Modifier.height(Space.s))
-
-        // ③ 空闲教室（span2）：一周 ≥3 次要用的东西，从 1.57 屏提到首屏
-        WideTile(
-            title = "空闲教室",
-            hint = if (ui.freeRooms.roomCount > 0) "第 ${ui.roomsSession} 节" else "",
-            onClick = onOpenRooms,
-        ) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                Text(
-                    MyPageModel.freeRoomsTile(ui.roomsSession, ui.freeRooms.roomCount),
-                    fontSize = if (ui.freeRooms.roomCount > 0) 20.sp else 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (ui.freeRooms.roomCount > 0) t.ink else t.inkFaint,
-                    fontFamily = NumericFont,
+                // ── 身份/学籍（1 行）：登录入口就在这里（门禁 B3），整行身份即入口 ──
+                UserLedgerGroup(
+                    title = "身份/学籍",
+                    startIndex = 1,
+                    firstGroup = true,
+                    entries = listOf(
+                        UserLedgerEntry(
+                            subject = name,
+                            sub = identitySub,
+                            value = ui.profile.studentNo.ifBlank {
+                                MyPageModel.sessionPremiseLabel(ui.sessionState)
+                            },
+                            onClick = if (SessionText.identityClickable(ui.sessionState)) onOpenLogin else null,
+                        ),
+                    ),
                 )
-                Spacer(Modifier.weight(1f))
+
+                // ── 学业（4 行）：绩点/学分/排名/培养方案，数值列右对齐 ──
+                UserLedgerGroup(
+                    title = "学业",
+                    startIndex = 2,
+                    firstGroup = false,
+                    entries = listOf(
+                        UserLedgerEntry(
+                            subject = "加权绩点",
+                            value = gpa,
+                            missing = ui.scoreStats.weightedGpa == null,
+                            onClick = onOpenScore,
+                        ),
+                        UserLedgerEntry(
+                            subject = "已修学分",
+                            value = if (creditHasData) HomeModel.trimNum(ui.credit.earnedXf) else "",
+                            unit = if (creditHasData) "学分" else "",
+                            missing = !creditHasData,
+                            onClick = onOpenCurriculum,
+                        ),
+                        // 排名：URP 接口没给这套算法（见 ScoreScreen 说明），如实显示暂缺
+                        UserLedgerEntry(
+                            subject = "排名",
+                            value = "",
+                            missing = true,
+                            onClick = onOpenScore,
+                        ),
+                        UserLedgerEntry(
+                            subject = "培养方案",
+                            value = ui.credit.percent?.toString().orEmpty(),
+                            unit = if (ui.credit.percent != null) "%" else "",
+                            missing = ui.credit.percent == null,
+                            onClick = onOpenCurriculum,
+                        ),
+                    ),
+                )
+
+                // ─────────────────────────────────────────────────────────────
+                // 功能入口从这里进分组 box（主人 2026-11-15：「教务的按钮放入一个 box 内，其余的也是，确定归属」）。
+                // 注意：这与「资讯流无容器」不冲突 —— 资讯是阅读流（不放盒子），
+                // 功能入口是可点的集合（放盒子更清楚）。下一个代理不要再给资讯页加盒子。
+                // 身份/学籍（单行门禁）与学业（数值账目行）保持上面的无盒形态。
+                // ─────────────────────────────────────────────────────────────
+                UserGroupBox(
+                    title = "教务",
+                    first = false,
+                    entries = listOf(
+                        UserLedgerEntry(
+                            subject = "考试安排",
+                            badge = MyPageModel.examBadge(ui.exams.size, ui.examsLoading),
+                            chevron = true,
+                            onClick = onOpenExam,
+                        ),
+                        UserLedgerEntry(
+                            subject = "成绩查询",
+                            badge = MyPageModel.scoreBadge(ui.scores.size, ui.scoresLoading),
+                            chevron = true,
+                            onClick = onOpenScore,
+                        ),
+                        UserLedgerEntry(subject = "查教师", chevron = true, onClick = onOpenTeacher),
+                        UserLedgerEntry(
+                            subject = "课程大纲",
+                            badge = MyPageModel.syllabusBadge(ui.syllabusIndex.size),
+                            chevron = true,
+                            onClick = onOpenSyllabus,
+                        ),
+                        UserLedgerEntry(
+                            subject = "历年课表",
+                            badge = MyPageModel.historyBadge(
+                                ui.historyPlanCode.takeIf { ui.historyTimetable != null }
+                                    ?.let { HomeModel.termLabel(it) }.orEmpty(),
+                            ),
+                            chevron = true,
+                            onClick = onOpenHistory,
+                        ),
+                        UserLedgerEntry(
+                            subject = "空闲教室",
+                            badge = if (freeRoomsValue != MyPageModel.UNKNOWN) freeRoomsValue else "",
+                            chevron = true,
+                            onClick = onOpenRooms,
+                        ),
+                    ),
+                )
+
+                // 缓存时间/主页提示（数据诚实：显示的是旧数据就必须标出年龄）
+                if (ui.cacheUpdatedLabel.isNotBlank() || ui.homeMsg.isNotBlank()) {
+                    Spacer(Modifier.height(6.dp))
+                    if (ui.cacheUpdatedLabel.isNotBlank()) HomeFootNote(ui.cacheUpdatedLabel)
+                    if (ui.homeMsg.isNotBlank()) HomeFootNote(ui.homeMsg)
+                }
+
+                // ── 校园（1 行）：离线示意图，不申请定位 ──
+                UserGroupBox(
+                    title = "校园",
+                    first = false,
+                    entries = listOf(
+                        UserLedgerEntry(subject = "校园地图", chevron = true, onClick = onOpenMap),
+                    ),
+                )
+
+                // ── 本机（4 行）：自定义课程 / 周次校准 / 设置 / 关于 —— 设置与关于从隐藏入口浮到明处 ──
+                UserGroupBox(
+                    title = "本机",
+                    first = false,
+                    entries = listOf(
+                        UserLedgerEntry(
+                            subject = "自定义课程",
+                            badge = if (ui.customCourses.isEmpty()) "" else "${ui.customCourses.size} 门",
+                            chevron = true,
+                            onClick = onOpenCustom,
+                        ),
+                        UserLedgerEntry(
+                            subject = "周次校准",
+                            value = MyPageModel.weekLabel(week),
+                        ),
+                        UserLedgerEntry(subject = "设置", chevron = true, onClick = onOpenSettings),
+                        UserLedgerEntry(subject = "关于", chevron = true, onClick = onOpenAbout),
+                    ),
+                )
+
+                Spacer(Modifier.height(22.dp))
                 Text(
-                    if (ui.freeRooms.roomCount > 0) "点开看楼栋明细" else "点进去查一次",
-                    fontSize = 9.5.sp,
+                    "沈农在途 ${BuildConfig.VERSION_NAME}",
+                    fontSize = 10.sp,
+                    fontFamily = NumericFont,
                     color = t.inkFaint,
                 )
+                Spacer(Modifier.height(18.dp))
+                WoodenFish(studentNo = ui.profile.studentNo)
+                Spacer(Modifier.height(28.dp))
             }
         }
-
-        Spacer(Modifier.height(Space.s))
-
-        // ④ 工具格 2×2（都是**教务**来源：查教师/大纲/历年/成绩，全要 URP 登录态）
-        TileRow {
-            ToolTile(
-                label = "查教师",
-                sub = MyPageModel.teacherBadge(),
-                onClick = onOpenTeacher,
-            )
-            ToolTile(
-                label = "课程大纲",
-                sub = MyPageModel.syllabusBadge(ui.syllabusIndex.size),
-                onClick = onOpenSyllabus,
+        if (headerMenu) {
+            UserHeaderMenu(
+                refreshEnabled = ui.sessionState == SessionState.Active && !ui.homeLoading,
+                onRefresh = { vm.refreshHome(force = true) },
+                onSettings = onOpenSettings,
+                onDismiss = { headerMenu = false },
             )
         }
-        Spacer(Modifier.height(Space.s))
-        TileRow {
-            ToolTile(
-                label = "历年课表",
-                sub = MyPageModel.historyBadge(
-                    ui.historyPlanCode.takeIf { ui.historyTimetable != null }
-                        ?.let { HomeModel.termLabel(it) }.orEmpty(),
-                ),
-                onClick = onOpenHistory,
-            )
-            ToolTile(
-                label = "成绩查询",
-                sub = MyPageModel.scoreBadge(ui.scores.size, ui.scoresLoading),
-                onClick = onOpenScore,
-            )
-        }
-
-        // 票 24：这一组数据是缓存时，必须标出它是多会儿的（配合「失败不覆盖」那条纪律）
-        if (ui.cacheUpdatedLabel.isNotBlank()) {
-            Spacer(Modifier.height(6.dp))
-            cn.dkarbon.enroute.ui.home.HomeFootNote(ui.cacheUpdatedLabel)
-        }
-
-        if (ui.homeMsg.isNotBlank()) {
-            Spacer(Modifier.height(6.dp))
-            cn.dkarbon.enroute.ui.home.HomeFootNote(ui.homeMsg)
-        }
-
-        // ── 校园组（数据来源 = 离线示意图；不申请定位）──
-        GroupHead(title = "校园", premise = "离线可用 · 不申请定位")
-        TileRow {
-            ToolTile(
-                label = "校园地图",
-                sub = MyPageModel.mapBadge(),
-                onClick = onOpenMap,
-            )
-        }
-
-        // ── 本机组（数据来源 = 本机存储）──
-        // 组头 premise 与折叠头摘要都写「课表门数/周次」——这正是本组的状态前提（B2）
-        GroupHead(title = "本机", premise = MyPageModel.weekLabel(week))
-        TileRow {
-            ToolTile(
-                label = "自定义课程",
-                sub = if (ui.customCourses.isEmpty()) "自己加课" else "${ui.customCourses.size} 门",
-                onClick = onOpenCustom,
-            )
-        }
-        Spacer(Modifier.height(Space.s))
-        FoldSection(
-            summary = MyPageModel.localSummary(ui.timetable?.courses?.size, week),
-            expanded = localExpanded,
-            onToggle = { localExpanded = !localExpanded },
-        ) {
-            FoldRow("课表", MyPageModel.courseCountLabel(ui.timetable?.courses?.size))
-            FoldRow("周次", MyPageModel.weekLabel(week))
-            FoldRow(
-                "上课提醒",
-                if (ui.remindersEnabled) "开 · 课前 ${Reminders.LEADS_MIN.joinToString(" / ")} 分钟" else "关",
-            )
-            FoldRow("登录态", SessionText.stateLabel(ui.sessionState))
-        }
-
-        Spacer(Modifier.height(22.dp))
-        Text(
-            "沈农在途 ${BuildConfig.VERSION_NAME}",
-            fontSize = 10.sp,
-            fontFamily = NumericFont,
-            color = t.inkFaint,
-        )
-        Spacer(Modifier.height(18.dp))
-        WoodenFish(studentNo = ui.profile.studentNo)
-        Spacer(Modifier.height(28.dp))
     }
 }
 
 /**
- * 考试磁贴的正文：倒计时 26sp 等宽数字 + 课程名/时间/地点。
- *
- * 三种空态分开写（门禁 C1：未知不是 0）—— 没数据 / 全考完 / 读取中。
+ * 页头 ⋯ 菜单（账页 v3：原顶条「刷新 / 设置」收进来，入口不丢）。
+ * 静态底部菜单，不用动画也不引 Material Sheet —— 纸面 + 遮罩 + 三条横排动作即可。
  */
 @Composable
-private fun ExamTileBody(
-    next: ExamItem?,
-    today: LocalDate,
-    loading: Boolean,
-    examCount: Int,
-    finished: Int,
+private fun UserHeaderMenu(
+    refreshEnabled: Boolean,
+    onRefresh: () -> Unit,
+    onSettings: () -> Unit,
+    onDismiss: () -> Unit,
 ) {
     val t = InkTokens.current
-    if (next == null) {
-        Text(
-            when {
-                loading -> "正在读取考试安排…"
-                examCount == 0 -> "还没有考试安排（需登录且在校内网）"
-                else -> "已考完 $finished 场，本学期没有待考的了"
-            },
-            fontSize = 11.sp,
-            lineHeight = 16.sp,
-            color = t.inkFaint,
+    Box(Modifier.fillMaxSize()) {
+        Box(
+            Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.30f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClickLabel = "关闭",
+                    onClick = onDismiss,
+                ),
         )
-        return
-    }
-    val label = HomeModel.countdownLabel(next.date, today).orEmpty()
-    val big = label.removeSuffix(" 天后").removeSuffix("天")
-    val unit = when {
-        label.endsWith("天后") -> "天后"
-        label == "今天" || label == "明天" -> ""
-        else -> label
-    }
-    Row(verticalAlignment = Alignment.Bottom) {
-        Column(horizontalAlignment = Alignment.Start) {
-            Text(
-                big,
-                fontSize = 26.sp,
-                lineHeight = 30.sp,
-                fontWeight = FontWeight.Bold,
-                color = if (label == "今天" || label == "明天") t.brick else t.ink,
-                fontFamily = NumericFont,
+        Column(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(t.paper)
+                .border(Stroke.strong, t.outline),
+        ) {
+            UserMenuRow(
+                index = "01",
+                title = "刷新",
+                sub = "只刷新身份 + 学分/绩点这一组（票 24）",
+                enabled = refreshEnabled,
+                onClick = { onRefresh(); onDismiss() },
             )
-            if (unit.isNotBlank()) {
-                Text(unit, fontSize = 9.sp, color = t.inkFaint)
-            }
-        }
-        Spacer(Modifier.width(Space.m))
-        Box(Modifier.width(Stroke.hairline).height(32.dp).background(t.rule))
-        Spacer(Modifier.width(Space.m))
-        Column(Modifier.weight(1f)) {
-            Text(
-                next.name.ifBlank { "（未命名课程）" },
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Medium,
-                color = t.ink,
+            UserMenuRow(
+                index = "02",
+                title = "设置",
+                sub = "主题、字号、教务与数据",
+                onClick = { onSettings(); onDismiss() },
             )
-            Spacer(Modifier.height(2.dp))
-            Text(
-                listOf(next.date, next.startClock.takeIf { it.isNotBlank() }?.let { "$it 开考" }.orEmpty())
-                    .filter { it.isNotBlank() }.joinToString(" · "),
-                fontSize = 10.sp,
-                color = t.inkSoft,
-                fontFamily = NumericFont,
-            )
-            val place = listOf(next.campus, next.building, next.room)
-                .filter { it.isNotBlank() }.joinToString(" ")
-            if (place.isNotBlank()) {
-                Spacer(Modifier.height(2.dp))
-                Text(place, fontSize = 9.5.sp, color = t.inkFaint)
+            Box(
+                Modifier.fillMaxWidth().height(Space.minTouch).clickable(onClick = onDismiss),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("取消", fontSize = 12.5.sp, color = t.inkFaint)
             }
         }
     }
 }
 
+/** 页头菜单里的一条动作：序号 + 动作名 + 一句副文案（≥48dp 触区） */
 @Composable
-private fun GroupCard(content: @Composable () -> Unit) {
+private fun UserMenuRow(
+    index: String,
+    title: String,
+    sub: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
     val t = InkTokens.current
     Column(
         Modifier
             .fillMaxWidth()
-            .clip(RectangleShape)
-            .background(t.card)
-            .border(Stroke.hairline, t.outline)
-            .padding(horizontal = 12.dp, vertical = 4.dp),
-    ) { content() }
-}
-
-/**
- * 组内分隔线。
- *
- * A5：以前是 0.6dp，低于 `HardTokens` 里写的 0.75–1dp 下限（那会让分隔线在部分屏上消失）。
- * 现在收敛到唯一的 hairline 常量，全 App 只有一种细线宽度。
- */
-@Composable
-private fun Divider() {
-    val t = InkTokens.current
-    Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
-}
-
-@Composable
-private fun StatRow(label: String, value: String) {
-    val t = InkTokens.current
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = Space.l, vertical = Space.m),
     ) {
-        Text(label, fontSize = 12.5.sp, color = t.inkSoft)
-        Spacer(Modifier.weight(1f))
-        Text(value, fontSize = 11.5.sp, color = t.ink, fontWeight = FontWeight.Medium)
-    }
-}
-
-/**
- * 一行入口（`GroupCard` 里用）。
- *
- * A3：`heightIn(min = Space.minTouch)` 保证 ≥48dp 触控（仓库其它页都这么做，这里以前漏了）。
- * A4：箭头朝右 —— 右端就是「进入」的方向。
- * A8：`badge` 只放**真实状态**，其余一律空串（空比噪声诚实）。
- */
-@Composable
-private fun NavRow(label: String, badge: String, onClick: () -> Unit) {
-    val t = InkTokens.current
-    Row(
-        Modifier
-            .fillMaxWidth()
-            .heightIn(min = Space.minTouch)
-            .clickable(onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, fontSize = 13.sp, color = t.ink)
-        Spacer(Modifier.weight(1f))
-        if (badge.isNotBlank()) {
-            Text(badge, fontSize = 11.sp, color = t.inkFaint, fontFamily = NumericFont)
-            Spacer(Modifier.width(6.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(index, fontSize = 9.sp, color = t.inkFaint)
+            Spacer(Modifier.width(Space.m))
+            Text(
+                title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = if (enabled) t.ink else t.inkFaint,
+            )
         }
-        Icon(
-            Icons.AutoMirrored.Filled.KeyboardArrowRight,
-            contentDescription = null,
-            tint = t.inkFaint,
-            modifier = Modifier.size(16.dp),
+        Spacer(Modifier.height(2.dp))
+        Text(
+            sub,
+            fontSize = 9.5.sp,
+            lineHeight = 13.sp,
+            color = t.inkFaint,
+            maxLines = 1,
+            modifier = Modifier.padding(start = 27.dp),
         )
     }
+    Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
 }

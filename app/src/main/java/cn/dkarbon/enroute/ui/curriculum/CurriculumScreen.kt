@@ -36,6 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.curriculum.CurriculumCourse
@@ -486,23 +489,38 @@ private fun Note(text: String) {
     )
 }
 
-/** 原表渲染：保留行列，横向可滚（表格有 7 列，窄屏放不下就滚，不拆不并） */
+/**
+ * 原表渲染：保留行列，横向可滚（表头随表一起滚）。
+ *
+ * 表格类硬要求（票 09 复审）：
+ * 1. 列宽固定（同一个 `j → 列宽` 映射同时用于表头与数据，不会写两套）
+ * 2. 单元格可换行，长文最多 3 行再省略（表头放宽到 4 行，防止长表头被吃）
+ * 3. 数字列右对齐、文字列左对齐
+ * 4. 空值原样（空格子=原表为空，绝不填 0）
+ */
 @Composable
 private fun TableBlock(title: String, rows: List<List<String>>) {
     val t = InkTokens.current
+    val cols = rows.maxOfOrNull { it.size } ?: 0
+    if (rows.isEmpty() || cols <= 0) return
+    val headerRows = leadingHeaderRows(rows)
+    val numeric = BooleanArray(cols) { j -> isNumericColumn(rows, headerRows, j) }
+
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(title, fontSize = 12.sp, color = t.ink, fontWeight = FontWeight.Bold)
         Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
             Column {
                 rows.forEachIndexed { i, row ->
                     Row {
-                        row.forEachIndexed { j, cell ->
-                            val w = if (j == 0) 96.dp else 82.dp
+                        for (j in 0 until cols) {
+                            val cell = row.getOrElse(j) { "" }.trim()
+                            val isHeader = i < headerRows
+                            val right = numeric[j]
                             Box(
                                 Modifier
-                                    .width(w)
+                                    .width(columnWidth(j, right))
                                     .heightIn(min = 30.dp)
-                                    .background(if (i <= 1) t.cardAlt else t.card)
+                                    .background(if (isHeader) t.cardAlt else t.card)
                                     .border(Stroke.hairline, t.outline)
                                     .padding(horizontal = 4.dp, vertical = 4.dp),
                                 contentAlignment = Alignment.Center,
@@ -511,9 +529,13 @@ private fun TableBlock(title: String, rows: List<List<String>>) {
                                     cell,
                                     fontSize = 9.sp,
                                     lineHeight = 13.sp,
-                                    color = if (i <= 1) t.ink else t.inkSoft,
-                                    fontWeight = if (i <= 1) FontWeight.Bold else FontWeight.Normal,
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                    color = if (isHeader) t.ink else t.inkSoft,
+                                    fontWeight = if (isHeader) FontWeight.Bold else FontWeight.Normal,
+                                    textAlign = if (right) TextAlign.End else TextAlign.Start,
+                                    maxLines = if (isHeader) 4 else 3,
+                                    overflow = TextOverflow.Ellipsis,
+                                    softWrap = true,
+                                    modifier = Modifier.fillMaxWidth(),
                                 )
                             }
                         }
@@ -521,14 +543,45 @@ private fun TableBlock(title: String, rows: List<List<String>>) {
                 }
             }
         }
-        // 表格第一列是「教育环节」，第二列是「课程平台」——把表头两行说清楚，免得看成数据
+        // 表头按原文照排（学分结构表两行、各学期学分分配表一行）；空格子=原表为空
         Text(
-            "表头两行按原文照排；空格子=原表为空",
+            "表头按原文照排；空格子=原表为空",
             fontSize = 9.sp,
             color = t.inkFaint,
         )
     }
 }
+
+/** 表头行数：以「教育环节 / 学期」开头，或首格为空的续行；碰到第一行数据就停 */
+private fun leadingHeaderRows(rows: List<List<String>>): Int {
+    var n = 0
+    for (row in rows) {
+        val first = row.firstOrNull()?.trim().orEmpty()
+        if (first.isEmpty() || first == "教育环节" || first == "学期") n++ else break
+    }
+    return n.coerceAtLeast(1)
+}
+
+/** 这一列是不是数字列：表头以下所有非空单元格都是数字 / 百分比 / 破折号 */
+private fun isNumericColumn(rows: List<List<String>>, headerRows: Int, j: Int): Boolean {
+    var seen = false
+    for (i in headerRows until rows.size) {
+        val c = rows[i].getOrElse(j) { "" }.trim()
+        if (c.isEmpty() || c == "—" || c == "——") continue
+        seen = true
+        if (!CELL_NUMBER.matches(c)) return false
+    }
+    return seen
+}
+
+/** 列宽：首列放标签、数字列窄、其余文字列中等 —— 全部固定宽，长文换行不撑列 */
+private fun columnWidth(j: Int, numeric: Boolean): Dp = when {
+    numeric -> 56.dp
+    j == 0 -> 88.dp
+    else -> 72.dp
+}
+
+private val CELL_NUMBER = Regex("""^\d+(\.\d+)?%?$""")
 
 /** 课程行：`课程代码 · 课程名` / `学分 · 学时 · 性质`；点击查大纲（票 10 入口） */
 @Composable
@@ -549,6 +602,8 @@ private fun CourseRow(c: CurriculumCourse, onClick: () -> Unit) {
                 fontSize = 12.sp,
                 color = t.ink,
                 fontWeight = FontWeight.Medium,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
             if (c.code.isNotBlank()) {

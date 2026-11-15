@@ -72,8 +72,8 @@ object Ledger {
     val Ink = Color(0xFF16211B)       // 15.49:1
     val InkSoft = Color(0xFF3C4A42)   //  8.73:1
     val InkFaint = Color(0xFF5A6A60)  //  5.36:1
-    val Rule = Color(0xFFD9D3C5)      // 装饰线（不承载文字）
-    val Outline = Color(0xFF808E84)   // 可辨边界 3.21:1（≥3:1）
+    val Rule = Color(0xFF91825F)      // 装饰线（不承载文字）；原 #D9D3C5 仅 1.40:1，调暗到 ≥3:1（纸 3.53/卡 3.78/卡Alt 3.20）
+    val Outline = Color(0xFF7B897F)   // 可辨边界（原 #808E84 对卡Alt 2.91:1，加深后 3.11:1 ≥3:1）
     val Pine = Color(0xFF1F4A3D)      // 主色：松针绿 9.33:1
     val Clay = Color(0xFFB4553C)      // 强调：陶土红 4.56:1
     val Indigo = Color(0xFF2E5266)    // 信息 7.81:1
@@ -89,7 +89,7 @@ object Ledger {
     val InkDark = Color(0xFFF1EFE7)       // 15.33:1
     val InkSoftDark = Color(0xFFC6CDC6)   // 10.88:1
     val InkFaintDark = Color(0xFF9AA69D)  //  6.99:1
-    val RuleDark = Color(0xFF33403A)
+    val RuleDark = Color(0xFF647D71)     // 装饰线：原 #33403A 仅 1.63:1，提亮到 ≥3:1（纸 3.96/卡 3.61/卡Alt 3.23）
     val OutlineDark = Color(0xFF6E7B72)   // 3.98:1
     val PineDark = Color(0xFF8FBFA6)      // 8.55:1
     val ClayDark = Color(0xFFE0937A)      // 7.25:1
