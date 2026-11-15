@@ -192,16 +192,18 @@ fun MathBackdrop(modifier: Modifier, color: Color, alpha: Float, turns: Float) {
 //
 // 三条硬约束（与静态版同源）：
 //   ① 是四维旋转，不是三维自转 —— 3D 相机角固定，只让 6 个 4D 平面转；
-//   ② 是背景不是主角 —— 1 物理像素线宽、alpha 0.075–0.13；
+//   ② 是背景不是主角 —— 1.4 物理像素线宽、alpha 0.085–0.17（2026-11-15 起：
+//      分层到最底层后线宽与强度各提一档，仍远低于卡片/正文的实度）；
 //   ③ 省电 —— 只在可见时跑、用 withFrameNanos 推进、每帧零对象分配、
 //      系统开「移除动画」时完全静止。
 // ═══════════════════════════════════════════════════════════
 
 /**
- * 背景线框的默认强度（按主题分档）。
+ * 背景线框的默认强度（按主题分档）。**仅「关于」页等没有遮挡层的页面使用。**
  *
- * 账页最低（0.075）：那边有成行的色带（BandTint），线框再浓就会和色带打架，
- * 变成一层"脏底"而不是纸纹。
+ * 课表页（TimetableScreen）**不要用这个口径**：那里底纹分层到了最底层，
+ * 上面压着交错行带（zebra）、今日列 wash 与不透明课卡，需要 0.17/0.11 才能被看见，
+ * 见 TimetableScreen 固定背景层的注释与 docs/_probe/课表底纹-可见性.md。
  */
 fun tesseractAlpha(editorial: Boolean, isDark: Boolean): Float = when {
     editorial -> if (isDark) 0.115f else 0.085f
@@ -334,8 +336,10 @@ fun MathBackdropMotion(
             color = color,
             phase = phase.floatValue,
             alpha = alpha,
-            // 1 物理像素 —— 不乘 density：它要的是"纸上一根细线"，不是 1dp 的 UI 元素
-            strokeWidth = 1f,
+            // 1.4 物理像素 —— 不乘 density：它要的是"纸上一根细线"，不是 1dp 的 UI 元素。
+            // （2026-11-15 课表页可见性修复：从 1 提到 1.4，底纹被行带/卡片压住后
+            //   线太细会更难被看见；1.4 仍在"背景不是主角"的档位内，不抢课名。）
+            strokeWidth = 1.4f,
             buffers = buffers,
         )
     }

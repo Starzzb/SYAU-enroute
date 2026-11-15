@@ -266,11 +266,18 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
         // 票 33（分层）：数学底纹是**固定背景层**，铺满整屏、画在最底，
         // 不参与 Pager 的左右滑动、不参与页内 verticalScroll —— 它按自己的
         // 34 秒节奏原地「转换」（六平面四维旋转），内容层透明地叠在它上面。
-        // 强度沿用原来网格里的取值（0.042 / 0.075），本票只做分层、不调亮。
+        //
+        // 可见性修复（2026-11-15 真机）：分层后底纹从「GridArea 网格之上」挪到最底层，
+        // 上面压着交错行带（zebra）、今日列 wash、不透明课卡。原先 0.075/0.042 是
+        // 「画在网格之上」的取值，被 0.45–0.55 的行带一盖等于消失。
+        // 所以这里提亮到 0.17（暗）/ 0.11（亮）—— 比 MathBackdrop.kt 的
+        // tesseractAlpha(editorial)（0.115/0.085）更高：那个口径是按「关于页」调的
+        // （留白最多、没有行带盖它）；课表页有 zebra 行带 + 实心卡两层遮挡，
+        // 底纹必须自己扛住遮挡，故本页显式用 0.17/0.11，不共用该建议值。
         MathBackdropMotion(
             modifier = Modifier.fillMaxSize(),
             color = if (tone.isDark) tone.ink else tone.outlineStrong,
-            alpha = if (tone.isDark) 0.075f else 0.042f,
+            alpha = if (tone.isDark) 0.17f else 0.11f,
         )
         Column(
             Modifier
@@ -567,9 +574,13 @@ internal fun GridArea(
 
                     if (ed) {
                         // ── 账页：**零横线** ──────────────────────────────
-                        // ① 交错行带：隔行一层 45% 的 cardAlt。它承担「横向网格线」的职责，
+                        // ① 交错行带：隔行一层 cardAlt。它承担「横向网格线」的职责，
                         //    但因为是面而不是线，永远不会被读成「偏了几 dp 的格线」。
-                        val zebra = t.cardAlt.copy(alpha = if (t.isDark) 0.55f else 0.45f)
+                        //    可见性修复（2026-11-15）：行带的职责是「提示行存在」，不是
+                        //    「铺一层底色」。底纹分层到最底层后，0.55/0.45 会把 0.17/0.11
+                        //    的底纹整条盖死；降到 0.22（暗）/0.18（亮）仍能看出条纹，
+                        //    同时底纹透得出来。卡片实心度不动（卡片是内容，必须实）。
+                        val zebra = t.cardAlt.copy(alpha = if (t.isDark) 0.22f else 0.18f)
                         for (i in 0..5) {
                             if (i % 2 == 1) {
                                 drawRect(

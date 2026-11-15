@@ -277,37 +277,37 @@ private fun UserRoot(
                     ),
                 )
 
-                // ── 学业（4 行）：绩点/学分/排名/培养方案，数值列右对齐 ──
-                UserLedgerGroup(
+                // ── 学业（2×2 四方格）：绩点/学分/排名/培养方案 ──
+                // 为什么四方格比平铺更适合数值：四个数并排成两行两列，一眼就能横向比较
+                // 「绩点 vs 学分」「排名 vs 培养方案」；平铺成行要上下扫四行才凑齐四个数，
+                // 数值之间的比较关系被行间距拆散。空值仍「暂缺」，绝不填 0。
+                UserStatGroup(
                     title = "学业",
-                    startIndex = 2,
-                    firstGroup = false,
-                    entries = listOf(
-                        UserLedgerEntry(
-                            subject = "加权绩点",
+                    cells = listOf(
+                        UserStatCell(
+                            label = "加权绩点",
                             value = gpa,
                             missing = ui.scoreStats.weightedGpa == null,
                             onClick = onOpenScore,
                         ),
-                        UserLedgerEntry(
-                            subject = "已修学分",
+                        UserStatCell(
+                            label = "已修学分",
                             value = if (creditHasData) HomeModel.trimNum(ui.credit.earnedXf) else "",
-                            unit = if (creditHasData) "学分" else "",
                             missing = !creditHasData,
                             onClick = onOpenCurriculum,
                         ),
                         // 排名：URP 接口没给这套算法（见 ScoreScreen 说明），如实显示暂缺
-                        UserLedgerEntry(
-                            subject = "排名",
+                        UserStatCell(
+                            label = "排名",
                             value = "",
                             missing = true,
                             onClick = onOpenScore,
                         ),
-                        UserLedgerEntry(
-                            subject = "培养方案",
-                            value = ui.credit.percent?.toString().orEmpty(),
-                            unit = if (ui.credit.percent != null) "%" else "",
-                            missing = ui.credit.percent == null,
+                        // 培养方案是纯跳转入口，格内放「查看」作值；点击与原来那行一致
+                        UserStatCell(
+                            label = "培养方案",
+                            value = "查看",
+                            missing = false,
                             onClick = onOpenCurriculum,
                         ),
                     ),
@@ -317,7 +317,7 @@ private fun UserRoot(
                 // 功能入口从这里进分组 box（主人 2026-11-15：「教务的按钮放入一个 box 内，其余的也是，确定归属」）。
                 // 注意：这与「资讯流无容器」不冲突 —— 资讯是阅读流（不放盒子），
                 // 功能入口是可点的集合（放盒子更清楚）。下一个代理不要再给资讯页加盒子。
-                // 身份/学籍（单行门禁）与学业（数值账目行）保持上面的无盒形态。
+                // 身份/学籍（单行门禁）与学业（2×2 四方格）保持上面的无盒形态。
                 // ─────────────────────────────────────────────────────────────
                 UserGroupBox(
                     title = "教务",
