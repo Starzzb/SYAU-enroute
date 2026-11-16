@@ -22,6 +22,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
@@ -38,6 +39,18 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.StarBorder
+import androidx.compose.material.icons.outlined.FilterAltOff
+import androidx.compose.material.icons.outlined.MarkEmailUnread
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.MarkEmailUnread
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material3.AlertDialog
@@ -418,64 +431,162 @@ private fun SearchRow(
     onClear: () -> Unit,
 ) {
     val t = InkTokens.current
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 48.dp).padding(start = Space.l, end = Space.l, top = Space.xs),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text("⌕", fontSize = 15.sp, color = if (query.isBlank()) t.inkFaint else t.inkSoft)
-        Spacer(Modifier.width(6.dp))
-        BasicTextField(
-            value = query,
-            onValueChange = onQuery,
-            singleLine = true,
-            textStyle = TextStyle(fontSize = 12.5.sp, color = t.ink),
-            cursorBrush = SolidColor(t.inkSoft),
-            modifier = Modifier.weight(1f).focusRequester(focusRequester),
-            decorationBox = { inner ->
-                if (query.isEmpty()) {
-                    Text("搜标题 / 关键词", fontSize = 12.5.sp, color = t.inkFaint)
-                }
-                inner()
-            },
+    val accent = primaryInk()
+    val focus = LocalFocusManager.current
+    // 聚焦状态由 BasicTextField 的 InteractionSource 给出 —— 不额外加 state，避免与真实焦点脱节
+    val interaction = remember { MutableInteractionSource() }
+    val focused by interaction.collectIsFocusedAsState()
+
+    // 下划线展开：0 → 1，从中间向两侧长出去（180ms）。
+    // 用 Animatable 而不是 animateFloatAsState：需要能"打断重来"（快速点进点出时不跳）
+    val lineGrow = remember { Animatable(0f) }
+    LaunchedEffect(focused) {
+        lineGrow.animateTo(
+            targetValue = if (focused) 1f else 0f,
+            animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
         )
-        if (query.isNotEmpty()) {
+    }
+    // 放大镜：聚焦时轻微放大 + 转一点；同样用 Animatable 便于打断
+    val lensZoom = remember { Animatable(0f) }
+    LaunchedEffect(focused) {
+        lensZoom.animateTo(
+            targetValue = if (focused) 1f else 0f,
+            animationSpec = tween(durationMillis = 150),
+        )
+    }
+
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = 44.dp)
+                .padding(start = Space.l, end = Space.l, top = Space.xs),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // 放大镜：内置矢量图标，聚焦时放大 1.08 + 转 8°
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+                tint = if (focused || query.isNotEmpty()) t.inkSoft else t.inkFaint,
+                modifier = Modifier
+                    .size(18.dp)
+                    .graphicsLayer {
+                        val z = 1f + 0.08f * lensZoom.value
+                        scaleX = z
+                        scaleY = z
+                        rotationZ = 8f * lensZoom.value
+                    },
+            )
+            Spacer(Modifier.width(8.dp))
+            BasicTextField(
+                value = query,
+                onValueChange = onQuery,
+                singleLine = true,
+                // 光标与占位文字必须**同字号同行高**，否则 caret 会偏上/偏下几个像素
+                textStyle = TextStyle(fontSize = 13.sp, lineHeight = 18.sp, color = t.ink),
+                cursorBrush = SolidColor(accent),
+                interactionSource = interaction,
+                modifier = Modifier.weight(1f).focusRequester(focusRequester),
+                decorationBox = { inner ->
+                    Box(contentAlignment = Alignment.CenterStart) {
+                        if (query.isEmpty()) {
+                            Text(
+                                "搜标题 / 关键词",
+                                fontSize = 13.sp,
+                                lineHeight = 18.sp,
+                                color = t.inkFaint,
+                            )
+                        }
+                        inner()
+                    }
+                },
+            )
+            if (query.isNotEmpty()) {
+                Box(
+                    Modifier.size(40.dp).clickable(onClickLabel = "清空搜索词") { onQuery("") },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = null,
+                        tint = t.inkFaint,
+                        modifier = Modifier.size(15.dp),
+                    )
+                }
+            } else {
+                Spacer(Modifier.width(4.dp))
+            }
+            // 未读 / 收藏：**常驻矢量图标按钮**（不再动态消失），选中填实 + 主色
+            FilterIconButton(
+                selected = onlyUnread,
+                contentDesc = if (onlyUnread) "显示全部" else "只看未读",
+                tint = accent,
+                onClick = onToggleUnread,
+            ) {
+                Icon(
+                    imageVector = if (onlyUnread) Icons.Filled.MarkEmailUnread else Icons.Outlined.MarkEmailUnread,
+                    contentDescription = null,
+                    tint = if (onlyUnread) accent else t.inkSoft,
+                    modifier = Modifier.size(19.dp),
+                )
+            }
+            FilterIconButton(
+                selected = starredOnly,
+                contentDesc = if (starredOnly) "显示全部" else "只看收藏",
+                tint = t.amber,
+                onClick = onToggleStarred,
+            ) {
+                Icon(
+                    imageVector = if (starredOnly) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    contentDescription = null,
+                    tint = if (starredOnly) t.amber else t.inkSoft,
+                    modifier = Modifier.size(19.dp),
+                )
+            }
+            // 不额外放"清空筛选"图标：× 已能清词，未读/收藏再点一次即取消筛选。
+            // 多一个漏斗只会让人犹豫该点哪个。
+        }
+
+        // 下划线：未激活是 1dp 的 rule；激活时主色从中间向两侧展开盖上去
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Space.l)
+                .height(1.dp),
+        ) {
+            Box(Modifier.fillMaxSize().background(t.rule))
             Box(
-                Modifier.size(48.dp).clickable(onClickLabel = "清空搜索词") { onQuery("") },
-                contentAlignment = Alignment.Center,
-            ) { Text("✕", fontSize = 12.sp, color = t.inkFaint) }
-        }
-        // 筛选开关改成纯文字：选中靠字重 + 主色（未读）/ 琥珀（藏），不画方块底
-        Box(
-            Modifier
-                .height(48.dp)
-                .clickable(onClickLabel = "只看未读", onClick = onToggleUnread)
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                "未读",
-                fontSize = 12.sp,
-                fontWeight = if (onlyUnread) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (onlyUnread) primaryInk() else t.inkFaint,
+                Modifier
+                    .align(Alignment.Center)
+                    .fillMaxHeight()
+                    .fillMaxWidth(lineGrow.value)
+                    .background(accent),
             )
         }
-        Box(
-            Modifier
-                .height(48.dp)
-                .clickable(onClickLabel = "只看收藏", onClick = onToggleStarred)
-                .padding(horizontal = 8.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                "藏",
-                fontSize = 12.sp,
-                fontWeight = if (starredOnly) FontWeight.SemiBold else FontWeight.Normal,
-                color = if (starredOnly) t.amber else t.inkFaint,
-            )
-        }
-        if (hasFilter) {
-            TextAction("清", t.inkSoft, onClickLabel = "清空筛选", onClick = onClear)
-        }
+        Spacer(Modifier.height(6.dp))
+    }
+}
+
+/**
+ * 方形图标按钮（48dp 触区、无背景）。
+ *
+ * 三个筛选按钮共用：图标本身就是状态（填实=选中），不另加文字说明。
+ */
+@Composable
+private fun FilterIconButton(
+    selected: Boolean,
+    contentDesc: String,
+    tint: Color,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        Modifier
+            .size(44.dp)
+            .clickable(onClickLabel = contentDesc, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        content()
     }
 }
 
@@ -748,13 +859,13 @@ private fun EmptyChannel(ui: FeedUiState, channel: String, vm: FeedViewModel) {
     val total = ui.totalOf(channel)
     val unread = ui.unreadOf(channel)
     val branch = when {
-        ui.query.isNotBlank() -> EmptyBranch("无", "没有符合条件的资讯", "换个词，或清空筛选", "清空筛选")
+        ui.query.isNotBlank() -> EmptyBranch("无", "没有符合条件的资讯", "", "清空筛选")
         ui.starredOnly && ui.items.none { it.starred } -> EmptyBranch("藏", "还没有收藏", "", "看全部")
         ui.onlyUnread && unread == 0 && total > 0 -> EmptyBranch("完", "都读完了", "「$channel」共 $total 条已读", "看全部")
         // 首次无缓存且上次刷新全失败：给可操作的重试（规格 §9.2）
-        total == 0 && ui.banner?.tone == FeedBanner.Tone.FAIL -> EmptyBranch("空", "还没有内容", "检查网络后重试", "刷新")
+        total == 0 && ui.banner?.tone == FeedBanner.Tone.FAIL -> EmptyBranch("空", "还没有内容", "", "刷新")
         total == 0 -> EmptyBranch("空", if (channel == "全部") "还没有内容" else "「$channel」暂时没有内容", "", null)
-        else -> EmptyBranch("空", "没有符合条件的资讯", "换个筛选条件", "清空筛选")
+        else -> EmptyBranch("空", "没有符合条件的资讯", "", "清空筛选")
     }
     Box(Modifier.fillMaxSize().padding(Space.l), contentAlignment = Alignment.TopCenter) {
         Column(Modifier.padding(top = 56.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -885,16 +996,18 @@ private fun SheetScaffold(
 private fun MenuRow(
     index: String,
     title: String,
-    sub: String,
+    sub: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
     val t = InkTokens.current
+    // 没有 sub 时把纵向留白加大一点，避免菜单显得局促 —— 不靠"补一句说明"来填空
+    val vPad = if (sub == null) Space.l else Space.m
     Column(
         Modifier
             .fillMaxWidth()
             .clickable(enabled = enabled, onClick = onClick)
-            .padding(horizontal = Space.l, vertical = Space.m),
+            .padding(horizontal = Space.l, vertical = vPad),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(index, fontSize = 9.sp, fontFamily = NumericFont, color = t.inkFaint)
@@ -906,8 +1019,18 @@ private fun MenuRow(
                 color = if (enabled) t.ink else t.inkFaint,
             )
         }
-        Spacer(Modifier.height(2.dp))
-        Text(sub, fontSize = 9.5.sp, lineHeight = 13.sp, color = t.inkFaint, maxLines = 1, modifier = Modifier.padding(start = 27.dp))
+        // sub 只留"事实"（如目标域名），不留操作说明
+        if (sub != null) {
+            Spacer(Modifier.height(2.dp))
+            Text(
+                sub,
+                fontSize = 9.5.sp,
+                lineHeight = 13.sp,
+                color = t.inkFaint,
+                maxLines = 1,
+                modifier = Modifier.padding(start = 27.dp),
+            )
+        }
     }
     Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
 }
@@ -956,17 +1079,14 @@ private fun FeedQuickActions(
         MenuRow(
             "01",
             if (unread) "标为已读" else "标为未读",
-            if (unread) "红点会消失，可用「未读」筛选找回" else "恢复红点，方便稍后再读",
         ) { onSetRead(unread); onDismiss() }
         MenuRow(
             "02",
             if (item.starred) "取消收藏" else "收藏",
-            if (item.starred) "从「藏」筛选中移除" else "只看收藏",
         ) { onToggleStar(); onDismiss() }
         MenuRow(
             "03",
-            if (copied) "已复制到剪贴板" else "复制标题",
-            if (item.category == "竞赛" && item.deadline.isNotBlank()) "标题 + 截止日 + 原文链接" else "标题 + 来源 + 原文链接",
+            if (copied) "已复制" else "复制标题",
         ) {
             val text = buildString {
                 append(item.title)
@@ -977,6 +1097,7 @@ private fun FeedQuickActions(
             cb.setText(AnnotatedString(text))
             copied = true
         }
+        // 唯一带 sub 的一项：sub 是**目标域名**，属事实信息，不是操作说明
         MenuRow("04", "浏览器打开", hostOf(item.url.ifBlank { item.urlAlt })) {
             runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.url.ifBlank { item.urlAlt }))) }
             onDismiss()
