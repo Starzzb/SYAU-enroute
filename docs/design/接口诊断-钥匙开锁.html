@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-<meta charset="utf-8">
-<title>接口诊断 · 钥匙开锁 — 原型</title>
+<head><meta charset="utf-8"><title>接口诊断 · 钥匙开锁</title>
 <style>
   :root{
     --paper:#F5F2EC; --card:#EDE8DF; --rule:#D7D0C4;
@@ -11,26 +9,21 @@
   }
   *{box-sizing:border-box;}
   body{
-    margin:0; padding:40px 32px 72px;
-    background:#E4DFD5; color:var(--ink);
+    margin:0;padding:36px 40px 60px;background:#E4DFD5;color:var(--ink);
     font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
-    font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
   }
-  .doc-title{font-size:22px;font-weight:700;letter-spacing:.02em;margin:0 0 6px;}
-  .doc-sub{font-size:13px;line-height:1.7;color:#5F574C;margin:0 0 34px;max-width:760px;}
+  .doc-title{font-size:20px;font-weight:700;letter-spacing:.01em;margin:0 0 10px;}
+  .doc-sub{font-size:13px;line-height:1.7;color:#5F574C;margin:0 0 8px;max-width:820px;}
   .doc-sub b{color:var(--ink);}
-  .rail{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;}
+  .rail{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start;margin-top:30px;}
 
   .frame{
     width:360px;background:var(--paper);
-    border:1px solid #C9C2B4;
-    box-shadow:0 2px 14px rgba(26,22,17,.09);
-    padding:22px 20px 26px;position:relative;
+    border:1px solid #C9C2B4;box-shadow:0 2px 14px rgba(26,22,17,.09);
+    padding:22px 20px 24px;position:relative;
   }
-  .frame-label{
-    font-size:11px;letter-spacing:.14em;color:#8A8074;
-    margin:0 0 14px;text-transform:uppercase;
-  }
+  .frame-label{font-size:11px;letter-spacing:.14em;color:#8A8074;margin:0 0 14px;}
   .frame-note{
     font-size:11px;line-height:1.6;color:#8A8074;
     margin:12px 0 0;border-top:1px dashed #C9C2B4;padding-top:9px;
@@ -43,8 +36,7 @@
     display:flex;align-items:center;justify-content:space-between;
     border:1px solid var(--ink);padding:0 14px;height:44px;
     font-size:13px;font-weight:600;cursor:pointer;user-select:none;
-    position:relative;overflow:hidden;background:transparent;
-    transition:background .16s;
+    background:transparent;transition:background .16s;
   }
   .go:active{background:rgba(26,22,17,.045);}
   .go .chev{
@@ -54,73 +46,47 @@
   .go.busy{cursor:default;}
   .go.busy .chev{transform:rotate(-135deg) translateY(-2px);}
 
-
-  /* 下方拉出的容器 */
-  .sleeve{
-    display:grid;grid-template-rows:0fr;
-    transition:grid-template-rows .3s cubic-bezier(.2,0,0,1);
-  }
+  .sleeve{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,0,0,1);}
   .sleeve.open{grid-template-rows:1fr;}
   .sleeve > .inner{overflow:hidden;}
-  .sleeve .edge{
-    height:1px;background:var(--rule);width:0;margin:0 auto;
-    transition:width .34s cubic-bezier(.2,0,0,1) .04s;
-  }
+  .sleeve .edge{height:1px;background:var(--rule);width:0;margin:0 auto;transition:width .34s cubic-bezier(.2,0,0,1) .04s;}
   .sleeve.open .edge{width:100%;}
-  .rows{padding-top:2px;}
 
-  /* ── 单条 ───────────────────────────── */
+  /* ── 流动窗口 ─────────────────────────── */
+  .win{height:0;overflow:hidden;transition:height .3s cubic-bezier(.2,0,0,1);}
+  .track{transition:transform .3s cubic-bezier(.2,0,0,1);will-change:transform;}
+
+  /* ── 单条 ─────────────────────────────── */
   .probe{
-    display:none;align-items:center;gap:10px;
-    padding:10px 0;border-bottom:1px solid rgba(215,208,196,.55);
+    display:flex;align-items:center;gap:10px;height:66px;
+    padding:9px 0;border-bottom:1px solid rgba(215,208,196,.55);
   }
-  .probe.in{display:flex;animation:rowIn .26s cubic-bezier(.2,0,0,1) both;}
-  @keyframes rowIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
-  .probe:last-child{border-bottom:none;}
-  .probe.in{opacity:1;transform:none;}
   .probe .txt{flex:1;min-width:0;}
-  .probe .nm{font-size:13px;font-weight:600;color:var(--ink);transition:color .3s;}
-  .probe .meta{
-    font-size:10.5px;color:var(--faint);margin-top:2px;letter-spacing:.02em;
-    transition:color .3s;
-  }
+  .probe .nm{font-size:13px;font-weight:600;line-height:17px;color:var(--ink);transition:color .3s;}
+  .probe .meta{font-size:10.5px;line-height:13px;color:var(--faint);margin-top:2px;letter-spacing:.02em;transition:color .3s;}
   .probe .pth{
-    font-size:9.5px;line-height:1.45;color:var(--faint);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px;
-    font-family:ui-monospace,Menlo,Consolas,monospace;
-    transition:opacity .3s;
+    font-size:9.5px;line-height:13px;color:var(--faint);margin-top:2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    font-family:ui-monospace,Menlo,Consolas,monospace;transition:opacity .3s;
   }
 
   /* 动作区：钥匙 → 锁 */
   .stage{width:92px;height:44px;position:relative;flex:none;color:var(--ink);}
-  .stage .lw{
-    position:absolute;right:0;top:2px;width:36px;height:40px;
-    color:var(--ink);transition:color .3s;
-  }
+  .stage .lw{position:absolute;right:0;top:2px;width:36px;height:40px;overflow:visible;transition:color .3s;}
   .stage .kw{
-    position:absolute;left:2px;top:6px;width:32px;height:32px;
-    color:var(--accent);
-    opacity:0;transform:translateX(-30px) rotate(-4deg);
+    position:absolute;left:2px;top:6px;width:32px;height:32px;overflow:visible;
+    color:var(--accent);opacity:0;transform:translateX(-30px) rotate(-4deg);
     transition:transform .36s cubic-bezier(.4,0,.2,1),opacity .22s;
   }
   .probe.acting .kw{opacity:1;transform:translateX(26px) rotate(0deg);}
   .probe.open .kw{opacity:0;transform:translateX(28px) rotate(6deg);transition:opacity .26s .1s,transform .26s;}
-  .probe.reject .kw{
-    opacity:0;transform:translateX(-34px) rotate(-14deg);
-    transition:transform .3s cubic-bezier(.4,0,1,1),opacity .3s .06s;
-  }
+  .probe.reject .kw{opacity:0;transform:translateX(-34px) rotate(-14deg);transition:transform .3s cubic-bezier(.4,0,1,1),opacity .3s .06s;}
 
   .shackle{transform-box:view-box;transform-origin:25px 16px;transition:transform .34s cubic-bezier(.34,1.5,.64,1);}
   .probe.open .shackle{transform:translate(-9px,-7px) rotate(-16deg);}
-  .act svg,.lw{overflow:visible;}
-
   .keyhole{transition:opacity .18s;}
   .probe.open .keyhole{opacity:0;}
-
-  .tick{
-    stroke-dasharray:26;stroke-dashoffset:26;
-    transition:stroke-dashoffset .3s ease-out .18s;
-  }
+  .tick{stroke-dasharray:26;stroke-dashoffset:26;transition:stroke-dashoffset .3s ease-out .18s;}
   .probe.open .tick{stroke-dashoffset:0;}
 
   .probe.reject .lw{animation:knock .42s cubic-bezier(.36,.07,.19,.97);}
@@ -131,104 +97,78 @@
     66%{transform:translateX(-1.5px)}
   }
   .probe.reject .nm{color:var(--reject);}
-  .probe.reject .pth{opacity:.55;}
+  .probe.reject .pth{opacity:.5;}
   .probe.reject{border-bottom:1px dashed rgba(140,59,43,.32);}
-
-  .probe.open .nm{color:var(--ink);}
   .probe.open .meta{color:var(--olive);}
+  .probe.acting .meta{color:var(--soft);}
 
-  /* ── 动态演示区 ───────────────────────── */
-  .live-wrap{margin-top:44px;display:flex;gap:34px;align-items:flex-start;flex-wrap:wrap;}
-  .ctrl{display:flex;flex-direction:column;gap:10px;width:230px;}
-  .ctrl button{
-    font:inherit;font-size:12.5px;padding:9px 14px;background:var(--ink);color:var(--paper);
-    border:none;cursor:pointer;letter-spacing:.04em;
+  /* 静态分镜：关掉所有过渡 */
+  .instant .sleeve,.instant .sleeve .edge,.instant .win,.instant .track,
+  .instant .shackle,.instant .tick,.instant .kw,.instant .lw{transition:none !important;animation:none !important;}
+
+  /* ── 演示控制 ─────────────────────────── */
+  .ctrl{width:360px;}
+  .btn{
+    display:block;width:100%;border:1px solid var(--ink);background:var(--ink);color:var(--paper);
+    font-size:12.5px;font-weight:600;letter-spacing:.06em;height:40px;cursor:pointer;
   }
-  .ctrl button.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink);}
-  .ctrl p{font-size:11.5px;line-height:1.65;color:#5F574C;margin:4px 0 0;}
+  .btn.ghost{background:transparent;color:var(--ink);margin-top:9px;font-weight:500;}
+  .ctrl-note{font-size:11.5px;line-height:1.7;color:#6B6257;margin:14px 0 0;}
 </style>
 </head>
 <body>
 
-<h1 class="doc-title">接口诊断 · 钥匙开锁</h1>
-<p class="doc-sub">
-  本机保存的凭据是一把<b>钥匙</b>，每个接口是一把<b>锁</b>。钥匙过去戳一下 ——
-  通了锁就<b>开</b>，不通锁纹丝不动、钥匙弹回来（<b>舍弃</b>）。一条一条来，不并排刷状态。<br>
-  原来那句「探测中…」的文字和整段接口说明都删掉了，换成动作本身。状态码仍照实显示。
-</p>
+<p class="doc-title">接口诊断 · 钥匙开锁</p>
+<p class="doc-sub">本机保存的凭据是一把<b>钥匙</b>，每个接口是一把<b>锁</b>。钥匙过去戳一下 —— 通了锁就<b>开</b>，不通锁纹丝不动、钥匙弹回来（<b>舍弃</b>）。</p>
+<p class="doc-sub"><b>14 条接口，一次只试一条</b>。窗口固定高度只放 <b>3 条</b>，试下一条时整叠往上滚一行 —— 滚动是 300ms 的位移，不是让列表跳一下换位置。</p>
+<p class="doc-sub">原来那句「探测中…」和整段接口说明都删了，换成动作本身。状态码和字节数照实显示。</p>
+
+<div class="rail" id="rail"></div>
 
 <div class="rail">
-  <div class="frame">
-    <p class="frame-label">① 待机</p>
-    <div id="p1"></div>
-    <p class="frame-note">容器完全收起。按钮右侧的箭头朝下，暗示下方有东西。</p>
-  </div>
-
-  <div class="frame">
-    <p class="frame-label">② 拉出 · 第一把正在试</p>
-    <div id="p2"></div>
-    <p class="frame-note">容器从按钮下沿向下撑开（grid-rows 0fr→1fr，300ms），顶部横线从中间向两侧长出来。钥匙从左侧滑入抵住锁孔，此时这条还没有结果，只显示「…」。</p>
-  </div>
-
-  <div class="frame">
-    <p class="frame-label">③ 通了</p>
-    <div id="p3"></div>
-    <p class="frame-note">锁梁整体抬起、往左上让开 9px 并倾斜 16°，钥匙被吞进去消失，勾一笔画出来，状态码转橄榄色。</p>
-  </div>
-
-  <div class="frame">
-    <p class="frame-label">④ 不通 · 舍弃</p>
-    <div id="p4"></div>
-    <p class="frame-note">锁被撞得晃两下但不开，钥匙反弹出去并淡出，这一行标题转砖红、分隔线变虚线。然后直接进入下一条。</p>
-  </div>
-</div>
-
-<div class="live-wrap">
-  <div class="frame">
-    <p class="frame-label">⑤ 动态演示（点按钮重播）</p>
-    <div id="live"></div>
-  </div>
+  <div class="frame" id="live"></div>
   <div class="ctrl">
-    <button id="replay">重播</button>
-    <button id="replaySlow" class="ghost">放慢一倍</button>
-    <p>
-      三条接口依次过：考试安排 → 成绩首页 → 成绩数据（第三条故意设成超时）。<br>
-      全部走完后按钮文字变「再来一次」，容器不自动收起 —— 结果留着给人看。
-    </p>
+    <button class="btn" id="replay">重播</button>
+    <button class="btn ghost" id="slow">放慢一倍</button>
+    <p class="ctrl-note">14 条依次试过。前 3 条窗口逐渐长高，第 4 条起高度不变、整叠上滚。<br>全部走完后按「再来一次」可重跑，容器不自动收起 —— 结果留给看的人。</p>
   </div>
 </div>
 
 <script>
-const KEY_SVG = `
-<svg class="kw" viewBox="0 0 32 32" fill="none">
-  <circle cx="8" cy="16" r="4.6" stroke="currentColor" stroke-width="1.7"/>
-  <circle cx="8" cy="16" r="1.5" fill="currentColor"/>
-  <path d="M12.6 16H27" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
-  <path d="M22.4 16v3.6M26 16v2.4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+const ROW_H = 66, VIEW = 3;
+
+const LOCK_SVG = `<svg class="lw" viewBox="0 0 36 40" fill="none">
+  <g class="shackle"><path d="M10 17V11a8 8 0 0116 0v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></g>
+  <rect x="6" y="17" width="24" height="18" rx="1.5" stroke="currentColor" stroke-width="2.2"/>
+  <circle class="keyhole" cx="18" cy="25" r="2" fill="currentColor"/>
+  <path class="keyhole" d="M18 26.6v4.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+  <path class="tick" d="M11.6 26.2l4.2 4.2 8.2-9" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>`;
 
-const LOCK_SVG = `
-<svg class="lw" viewBox="0 0 36 40" fill="none">
-  <g class="shackle">
-    <path d="M10 17V11a8 8 0 0116 0v6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
-  </g>
-  <rect x="6" y="17" width="24" height="18" rx="1.5" stroke="currentColor" stroke-width="2.2"/>
-  <g class="keyhole">
-    <circle cx="18" cy="24" r="1.9" fill="currentColor"/>
-    <path d="M18 25.4v4" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
-  </g>
-  <path class="tick" d="M11.6 26.2l4.2 4.2 8.2-9" stroke="currentColor" stroke-width="2.4"
-        stroke-linecap="round" stroke-linejoin="round"/>
+const KEY_SVG = `<svg class="kw" viewBox="0 0 32 32" fill="none">
+  <circle cx="8" cy="12" r="4.6" stroke="currentColor" stroke-width="2.2"/>
+  <path d="M12 14.4l11.6 5.2" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M20.4 18.2l-1.8 3.4M24.4 20l-1.8 3.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
 </svg>`;
 
 const DATA = [
-  { nm:'考试安排', pth:'/student/exam/studentExamList/detail?start=…&end=…', ok:true,  meta:'200 · 1.2 KB' },
-  { nm:'成绩首页', pth:'/student/integratedQuery/scoreQuery',                    ok:true,  meta:'200 · 8.4 KB' },
-  { nm:'成绩数据', pth:'/student/integratedQuery/scoreQuery/<token>/allTermScores/data', ok:false, meta:'— · 超时' },
+  { nm:'学籍信息',      pth:'/student/rollManagement/rollInfo/index', ok:true,  meta:'200 · 6.1 KB' },
+  { nm:'本学期课表',    pth:'/student/courseSelect/thisSemesterCurriculum/index', ok:true, meta:'200 · 5.8 KB' },
+  { nm:'历年课表',      pth:'/student/courseSelect/calendarSemesterCurriculum/index', ok:true, meta:'200 · 5.4 KB' },
+  { nm:'考试页',        pth:'/student/examinationManagement/examPlan/index', ok:true, meta:'200 · 3.2 KB' },
+  { nm:'考试明细',      pth:'/student/examinationManagement/examPlan/detail?start=…&end=…', ok:true, meta:'200 · 1.2 KB' },
+  { nm:'成绩首页',      pth:'/student/integratedQuery/scoreQuery/allTermScores/index', ok:true, meta:'200 · 8.4 KB' },
+  { nm:'成绩数据',      pth:'/student/integratedQuery/scoreQuery/<token>/allTermScores/data', ok:true, meta:'200 · 31 KB' },
+  { nm:'全部及格成绩',  pth:'/student/integratedQuery/scoreQuery/<token>/allPassingScores/callback', ok:true, meta:'200 · 64 KB' },
+  { nm:'培养方案页',    pth:'/student/integratedQuery/instructionPlanQuery/detail/index', ok:true, meta:'200 · 7.7 KB' },
+  { nm:'培养方案明细',  pth:'/student/integratedQuery/instructionPlanQuery/<token>/detail/callback', ok:true, meta:'200 · 65 KB' },
+  { nm:'教师课表检索',  pth:'/student/teachingResources/teacherCurriculum/search', ok:true, meta:'200 · 7.6 KB' },
+  { nm:'教室·校区',     pth:'/student/teachingResources/freeClassroom/queryCodeCampusList', ok:true, meta:'200 · 270 B' },
+  { nm:'教室·楼栋',     pth:'/student/teachingResources/freeClassroom/queryCodeTeaBuildingList', ok:false, meta:'— · 超时' },
+  { nm:'空闲教室',      pth:'/student/teachingResources/freeClassroom/today', ok:true, meta:'200 · 12 KB' },
 ];
 
-/* state per row: '' | 'in' | 'acting' | 'open' | 'reject' */
-function probeHTML(d, st){
+function rowHTML(d, st){
   const meta = st.includes('reject') ? '— · 超时'
              : st.includes('acting') ? '…'
              : d.meta;
@@ -242,69 +182,122 @@ function probeHTML(d, st){
   </div>`;
 }
 
-function mount(el, { open, busy, states, extraLabel }){
-  const inner = DATA.map((d,i)=>probeHTML(d, states[i]||'')).join('');
+/**
+ * n       渲染前 n 条
+ * states  每条的状态，可为 'acting' | 'open' | 'reject'
+ * offset  轨道位移（px）；不给则自动滚到底
+ * instant 静态分镜：去掉过渡
+ */
+function mount(el, { open, busy, label, n, states, offset, instant, title, note }){
+  const rows = DATA.slice(0, n).map((d,i)=>rowHTML(d, states[i] || '')).join('');
+  const viewH = Math.min(n, VIEW) * ROW_H;
+  const maxOff = Math.max(0, n - VIEW) * ROW_H;
+  const off = (offset === undefined) ? maxOff : offset;
   el.innerHTML = `
+    ${title ? `<p class="frame-label">${title}</p>` : ""}
     <p class="diag-title">接口诊断</p>
-    <div class="go ${busy?'busy':''}">
-      <span>${extraLabel || (busy ? '诊断' : '诊断')}</span><span class="chev"></span>
-    </div>
+    <div class="go ${busy?'busy':''}"><span>${label || '诊断'}</span><span class="chev"></span></div>
     <div class="sleeve ${open?'open':''}">
       <div class="inner">
         <div class="edge"></div>
-        <div class="rows">${inner}</div>
+        <div class="win" style="height:${viewH}px">
+          <div class="track" style="transform:translateY(${-off}px)">${rows}</div>
+        </div>
       </div>
-    </div>`;
+    </div>
+    ${note ? `<p class="frame-note">${note}</p>` : ""}`;
+  if (instant) el.classList.add('instant');
 }
 
+const NOTES = {
+  p1: ['① 待机', '容器完全收起。按钮右侧的箭头朝下，暗示下方有东西。'],
+  p2: ['② 拉出 · 第一把正在试', '容器从按钮下沿向下撑开（300ms），顶部横线从中间向两侧长出来。钥匙从左侧滑入抵住锁孔，这条还没有结果，只显示「…」。'],
+  p3: ['③ 试到第 9 条 · 整叠已滚过一行', '窗口固定 3 行高，第 4 条起不再长高。上一刻窗口里是 5/6/7，这一刻是 6/7/8 —— 中间那 300ms 是整叠一起往上移，不是换一批内容跳出来。底下「培养方案页」的钥匙正抵着锁。'],
+  p4: ['④ 走完 14 条', '第 13 条撞不开，红字、虚线分隔，钥匙弹回来就丢弃，接着试下一条。结果留在窗口里，按钮变「再来一次」。'],
+};
+['p1','p2','p3','p4'].forEach(id=>{
+  const d = document.createElement('div');
+  d.className = 'frame'; d.id = id;
+  document.getElementById('rail').appendChild(d);
+});
+const T = id => ({ title: NOTES[id][0], note: NOTES[id][1] });
+
 /* ── 静态分镜 ── */
-mount(document.getElementById('p1'), { open:false, busy:false, states:['','',''] });
-mount(document.getElementById('p2'), { open:true,  busy:true,  states:['in acting','',''] });
-mount(document.getElementById('p3'), { open:true,  busy:true,  states:['in open','in open','in acting'] });
-mount(document.getElementById('p4'), { open:true,  busy:false, states:['in open','in open','in reject'] });
+const S = (n, st)=>st;
+
+mount(document.getElementById('p1'), { ...T('p1'), open:false, busy:false, n:0, states:[], instant:true });
+
+mount(document.getElementById('p2'), {
+  ...T('p2'), open:true, busy:true, n:1, states:['acting'], instant:true,
+});
+
+mount(document.getElementById('p3'), {
+  ...T('p3'), open:true, busy:true, n:9,
+  states:['open','open','open','reject','open','open','open','open','acting'],
+
+  instant:true,
+});
+
+mount(document.getElementById('p4'), {
+  ...T('p4'), open:true, busy:false, label:'再来一次', n:14,
+  states:['open','open','open','open','open','open','open','open','open','open','open','open','reject','open'],
+  instant:true,
+});
 
 /* ── 动态演示 ── */
 const liveEl = document.getElementById('live');
 let timer = null, speed = 1;
-
-function wait(ms){ return new Promise(r=>{ timer = setTimeout(r, ms*speed); }); }
+const wait = ms => new Promise(r => { timer = setTimeout(r, ms * speed); });
 
 async function run(){
   clearTimeout(timer);
-  mount(liveEl, { open:false, busy:false, states:['','',''] });
-  await wait(240);
+  mount(liveEl, { open:false, busy:false, n:0, states:[] });
+  await wait(260);
 
   const goEl = liveEl.querySelector('.go');
+  const winEl = liveEl.querySelector('.win');
+  const trackEl = liveEl.querySelector('.track');
+
   goEl.classList.add('busy');
   liveEl.querySelector('.sleeve').classList.add('open');
-  await wait(340);
+  await wait(320);
 
-  const rows = [...liveEl.querySelectorAll('.probe')];
+  for (let i = 0; i < DATA.length; i++){
+    const d = DATA[i];
 
-  for (let i=0;i<DATA.length;i++){
-    const r = rows[i], d = DATA[i];
-    r.classList.add('in');
-    await wait(220);
+    // 追加一行
+    trackEl.insertAdjacentHTML('beforeend', rowHTML(d, ''));
+    const r = trackEl.lastElementChild;
+    const n = i + 1;
+    winEl.style.height = Math.min(n, VIEW) * ROW_H + 'px';
+    if (n >= VIEW) trackEl.style.transform = `translateY(${-(n - VIEW) * ROW_H}px)`;
+
+    await wait(60);
     r.classList.add('acting');
-    await wait(520);
+    await wait(460);
     r.classList.remove('acting');
-    if (d.ok){
-      r.classList.add('open');
-      goEl.querySelector('span').textContent = '诊断';
-      await wait(560);
-    } else {
-      r.classList.add('reject');
-      await wait(780);
-    }
-    if (i === DATA.length-1) break;
+    r.classList.add(d.ok ? 'open' : 'reject');
+
+    await wait(d.ok ? 420 : 620);
   }
+
   goEl.classList.remove('busy');
   goEl.querySelector('span').textContent = '再来一次';
+
+  // 收尾：按最终状态整块重挂一次，末态不依赖增量 DOM 的残留
+  mount(liveEl, {
+    open:true, busy:false, label:'再来一次', n:DATA.length,
+    states:DATA.map(d => d.ok ? 'open' : 'reject'),
+  });
 }
 
-document.getElementById('replay').onclick = ()=>{ speed = 1; run(); };
-document.getElementById('replaySlow').onclick = ()=>{ speed = 2; run(); };
-setTimeout(run, 500);
+document.getElementById('replay').onclick = () => { speed = 1; run(); };
+document.getElementById('slow').onclick   = () => { speed = 2; run(); };
+
+run();   // 打开页面就开始走一遍
+
+
 </script>
+
 </body>
 </html>
