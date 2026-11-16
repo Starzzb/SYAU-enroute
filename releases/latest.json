@@ -1,9 +1,9 @@
 {
-  "versionCode": 240,
-  "versionName": "0.5.1+m23",
+  "versionCode": 999,
+  "versionName": "0.9.9+m99",
   "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m23/SYAU-enroute-m23.apk",
   "sha256": "9681b8c1cde7369442131516aeae6ee955594c01e81c1d216a82211e52f1cdf7",
   "size": 5619112,
-  "notes": "修复 m22 的更新检查不生效（jsDelivr 12 小时缓存清不掉，改直读源优先）；下载失败自动换镜像；其余同 m22：更新提醒弹窗、搜索栏下划线动画与常驻图标、分类强调色、身份卡狗耳折角、地图编辑底部面板与发光、共建直接上云",
+  "notes": "验证更新提醒弹窗是否正常弹出的临时版本号",
   "minSupported": 0
 }
