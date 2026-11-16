@@ -1,9 +1,9 @@
 {
-  "versionCode": 999,
-  "versionName": "0.4.1+m22",
+  "versionCode": 220,
+  "versionName": "0.4.0+m21",
   "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m21/SYAU-enroute-m21.apk",
   "sha256": "75ee833b4bc8683657d446c87dbbfef80243edb9688ab644de9a0071682ca93c",
   "size": 5602728,
-  "notes": "身份卡改狗耳折角、资讯分类强调色、进页面取一次只标获取日期、地图编辑底部面板与发光高亮、共建开启后直接上云",
+  "notes": "身份卡改狗耳折角（折角+呼吸+按压，无文字提示）、新增「用设计不用文字」设计原则并清理全仓 11 处说明性提示、课表底纹改为手势驱动（滑动才转、停手静止）、资讯页头部全收、我的页入口按归属归组、学分结构表列宽校准、两套主题对比度达标",
   "minSupported": 0
 }
