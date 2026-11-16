@@ -435,7 +435,11 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             exams = cache.exams.ifEmpty { _ui.value.exams },
             campuses = cache.campuses.ifEmpty { _ui.value.campuses },
             buildings = cache.buildings.ifEmpty { _ui.value.buildings },
+            examsFetchedAt = cache.examsAt,
+            scoresFetchedAt = cache.scoresAt,
+            roomsListsFetchedAt = cache.roomsListsAt,
             cacheUpdatedLabel = cacheLine(),
+            homeDailyFetchedAt = cn.dkarbon.enroute.data.CachePolicy.dailyBlockAt(cache.creditAt, cache.scoreStatsAt),
             examsMsg = if (hasAny) examsCacheMsg() else _ui.value.examsMsg,
         )
         DebugLog.log(
@@ -481,7 +485,13 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         cache = update(cache)
         val ok = withContext(Dispatchers.IO) { runCatching { academicCacheStore.save(cache) }.getOrDefault(false) }
         if (!ok) DebugLog.log("CACHE", "缓存写盘失败（界面仍可用，只是下次要重抓）")
-        _ui.value = _ui.value.copy(cacheUpdatedLabel = cacheLine())
+        _ui.value = _ui.value.copy(
+            cacheUpdatedLabel = cacheLine(),
+            examsFetchedAt = cache.examsAt,
+            scoresFetchedAt = cache.scoresAt,
+            roomsListsFetchedAt = cache.roomsListsAt,
+            homeDailyFetchedAt = cn.dkarbon.enroute.data.CachePolicy.dailyBlockAt(cache.creditAt, cache.scoreStatsAt),
+        )
     }
 
     /**
@@ -871,6 +881,13 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             loadHistoryTerm(_ui.value.historyPlanCode, force = false)
             return
         }
+        // 学期候选是「永久档」：本机缓存里有就直接用，不打网络（历史学期不会再变，取一次就够）
+        if (cache.historyTerms.isNotEmpty()) {
+            cn.dkarbon.enroute.data.DebugLog.log("HISTORY", "学期候选命中缓存（${cache.historyTerms.size} 个），不发网络")
+            _ui.value = _ui.value.copy(historyTerms = cache.historyTerms)
+            loadHistoryTerm(pickHistoryTerm(cache.historyTerms), force = false)
+            return
+        }
         val s = session
         if (s == null) {
             _ui.value = _ui.value.copy(
@@ -896,19 +913,23 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 )
                 return@launch
             }
-            // 默认当前学期：优先服务器标「当前」的那项，否则用日期推出来的学期，再次是第一个
-            val guess = cn.dkarbon.enroute.ui.home.HomeModel.currentTermCode(
-                java.time.LocalDate.now(), _ui.value.timetable?.term.orEmpty(),
-            )
-            val pick = terms.firstOrNull { it.current }?.code
-                ?: terms.firstOrNull { it.code == guess }?.code
-                ?: terms.first().code
             cn.dkarbon.enroute.data.DebugLog.log(
-                "HISTORY", "学期候选 ${terms.map { it.code }}，默认 $pick",
+                "HISTORY", "学期候选 ${terms.map { it.code }}，默认 ${pickHistoryTerm(terms)}",
             )
+            commitCache { it.merge(nowMs(), historyTerms = terms) }
             _ui.value = _ui.value.copy(historyTerms = terms, historyLoading = false)
-            loadHistoryTerm(pick, force = false)
+            loadHistoryTerm(pickHistoryTerm(terms), force = false)
         }
+    }
+
+    /** 默认学期：服务器标「当前」→ 按日期推出来的学期 → 第一个（不写死，见 HistorySemesters） */
+    private fun pickHistoryTerm(terms: List<cn.dkarbon.enroute.data.HistorySemesters.Option>): String {
+        val guess = cn.dkarbon.enroute.ui.home.HomeModel.currentTermCode(
+            java.time.LocalDate.now(), _ui.value.timetable?.term.orEmpty(),
+        )
+        return terms.firstOrNull { it.current }?.code
+            ?: terms.firstOrNull { it.code == guess }?.code
+            ?: terms.firstOrNull()?.code.orEmpty()
     }
 
     /** 切学期：缓存优先，没缓存才打网络 */
@@ -1402,6 +1423,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                     profile = cn.dkarbon.enroute.data.UrpHomeApi.StudentProfile(),
                     credit = cn.dkarbon.enroute.data.UrpHomeApi.CreditProgress(),
                     scoreStats = cn.dkarbon.enroute.data.UrpHomeApi.ScoreStats(),
+                    homeDailyFetchedAt = 0L,
                 )
                 fetchSchedule(s)
                 fetchAcademic(s)
@@ -1579,6 +1601,9 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
      *
      * 级联顺序：校区 → 教学楼 → 节次 → 教室。任何一级拿不到列表就停在那级，
      * 并在 [AppState.roomsMsg] 里说清停在哪 —— 不显示"暂无数据"这种废话。
+     *
+     * 校区/教学楼列表是**每日档**（列表几乎不变，走 [cn.dkarbon.enroute.data.CachePolicy]）；
+     * 教室明细是**实时数据**，每次刷新都真抓 —— 分档纪律见 AcademicCacheStore 顶部注释。
      */
     fun refreshRooms() {
         val s = session
@@ -1588,42 +1613,87 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         }
         _ui.value = _ui.value.copy(roomsLoading = true, roomsMsg = "查询中…")
         viewModelScope.launch {
-            val (msg, campuses, buildings, rooms, campusNo, buildingNo, sessionNo) =
-                withContext(Dispatchers.IO) { loadRoomsChain(s) }
+            val chain = withContext(Dispatchers.IO) { loadRoomsChain(s) }
+            // 列表真抓成功才写缓存：失败一律不覆盖旧列表旧时间戳
+            if (chain.listsFetched) {
+                commitCache {
+                    it.merge(
+                        nowMs(),
+                        campuses = chain.campuses,
+                        buildings = chain.buildings,
+                        buildingsCampusNo = chain.campusNo,
+                    )
+                }
+            }
             _ui.value = _ui.value.copy(
                 roomsLoading = false,
-                roomsMsg = msg,
-                campuses = campuses.ifEmpty { _ui.value.campuses },
-                buildings = buildings.ifEmpty { _ui.value.buildings },
-                freeRooms = rooms ?: _ui.value.freeRooms,
-                roomsCampusNo = campusNo,
-                roomsBuildingNo = buildingNo,
-                roomsSession = sessionNo,
+                roomsMsg = chain.msg,
+                campuses = chain.campuses.ifEmpty { _ui.value.campuses },
+                buildings = chain.buildings.ifEmpty { _ui.value.buildings },
+                freeRooms = chain.rooms ?: _ui.value.freeRooms,
+                roomsCampusNo = chain.campusNo,
+                roomsBuildingNo = chain.buildingNo,
+                roomsSession = chain.sessionNo,
             )
         }
     }
 
-    /** 级联抓取的纯 IO 部分（7 元组让 state 一次写入，避免中间态闪烁） */
+    /** 级联抓取的纯 IO 部分（列表走每日缓存，明细每次真抓） */
     private suspend fun loadRoomsChain(
         s: UrpClient.Session,
     ): RoomsChain {
-        val campuses = runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchCampuses(s) }
-            .getOrElse { return RoomsChain(friendlyError(it), emptyList(), emptyList(), null, "", "", 0) }
+        val now = nowMs()
+        // ① 校区列表（每日档）：新鲜就直读缓存，不发请求
+        val campusesFresh = !cn.dkarbon.enroute.data.CachePolicy.shouldFetchDaily(now, cache.roomsListsAt) &&
+            cache.campuses.isNotEmpty()
+        val campuses: List<cn.dkarbon.enroute.data.UrpHomeApi.CampusOption>
+        if (campusesFresh) {
+            campuses = cache.campuses
+        } else {
+            val r = runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchCampuses(s) }
+            val fetched = r.getOrNull()
+            if (fetched.isNullOrEmpty()) {
+                return RoomsChain(
+                    r.exceptionOrNull()?.let { friendlyError(it) } ?: "没拿到校区列表",
+                    emptyList(), emptyList(), null, "", "", 0, false,
+                )
+            }
+            campuses = fetched
+        }
         val campusNo = _ui.value.roomsCampusNo.takeIf { it.isNotBlank() && campuses.any { c -> c.number == it } }
             ?: campuses.firstOrNull { it.name == "主校" }?.number
             ?: campuses.firstOrNull()?.number.orEmpty()
-        if (campusNo.isBlank()) return RoomsChain("没拿到校区列表", campuses, emptyList(), null, "", "", 0)
+        if (campusNo.isBlank()) return RoomsChain("没拿到校区列表", campuses, emptyList(), null, "", "", 0, false)
         val campusName = campuses.firstOrNull { it.number == campusNo }?.name.orEmpty()
 
-        val buildings = runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchBuildings(s, campusNo) }
-            .getOrElse { return RoomsChain(friendlyError(it), campuses, emptyList(), null, campusNo, "", 0) }
+        // ② 教学楼列表（每日档）：新鲜**且与当前校区对得上**才用缓存，否则真抓
+        val buildingsFresh = !cn.dkarbon.enroute.data.CachePolicy.shouldFetchDaily(now, cache.roomsListsAt) &&
+            cache.buildings.isNotEmpty() && cache.buildingsCampusNo == campusNo
+        val buildings: List<cn.dkarbon.enroute.data.UrpHomeApi.BuildingOption>
+        if (buildingsFresh) {
+            buildings = cache.buildings
+        } else {
+            val r = runCatching { cn.dkarbon.enroute.data.UrpHomeApi.fetchBuildings(s, campusNo) }
+            val fetched = r.getOrNull()
+            if (fetched == null) {
+                return RoomsChain(
+                    r.exceptionOrNull()?.let { friendlyError(it) } ?: "没拿到教学楼列表",
+                    campuses, emptyList(), null, campusNo, "", 0, false,
+                )
+            }
+            buildings = fetched
+        }
+        val listsFetched = !campusesFresh || !buildingsFresh
+
         // 「全部教学楼」的楼号是 n，接口会返回全校混排，不选它当默认
         val picked = buildings.filter { it.number != "n" && it.number != "全部" }
         val buildingNo = _ui.value.roomsBuildingNo
             .takeIf { it.isNotBlank() && picked.any { b -> b.number == it } }
             ?: picked.firstOrNull { it.number == "2" }?.number
             ?: picked.firstOrNull()?.number.orEmpty()
-        if (buildingNo.isBlank()) return RoomsChain("没拿到教学楼列表", campuses, buildings, null, campusNo, "", 0)
+        if (buildingNo.isBlank()) {
+            return RoomsChain("没拿到教学楼列表", campuses, buildings, null, campusNo, "", 0, listsFetched)
+        }
 
         val sessionNo = _ui.value.roomsSession.takeIf { it in 1..12 }
             ?: cn.dkarbon.enroute.ui.home.HomeModel.currentSectionNo(
@@ -1643,17 +1713,18 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 cn.dkarbon.enroute.data.UrpHomeApi.FreeRooms(
                     issue = cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.NO_SESSION,
                 ),
-                campusNo, buildingNo, sessionNo,
+                campusNo, buildingNo, sessionNo, listsFetched,
             )
         }
         cn.dkarbon.enroute.data.DebugLog.log(
             "HOME",
             "空闲教室 $campusName/$buildingName($buildingNo) 第 $sessionNo 节 +${_ui.value.roomsDayPlus} 天：" +
-                "${rooms.roomCount} 间 · ${rooms.issue}",
+                "${rooms.roomCount} 间 · ${rooms.issue}" +
+                if (listsFetched) "（列表已重抓并缓存）" else "（列表走缓存）",
         )
         return RoomsChain(
             cn.dkarbon.enroute.ui.home.HomeModel.freeRoomsHeadline(rooms, buildingName),
-            campuses, buildings, rooms, campusNo, buildingNo, sessionNo,
+            campuses, buildings, rooms, campusNo, buildingNo, sessionNo, listsFetched,
         )
     }
 
@@ -1666,6 +1737,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val campusNo: String,
         val buildingNo: String,
         val sessionNo: Int,
+        /** 这次真抓了校区/教学楼列表（成功了才允许写缓存） */
+        val listsFetched: Boolean,
     )
 
     fun selectRoomsCampus(no: String) {

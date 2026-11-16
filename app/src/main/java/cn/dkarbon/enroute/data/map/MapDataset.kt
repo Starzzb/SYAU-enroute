@@ -163,6 +163,28 @@ object MapDataset {
         )
     }
 
+    /**
+     * 拉取后「变了多少格」：新增 / 改值 / 被删的格都算一格。
+     *
+     * [base] 为 null（首次全量）时按 [after] 的格数计。给「已更新 N 条」提示用 ——
+     * 这个数字必须可信，宁可少算一格，不能把「没变」说成「更新了」。
+     */
+    fun updatedCount(base: Dataset?, after: Dataset): Int {
+        if (base == null) return after.features.values.sumOf { it.size }
+        var n = 0
+        after.features.forEach { (fid, m) ->
+            m.forEach { (field, v) ->
+                if (base.features[fid]?.get(field) != v) n++
+            }
+        }
+        base.features.forEach { (fid, m) ->
+            m.forEach { (field, _) ->
+                if (after.features[fid]?.get(field) == null) n++
+            }
+        }
+        return n
+    }
+
     /** 需不需要真的发请求：没变就不发（票 22「只有服务器更新字段才拉取」） */
     fun shouldPull(nowMs: Long, lastCheckMs: Long, windowMs: Long = FIVE_MIN): Boolean {
         if (lastCheckMs <= 0L) return true

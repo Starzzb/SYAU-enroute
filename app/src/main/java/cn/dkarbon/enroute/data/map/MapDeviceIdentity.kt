@@ -15,24 +15,27 @@ import android.provider.Settings
  * | `ssaid` | `Settings.Secure.ANDROID_ID` | **按「应用+签名+用户」派生，不是硬件序列号**；拿不到就空串 |
  * | `installId` | 本地随机 UUID | 安装级；重置身份时一并更换 |
  * | `did` | 本地随机串 | 服务端 `ch` 的来源，可重置 |
+ * | `sid` | **内存态学籍** | 由调用方传入；**不落盘**，这里只放进 [MapContribute.ClientInfo] |
  *
  * **拿不到真正的硬件标识**：Android 10+ 起 IMEI/序列号对普通应用完全不可读
  * （`READ_PHONE_STATE` 也不行，只有设备所有者/运营商应用可以）。
  * 所以代码里**不申请**任何读手机状态的权限，也**不写**「采集 IMEI」这种做不到的承诺。
- *
- * **`sid`（学号）不在这个类里，也不会被发出去。**
  */
 object MapDeviceIdentity {
 
     /**
      * @param did 本地随机串（[MapContributeStore.anonymousKey]）
      * @param installId 安装级 UUID（[MapContributeStore.installId]）
+     * @param sid 学号（内存态，不落盘；空串 = 未登录/取不到）
+     * @param hasName 姓名可用性（只传「有没有」，不传姓名本身）
      */
     fun collect(
         ctx: Context,
         did: String,
         installId: String,
         appVersion: String,
+        sid: String = "",
+        hasName: Boolean = false,
     ): MapContribute.ClientInfo = MapContribute.ClientInfo(
         did = did,
         appVer = appVersion,
@@ -43,6 +46,8 @@ object MapDeviceIdentity {
         release = safe { Build.VERSION.RELEASE },
         ssaid = androId(ctx),
         installId = installId,
+        sid = sid,
+        hasName = hasName,
     )
 
     /**

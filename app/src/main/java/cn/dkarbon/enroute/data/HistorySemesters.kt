@@ -1,5 +1,7 @@
 package cn.dkarbon.enroute.data
 
+import kotlinx.serialization.Serializable
+
 /**
  * 历年课表的半纯逻辑（票 11）：学期选项解析、请求体构造、缓存命名与时间标记。
  *
@@ -12,6 +14,7 @@ package cn.dkarbon.enroute.data
 object HistorySemesters {
 
     /** 学期下拉里的一项 */
+    @Serializable
     data class Option(
         /** `2024-2025-1-1` */
         val code: String = "",

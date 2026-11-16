@@ -1,6 +1,7 @@
 package cn.dkarbon.enroute.ui.map
 
 import cn.dkarbon.enroute.data.map.MapFeature
+import cn.dkarbon.enroute.data.map.MapTransform
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -243,5 +244,62 @@ internal object MapViewRules {
         11 -> "#8DAB87"
         12 -> "#A8A29A"
         else -> ""
+    }
+
+    // ── 顶部控件按需显示 + 选中后框选要素 ──────────────────────
+
+    /** 最后一次地图手势后这么久（ms）无操作 → 顶部控件淡出 */
+    const val CONTROLS_IDLE_MS = 2500L
+
+    /** 顶部控件淡入/淡出时长（ms） */
+    const val CONTROLS_FADE_MS = 150
+
+    /** 选中要素后，把它框到可视区上半部分的动画时长（ms） */
+    const val FRAME_ANIM_MS = 300
+
+    /** 框选后要素中心的目标位置：画布高度的这个比例（上半部分，给底部面板让路） */
+    const val FRAME_TARGET_Y_RATIO = 0.30f
+
+    /** 要素屏高低于画布高度这个比例才放大（太小的地块缩在图上根本看不见） */
+    const val FRAME_MIN_FEATURE_H_RATIO = 0.16f
+
+    /** 一次「框选要素」的目标值（zoom + pan，纯值，界面负责动画） */
+    data class FramePlan(val zoom: Float, val panX: Float, val panY: Float)
+
+    /**
+     * 选中要素后应去到的 zoom / pan：把要素中心放到画布 `targetYRatio` 处，并保证它
+     * 至少占画布高度 `minFeatureHRatio`（太小就放大）。`pan` 全按「锚点缩放后平移」推，
+     * 与捏合 / 双击共用 [panAfterZoomAt]，越界由调用方用 [clampToBounds] 收。
+     */
+    fun frameFeature(
+        zoom: Float,
+        panX: Float,
+        panY: Float,
+        transform: MapTransform,
+        bounds: DoubleArray,
+        canvasW: Float,
+        canvasH: Float,
+        targetYRatio: Float = FRAME_TARGET_Y_RATIO,
+        minFeatureHRatio: Float = FRAME_MIN_FEATURE_H_RATIO,
+    ): FramePlan {
+        if (bounds.size < 4 || canvasW <= 0f || canvasH <= 0f) return FramePlan(zoom, panX, panY)
+        val fx = (bounds[0] + bounds[2]) / 2.0
+        val fy = (bounds[1] + bounds[3]) / 2.0
+        val sx = transform.screenX(fx)
+        val sy = transform.screenY(fy)
+        val featureH = abs(transform.screenY(bounds[1]) - transform.screenY(bounds[3]))
+        val wantH = canvasH * minFeatureHRatio
+        val z2 = if (featureH > 0f && featureH < wantH) {
+            (zoom * (wantH / featureH)).coerceIn(MIN_ZOOM, MAX_ZOOM)
+        } else {
+            zoom
+        }
+        val k = z2 / zoom
+        // 以要素中心为锚点缩放：中心不动，再把中心平移到目标点
+        val ax = sx - canvasW / 2f
+        val ay = sy - canvasH / 2f
+        val pX = panAfterZoomAt(ax, panX, k) + (canvasW / 2f - sx)
+        val pY = panAfterZoomAt(ay, panY, k) + (canvasH * targetYRatio - sy)
+        return FramePlan(z2, pX, pY)
     }
 }

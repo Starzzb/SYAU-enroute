@@ -94,6 +94,19 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
             onMore = { showMore = true },
         )
 
+        // 页顶一行：这数据是几时取的（缓存命中直读时不打网络，必须标出年龄）
+        val fetchStamp = remember(ui.scoresFetchedAt) {
+            cn.dkarbon.enroute.data.CachePolicy.fetchStamp(System.currentTimeMillis(), ui.scoresFetchedAt)
+        }
+        if (fetchStamp.isNotBlank()) {
+            Text(
+                fetchStamp,
+                fontSize = 11.5.sp,
+                color = t.inkFaint,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+            )
+        }
+
         if (ui.scores.isEmpty()) {
             AcademicProblem(
                 t = t,

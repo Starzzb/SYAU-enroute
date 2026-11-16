@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,10 +60,8 @@ import cn.dkarbon.enroute.ui.theme.Stroke
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun RoomsScreen(ui: AppState, vm: TimetableViewModel) {
-    // 首次进入自动查一次（校区/楼/节次都在 VM 里按默认值级联决定）
-    LaunchedEffect(Unit) {
-        if (ui.campuses.isEmpty() || ui.freeRooms.buildings.isEmpty()) vm.refreshRooms()
-    }
+    // 每次进页面都刷一次明细（空教室是实时数据）；校区/教学楼列表由 VM 按每日档缓存判定，不重复打
+    LaunchedEffect(Unit) { vm.refreshRooms() }
 
     // 浮层叠在列表之上（与考试页同一套：Box + AcademicSheet），不切页面 ——
     // 看完这间能立刻回列表点下一间。**不要**包进 Dialog：AcademicSheet 内部用 BackHandler，
@@ -97,6 +96,19 @@ private fun RoomsBody(ui: AppState, vm: TimetableViewModel) {
             TextButton(onClick = { vm.refreshRooms() }, enabled = !ui.roomsLoading) {
                 Text(if (ui.roomsLoading) "查询中" else "刷新", fontSize = 12.sp)
             }
+        }
+
+        // 校区/教学楼列表的获取日期（明细是实时数据不标；列表走每日缓存，得标出它是几时的）
+        val listsStamp = remember(ui.roomsListsFetchedAt) {
+            cn.dkarbon.enroute.data.CachePolicy.fetchStamp(System.currentTimeMillis(), ui.roomsListsFetchedAt)
+        }
+        if (listsStamp.isNotBlank()) {
+            Text(
+                listsStamp,
+                fontSize = 11.5.sp,
+                color = t.inkFaint,
+                modifier = Modifier.padding(horizontal = Space.l, vertical = 2.dp),
+            )
         }
 
         // ── 校区 ──

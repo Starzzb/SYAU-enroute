@@ -21,18 +21,25 @@ import java.util.UUID
  * | `value` | ≤200 字 | 截断并记账 |
  * | 单次 | ≤200 条、body ≤256KB | [MAX_PATCHES] / [MAX_BODY_BYTES] |
  * | 响应 | `{accepted, rejected, reasons:[{featureId, field, reasons:[…]}], keys}` | [MapPatchResponse] |
- * | 拉增量 | **没有 `GET /map/api/patches`**（只有 admin 的 snapshot） | 本层不做下行 |
+ * | 拉增量 | `GET /map/api/dataset?mapVersion=&since=`（增量 + ETag） | [MapDatasetClient] 按需拉 |
+ *
+ * ## 为什么从「多重确认」改成「一次同意」（2026-11-16 主人反馈）
+ * 旧流程在**每次导出**前都要过确认弹窗 / 预览 / 多重闸门（shouldSend + hasAcknowledged），
+ * 真机上「服务共建过于谨慎」。现在：
+ * - 唯一的闸门是**同意开关本身**（[MapContributeStore.isEnabled]）；开关开着 + 有可传内容就发。
+ * - 开启开关那一刻弹一次同意说明（列出会传学号），同意后即生效；
+ *   之后点「导出标注」＝本地导出 + 直接上传，中间不再问第二遍。
  *
  * ## 隐私：客户端**发什么**
- * 服务器愿意收 `client.sid`（学号）与 `client.did`，并只落 HMAC/AES 派生值。
- * 但我们**不发送任何身份**，只发一个本地随机 UUID 冒充 `did`：
- * - `sid`：**永不发送**（App 里有登录态，但补丁不需要它，少传一项就少一分风险）
- * - `model`：**永不发送**（服务器是**明文落盘** `String(client.model).slice(0,40)`）
- * - `did`：本地随机 UUID，**不是**硬件标识（不是 ANDROID_ID/IMEI/序列号），设置页可重置
- * - 不发定位、不发时间以外的任何环境信息
+ * 服务器愿意收 `client.sid`（学号）与 `client.did`，并只落 HMAC/AES 派生值：
+ * - `sid`：**随补丁发送**，但只从内存态学籍取、**绝不落本地盘**；
+ *   服务端收到后只落 `sid_enc`（AES-256-GCM）与 `ch`（HMAC），明文不落盘、不进日志。
+ * - `model`：只发**机型**（如 V2301A，票 22 主人要求收集）。
+ * - `did`：本地随机 UUID，**不是**硬件标识（不是 ANDROID_ID/IMEI/序列号），设置页可重置。
+ * - 不发定位、不发姓名本身（只发「有没有姓名」的标记 `hasName`）、不发时间以外的任何环境信息。
  *
- * 这样服务端算出来的仍然是稳定的 `ch`（`did` 是稳定的），限流与归并有效；
- * 磁盘上只有 `ch`（HMAC）、`did_h`（HMAC 前 16 位）、`sid_enc=null`、`model=""`。
+ * 这样服务端算出来的 `ch`（`sid|did` 的 HMAC）既稳定又限流有效；
+ * 磁盘上只有 `ch`（HMAC）、`did_h`（HMAC 前 16 位）、`sid_enc`（AES-256-GCM）、`model`（机型明文）。
  */
 object MapContribute {
 
@@ -104,7 +111,7 @@ object MapContribute {
     /**
      * **上传随行的设备/应用信息**（票 22：主人明确要求收集机型与设备标识）。
      *
-     * ⚠️ 这些是**可识别信息**，不再是匿名数据。此前不发的 `sid`（学号）依然不发。
+     * ⚠️ 这些是**可识别信息**，不再是匿名数据。
      * ⚠️ 里面没有真正的硬件序列号 —— Android 10+ 普通应用读不到 IMEI/序列号。
      *    能拿到的只有机型 + 系统版本 + **应用级**标识（见 [MapDeviceIdentity]）。
      */
@@ -122,6 +129,16 @@ object MapContribute {
         val ssaid: String = "",
         /** 本地生成的安装级 UUID（重置身份时一并更换） */
         val installId: String = "",
+        /**
+         * 学号（2026-11-16 起随补丁发送）。
+         *
+         * ⚠️ 只从**内存态学籍**（`AppState.profile.studentNo`）取，**绝不落本地盘**；
+         * 服务端收到后只落 `sid_enc`（AES-256-GCM）与 `ch`（HMAC），明文不落盘、不进日志。
+         * 空串 = 未登录/取不到 → 不发这个键。
+         */
+        val sid: String = "",
+        /** 姓名**可用性**：只传「有没有」，不传姓名本身 */
+        val hasName: Boolean = false,
     )
 
     /** 从「用户的标注」生成补丁列表（只含有值/清值的格子，不含官方基线） */
@@ -180,10 +197,11 @@ object MapContribute {
 
     /**
      * 组装请求体。字段名严格照 `server.js`：
-     * `{schema, mapVersion, client:{did, appVer}, patches:[{featureId, field, value, op, ts}]}`
+     * `{schema, mapVersion, client:{did, sid, hasName, …}, patches:[…]}`
      *
-     * **刻意不出现的键**：`sid`（学号）、`userKey`（服务器不认这个名）、`model`（明文落盘）、
-     * 以及任何位置/硬件标识。单测里逐条断言它们不存在。
+     * **学号只在有值（已登录）时发 `"sid"` 键**；没登录就不出现这个键。
+     * 服务端拿到 `sid` 后只落 `sid_enc`（AES-256-GCM），本客户端不落盘、不进日志。
+     * `hasName` 只表达「有没有姓名」，不传姓名本身。
      */
     fun body(
         mapVersion: String,
@@ -195,6 +213,8 @@ object MapContribute {
         sb.append(",\"mapVersion\":").append(q(mapVersion))
         sb.append(",\"client\":{")
         sb.append("\"did\":").append(q(client.did))
+        if (client.sid.isNotBlank()) sb.append(",\"sid\":").append(q(client.sid))
+        sb.append(",\"hasName\":").append(client.hasName)
         sb.append(",\"manufacturer\":").append(q(client.manufacturer))
         sb.append(",\"model\":").append(q(client.model))
         sb.append(",\"device\":").append(q(client.device))
@@ -218,22 +238,6 @@ object MapContribute {
         sb.append("]}")
         return sb.toString()
     }
-
-    /**
-     * **唯一的上传闸门**：开关关着 → 一条都不发；没东西可传 → 不发。
-     *
-     * 抽成纯函数是为了能被单测锁住（票 22 验收：「关开关时一个字节都不上传」）；
-     * [MapUploader.upload] 第一行就用它 —— 谁改那条判断，这里会红。
-     */
-    fun shouldSend(enabled: Boolean, patches: List<Patch>): Boolean =
-        enabled && patches.isNotEmpty()
-
-    /** 上传前的**预览**（给用户看「要传什么」）：一行一条，人话 */
-    fun preview(patchCount: Int, featureCount: Int, fields: List<String>): String =
-        buildString {
-            append("将上传 $patchCount 条属性（涉及 $featureCount 个地块）")
-            if (fields.isNotEmpty()) append("：").append(fields.joinToString("、"))
-        }
 
     /** 新的匿名设备键（随机 UUID，可重置；**不是**硬件号） */
     fun newAnonymousKey(): String = "anon-" + UUID.randomUUID().toString()
@@ -312,9 +316,6 @@ object MapContribute {
     fun shouldTryNow(nowMs: Long, nextTryAtMs: Long): Boolean = nowMs >= nextTryAtMs
 
     // ── 杂项 ─────────────────────────────────────────────
-
-    /** 有没有东西可传（没有就别打扰用户） */
-    fun hasAnything(patches: List<Patch>): Boolean = patches.isNotEmpty()
 
     /** 主机名（错误提示里用，不打印完整 URL —— 里面没有秘密，但少打点少泄露） */
     fun hostOf(url: String): String = runCatching { URI(url).host.orEmpty() }.getOrDefault("")

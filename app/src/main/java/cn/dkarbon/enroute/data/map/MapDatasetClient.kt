@@ -92,6 +92,7 @@ class MapDatasetClient(ctx: Context) {
                     when (val code = conn.responseCode) {
                         304 -> {
                             store.noteSuccess()
+                            store.clearError()
                             DebugLog.log("MAP", "dataset 304（rev=${base?.rev ?: 0} 未变）")
                             return@withContext null
                         }
@@ -105,6 +106,7 @@ class MapDatasetClient(ctx: Context) {
                             // rev 不比本地新 → 什么都不做（避免无意义写盘与重组）
                             if (base != null && incoming.rev <= base.rev) {
                                 store.noteSuccess()
+                                store.clearError()
                                 return@withContext null
                             }
                             val merged = MapDataset.merge(base, incoming)

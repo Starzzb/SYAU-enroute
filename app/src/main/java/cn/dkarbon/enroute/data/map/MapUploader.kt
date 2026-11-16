@@ -16,16 +16,22 @@ import java.net.URI
 /**
  * 地图共建的**上传通道**（票 13 阶段 B）。
  *
- * ## 只上传「地块 UID + 字段 + 值」
- * 请求体由 [MapContribute.body] 组装 —— 那是**唯一**决定"传什么"的地方，单测逐键断言：
- * 不含 `sid`、不含 `model`、不含 `userKey`、不含任何位置/硬件标识。
- * 唯一稳定标识是一个**本地随机 UUID**（可重置），冒充服务端的 `did` 只为让限流与归并有效。
+ * ## 只上传「地块 UID + 字段 + 值 + 必要的贡献者信息」
+ * 请求体由 [MapContribute.body] 组装 —— 那是**唯一**决定"传什么"的地方，单测逐键断言。
+ * 贡献者信息：本地随机 UUID（`did`）+ 机型/系统/应用级标识（票 22）+ **学号**（`sid`）。
+ * `sid` 只从内存态学籍取、**不落本地盘**；服务端收到后只落 `sid_enc`（AES-256-GCM），
+ * 明文不落盘、不进日志。不发定位、不发姓名本身。
  *
  * ## 为什么用明文 http
  * 服务端 TLS 在手机链路上会被中间设备 RST（`docs/校园地图-补丁服务部署.md` §1），
- * 所以补丁服务是明文 `18082`（回落 `18081`）。上传内容只有「公共设施属性 + 匿名随机串」，
- * 被看到也不泄露任何个人信息；篡改的后果是「官方基线上某条属性不对」，且要过人工审核
- * （`rev=1` 才进 snapshot）。这个取舍写在文档里，不在代码里偷偷决定。
+ * 所以补丁服务是明文 `18082`（回落 `18081`）。上传内容只有「公共设施属性 + 贡献者信息」，
+ * 服务端对 `sid` 只算派生值、不存明文；篡改的后果是「官方基线上某条属性不对」，
+ * 且要过人工审核（`rev=1` 才进 snapshot）。这个取舍写在文档里，不在代码里偷偷决定。
+ *
+ * ## 一次同意，之后直接上云（2026-11-16）
+ * [upload] 里只剩「开关开着 + 有内容」这一道内置检查；
+ * 不再有每次导出前的二次确认/预览。开关开启时已经看过同意说明。
+ * 「导出标注」用 [uploadFromEdits]：整理成补丁 → 入队 → 立刻上传。
  *
  * ## 不阻塞界面
  * [uploadAsync] 是 fire-and-forget：失败只落到队列 + 退避时间，UI 只读状态。
@@ -53,11 +59,6 @@ class MapUploader(ctx: Context) {
     /** UI 侧开关（**关闭即刻生效**：之后一个字节都不会再发） */
     fun setEnabled(on: Boolean) = store.setEnabled(on)
 
-    /** 是否已经看过「会传什么/不传什么」的确认（首次开启要过一次） */
-    fun hasAcknowledged(): Boolean = store.hasAcknowledged()
-
-    fun setAcknowledged(v: Boolean) = store.setAcknowledged(v)
-
     fun clearQueue() = store.clearQueue()
 
     fun anonymousKey(): String = store.anonymousKey()
@@ -65,13 +66,15 @@ class MapUploader(ctx: Context) {
     /** 安装级 UUID（「重置身份」会一并更换）；界面预览要用 */
     fun installId(): String = store.installId()
 
-    /** 上传会随附的设备信息（预览/确认弹窗要如实列出，不许藏） */
-    fun clientInfo(): MapContribute.ClientInfo =
+    /** 上传会随附的设备/学号信息（预览/确认弹窗要如实列出，不许藏） */
+    fun clientInfo(sid: String = "", hasName: Boolean = false): MapContribute.ClientInfo =
         MapDeviceIdentity.collect(
             ctx = app,
             did = store.anonymousKey(),
             installId = store.installId(),
             appVersion = BuildConfig.VERSION_NAME,
+            sid = sid,
+            hasName = hasName,
         )
 
     fun resetAnonymousKey(): String = store.resetAnonymousKey()
@@ -80,10 +83,7 @@ class MapUploader(ctx: Context) {
 
     fun lastMessage(): String = store.lastMessage()
 
-    /**
-     * 把「用户当前的标注」整理成待传补丁：**入队但不上传**。
-     * 真正发送要用户点「上传」（票 13：不许偷偷传）。
-     */
+    /** 把「用户当前的标注」整理成待传补丁：**入队但不上传**。 */
     fun queueFromEdits(edits: MapEdits, mapVersion: String): MapContribute.Sanitized {
         val raw = MapContribute.patchesFrom(edits)
         val clean = MapContribute.sanitize(raw, mapVersion)
@@ -91,14 +91,41 @@ class MapUploader(ctx: Context) {
         return clean
     }
 
-    /** 上传队列。`force=true` 时忽略退避时间（用户手动点「立刻重试」） */
-    suspend fun upload(mapVersion: String, force: Boolean = false): Outcome = withContext(Dispatchers.IO) {
-        val patches = store.pending()
-        // ★ 唯一的上传闸门：开关关着 → 一条都不发（票 22 红线）。判断在纯函数里，有单测锁。
-        if (!MapContribute.shouldSend(store.isEnabled(), patches)) {
-            return@withContext if (patches.isEmpty()) Outcome.NothingToDo
-            else Outcome.Failed("还没开启「参与共建」", retryable = false)
+    /**
+     * 「导出标注」的上传通道（2026-11-16）：把当前标注整理成补丁并入队，然后**立刻**上传（force）。
+     * 开关关着时一个字节都不发；本地导出照旧由调用方自己做。
+     */
+    suspend fun uploadFromEdits(
+        edits: MapEdits,
+        mapVersion: String,
+        sid: String = "",
+        hasName: Boolean = false,
+    ): Outcome = withContext(Dispatchers.IO) {
+        if (!store.isEnabled()) {
+            return@withContext Outcome.Failed("还没开启「参与共建」", retryable = false)
         }
+        val clean = queueFromEdits(edits, mapVersion)
+        if (clean.ok.isEmpty()) {
+            return@withContext if (clean.dropped.isNotEmpty())
+                Outcome.Failed("没有可上传的内容：${clean.dropped.first().second}", retryable = false)
+            else Outcome.NothingToDo
+        }
+        upload(mapVersion, force = true, sid = sid, hasName = hasName)
+    }
+
+    /** 上传队列。`force=true` 时忽略退避时间（用户手动点「立刻重试」）。`sid` 只随本次请求，不落盘 */
+    suspend fun upload(
+        mapVersion: String,
+        force: Boolean = false,
+        sid: String = "",
+        hasName: Boolean = false,
+    ): Outcome = withContext(Dispatchers.IO) {
+        val patches = store.pending()
+        // 一次同意后的内置检查：开关关着 → 一个字节都不发；没内容 → 无事可做。
+        if (!store.isEnabled()) {
+            return@withContext Outcome.Failed("还没开启「参与共建」", retryable = false)
+        }
+        if (patches.isEmpty()) return@withContext Outcome.NothingToDo
         val now = System.currentTimeMillis()
         if (!force && !MapContribute.shouldTryNow(now, store.nextTryAt())) {
             val mins = ((store.nextTryAt() - now) / 60_000L).coerceAtLeast(1)
@@ -111,6 +138,8 @@ class MapUploader(ctx: Context) {
             did = key,
             installId = store.installId(),
             appVersion = BuildConfig.VERSION_NAME,
+            sid = sid,
+            hasName = hasName,
         )
         val sent = ArrayList<MapContribute.Patch>()
         var lastOk: MapContribute.MapPatchResponse? = null
@@ -150,10 +179,10 @@ class MapUploader(ctx: Context) {
     }
 
     /** 后台跑一次（设置页/地图页进入时用），失败不打扰 */
-    fun uploadAsync(mapVersion: String, force: Boolean = false) {
+    fun uploadAsync(mapVersion: String, force: Boolean = false, sid: String = "", hasName: Boolean = false) {
         if (!store.isEnabled()) return
         if (!force && !MapContribute.shouldTryNow(System.currentTimeMillis(), store.nextTryAt())) return
-        scope.launch { runCatching { upload(mapVersion, force) } }
+        scope.launch { runCatching { upload(mapVersion, force, sid, hasName) } }
     }
 
     // ── HTTP ─────────────────────────────────────────────
@@ -225,7 +254,7 @@ class MapUploader(ctx: Context) {
          * ⚠️ **它不是安全边界**：打进 APK 的字符串必然可被提取。真正拦人的是三件事：
          * ① 服务端限流 400 条/小时（靠稳定的 `did` → `ch` 才有效）
          * ② 众包数据要人工过一遍才合并进资产（**不实时下行**）
-         * ③ 上报内容本身匿名（不含 sid / model / 定位 / 硬件标识）
+         * ③ 贡献者信息里学号只算派生值（sid_enc / ch），不落明文；不含姓名/定位/硬件序列号
          * 留空 = 不带该头；服务端若配了键会返回 403，界面会明说原因，不静默失败。
          */
         val API_KEY: String = cn.dkarbon.enroute.BuildConfig.CMAP_API_KEY

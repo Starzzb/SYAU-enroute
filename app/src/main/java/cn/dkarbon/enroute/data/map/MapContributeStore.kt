@@ -28,15 +28,10 @@ class MapContributeStore(ctx: Context) {
 
     // ── 开关 ─────────────────────────────────────────────
 
-    /** **默认关**（票 13 红线：用户主动开才上传） */
+    /** **默认关**（票 13 红线：用户主动开才上传）。开启动作本身即一次同意，之后导出直接上云 */
     fun isEnabled(): Boolean = prefs.getBoolean(KEY_ENABLED, false)
 
     fun setEnabled(on: Boolean) = prefs.edit().putBoolean(KEY_ENABLED, on).apply()
-
-    /** 用户是否已经看过「要传什么」的说明（首次开启时二次确认过一次） */
-    fun hasAcknowledged(): Boolean = prefs.getBoolean(KEY_ACK, false)
-
-    fun setAcknowledged(v: Boolean) = prefs.edit().putBoolean(KEY_ACK, v).apply()
 
     // ── 匿名键 ───────────────────────────────────────────
 
@@ -149,7 +144,6 @@ class MapContributeStore(ctx: Context) {
 
     private companion object {
         const val KEY_ENABLED = "enabled"
-        const val KEY_ACK = "acknowledged"
         const val KEY_ANON = "anonKey"
         const val KEY_INSTALL = "installId"
         const val KEY_FAILS = "fails"

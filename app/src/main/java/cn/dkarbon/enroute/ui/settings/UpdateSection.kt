@@ -33,10 +33,12 @@ import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.BuildConfig
 import cn.dkarbon.enroute.data.UpdateCenter
 import cn.dkarbon.enroute.data.UpdateInfo
+import cn.dkarbon.enroute.data.UpdateVersions
 import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.primaryInk
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import java.io.File
@@ -67,6 +69,34 @@ internal fun UpdateSection() {
     // 状态机：Idle → Checking → (Latest | Available) → Downloading → Ready/Failed
     var state by remember { mutableStateOf<Ui>(Ui.Idle) }
     var job by remember { mutableStateOf<Job?>(null) }
+
+    // 「立即更新」跳转（文档 §1.4 / §3.4 方案 A）：弹窗点「立即更新」→ 请求自动下载，
+    // 跳到设置页时这里消费请求，用户不必再点一次「下载」。未确认前不下载的契约不变
+    // —— 点「立即更新」本身就是确认。
+    val downloadRequest by UpdateCenter.downloadRequest.collectAsStateWithLifecycle()
+
+    fun beginDownload(info: UpdateInfo) {
+        state = Ui.Downloading(0L, info.size)
+        job = scope.launch {
+            when (val r = center.download(info) { done, total ->
+                state = Ui.Downloading(done, total)
+            }) {
+                is UpdateCenter.DownloadResult.Ready ->
+                    state = Ui.Ready(r.apk, info)
+                UpdateCenter.DownloadResult.Cancelled ->
+                    state = Ui.Available(info, UpdateVersions.isMandatory(info, BuildConfig.VERSION_CODE.toLong()))
+                is UpdateCenter.DownloadResult.Failed -> state = Ui.Error(r.message)
+            }
+        }
+    }
+
+    LaunchedEffect(downloadRequest) {
+        val info = downloadRequest ?: return@LaunchedEffect
+        if (state is Ui.Idle || state is Ui.Hint) {
+            beginDownload(info)
+        }
+        UpdateCenter.consumeDownloadRequest()
+    }
 
     // 进页面时把「上次检查发现的版本」用上，省一次请求（红点逻辑同源）
     LaunchedEffect(Unit) {
@@ -115,19 +145,7 @@ internal fun UpdateSection() {
                 is Ui.Available -> PillButton(
                     text = "下载",
                     primary = true,
-                    onClick = {
-                        state = Ui.Downloading(0L, s.info.size)
-                        job = scope.launch {
-                            when (val r = center.download(s.info) { done, total ->
-                                state = Ui.Downloading(done, total)
-                            }) {
-                                is UpdateCenter.DownloadResult.Ready ->
-                                    state = Ui.Ready(r.apk, s.info)
-                                UpdateCenter.DownloadResult.Cancelled -> state = Ui.Available(s.info, s.mandatory)
-                                is UpdateCenter.DownloadResult.Failed -> state = Ui.Error(r.message)
-                            }
-                        }
-                    },
+                    onClick = { beginDownload(s.info) },
                 )
                 else -> PillButton(
                     text = "检查",

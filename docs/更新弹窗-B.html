@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>更新弹窗 · B 里程表（定稿）</title>
+<style>
+  :root{
+    --n950:#100E0B; --n900:#1A1611; --n850:#221E19; --n800:#2B2621; --n700:#443E36;
+    --n600:#5F574C; --n500:#7E7468; --n400:#A1978A; --n300:#BEB5A6; --n200:#D7D0C4;
+    --n100:#EDE8DF; --orange:#C74E17; --orange-l:#EA8F5E; --leaf:#4E6535;
+    --mono:ui-monospace,"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --sans:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#080706}
+  body{color:var(--n100);font-family:var(--sans);padding:38px 24px 90px;
+    display:flex;flex-direction:column;align-items:center;min-height:100vh}
+
+  /* ── 页头 ── */
+  .top{width:100%;max-width:1180px;margin-bottom:30px}
+  .top .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.22em;
+    color:var(--orange);margin-bottom:11px}
+  .top h1{font-size:23px;font-weight:700;letter-spacing:.01em;display:flex;
+    align-items:center;gap:11px;flex-wrap:wrap}
+  .top h1 .badge{font-family:var(--mono);font-size:8.5px;letter-spacing:.15em;
+    color:#fff;background:var(--orange);padding:4px 9px;font-weight:400}
+  .top p{color:var(--n500);font-size:12.5px;line-height:1.75;margin-top:11px;max-width:660px}
+
+  /* ── 舞台 ── */
+  .stage{display:flex;gap:44px;align-items:flex-start;justify-content:center;
+    flex-wrap:wrap;width:100%;max-width:1180px}
+
+  /* 矩形框 = 手机 */
+  .dev{
+    width:380px;height:760px;background:var(--n950);border:1.5px solid #383129;
+    position:relative;overflow:hidden;
+    box-shadow:0 30px 70px -20px rgba(0,0,0,.92);
+  }
+  .sb{height:32px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 15px;font-family:var(--mono);font-size:9.5px;color:var(--n500);
+    position:relative;z-index:60}
+  .sb .r{display:flex;gap:5px;align-items:center}
+  .dot{width:4px;height:4px;background:var(--n600);border-radius:50%}
+  .batt{width:16px;height:8px;border:1px solid var(--n600);position:relative}
+  .batt::after{content:"";position:absolute;inset:1px;background:var(--n500)}
+
+  .bg{position:absolute;inset:32px 0 0;padding:14px;opacity:.20;
+    filter:blur(1.6px);pointer-events:none}
+  .bg .b{height:10px;background:var(--n800);margin-bottom:10px}
+  .bg .b.w6{width:60%} .bg .b.w8{width:80%} .bg .b.w4{width:45%}
+  .bg .c{height:84px;border:1px solid var(--n800);margin-bottom:10px}
+  .mask{position:absolute;inset:0;background:rgba(6,5,4,.87)}
+
+  /* ══════════════ 弹窗本体 ══════════════ */
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;background:var(--n950);
+    border-top:1px solid var(--n700);display:flex;flex-direction:column;
+    animation:up .46s cubic-bezier(.2,.9,.25,1);
+  }
+  @keyframes up{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+  /* ── 里程表 ── */
+  .odo{padding:26px 0 0;display:flex;flex-direction:column;align-items:center}
+  .reel{display:flex;justify-content:center;align-items:flex-end}
+
+  /* 一个数位窗口 */
+  .win{
+    width:52px;height:88px;background:var(--n900);border:1px solid var(--n700);
+    border-right:none;overflow:hidden;position:relative;flex-shrink:0;
+  }
+  .win:last-child{border-right:1px solid var(--n700)}
+  /* 变化位：主色描边 + 稍亮的底 */
+  .win.tick{border-color:var(--orange);background:#161311;z-index:2}
+  .win.tick.prev{border-right-color:var(--orange)}
+
+  /* 数字条：初始停在下一位，动画向上滚一格后停住（不循环） */
+  .strip{
+    position:absolute;left:0;right:0;top:0;
+    display:flex;flex-direction:column;
+    animation:roll 1.5s cubic-bezier(.25,.9,.3,1) forwards;
+  }
+  @keyframes roll{
+    0%{transform:translateY(0)}
+    22%{transform:translateY(0)}
+    100%{transform:translateY(-88px)}
+  }
+  .strip span{
+    height:88px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:44px;font-weight:600;color:var(--n300);
+    line-height:1;
+  }
+  .win.tick .strip span{color:var(--orange)}
+  /* 旧值：滚出去后压暗 */
+  .win.tick .strip span.old{color:var(--n500)}
+
+  /* 中间箭头 */
+  .arrow{
+    display:flex;align-items:center;justify-content:center;
+    padding:0 14px 30px;font-family:var(--mono);font-size:22px;color:var(--n700);
+  }
+
+  /* BUILD 行 */
+  .builds{
+    display:flex;justify-content:space-between;width:100%;
+    padding:11px 30px 0;font-family:var(--mono);font-size:9px;
+    color:var(--n600);letter-spacing:.11em;
+  }
+  .builds .new{color:var(--orange-l)}
+
+  /* 标题 */
+  .ttl{text-align:center;margin-top:22px}
+  .ttl .t{font-size:20px;font-weight:700;letter-spacing:.02em}
+  .ttl .s{font-family:var(--mono);font-size:11px;color:var(--n500);margin-top:6px;
+    display:flex;align-items:center;justify-content:center;gap:7px}
+  .ttl .s .f{color:var(--n600)}
+  .ttl .s .a{color:var(--n700)}
+  .ttl .s .n{color:var(--orange-l)}
+
+  /* 更新内容 */
+  .rule{height:1px;background:var(--n800);margin:18px 26px 0}
+  .notes{
+    margin:0 26px;padding:14px 0 4px;max-height:196px;overflow-y:auto;
+  }
+  .notes::-webkit-scrollbar{width:2px}
+  .notes::-webkit-scrollbar-thumb{background:var(--n700)}
+  .note{display:flex;gap:9px;font-size:12px;line-height:1.6;
+    color:var(--n300);padding:5px 0}
+  .note::before{content:"·";color:var(--orange);font-weight:700;flex-shrink:0}
+  .empty{padding:16px 0;font-size:11.5px;color:var(--n600)}
+
+  /* 页脚 */
+  .foot{padding:16px 26px 22px;border-top:1px solid var(--n800);
+    background:var(--n950);flex-shrink:0}
+  .meta{text-align:center;font-family:var(--mono);font-size:9px;
+    color:var(--n600);margin-bottom:13px;letter-spacing:.06em}
+  .btn{
+    display:flex;align-items:center;justify-content:center;height:50px;
+    font-size:14.5px;font-weight:600;font-family:var(--sans);
+    letter-spacing:.03em;border:none;cursor:pointer;transition:.15s;
+  }
+  .btn.pri{width:100%;background:var(--orange);color:#fff}
+  .btn.pri:hover{background:#D95A1F}
+  .btn.gho{flex:1;background:transparent;border:1px solid var(--n700);color:var(--n200)}
+  .btn.gho:hover{border-color:var(--n500);background:rgba(255,255,255,.025)}
+  .b2{display:flex;gap:9px;margin-top:9px}
+
+  /* ── 右栏 ── */
+  .side{width:340px;padding-top:4px}
+  .sw{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:24px}
+  .sw button{
+    background:var(--n900);border:1px solid var(--n700);color:var(--n400);
+    padding:9px 13px;font-size:11.5px;cursor:pointer;font-family:var(--sans);
+    transition:.15s;
+  }
+  .sw button:hover{border-color:var(--n500);color:var(--n200)}
+  .sw button.on{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:600}
+
+  .spec{font-family:var(--mono);font-size:10px;color:var(--n600);
+    line-height:2;border-top:1px solid var(--n800);padding-top:16px;margin-bottom:22px}
+  .spec b{color:var(--n300);font-weight:600}
+  .spec .hl{color:var(--orange-l)}
+
+  .notesx{border-left:2px solid var(--n700);padding-left:13px;
+    font-size:11.5px;line-height:1.8;color:var(--n500);margin-bottom:15px}
+  .notesx b{color:var(--n200)}
+  .notesx.warn{border-left-color:var(--orange)}
+
+  @media(max-width:1000px){.stage{gap:32px}.side{width:380px}}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div class="k">Update Dialog · Direction B</div>
+  <h1>里程表 <span class="badge">已定稿</span></h1>
+  <p>版本号是这台机器上唯一会往前走的数字，就该像机械里程表一样翻。逐位比较，只滚有变化的那几位——`200 → 201` 只滚最后一位。</p>
+</div>
+
+<div class="stage">
+
+  <!-- ══════ 手机 ══════ -->
+  <div class="dev">
+    <div class="sb"><span>9:41</span><div class="r"><i class="dot"></i><i class="dot"></i><div class="batt"></div></div></div>
+    <div class="bg">
+      <div class="b w6"></div><div class="b w8"></div>
+      <div class="c"></div><div class="c"></div><div class="b w4"></div>
+    </div>
+    <div class="mask"></div>
+
+    <div class="sheet" id="sheet">
+      <!-- 里程表 -->
+      <div class="odo">
+        <div class="reel" id="reel"><!-- 由脚本填充 --></div>
+        <div class="builds" id="builds">
+          <span id="bOld">BUILD 200</span>
+          <span class="new" id="bNew">BUILD 201</span>
+        </div>
+      </div>
+
+      <!-- 标题 -->
+      <div class="ttl">
+        <div class="t" id="ttlMain">该翻表了</div>
+        <div class="s" id="ttlSub"></div>
+      </div>
+
+      <!-- 更新内容 -->
+      <div class="rule"></div>
+      <div class="notes" id="notes"></div>
+
+      <!-- 页脚 -->
+      <div class="foot">
+        <div class="meta" id="meta">5.31 MB</div>
+        <button class="btn pri">立即更新</button>
+        <div class="b2">
+          <button class="btn gho">我知道了</button>
+          <button class="btn gho" id="dismiss">不再提醒本次更新</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ 右栏 ══════ -->
+  <div class="side">
+    <div class="sw">
+      <button class="on" data-m="normal">普通 200→201</button>
+      <button data-m="wrap">跨位 199→200</button>
+      <button data-m="long">超长 20 条</button>
+      <button data-m="empty">无说明</button>
+      <button data-m="forced">强制更新</button>
+    </div>
+
+    <div class="spec">
+      version <b>0.2.0+m19 → m20</b><br>
+      build <b>200 → 201</b> · 仅末位变化<br>
+      package <b>5.31 MB</b><br>
+      channel <b>GitHub Releases</b><br>
+      实测下行 <b class="hl">3.5 MB/s</b>
+    </div>
+
+    <div class="notesx">
+      <b>只滚变化的位。</b>
+      `200→201` 只有最后一位动，整排一起滚会显得假。
+      「跨位」按钮展示 `199→200`：末两位都变。
+    </div>
+    <div class="notesx">
+      <b>滚到位就停，不循环。</b>
+      1.5 秒一轮，`cubic-bezier(.25,.9,.3,1)` 减速收尾，无回弹 ——
+      与项目底部导航条 180ms 的那处动效同族。
+    </div>
+    <div class="notesx">
+      <b>「不再提醒」与「我知道了」等分并列。</b>
+      两个「暂不更新」的选择一眼可比；文案写全「不再提醒<b>本次</b>更新」，
+      靠读完整句降低误触，不用变灰来弱化。
+    </div>
+    <div class="notesx warn">
+      <b>强制更新时整块移除</b>「不再提醒」—— 不是变灰。
+      底部只剩「立即更新」+「我知道了」。可催，不能锁死。
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const NOTES = {
+    normal: [
+      "地图属性共建、自定义课程",
+      "2023 级培养方案、账页主题、调试日志",
+      "修好：教师搜索崩溃、空闲教室、登录态失效",
+      "修好：地图拖动回弹"
+    ],
+    long: [
+      "地图属性共建","自定义课程","2023 级培养方案","账页主题","调试日志",
+      "修复教师搜索崩溃","修复空闲教室查不出结果","修复登录态反复失效",
+      "修复地图拖动回弹","课表网格对齐修正","新增当前时刻推进条",
+      "竞赛平台正文提取修正","撤销条文案修正","考试页改为时间轴",
+      "成绩页补全属性字段","资讯页分页加载","红点可消除","地图标注支持拖拽",
+      "培养方案按需下载","日志支持落盘"
+    ],
+    empty: [],
+    forced: [
+      "修复教师搜索崩溃",
+      "修复空闲教室查不出结果",
+      "修复登录态反复失效",
+      "修复地图拖动回弹"
+    ]
+  };
+
+  const reel = document.getElementById('reel');
+  const notesEl = document.getElementById('notes');
+  const metaEl = document.getElementById('meta');
+  const dismissEl = document.getElementById('dismiss');
+  const bOld = document.getElementById('bOld');
+  const bNew = document.getElementById('bNew');
+  const ttlMain = document.getElementById('ttlMain');
+  const ttlSub = document.getElementById('ttlSub');
+
+  function digitsOf(n){ return String(n).split('').map(Number); }
+
+  /**
+   * 渲染里程表：从 from 滚到 to，只滚有变化的位。
+   * 每一位生成一个两格高的数字条，滚动到第二格即停（forwards）。
+   */
+  function renderReel(from, to){
+    reel.innerHTML = '';
+    const a = digitsOf(from), b = digitsOf(to);
+    const len = Math.max(a.length, b.length);
+    while(a.length < len) a.unshift(0);
+    while(b.length < len) b.unshift(0);
+
+    for(let i = 0; i < len; i++){
+      const changed = a[i] !== b[i];
+      const win = document.createElement('div');
+      win.className = 'win' + (changed ? ' tick' : '');
+      if(changed && i < len - 1) win.classList.add('prev');
+
+      const strip = document.createElement('div');
+      strip.className = 'strip';
+      // 未变化的位不加动画
+      if(!changed) strip.style.animation = 'none';
+      // 变化的位：延迟错开，视觉上一位一位翻过去
+      if(changed) strip.style.animationDelay = (i * 0.07) + 's';
+
+      const s1 = document.createElement('span');
+      s1.className = changed ? 'old' : '';
+      s1.textContent = a[i];
+      const s2 = document.createElement('span');
+      s2.textContent = b[i];
+      strip.appendChild(s1);
+      strip.appendChild(s2);
+      win.appendChild(strip);
+      reel.appendChild(win);
+
+      // 未变化的位直接显示新值（其实同值）
+      if(!changed) strip.style.transform = 'translateY(-88px)';
+    }
+  }
+
+  function renderNotes(mode){
+    const list = NOTES[mode];
+    notesEl.innerHTML = '';
+    if(list.length === 0){
+      notesEl.innerHTML = '<div class="empty">这一版没有附更新说明。</div>';
+      return;
+    }
+    list.forEach(t => {
+      const d = document.createElement('div');
+      d.className = 'note';
+      d.innerHTML = '<span>' + t + '</span>';
+      notesEl.appendChild(d);
+    });
+  }
+
+  function render(mode){
+    // 数据
+    let from, to, title, sub;
+    if(mode === 'wrap'){ from = 199; to = 200; }
+    else { from = 200; to = 201; }
+
+    renderReel(from, to);
+
+    bOld.textContent = 'BUILD ' + from;
+    bNew.textContent = 'BUILD ' + to;
+
+    ttlSub.innerHTML =
+      '<span class="f">0.2.0+m' + from%10 + '</span>' +
+      '<span class="a">→</span>' +
+      '<span class="n">0.2.0+m' + to%10 + '</span>';
+
+    if(mode === 'forced'){
+      ttlMain.textContent = '该翻表了';
+      dismissEl.style.display = 'none';
+      metaEl.textContent = '5.31 MB · 当前版本已停止支持';
+    } else {
+      ttlMain.textContent = '该翻表了';
+      dismissEl.style.display = '';
+      metaEl.textContent = '5.31 MB';
+    }
+
+    renderNotes(mode === 'wrap' ? 'normal' : mode);
+  }
+
+  document.querySelectorAll('.sw button').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.sw button').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      // 重播弹窗动画
+      const sheet = document.getElementById('sheet');
+      sheet.style.animation = 'none';
+      void sheet.offsetWidth;
+      sheet.style.animation = '';
+      render(btn.dataset.m);
+    };
+  });
+
+  render('normal');
+</script>
+</body>
+</html>

@@ -90,7 +90,12 @@ private enum class UserPage(val title: String) {
  * 而课表是每天十几次。底部导航给高频留位置，低频收进个人中心。
  */
 @Composable
-fun UserScreen(ui: AppState, vm: TimetableViewModel) {
+fun UserScreen(
+    ui: AppState,
+    vm: TimetableViewModel,
+    openSettingsForUpdate: Boolean = false,
+    onOpenSettingsForUpdateConsumed: () -> Unit = {},
+) {
     // A6：用 rememberSaveable 保住子页栈 —— 切到资讯再回来，仍停在原页面（返回键行为不变）
     val stack = androidx.compose.runtime.saveable.rememberSaveable(
         saver = androidx.compose.runtime.saveable.listSaver<androidx.compose.runtime.snapshots.SnapshotStateList<UserPage>, String>(
@@ -102,6 +107,15 @@ fun UserScreen(ui: AppState, vm: TimetableViewModel) {
     ) { mutableStateListOf(UserPage.Root) }
     BackHandler(enabled = stack.size > 1) { stack.removeAt(stack.lastIndex) }
     val current = stack.last()
+
+    // 弹窗「立即更新」→ 切到设置页（文档 §3.4 方案 A）。只负责压栈；
+    // 自动下载由 UpdateSection 消费 UpdateCenter.downloadRequest。
+    LaunchedEffect(openSettingsForUpdate) {
+        if (openSettingsForUpdate) {
+            if (stack.last() != UserPage.Settings) stack.add(UserPage.Settings)
+            onOpenSettingsForUpdateConsumed()
+        }
+    }
 
     // 票 26：子页栈本身已经 saveable（A6），但**页内滚动位置**要靠 SaveableStateHolder 才留得住 ——
     // 设置 → 关于 → 返回，设置页停在原处；考试 → 设置 → 返回，时间轴停在原处。
@@ -254,6 +268,18 @@ private fun UserRoot(
                 // 原顶条的「刷新 / 设置」收进 ⋯ 菜单，入口不丢
                 onMore = { headerMenu = true },
             )
+            // 页顶一行：绩点/学分/排名（每日档）是几时取的。命中缓存直读时不打网络，必须标出年龄。
+            val dailyStamp = remember(ui.homeDailyFetchedAt) {
+                cn.dkarbon.enroute.data.CachePolicy.fetchStamp(System.currentTimeMillis(), ui.homeDailyFetchedAt)
+            }
+            if (dailyStamp.isNotBlank()) {
+                Text(
+                    dailyStamp,
+                    fontSize = 11.5.sp,
+                    color = t.inkFaint,
+                    modifier = Modifier.padding(horizontal = Space.l, vertical = 2.dp),
+                )
+            }
             Column(
                 Modifier
                     .fillMaxSize()

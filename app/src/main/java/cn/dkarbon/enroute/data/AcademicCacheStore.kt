@@ -73,6 +73,14 @@ object CachePolicy {
         !isFresh(nowMs, atMs, windowMs)
 
     /**
+     * 每日档里「学分进度 + 绩点」两块**显示用的获取时刻**：取两块中较新的那次。
+     *
+     * 两块在抓取时是同一次请求、同一时间戳落盘，正常情况相等；只有其中一块抓失败时才分叉。
+     * 分叉时取较新的，至少标的是「最近一次拿到新数据」的时刻。两块都没抓过 → 0（界面不显示假时间）。
+     */
+    fun dailyBlockAt(creditAt: Long, scoreStatsAt: Long): Long = maxOf(creditAt, scoreStatsAt)
+
+    /**
      * 永久档（学籍身份）：**只补空**。
      *
      * 缓存里已经有身份就再也不自动重抓 —— 学号姓名院系入学年月不会变，
@@ -176,6 +184,30 @@ object CachePolicy {
             else -> "${mins / (60 * 24)} 天前"
         }
     }
+
+    /**
+     * 「数据取自」的**绝对时刻**：`11-15 14:32`；不足 1 分钟 → 「刚刚」；从没抓过 → 空串。
+     *
+     * 与 [ageLabel] 的分工：ageLabel 是「多久前」的相对说法（主页那行「更新于 …」还在用），
+     * 这个是「几点几分」的绝对说法（页顶那行「数据取自 11-15 14:32」用）。
+     * 两个都不猜：时间戳是 0 就是不显示。
+     */
+    fun ageStamp(nowMs: Long, atMs: Long, zone: ZoneId = ZoneId.systemDefault()): String {
+        if (atMs <= 0L) return ""
+        if (nowMs < atMs) return "刚刚"
+        if ((nowMs - atMs) < 60_000L) return "刚刚"
+        return runCatching {
+            java.time.Instant.ofEpochMilli(atMs).atZone(zone)
+                .format(java.time.format.DateTimeFormatter.ofPattern("MM-dd HH:mm"))
+        }.getOrDefault("")
+    }
+
+    /** 页顶那行：`刚刚更新` / `数据取自 11-15 14:32` / 空串（没抓过不显示假时间） */
+    fun fetchStamp(nowMs: Long, atMs: Long, zone: ZoneId = ZoneId.systemDefault()): String {
+        val s = ageStamp(nowMs, atMs, zone)
+        if (s.isBlank()) return ""
+        return if (s == "刚刚") "刚刚更新" else "数据取自 $s"
+    }
 }
 
 /**
@@ -213,6 +245,13 @@ data class AcademicCache(
     val campuses: List<UrpHomeApi.CampusOption> = emptyList(),
     val buildings: List<UrpHomeApi.BuildingOption> = emptyList(),
     val roomsListsAt: Long = 0L,
+    /** 缓存里的教学楼列表对应哪个校区号（换校区后旧楼列表不可用） */
+    val buildingsCampusNo: String = "",
+
+    // ── 永久档：历年课表学期候选 ──
+    /** 服务器给的最近 5 个学期（含当前；历史学期不会再变，取一次就够） */
+    val historyTerms: List<HistorySemesters.Option> = emptyList(),
+    val historyTermsAt: Long = 0L,
 ) {
 
     val isEmpty: Boolean
@@ -237,6 +276,8 @@ data class AcademicCache(
         exams: List<ExamItem>? = null,
         campuses: List<UrpHomeApi.CampusOption>? = null,
         buildings: List<UrpHomeApi.BuildingOption>? = null,
+        buildingsCampusNo: String? = null,
+        historyTerms: List<HistorySemesters.Option>? = null,
         zone: ZoneId = ZoneId.systemDefault(),
     ): AcademicCache = copy(
         profile = profile ?: this.profile,
@@ -253,6 +294,9 @@ data class AcademicCache(
         campuses = campuses ?: this.campuses,
         buildings = buildings ?: this.buildings,
         roomsListsAt = if (campuses != null || buildings != null) nowMs else this.roomsListsAt,
+        buildingsCampusNo = if (buildingsCampusNo != null) buildingsCampusNo else this.buildingsCampusNo,
+        historyTerms = historyTerms ?: this.historyTerms,
+        historyTermsAt = if (historyTerms != null) nowMs else this.historyTermsAt,
     )
 
     companion object {

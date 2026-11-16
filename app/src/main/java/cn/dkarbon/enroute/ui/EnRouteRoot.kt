@@ -32,26 +32,40 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import cn.dkarbon.enroute.BuildConfig
+import cn.dkarbon.enroute.data.UpdateCenter
+import cn.dkarbon.enroute.data.UpdateDialogPolicy
+import cn.dkarbon.enroute.data.UpdateInfo
+import cn.dkarbon.enroute.data.UpdateVersions
 import cn.dkarbon.enroute.ui.feed.FeedScreen
 import cn.dkarbon.enroute.ui.feed.FeedViewModel
+import cn.dkarbon.enroute.ui.settings.UpdateDialog
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Motion
 import cn.dkarbon.enroute.ui.theme.Stroke
 import cn.dkarbon.enroute.ui.timetable.TimetableScreen
 import cn.dkarbon.enroute.ui.user.UserScreen
+import kotlinx.coroutines.delay
+
+private const val FIRST_FRAME_SETTLE_MS = 500L
 
 /**
  * 主壳：三栏 —— 课表 / 资讯 / 我的。
@@ -69,6 +83,24 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
 
     val feedVm: FeedViewModel = viewModel()
     val feedUi by feedVm.ui.collectAsStateWithLifecycle()
+
+    // 更新提醒（文档 §3.3）：检查在 Application，展示在这里。只在启动默认的课表 tab、
+    // 且没有其它弹层时弹 —— 已知限制：若用户恰好在资讯/地图浮层上启动，可能叠层（文档 §3.3）。
+    val ctx = LocalContext.current
+    val updateCenter = remember { UpdateCenter(ctx.applicationContext) }
+    val available by UpdateCenter.available.collectAsStateWithLifecycle()
+    var dialogInfo by remember { mutableStateOf<UpdateInfo?>(null) }
+    var openSettingsForUpdate by remember { mutableStateOf(false) }
+
+    LaunchedEffect(available, tab, ui.syllabusOpenId, ui.credPromptVisible) {
+        val info = available ?: return@LaunchedEffect
+        if (!UpdateDialogPolicy.shouldShow(info, updateCenter.dismissedCode())) return@LaunchedEffect
+        if (tab != 0 || ui.syllabusOpenId.isNotBlank() || ui.credPromptVisible) return@LaunchedEffect
+        withFrameNanos { }   // 首帧之后才考虑弹（与 MainActivity 启动纪律一致）
+        delay(FIRST_FRAME_SETTLE_MS)
+        if (tab != 0 || ui.syllabusOpenId.isNotBlank() || ui.credPromptVisible) return@LaunchedEffect
+        dialogInfo = info
+    }
 
     // 票 26：按 tab 存 saveable 状态（滚动位置等），同级切换可原地恢复
     val routeStates = rememberSaveableStateHolder()
@@ -139,7 +171,12 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
                 when (tab) {
                     0 -> TimetableScreen(ui = ui, vm = vm)
                     1 -> FeedScreen(ui = feedUi, vm = feedVm)
-                    else -> UserScreen(ui = ui, vm = vm)
+                    else -> UserScreen(
+                        ui = ui,
+                        vm = vm,
+                        openSettingsForUpdate = openSettingsForUpdate,
+                        onOpenSettingsForUpdateConsumed = { openSettingsForUpdate = false },
+                    )
                 }
             }
 
@@ -152,6 +189,27 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
             // 「保持登录」一次性说明卡（票 14）：首次登录成功后弹一次，挂在根节点免得漏掉
             if (ui.credPromptVisible) {
                 cn.dkarbon.enroute.ui.user.KeepLoginPrompt(vm = vm)
+            }
+
+            // 更新提醒弹窗（方案 B 里程表）：挂在根节点，盖在一切之上
+            dialogInfo?.let { info ->
+                UpdateDialog(
+                    info = info,
+                    fromCode = BuildConfig.VERSION_CODE.toLong(),
+                    mandatory = UpdateVersions.isMandatory(info, BuildConfig.VERSION_CODE.toLong()),
+                    onUpdateNow = {
+                        // 跳「我的」tab → 设置页，并自动开始下载（文档 §1.4）
+                        UpdateCenter.requestDownload(info)
+                        dialogInfo = null
+                        openSettingsForUpdate = true
+                        tab = 2
+                    },
+                    onGotIt = { dialogInfo = null },
+                    onDismissVersion = {
+                        updateCenter.dismissVersion(info.versionCode)
+                        dialogInfo = null
+                    },
+                )
             }
         }
     }

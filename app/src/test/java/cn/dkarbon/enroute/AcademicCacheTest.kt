@@ -4,6 +4,7 @@ import cn.dkarbon.enroute.data.AcademicCache
 import cn.dkarbon.enroute.data.CachePolicy
 import cn.dkarbon.enroute.data.CacheTier
 import cn.dkarbon.enroute.data.ExamItem
+import cn.dkarbon.enroute.data.HistorySemesters
 import cn.dkarbon.enroute.data.ScoreItem
 import cn.dkarbon.enroute.data.UrpHomeApi.CampusOption
 import cn.dkarbon.enroute.data.UrpHomeApi.CreditProgress
@@ -94,6 +95,14 @@ class AcademicCacheTest {
     fun `每日档 刚抓过就不抓`() {
         assertFalse(CachePolicy.shouldFetchDaily(t0, t0 - 60_000))
         assertFalse(CachePolicy.shouldFetchDaily(t0, t0))
+    }
+
+    @Test
+    fun `每日档显示用获取时刻取较新的那次 没抓过为0`() {
+        assertEquals(0L, CachePolicy.dailyBlockAt(0L, 0L))
+        assertEquals(t0, CachePolicy.dailyBlockAt(t0, 0L))
+        assertEquals(t0 - hour, CachePolicy.dailyBlockAt(0L, t0 - hour))
+        assertEquals(t0, CachePolicy.dailyBlockAt(t0 - hour, t0))
     }
 
     // ── ③ 考试：双条件（票 24 的关键设计）──────────────────
@@ -239,6 +248,16 @@ class AcademicCacheTest {
         assertEquals("2 天前", CachePolicy.ageLabel(t0, t0 - 2 * day))
     }
 
+    @Test
+    fun `页顶数据取自 没抓过不显示 刚刚更新 否则绝对时刻`() {
+        assertEquals("", CachePolicy.fetchStamp(t0, 0L))
+        assertEquals("刚刚更新", CachePolicy.fetchStamp(t0, t0 - 30_000))
+        assertEquals("刚刚更新", CachePolicy.fetchStamp(t0, t0 + hour))   // 时钟回拨
+        // t0 = 2026-11-14 08:00 Asia/Shanghai → 满 1 分钟就显示绝对时刻，不写「几小时前」这种相对说法
+        assertEquals("数据取自 11-14 07:00", CachePolicy.fetchStamp(t0, t0 - hour, zone))
+        assertEquals("数据取自 11-13 08:00", CachePolicy.fetchStamp(t0, t0 - day, zone))
+    }
+
     // ── ⑤ 失败不覆盖（数据诚实底线）─────────────────────
 
     @Test
@@ -300,6 +319,18 @@ class AcademicCacheTest {
         assertEquals(base.roomsListsAt, after.roomsListsAt)
         assertEquals(t0, after.scoresAt)
         assertEquals(1, after.scores.size)
+    }
+
+    @Test
+    fun `历史学期候选和教学楼校区号 抓成功才写 失败不覆盖`() {
+        val terms = listOf(HistorySemesters.Option("2026-2027-1-1", "2026-2027学年秋", true))
+        val base = AcademicCache().merge(t0, historyTerms = terms, buildingsCampusNo = "001")
+        assertEquals(terms, base.historyTerms)
+        assertEquals(t0, base.historyTermsAt)
+        assertEquals("001", base.buildingsCampusNo)
+        // 什么都没抓到 → 逐字段相同（历史学期永久档：有候选就不再自动重抓）
+        assertEquals(base, base.merge(t0 + hour))
+        assertEquals(t0, base.merge(t0 + hour).historyTermsAt)
     }
 
     @Test

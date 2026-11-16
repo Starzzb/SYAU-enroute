@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>沈农在途 · 更新弹窗（定稿：更新账页）</title>
+<style>
+  :root{
+    --n950:#100E0B; --n900:#1A1611; --n800:#2B2621; --n700:#443E36;
+    --n600:#5F574C; --n500:#7E7468; --n400:#A1978A; --n300:#BEB5A6;
+    --n200:#D7D0C4; --n100:#EDE8DF; --n50:#F5F2EC;
+    --orange:#C74E17; --orange-l:#EA8F5E; --orange-d:#852F0D;
+    --leaf:#4E6535; --brick:#9B2417;
+    --mono:ui-monospace,"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --sans:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#0A0908;color:var(--n100);font-family:var(--sans);
+    padding:40px 20px 100px;display:flex;flex-direction:column;align-items:center;
+    min-height:100vh;
+  }
+
+  /* ── 页头 ── */
+  .head{max-width:1100px;width:100%;margin-bottom:34px}
+  .kicker{
+    font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--orange);
+    text-transform:uppercase;margin-bottom:12px;
+  }
+  .head h1{font-size:27px;font-weight:700;letter-spacing:.01em;line-height:1.3}
+  .head p{color:var(--n400);font-size:13.5px;line-height:1.75;margin-top:12px;max-width:720px}
+  .specs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+    gap:1px;background:var(--n800);margin-top:26px;border:1px solid var(--n800)}
+  .spec{background:var(--n950);padding:14px 16px}
+  .spec span{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;
+    color:var(--n600);margin-bottom:6px}
+  .spec b{font-size:14px;color:var(--n100);font-family:var(--mono);font-weight:600}
+  .spec b.hl{color:var(--orange-l)}
+
+  /* ── 主区 ── */
+  .main{display:flex;gap:60px;align-items:flex-start;justify-content:center;
+    flex-wrap:wrap;width:100%;max-width:1100px}
+
+  /* 手机框 */
+  .phone{
+    width:411px;height:800px;background:var(--n950);border:1px solid #2a2521;
+    position:relative;overflow:hidden;flex-shrink:0;
+    box-shadow:0 40px 100px -25px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.03);
+  }
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:92px;height:26px;background:#000;border-radius:0 0 14px 14px;z-index:99}
+  .statusbar{height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;font-size:11px;font-family:var(--mono);color:var(--n300);
+    position:relative;z-index:60}
+  .statusbar .r{display:flex;gap:6px;align-items:center}
+  .dot{width:5px;height:5px;background:var(--n400);border-radius:50%}
+  .batt{width:20px;height:9px;border:1px solid var(--n400);position:relative}
+  .batt::after{content:"";position:absolute;inset:1.5px;background:var(--n200)}
+
+  /* 背景主界面 */
+  .behind{position:absolute;inset:44px 0 0;padding:16px;opacity:.28;
+    filter:blur(1.4px);pointer-events:none}
+  .behind .bar{height:11px;background:var(--n800);margin-bottom:11px}
+  .behind .bar.w60{width:60%}
+  .behind .bar.w80{width:80%}
+  .behind .bar.w45{width:45%}
+  .behind .card{height:96px;border:1px solid var(--n800);margin-bottom:11px}
+  .scrim{position:absolute;inset:0;background:rgba(8,7,6,.84);backdrop-filter:blur(2px)}
+
+  /* ═══════════ 定稿弹窗（方案 D）═══════════ */
+  .sheet{
+    position:absolute;left:0;right:0;bottom:0;top:118px;background:var(--n900);
+    border-top:2px solid var(--n700);display:flex;flex-direction:column;
+    animation:slideUp .42s cubic-bezier(.2,.9,.25,1);
+  }
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+  .s-head{padding:24px 24px 0;flex-shrink:0}
+  .s-ver{
+    font-family:var(--mono);font-size:36px;font-weight:600;color:var(--n100);
+    letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:8px;
+  }
+  .s-ver .arrow{color:var(--orange);font-size:22px}
+  .s-ver .from{
+    font-size:20px;color:var(--n600);font-weight:500;letter-spacing:0;
+  }
+  .s-tag{
+    display:inline-block;margin-top:14px;padding:5px 10px;border:1px solid var(--orange);
+    color:var(--orange);font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+  }
+  .s-rule{height:1px;background:var(--n700);margin:20px 24px 0;position:relative}
+  .s-rule::after{
+    content:"更新内容";position:absolute;left:0;top:-7px;background:var(--n900);
+    padding-right:11px;font-family:var(--mono);font-size:9.5px;color:var(--n500);
+    letter-spacing:.16em;
+  }
+
+  .s-body{flex:1;overflow-y:auto;padding:24px 24px 8px}
+  .s-body::-webkit-scrollbar{width:3px}
+  .s-body::-webkit-scrollbar-thumb{background:var(--n700)}
+  .s-item{
+    display:flex;gap:14px;padding:11px 0;
+    border-bottom:1px solid rgba(255,255,255,.035);
+  }
+  .s-item:last-child{border-bottom:none}
+  .s-idx{
+    font-family:var(--mono);font-size:10px;color:var(--n600);min-width:20px;
+    padding-top:3px;letter-spacing:.05em;
+  }
+  .s-txt{font-size:13.5px;line-height:1.62;color:var(--n200)}
+
+  .s-empty{
+    padding:18px 0;font-size:12.5px;color:var(--n600);font-style:normal;
+  }
+
+  .s-foot{
+    padding:16px 24px 26px;flex-shrink:0;border-top:1px solid var(--n800);
+    background:var(--n900);
+  }
+  .s-meta{
+    display:flex;justify-content:space-between;margin-bottom:14px;
+    font-family:var(--mono);font-size:10px;color:var(--n600);letter-spacing:.06em;
+  }
+  .s-row{display:flex;gap:10px}
+  .btn{
+    display:flex;align-items:center;justify-content:center;font-size:14.5px;
+    font-weight:600;cursor:pointer;border:none;font-family:var(--sans);
+    letter-spacing:.03em;transition:.15s;height:50px;
+  }
+  .btn.ghost{
+    flex:.8;background:transparent;border:1px solid var(--n700);color:var(--n200);
+  }
+  .btn.ghost:hover{border-color:var(--n500);background:rgba(255,255,255,.025)}
+  .btn.primary{flex:1.2;background:var(--orange);color:#fff}
+  .btn.primary:hover{background:#D95A1F}
+  /* 「不再提醒」：纯文字压底，视觉最弱 */
+  .btn.bare{
+    width:100%;height:44px;margin-top:2px;background:transparent;
+    color:var(--n600);font-size:12.5px;font-weight:400;
+  }
+  .btn.bare:hover{color:var(--n300)}
+
+  /* ── 右侧说明 ── */
+  .side{max-width:380px;padding-top:6px}
+  .side h2{
+    font-size:15px;font-weight:700;margin-bottom:14px;letter-spacing:.01em;
+    display:flex;align-items:center;gap:9px;
+  }
+  .side h2::before{content:"";width:3px;height:15px;background:var(--orange)}
+  .side .why{font-size:12.5px;line-height:1.85;color:var(--n400);margin-bottom:24px}
+  .side .why b{color:var(--n200)}
+
+  table{width:100%;border-collapse:collapse;margin-bottom:26px}
+  table th{
+    text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:.13em;
+    color:var(--n600);padding:0 0 9px;border-bottom:1px solid var(--n800);font-weight:400;
+  }
+  table td{
+    padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04);
+    font-size:12px;color:var(--n300);vertical-align:top;
+  }
+  table td:first-child{color:var(--n100);font-weight:600;width:34%}
+  table td b{color:var(--orange-l);font-family:var(--mono);font-size:10.5px}
+
+  .switches{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
+  .sw{
+    background:var(--n900);border:1px solid var(--n700);color:var(--n400);
+    padding:9px 14px;font-size:12px;cursor:pointer;font-family:var(--sans);
+    transition:.15s;
+  }
+  .sw:hover{border-color:var(--n500);color:var(--n200)}
+  .sw.on{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:600}
+
+  .note{
+    border-left:2px solid var(--n700);padding:2px 0 2px 13px;margin-bottom:16px;
+    font-size:11.5px;line-height:1.75;color:var(--n500);
+  }
+  .note b{color:var(--n300)}
+  .note.warn{border-left-color:var(--brick)}
+  .note.warn b{color:var(--orange-l)}
+
+  .foot{
+    max-width:1100px;width:100%;margin-top:44px;padding-top:22px;
+    border-top:1px solid var(--n800);
+    font-family:var(--mono);font-size:10px;color:var(--n600);letter-spacing:.06em;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;
+  }
+
+  @media(max-width:940px){
+    .main{gap:36px}
+    .side{max-width:411px}
+  }
+</style>
+</head>
+<body>
+
+<div class="head">
+  <div class="kicker">Update Dialog · Spec D (Final)</div>
+  <h1>更新弹窗 · 更新账页</h1>
+  <p>
+    静默检查发现新版本后，在启动完全加载之后弹出。把更新当成一页账：编号、可滚动、页脚固定。
+    按钮为「我知道了 / 立即更新」同行 + 「不再提醒本次更新」纯文字压底 —— 语义最重的那个，视觉最弱。
+  </p>
+  <div class="specs">
+    <div class="spec"><span>VERSION</span><b>m19 → m20</b></div>
+    <div class="spec"><span>BUILD</span><b>200 → 201</b></div>
+    <div class="spec"><span>PACKAGE</span><b>5.31 MB</b></div>
+    <div class="spec"><span>CHANNEL</span><b>GitHub Releases</b></div>
+    <div class="spec"><span>实测下行</span><b class="hl">3.5 MB/s</b></div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- 手机预览 -->
+  <div class="phone">
+    <div class="notch"></div>
+    <div class="statusbar">
+      <span>9:41</span>
+      <div class="r"><i class="dot"></i><i class="dot"></i><div class="batt"></div></div>
+    </div>
+    <div class="behind">
+      <div class="bar w60"></div><div class="bar w80"></div>
+      <div class="card"></div><div class="card"></div>
+      <div class="bar w45"></div><div class="card"></div>
+    </div>
+    <div class="scrim"></div>
+
+    <div class="sheet">
+      <div class="s-head">
+        <div class="s-ver">
+          <span class="from">m19</span>
+          <span class="arrow">→</span>
+          <span>m20</span>
+        </div>
+        <div class="s-tag" id="tag">BUILD 201 · AVAILABLE</div>
+      </div>
+
+      <div class="s-rule"></div>
+
+      <div class="s-body" id="body">
+        <!-- 由脚本填充，便于切换 8 条 / 20 条 / 空态 -->
+      </div>
+
+      <div class="s-foot">
+        <div class="s-meta">
+          <span id="sizeLabel">5.31 MB</span>
+          <span id="countLabel">8 项变更</span>
+        </div>
+        <div class="s-row">
+          <button class="btn ghost">我知道了</button>
+          <button class="btn primary">立即更新</button>
+        </div>
+        <button class="btn bare" id="dismissBtn">不再提醒本次更新</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 说明栏 -->
+  <div class="side">
+    <h2>按钮权重</h2>
+    <table>
+      <tr><th>按钮</th><th>语义 / 视觉</th></tr>
+      <tr>
+        <td>立即更新</td>
+        <td>语义中，<b>视觉最强</b><br>主色实心，flex 1.2 —— 唯一推进动作</td>
+      </tr>
+      <tr>
+        <td>我知道了</td>
+        <td>语义轻，视觉中<br>描边，flex 0.8 —— 常规延后</td>
+      </tr>
+      <tr>
+        <td>不再提醒<br>本次更新</td>
+        <td>语义<b>重</b>，视觉<b>最弱</b><br>纯文字无边框 —— 误触代价大，不该抢注意力</td>
+      </tr>
+    </table>
+
+    <h2>切换形态</h2>
+    <div class="switches">
+      <button class="sw on" data-m="normal">普通（8 条）</button>
+      <button class="sw" data-m="long">超长（20 条）</button>
+      <button class="sw" data-m="empty">无更新说明</button>
+      <button class="sw" data-m="forced">强制更新</button>
+    </div>
+
+    <h2>实现约束</h2>
+    <div class="note">
+      <b>不做 NEW / FIX 分区。</b>
+      <code>notes</code> 是自由文本（用 <code>；</code> 分句），没有结构标记。
+      只有 <code>latest.json</code> 额外提供结构化字段后才分区，否则统排一列编号 —— 不猜语义。
+    </div>
+    <div class="note">
+      <b><code>、</code> 不切分。</b>
+      「账页主题、调试日志」是同一条，不是两条。只按 <code>；</code> 与换行切。
+    </div>
+    <div class="note">
+      <b>不承诺下载时间。</b>
+      只显示包体大小。实测 3.5 MB/s ≈ 1.5 秒，但网络波动大，写死时间会变成假信息。
+    </div>
+    <div class="note warn">
+      <b>强制更新时整块移除</b>「不再提醒」—— 不是变灰禁用。
+      此时底部只剩两个按钮。<code>isMandatory</code> 只影响提示强弱，<b>绝不阻断使用</b>。
+    </div>
+    <div class="note">
+      <b>空 notes 整块隐藏</b>（连分隔线一起），
+      不显示「暂无更新说明」—— 不编数据。
+    </div>
+  </div>
+</div>
+
+<div class="foot">
+  <span>沈农在途 · 更新弹窗规格 D · 2026-11-16</span>
+  <span>0 圆角 · 无渐变 · NumericFont · 农械橘 #C74E17</span>
+</div>
+
+<script>
+  const DATA = {
+    normal: [
+      "地图属性共建",
+      "自定义课程",
+      "2023 级培养方案",
+      "账页主题、调试日志",
+      "修复教师搜索崩溃",
+      "修复空闲教室查不出结果",
+      "修复登录态反复失效",
+      "修复地图拖动回弹"
+    ],
+    long: [
+      "地图属性共建","自定义课程","2023 级培养方案","账页主题","调试日志",
+      "修复教师搜索崩溃","修复空闲教室查不出结果","修复登录态反复失效",
+      "修复地图拖动回弹","课表网格对齐修正","新增当前时刻推进条",
+      "竞赛平台正文提取修正","撤销条文案修正","考试页改为时间轴",
+      "成绩页补全属性字段","资讯页分页加载","红点可消除","地图标注支持拖拽",
+      "培养方案按需下载","日志支持落盘"
+    ],
+    empty: [],
+    forced: [
+      "修复教师搜索崩溃",
+      "修复空闲教室查不出结果",
+      "修复登录态反复失效",
+      "修复地图拖动回弹"
+    ]
+  };
+
+  const body = document.getElementById('body');
+  const countLabel = document.getElementById('countLabel');
+  const sizeLabel = document.getElementById('sizeLabel');
+  const dismissBtn = document.getElementById('dismissBtn');
+  const tag = document.getElementById('tag');
+
+  function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+  function render(mode){
+    const list = DATA[mode];
+    body.innerHTML = '';
+
+    if(list.length === 0){
+      // 空态：整块不显示条目，也不显示计数
+      body.innerHTML = '<div class="s-empty">这一版没有附更新说明。</div>';
+      countLabel.textContent = '无更新说明';
+      sizeLabel.textContent = '5.31 MB';
+      dismissBtn.style.display = '';
+      tag.textContent = 'BUILD 201 · AVAILABLE';
+      return;
+    }
+
+    list.forEach((t, i) => {
+      const row = document.createElement('div');
+      row.className = 's-item';
+      row.innerHTML =
+        '<span class="s-idx">' + pad(i + 1) + '</span>' +
+        '<span class="s-txt">' + t + '</span>';
+      body.appendChild(row);
+    });
+
+    countLabel.textContent = list.length + ' 项变更';
+    sizeLabel.textContent = '5.31 MB';
+
+    if(mode === 'forced'){
+      // 强制更新：整块移除「不再提醒」，不是变灰
+      dismissBtn.style.display = 'none';
+      tag.textContent = 'BUILD 201 · REQUIRED';
+      sizeLabel.textContent = '5.31 MB · 当前版本已停止支持';
+    } else {
+      dismissBtn.style.display = '';
+      tag.textContent = 'BUILD 201 · AVAILABLE';
+    }
+  }
+
+  document.querySelectorAll('.sw').forEach(btn => {
+    btn.onclick = () => {
+      document.querySelectorAll('.sw').forEach(b => b.classList.remove('on'));
+      btn.classList.add('on');
+      render(btn.dataset.m);
+    };
+  });
+
+  render('normal');
+</script>
+</body>
+</html>

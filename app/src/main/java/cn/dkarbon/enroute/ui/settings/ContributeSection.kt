@@ -32,7 +32,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.dkarbon.enroute.data.map.MapContribute
+import cn.dkarbon.enroute.data.map.MapDataset
+import cn.dkarbon.enroute.data.map.MapDatasetClient
 import cn.dkarbon.enroute.data.map.MapUploader
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.theme.Form
@@ -41,41 +42,38 @@ import cn.dkarbon.enroute.ui.theme.Space
 import kotlinx.coroutines.launch
 
 /**
- * 设置页「帮助完善校园地图（参与共建）」区块（票 13 阶段 B）。
+ * 设置页「参与共建」区块（票 13 阶段 B）。
  *
- * ## 三条不可协商（都用界面语言明说，不藏在文档里）
- * 1. **默认关**：开关不动，一个字节都不上传
- * 2. **只传三样**：地块 id + 字段名 + 值。**不传**姓名、学号、设备号、位置
- * 3. **传之前能看清**：首次开启要过一道「会传什么 / 不会传什么」的确认，
- *    之后还能随时点「预览」逐条看
- *
- * 上传失败不打扰：只记到队列 + 退避时间，界面上一行小字说明下次什么时候重试。
+ * ## 2026-11-16 简化：一次同意，之后直接上云
+ * 旧流程在每次导出/上传前都再确认一遍（首次弹窗 + 预览 + shouldSend 多重闸门），
+ * 主人真机反馈「服务共建过于谨慎」。现在：
+ * - 开关**常驻**：开 → 弹一次同意说明（如实列出会传学号）；关 → 一行状态。
+ * - 之后点「导出标注」＝本地导出 + 直接上传，这里不再重复问。
+ * - 另提供「拉取最新标注」入口（按需，不自动拉）。
  */
 @Composable
 internal fun ContributeSection(ui: AppState) {
     val t = InkTokens.current
-    val f = Form.current
     val ctx = LocalContext.current
     val uploader = remember { MapUploader(ctx) }
+    val datasetClient = remember { MapDatasetClient(ctx) }
     val scope = rememberCoroutineScope()
 
     var enabled by remember { mutableStateOf(uploader.isEnabled()) }
     var confirmEnable by remember { mutableStateOf(false) }
-    var showPreview by remember { mutableStateOf(false) }
     var status by remember { mutableStateOf(uploader.lastMessage()) }
-    var busy by remember { mutableStateOf(false) }
-    var pendingCount by remember { mutableStateOf(uploader.pendingCount()) }
     var anonKey by remember { mutableStateOf(uploader.anonymousKey()) }
+    var pulling by remember { mutableStateOf(false) }
+    var pullNote by remember { mutableStateOf("") }
 
     val mapVersion = ui.mapPackage?.manifest?.version.orEmpty()
+    val sid = ui.profile.studentNo
+    val hasName = ui.profile.name.isNotBlank()
 
-    // 退避重试的唯一触发点：**进设置页**（跟着 `enabled` 与地图版本变化）。
-    // 只重试「队列里已经存在」的东西 —— 队列只会在用户手动点「立即上传」时被填充，
-    // 所以这里不会变成「偷偷把新标注传上去」。
+    // 退避重试只在**进设置页**时触发；队列只会在「导出标注」时被填充，不会偷偷传新东西
     LaunchedEffect(enabled, mapVersion) {
         if (enabled && mapVersion.isNotBlank()) {
-            uploader.uploadAsync(mapVersion)   // 内部按 nextTryAt 判退避，不满足就立刻返回
-            pendingCount = uploader.pendingCount()
+            uploader.uploadAsync(mapVersion, sid = sid, hasName = hasName)
             uploader.lastMessage().takeIf { it.isNotBlank() }?.let { status = it }
         }
     }
@@ -83,10 +81,14 @@ internal fun ContributeSection(ui: AppState) {
     Column(Modifier.fillMaxWidth().padding(top = 10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text("帮助完善校园地图", fontSize = 13.sp, color = t.ink)
+                Text("参与共建", fontSize = 13.sp, color = t.ink)
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    "把你自己填的地块属性匿名上报，让下一个人也能看到。默认关闭。",
+                    if (enabled) {
+                        "已开启 · 会传：地块/字段/值、学号（加密存服务端）、机型与系统版本"
+                    } else {
+                        "未开启 · 导出标注只存本地，不上传"
+                    },
                     fontSize = 10.5.sp,
                     lineHeight = 15.sp,
                     color = t.inkFaint,
@@ -99,65 +101,11 @@ internal fun ContributeSection(ui: AppState) {
                         enabled = false
                         uploader.setEnabled(false)
                         status = "已关闭：不会再上传任何内容"
-                    } else if (!uploader.hasAcknowledged()) {
-                        confirmEnable = true          // 首次开启 → 必须先看清传什么
                     } else {
-                        enabled = true
-                        uploader.setEnabled(true)
-                        status = "已开启"
+                        confirmEnable = true   // 每次开启都先看一遍「会传什么」（一次同意，含学号）
                     }
                 },
             )
-        }
-
-        // 上传内容一句话说清（关闭时也显示，让用户知道「如果开」会传什么）
-        Spacer(Modifier.height(4.dp))
-        Text(
-            "会传：地块编号 + 字段名 + 你填的值 + 本地随机串\n" +
-                "　　+ 机型与系统版本（如 vivo V2301A / Android 16）\n" +
-                "　　+ 应用级设备标识（重置身份后即更换）\n" +
-                "不传：姓名、学号、定位、通讯录、相册、任何文件",
-            fontSize = 9.5.sp,
-            lineHeight = 14.sp,
-            color = t.inkFaint,
-        )
-
-        Spacer(Modifier.height(6.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SmallPill("预览要传什么", onClick = { showPreview = true })
-            Spacer(Modifier.width(6.dp))
-            SmallPill(
-                text = if (busy) "上传中…" else "立即上传",
-                primary = true,
-                enabled = enabled && !busy,
-                onClick = {
-                    if (mapVersion.isBlank()) {
-                        status = "地图包还没加载出来，稍后再试"
-                        return@SmallPill
-                    }
-                    // 把当前标注整理进队列（不入队就不传：先看后传）
-                    val clean = uploader.queueFromEdits(ui.mapEdits, mapVersion)
-                    pendingCount = uploader.pendingCount()
-                    busy = true
-                    scope.launch {
-                        val r = uploader.upload(mapVersion, force = true)
-                        status = when (r) {
-                            is MapUploader.Outcome.Ok -> r.resp.summary()
-                            is MapUploader.Outcome.Failed -> r.message
-                            MapUploader.Outcome.NothingToDo -> "没有可上传的内容（先在校园地图里补几条属性）"
-                        }
-                        if (clean.dropped.isNotEmpty()) {
-                            status += "；另有 ${clean.dropped.size} 条不合格已跳过（${clean.dropped.first().second}）"
-                        }
-                        pendingCount = uploader.pendingCount()
-                        busy = false
-                    }
-                },
-            )
-            if (pendingCount > 0) {
-                Spacer(Modifier.width(6.dp))
-                Text("待传 $pendingCount 条", fontSize = 9.5.sp, color = t.amber)
-            }
         }
 
         if (status.isNotBlank()) {
@@ -165,13 +113,43 @@ internal fun ContributeSection(ui: AppState) {
             Text(status, fontSize = 9.5.sp, lineHeight = 14.sp, color = t.inkSoft)
         }
 
-        Spacer(Modifier.height(2.dp))
+        // ── 按需拉取最新标注（2026-11-16）：不自动，点了才拉 ──
+        Spacer(Modifier.height(8.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                "匿名身份 ${anonKey.take(13)}…",
-                fontSize = 9.sp,
-                color = t.inkFaint,
+            Column(Modifier.weight(1f)) {
+                Text("共享标注数据", fontSize = 12.sp, color = t.ink)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    pullNote.ifBlank { "按需拉取服务器最新属性" },
+                    fontSize = 10.5.sp,
+                    lineHeight = 15.sp,
+                    color = t.inkFaint,
+                )
+            }
+            SmallPill(
+                text = if (pulling) "拉取中…" else "拉取最新标注",
+                enabled = !pulling && mapVersion.isNotBlank(),
+                onClick = {
+                    pulling = true
+                    pullNote = ""
+                    scope.launch {
+                        val before = datasetClient.current()
+                        val ds = runCatching { datasetClient.sync(mapVersion, force = true) }.getOrNull()
+                        pullNote = when {
+                            ds == null && datasetClient.lastError().isNotBlank() -> datasetClient.lastError()
+                            ds == null -> "已是最新"
+                            else -> "已更新 ${MapDataset.updatedCount(before, ds)} 条"
+                        }
+                        pulling = false
+                    }
+                },
             )
+        }
+
+        // 匿名身份管理（保留：重置身份与历史脱钩）
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text("匿名身份 ${anonKey.take(13)}…", fontSize = 9.sp, color = t.inkFaint)
             Spacer(Modifier.width(6.dp))
             Text(
                 "重置",
@@ -182,7 +160,6 @@ internal fun ContributeSection(ui: AppState) {
                     .clickable {
                         anonKey = uploader.resetAnonymousKey()
                         uploader.clearQueue()
-                        pendingCount = 0
                         status = "已换新身份：之后的上传与历史彻底脱钩"
                     }
                     .padding(horizontal = 6.dp, vertical = 2.dp),
@@ -190,10 +167,6 @@ internal fun ContributeSection(ui: AppState) {
         }
     }
 
-    // ── 首次开启：把「传什么/不传什么」摆到眼前 ──
-    // ── 首次开启：把「传什么/不传什么」摆到眼前 ──
-    // 票 23：抽成 [MapContributeConsentDialog]，地图页的「参与共建」用**同一个**弹窗 ——
-    // 隐私决策点的说明必须就地给（AGENTS.md 例外条款），而且两个入口必须看到同一段话。
     if (confirmEnable) {
         MapContributeConsentDialog(
             onDismiss = { confirmEnable = false },
@@ -201,69 +174,13 @@ internal fun ContributeSection(ui: AppState) {
                 confirmEnable = false
                 enabled = true
                 uploader.setEnabled(true)
-                uploader.setAcknowledged(true)
-                status = "已开启：上传为手动触发"
+                status = "已开启：之后「导出标注」直接上传"
             },
-        )
-    }
-
-    // ── 预览：逐条看清 ──
-    if (showPreview) {
-        val patches = MapContribute.patchesFrom(ui.mapEdits)
-        val clean = MapContribute.sanitize(patches, mapVersion)
-        val fields = clean.ok.map { it.field }.distinct()
-        AlertDialog(
-            onDismissRequest = { showPreview = false },
-            title = { Text("将要上传的内容", fontSize = 15.sp) },
-            text = {
-                Column(Modifier.verticalScroll(rememberScrollState())) {
-                    Text(
-                        MapContribute.preview(
-                            clean.ok.size,
-                            clean.ok.map { it.featureId }.distinct().size,
-                            fields,
-                        ),
-                        fontSize = 11.5.sp,
-                        lineHeight = 17.sp,
-                        color = InkTokens.current.inkSoft,
-                    )
-                    Spacer(Modifier.height(8.dp))
-                    clean.ok.take(20).forEach { p ->
-                        Text(
-                            "${p.featureId} · ${p.field} = ${p.value.ifBlank { "（清空）" }}",
-                            fontSize = 10.5.sp,
-                            lineHeight = 15.sp,
-                        )
-                    }
-                    if (clean.dropped.isNotEmpty()) {
-                        Spacer(Modifier.height(8.dp))
-                        Text("不会上传（不合格）：", fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                        clean.dropped.take(5).forEach { (p, why) ->
-                            Text("${p.featureId} · ${p.field}：$why", fontSize = 10.sp, lineHeight = 14.sp)
-                        }
-                    }
-                    // 随附的设备信息也列出来 —— 弹窗承诺「会传什么」，这里就不能藏东西
-                    val ci = uploader.clientInfo()
-                    Spacer(Modifier.height(10.dp))
-                    Text("随附信息（同样会上传）：", fontSize = 11.sp, fontWeight = FontWeight.Medium)
-                    val device = listOf(ci.manufacturer, ci.model).filter { it.isNotBlank() }.joinToString(" ")
-                    Text(
-                        "· 机型：${device.ifBlank { "（取不到）" }}\n" +
-                            "· 系统：Android ${ci.release.ifBlank { "?" }}（API ${ci.sdkInt}）\n" +
-                            "· 应用级设备标识：" + (if (ci.ssaid.isBlank()) "（本机取不到，留空）" else ci.ssaid.take(8) + "…") + "\n" +
-                            "· 本地随机串：${ci.did.take(13)}…",
-                        fontSize = 10.sp,
-                        lineHeight = 15.sp,
-                        color = InkTokens.current.inkSoft,
-                    )
-                }
-            },
-            confirmButton = { TextButton(onClick = { showPreview = false }) { Text("知道了", fontSize = 13.sp) } },
         )
     }
 }
 
-/** 小按钮：视觉紧凑，触区 48dp（与 UpdateSection 的 PillButton 同一套说法） */
+/** 小按钮：视觉紧凑，触区 48dp */
 @Composable
 private fun SmallPill(
     text: String,
@@ -296,11 +213,13 @@ private fun SmallPill(
 
 
 /**
- * 「参与共建」的开启确认弹窗（票 23）。
+ * 「参与共建」的开启同意弹窗（票 23 / 2026-11-16 更新）。
  *
  * 为什么单独抽出来：隐私决策点的说明必须**就地**给（AGENTS.md 的例外条款），
- * 而入口有两个 —— 设置页的开关、地图页的「参与共建」按钮。两处必须看到**同一段话**，
+ * 而入口有两个 —— 设置页的开关、地图页的「开启共建」按钮。两处必须看到**同一段话**，
  * 否则会出现「一个入口讲清楚了、另一个入口糊里糊涂」。文案只在这里维护一份。
+ *
+ * 2026-11-16 起这段说明**如实列出会传学号**：这是知情同意的底线，不能省。
  */
 @Composable
 internal fun MapContributeConsentDialog(
@@ -313,15 +232,18 @@ internal fun MapContributeConsentDialog(
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 Text(
-                    "开启后，你在地图里填的属性可以手动上报到学校的补丁服务，" +
-                        "审核通过后其他同学也能看到。默认不会自动上传。",
+                    "开启后，填好的属性会随「导出标注」一并上报到学校的补丁服务，" +
+                        "审核通过后其他同学也能看到。",
                     fontSize = 12.sp,
                     lineHeight = 18.sp,
                 )
                 Spacer(Modifier.height(8.dp))
                 Text("会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 Text(
-                    "· 地块编号（如 f19）\n· 字段名（如 层数）\n· 你填的值\n· 本地随机串（用于限流与归并，可重置）\n" +
+                    "· 地块编号（如 f19）\n· 字段名（如 层数）\n· 你填的值\n" +
+                        "· 学号（加密后只存服务端，本机不落盘）\n" +
+                        "· 姓名可用标记（不传姓名本身）\n" +
+                        "· 本地随机串（用于限流与归并，可重置）\n" +
                         "· 机型与系统版本（如 vivo V2301A / Android 16）\n" +
                         "· 应用级设备标识（Android ID；重置身份后即更换）",
                     fontSize = 11.sp,
@@ -330,7 +252,7 @@ internal fun MapContributeConsentDialog(
                 Spacer(Modifier.height(8.dp))
                 Text("不会传这些：", fontSize = 12.sp, fontWeight = FontWeight.Medium)
                 Text(
-                    "· 姓名、学号、手机号\n" +
+                    "· 姓名、手机号\n" +
                         "· 定位、通讯录、相册、任何文件\n" +
                         "· 课表、成绩、登录凭据",
                     fontSize = 11.sp,

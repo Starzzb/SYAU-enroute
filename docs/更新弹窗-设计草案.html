@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>沈农在途 · 更新弹窗设计草案</title>
+<style>
+  :root{
+    --n950:#100E0B; --n900:#1A1611; --n800:#2B2621; --n700:#443E36;
+    --n500:#7E7468; --n400:#A1978A; --n300:#BEB5A6; --n200:#D7D0C4;
+    --n100:#EDE8DF; --n50:#F5F2EC;
+    --orange:#C74E17; --orange-l:#EA8F5E; --orange-d:#852F0D;
+    --wheat:#B4841B; --leaf:#4E6535; --brick:#9B2417;
+    --mono:ui-monospace,"IBM Plex Mono","SF Mono",Consolas,monospace;
+    --sans:-apple-system,"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    background:#0A0908; color:var(--n100); font-family:var(--sans);
+    padding:32px 20px 80px; display:flex; flex-direction:column; align-items:center;
+  }
+  /* ── 页面头 ── */
+  .pagehead{max-width:1180px;width:100%;margin-bottom:8px}
+  .pagehead h1{font-size:26px;font-weight:700;letter-spacing:.01em}
+  .pagehead p{color:var(--n400);font-size:13.5px;line-height:1.7;margin-top:10px;max-width:760px}
+  .meta{display:flex;gap:22px;margin-top:18px;flex-wrap:wrap}
+  .meta div{font-size:12px;color:var(--n500)}
+  .meta b{display:block;color:var(--orange-l);font-family:var(--mono);font-size:15px;font-weight:600;margin-top:3px}
+
+  /* ── 方案切换 ── */
+  .tabs{display:flex;gap:8px;margin:30px 0 26px;flex-wrap:wrap;justify-content:center}
+  .tab{
+    background:var(--n900);border:1px solid var(--n700);color:var(--n300);
+    padding:11px 20px;font-size:13.5px;cursor:pointer;font-family:var(--sans);
+    transition:.16s; letter-spacing:.02em;
+  }
+  .tab:hover{border-color:var(--n500);color:var(--n100)}
+  .tab.on{background:var(--orange);border-color:var(--orange);color:#fff;font-weight:600}
+
+  /* ── 舞台 ── */
+  .stage{display:none;justify-content:center;gap:52px;flex-wrap:wrap;align-items:flex-start;width:100%;max-width:1180px}
+  .stage.on{display:flex}
+  .col{display:flex;flex-direction:column;align-items:center;gap:14px}
+  .caption{font-size:12.5px;color:var(--n500);text-align:center;max-width:340px;line-height:1.65}
+  .caption b{color:var(--n300);display:block;margin-bottom:3px;font-size:13px}
+
+  /* ── 手机框 ── */
+  .phone{
+    width:411px;height:800px;background:var(--n950);border:1px solid #2a2521;
+    border-radius:0;position:relative;overflow:hidden;
+    box-shadow:0 30px 80px -20px rgba(0,0,0,.85), 0 0 0 1px rgba(255,255,255,.03);
+  }
+  .notch{
+    position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:92px;height:26px;background:#000;border-radius:0 0 14px 14px;z-index:99;
+  }
+  .statusbar{
+    height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 20px;font-size:11px;font-family:var(--mono);color:var(--n300);
+    position:relative;z-index:60;
+  }
+  .statusbar .r{display:flex;gap:6px;align-items:center}
+  .dot{width:5px;height:5px;background:var(--n400);border-radius:50%}
+  .batt{width:20px;height:9px;border:1px solid var(--n400);position:relative}
+  .batt::after{content:"";position:absolute;inset:1.5px;background:var(--n200)}
+
+  /* 背景内容（被弹窗遮住的主界面） */
+  .behind{position:absolute;inset:44px 0 0;padding:16px;opacity:.30;filter:blur(1.2px);pointer-events:none}
+  .behind .bar{height:11px;background:var(--n800);margin-bottom:11px}
+  .behind .bar.w60{width:60%} .behind .bar.w80{width:80%} .behind .bar.w45{width:45%}
+  .behind .card{height:96px;border:1px solid var(--n800);margin-bottom:11px}
+  .scrim{position:absolute;inset:0;background:rgba(8,7,6,.82);backdrop-filter:blur(2px)}
+
+  /* ══════════════════════════════════════
+     A · 在途包裹
+     ══════════════════════════════════════ */
+  .A-sheet{
+    position:absolute;left:0;right:0;bottom:0;background:var(--n900);
+    border-top:2px solid var(--orange);
+    padding:0 0 22px;animation:slideUp .4s cubic-bezier(.2,.9,.25,1);
+  }
+  @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+  /* 运单轨 */
+  .A-track{position:relative;height:96px;margin:0 0 4px;overflow:hidden}
+  .A-rail{
+    position:absolute;left:32px;right:32px;top:56px;height:2px;
+    background:repeating-linear-gradient(90deg,var(--n700) 0 7px,transparent 7px 14px);
+  }
+  .A-railfill{position:absolute;left:32px;top:56px;height:2px;background:var(--orange);width:0;
+    animation:fillRail 2.4s ease-in-out infinite}
+  @keyframes fillRail{0%{width:0;opacity:1}70%{width:calc(100% - 64px);opacity:1}100%{width:calc(100% - 64px);opacity:0}}
+  .A-node{position:absolute;top:50px;width:14px;height:14px;background:var(--n900);
+    border:2px solid var(--n500);}
+  .A-node.s{left:25px} .A-node.e{right:25px;border-color:var(--orange);background:var(--orange)}
+  .A-node.e::after{content:"";position:absolute;inset:3px;background:var(--n900)}
+  .A-label{position:absolute;top:70px;font-size:9.5px;font-family:var(--mono);color:var(--n500);letter-spacing:.06em}
+  .A-label.l1{left:17px} .A-label.l2{right:17px;color:var(--orange-l)}
+  /* 包裹箱 */
+  .A-box{
+    position:absolute;top:30px;left:32px;animation:moveBox 2.4s ease-in-out infinite;
+    width:34px;height:26px;
+  }
+  @keyframes moveBox{0%{left:32px}70%{left:calc(100% - 66px)}100%{left:calc(100% - 66px);opacity:0}}
+  .A-box svg{display:block}
+
+  .A-head{padding:0 22px}
+  .A-kicker{
+    font-size:9.5px;font-family:var(--mono);letter-spacing:.18em;color:var(--orange);
+    text-transform:uppercase;margin-bottom:9px;
+  }
+  .A-title{font-size:21px;font-weight:700;letter-spacing:.01em;line-height:1.3}
+  .A-ver{
+    display:inline-flex;align-items:center;gap:8px;margin-top:12px;
+    font-family:var(--mono);font-size:12px;color:var(--n400);
+  }
+  .A-ver .from{color:var(--n500)}
+  .A-ver .arrow{color:var(--n600,#5F574C)}
+  .A-ver .to{color:var(--orange-l);font-weight:600}
+
+  /* 清单 */
+  .A-list{margin:18px 22px 0;border-top:1px solid var(--n800)}
+  .A-row{
+    display:flex;gap:11px;padding:11px 0;border-bottom:1px solid var(--n800);
+    align-items:flex-start;
+  }
+  .A-num{
+    font-family:var(--mono);font-size:10px;color:var(--n600,#5F574C);
+    padding-top:2px;min-width:16px;
+  }
+  .A-txt{font-size:13px;line-height:1.55;color:var(--n200)}
+  .A-txt .fix{color:var(--leaf)} .A-txt .new{color:var(--n200)}
+  .A-sechead{
+    font-size:10px;font-family:var(--mono);letter-spacing:.14em;color:var(--n500);
+    padding:13px 0 2px;
+  }
+
+  /* 按钮 */
+  .btns{padding:20px 22px 0;display:flex;flex-direction:column;gap:9px}
+  .btn{
+    height:50px;display:flex;align-items:center;justify-content:center;
+    font-size:14.5px;font-weight:600;cursor:pointer;border:none;font-family:var(--sans);
+    letter-spacing:.03em;transition:.15s;
+  }
+  .btn.primary{background:var(--orange);color:#fff}
+  .btn.primary:hover{background:#D95A1F}
+  .btn.ghost{background:transparent;border:1px solid var(--n700);color:var(--n200)}
+  .btn.ghost:hover{border-color:var(--n500);background:rgba(255,255,255,.02)}
+  .btn.bare{background:transparent;color:var(--n500);font-size:12.5px;font-weight:400;height:40px}
+  .btn.bare:hover{color:var(--n300)}
+  .A-size{
+    text-align:center;font-family:var(--mono);font-size:10px;color:var(--n600,#5F574C);
+    margin-top:12px;letter-spacing:.05em;
+  }
+
+  /* ══════════════════════════════════════
+     B · 里程表
+     ══════════════════════════════════════ */
+  .B-sheet{
+    position:absolute;left:0;right:0;bottom:0;background:var(--n950);
+    border-top:1px solid var(--n700);padding:26px 0 22px;
+    animation:slideUp .4s cubic-bezier(.2,.9,.25,1);
+  }
+  .B-odo{
+    display:flex;justify-content:center;align-items:flex-end;gap:0;
+    padding:0 22px 20px;
+  }
+  .B-digitwin{
+    background:var(--n900);border:1px solid var(--n700);
+    border-right:none;width:44px;height:76px;overflow:hidden;position:relative;
+  }
+  .B-digitwin:last-of-type{border-right:1px solid var(--orange)}
+  .B-digitwin.ticking{background:#151210}
+  .B-strip{
+    position:absolute;left:0;right:0;display:flex;flex-direction:column;
+    animation:roll 1.6s cubic-bezier(.5,.05,.2,1) infinite;
+  }
+  @keyframes roll{0%{top:0}60%{top:-76px}100%{top:-76px}}
+  .B-strip.t2{animation-delay:.08s}
+  .B-strip span{
+    height:76px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:36px;font-weight:600;color:var(--n200);
+  }
+  .B-digitwin.ticking .B-strip span{color:var(--orange)}
+  .B-sep{
+    font-family:var(--mono);font-size:24px;color:var(--n600,#5F574C);
+    padding:0 6px 24px;
+  }
+  .B-vlabel{
+    display:flex;justify-content:space-between;padding:0 26px;
+    font-family:var(--mono);font-size:9.5px;color:var(--n600,#5F574C);letter-spacing:.1em;
+  }
+  .B-title{text-align:center;font-size:16px;font-weight:700;margin:18px 0 4px;letter-spacing:.02em}
+  .B-sub{text-align:center;font-family:var(--mono);font-size:11px;color:var(--n500)}
+  .B-notes{margin:18px 26px 0;padding-top:16px;border-top:1px dashed var(--n800)}
+  .B-line{
+    display:flex;gap:9px;font-size:12.5px;line-height:1.65;color:var(--n300);
+    padding:4px 0;
+  }
+  .B-line::before{content:"·";color:var(--orange);font-weight:700;flex-shrink:0}
+
+  /* ══════════════════════════════════════
+     C · 信笺
+     ══════════════════════════════════════ */
+  .C-wrap{
+    position:absolute;inset:44px 0 0;display:flex;align-items:center;justify-content:center;
+    padding:22px;animation:slideUp .4s cubic-bezier(.2,.9,.25,1);
+  }
+  .C-letter{
+    width:100%;background:#F5F2EC;color:#1A1611;position:relative;
+    padding:26px 24px 20px;box-shadow:0 24px 60px -12px rgba(0,0,0,.9);
+  }
+  /* 折角 */
+  .C-letter::after{
+    content:"";position:absolute;right:0;bottom:0;width:0;height:0;
+    border-style:solid;border-width:0 0 30px 30px;
+    border-color:transparent transparent #D7D0C4 transparent;
+  }
+  .C-letter::before{
+    content:"";position:absolute;right:0;bottom:0;width:30px;height:30px;
+    border-style:solid;border-width:30px 30px 0 0;
+    border-color:transparent #BEB5A6 transparent transparent;
+    opacity:0;
+  }
+  .C-postmark{
+    display:flex;justify-content:space-between;align-items:flex-start;
+    border-bottom:1px solid #C9C1B3;padding-bottom:12px;margin-bottom:16px;
+  }
+  .C-stamp{
+    width:52px;height:60px;border:1.5px dashed #A1978A;display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:3px;
+    font-family:var(--mono);font-size:8px;color:#7E7468;letter-spacing:.06em;
+    background:repeating-linear-gradient(45deg,#EDE8DF 0 3px,#F5F2EC 3px 6px);
+  }
+  .C-stamp b{font-size:13px;color:var(--orange-d);font-family:var(--sans)}
+  .C-from{font-size:11px;color:#5F574C;font-family:var(--mono);letter-spacing:.05em;line-height:1.9}
+  .C-from b{color:#1A1611;font-family:var(--sans);font-size:12.5px;letter-spacing:0}
+  .C-ht{font-size:19px;font-weight:700;letter-spacing:.01em;line-height:1.4;margin-bottom:4px}
+  .C-hsub{font-size:11.5px;color:#7E7468;font-family:var(--mono);margin-bottom:16px}
+  .C-body{font-size:13px;line-height:1.85;color:#2B2621}
+  .C-body .h{
+    font-weight:700;color:#1A1611;margin:12px 0 4px;font-size:12.5px;
+    display:flex;align-items:center;gap:7px;
+  }
+  .C-body .h::before{content:"";width:3px;height:12px;background:var(--orange);flex-shrink:0}
+  .C-body ul{list-style:none;padding-left:10px}
+  .C-body li{padding:2px 0;position:relative;padding-left:12px}
+  .C-body li::before{content:"—";position:absolute;left:0;color:#A1978A}
+  .C-sign{
+    margin-top:18px;padding-top:12px;border-top:1px solid #D7D0C4;
+    display:flex;justify-content:space-between;align-items:flex-end;
+  }
+  .C-sign .who{font-size:12px;color:#5F574C;line-height:1.7}
+  .C-sign .who b{color:#1A1611}
+  .C-btns{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+  .C-btn{
+    height:48px;display:flex;align-items:center;justify-content:center;font-size:14px;
+    font-weight:600;cursor:pointer;border:none;font-family:var(--sans);letter-spacing:.03em;
+    transition:.15s;
+  }
+  .C-btn.primary{background:#1A1611;color:#F5F2EC}
+  .C-btn.primary:hover{background:#2B2621}
+  .C-btn.ghost{background:transparent;border:1px solid #BEB5A6;color:#2B2621}
+  .C-btn.ghost:hover{background:rgba(0,0,0,.04)}
+  .C-btn.bare{background:transparent;color:#7E7468;font-size:12px;font-weight:400;height:36px}
+
+  /* ══════════════════════════════════════
+     D · 账页
+     ══════════════════════════════════════ */
+  .D-sheet{
+    position:absolute;left:0;right:0;bottom:0;top:120px;background:var(--n900);
+    border-top:2px solid var(--n700);animation:slideUp .4s cubic-bezier(.2,.9,.25,1);
+    display:flex;flex-direction:column;
+  }
+  .D-head{padding:22px 24px 0;flex-shrink:0}
+  .D-ver{
+    font-family:var(--mono);font-size:34px;font-weight:600;color:var(--n100);
+    letter-spacing:-.01em;line-height:1;
+  }
+  .D-ver em{font-style:normal;color:var(--orange);font-size:20px;vertical-align:super}
+  .D-tag{
+    display:inline-block;margin-top:12px;padding:4px 9px;border:1px solid var(--orange);
+    color:var(--orange);font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;
+  }
+  .D-rule{height:1px;background:var(--n700);margin:18px 24px 0;position:relative}
+  .D-rule::after{
+    content:"更新内容";position:absolute;left:0;top:-7px;background:var(--n900);
+    padding-right:10px;font-family:var(--mono);font-size:9.5px;color:var(--n500);letter-spacing:.16em;
+  }
+  .D-scroll{flex:1;overflow-y:auto;padding:22px 24px 0}
+  .D-group{margin-bottom:18px}
+  .D-glabel{
+    font-size:10px;font-family:var(--mono);letter-spacing:.14em;color:var(--n500);
+    margin-bottom:9px;display:flex;align-items:center;gap:8px;
+  }
+  .D-glabel::after{content:"";flex:1;height:1px;background:var(--n800)}
+  .D-item{
+    display:flex;gap:12px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.035);
+  }
+  .D-idx{font-family:var(--mono);font-size:10px;color:var(--n600,#5F574C);min-width:18px;padding-top:2px}
+  .D-itxt{font-size:13px;line-height:1.6;color:var(--n200)}
+  .D-item.fix .D-itxt{color:var(--n300)}
+  .D-item.fix .D-idx{color:var(--leaf)}
+  .D-foot{padding:16px 24px 22px;flex-shrink:0;border-top:1px solid var(--n800);background:var(--n900)}
+  .D-row{display:flex;gap:10px}
+  .D-row .btn{flex:1;height:48px}
+  .D-meta{
+    display:flex;justify-content:space-between;margin-bottom:14px;
+    font-family:var(--mono);font-size:10px;color:var(--n600,#5F574C);
+  }
+
+  /* 注释区 */
+  .notes{margin-top:16px;font-size:11.5px;color:var(--n500);line-height:1.75;max-width:340px}
+  .notes code{font-family:var(--mono);background:var(--n900);padding:1px 5px;color:var(--orange-l)}
+
+  @media(max-width:900px){.stage{gap:30px}}
+</style>
+</head>
+<body>
+
+<div class="pagehead">
+  <h1>更新弹窗 · 四个方向</h1>
+  <p>同一份数据、同一套按钮语义，四种表达。都基于「沈农在途」的硬朗气质：无圆角、无渐变、等宽数字、农械橘。可点按钮看反馈。</p>
+  <div class="meta">
+    <div>版本<b>0.2.0+m19 → m20</b></div>
+    <div>包体<b>5.31 MB</b></div>
+    <div>通道<b>GitHub Releases</b></div>
+    <div>实测带宽<b>3.5 MB/s · 约 1.5s</b></div>
+  </div>
+</div>
+
+<div class="tabs">
+  <button class="tab on" data-s="A">A · 在途包裹</button>
+  <button class="tab" data-s="B">B · 里程表</button>
+  <button class="tab" data-s="C">C · 学校来信</button>
+  <button class="tab" data-s="D">D · 更新账页</button>
+</div>
+
+<!-- ══════════ A ══════════ -->
+<div class="stage on" id="sA">
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><div class="r"><i class="dot"></i><i class="dot"></i><div class="batt"></div></div></div>
+      <div class="behind">
+        <div class="bar w60"></div><div class="bar w80"></div>
+        <div class="card"></div><div class="card"></div>
+        <div class="bar w45"></div><div class="card"></div>
+      </div>
+      <div class="scrim"></div>
+
+      <div class="A-sheet">
+        <div class="A-track">
+          <div class="A-rail"></div>
+          <div class="A-railfill"></div>
+          <div class="A-node s"></div>
+          <div class="A-node e"></div>
+          <div class="A-box">
+            <svg width="34" height="26" viewBox="0 0 34 26">
+              <rect x="1" y="6" width="32" height="19" fill="none" stroke="#C74E17" stroke-width="1.5"/>
+              <path d="M1 6 L17 1 L33 6" fill="none" stroke="#C74E17" stroke-width="1.5"/>
+              <path d="M17 1 L17 6" stroke="#C74E17" stroke-width="1.5"/>
+              <rect x="14" y="10" width="6" height="6" fill="#C74E17" opacity=".8"/>
+            </svg>
+          </div>
+          <div class="A-label l1">服务器</div>
+          <div class="A-label l2">你的手机</div>
+        </div>
+
+        <div class="A-head">
+          <div class="A-kicker">Update in transit</div>
+          <div class="A-title">新版已到达</div>
+          <div class="A-ver">
+            <span class="from">m19</span>
+            <span class="arrow">──▶</span>
+            <span class="to">m20</span>
+          </div>
+        </div>
+
+        <div class="A-list">
+          <div class="A-sechead">本单包含</div>
+          <div class="A-row"><span class="A-num">01</span><span class="A-txt new">地图属性共建 · 自定义课程</span></div>
+          <div class="A-row"><span class="A-num">02</span><span class="A-txt new">2023 级培养方案 · 账页主题</span></div>
+          <div class="A-row"><span class="A-num">03</span><span class="A-txt new">调试日志</span></div>
+          <div class="A-sechead">随单修复</div>
+          <div class="A-row"><span class="A-num">04</span><span class="A-txt fix">教师搜索崩溃 · 空闲教室查不出结果</span></div>
+          <div class="A-row"><span class="A-num">05</span><span class="A-txt fix">登录态反复失效 · 地图拖动回弹</span></div>
+        </div>
+
+        <div class="btns">
+          <button class="btn primary">立即更新</button>
+          <button class="btn ghost">我知道了</button>
+          <button class="btn bare">不再提醒本次更新</button>
+        </div>
+        <div class="A-size">5.31 MB · 约 2 秒</div>
+      </div>
+    </div>
+    <div class="caption">
+      <b>在途包裹</b>
+      直接长在 App 名字上 ——「在途」就是包裹在路上。运单轨从「服务器」跑到「你的手机」，更新内容变成随单的清单。等于是把第 18 个版本当成第 18 件快递。
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ B ══════════ -->
+<div class="stage" id="sB">
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><div class="r"><i class="dot"></i><i class="dot"></i><div class="batt"></div></div></div>
+      <div class="behind">
+        <div class="bar w60"></div><div class="bar w80"></div>
+        <div class="card"></div><div class="card"></div>
+        <div class="bar w45"></div>
+      </div>
+      <div class="scrim"></div>
+
+      <div class="B-sheet">
+        <div class="B-odo">
+          <div class="B-digitwin"><div class="B-strip"><span>1</span><span>2</span></div></div>
+          <div class="B-digitwin"><div class="B-strip"><span>9</span><span>0</span></div></div>
+          <div class="B-sep">→</div>
+          <div class="B-digitwin ticking"><div class="B-strip t2"><span>2</span><span>0</span></div></div>
+          <div class="B-digitwin ticking"><div class="B-strip"><span>0</span><span>1</span></div></div>
+        </div>
+        <div class="B-vlabel"><span>BUILD 200</span><span>BUILD 201</span></div>
+
+        <div class="B-title">该翻表了</div>
+        <div class="B-sub">0.2.0+m19 → 0.2.0+m20</div>
+
+        <div class="B-notes">
+          <div class="B-line">地图属性共建、自定义课程</div>
+          <div class="B-line">2023 级培养方案、账页主题、调试日志</div>
+          <div class="B-line" style="color:var(--leaf)">修好：教师搜索崩溃、空闲教室、登录态失效</div>
+          <div class="B-line" style="color:var(--leaf)">修好：地图拖动回弹</div>
+        </div>
+
+        <div class="btns">
+          <button class="btn primary">立即更新</button>
+          <div style="display:flex;gap:9px">
+            <button class="btn ghost" style="flex:1">我知道了</button>
+            <button class="btn ghost" style="flex:1;color:var(--n500);border-color:var(--n800)">不再提醒</button>
+          </div>
+        </div>
+        <div class="A-size">5.31 MB · 约 2 秒</div>
+      </div>
+    </div>
+    <div class="caption">
+      <b>里程表</b>
+      版本号是这台机器唯一会「往前走」的数字，就该像机械里程表一样翻。项目本来全用等宽数字，这个方案把那个既有特征推到台前。
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ C ══════════ -->
+<div class="stage" id="sC">
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><div class="r"><i class="dot"></i><i class="dot"></i><div class="batt"></div></div></div>
+      <div class="behind">
+        <div class="bar w80"></div><div class="card"></div>
+        <div class="bar w60"></div><div class="card"></div>
+      </div>
+      <div class="scrim"></div>
+
+      <div class="C-wrap">
+        <div class="C-letter">
+          <div class="C-postmark">
+            <div class="C-from">
+              <b>沈农在途 · 维护组</b><br>
+              沈阳农业大学 · 校内<br>
+              二〇二六年十一月十六日
+            </div>
+            <div class="C-stamp"><b>m20</b>NEW</div>
+          </div>
+
+          <div class="C-ht">新版本已就绪</div>
+          <div class="C-hsub">0.2.0+m19 → 0.2.0+m20 · 5.31 MB</div>
+
+          <div class="C-body">
+            这一版修了几处让人别扭的地方，也添了几样一直想要的东西。
+
+            <div class="h">新添</div>
+            <ul>
+              <li>地图属性可以共建了</li>
+              <li>支持自己加课</li>
+              <li>补上 2023 级培养方案</li>
+              <li>账页主题、调试日志</li>
+            </ul>
+
+            <div class="h">修好</div>
+            <ul>
+              <li>搜索教师时崩溃</li>
+              <li>空闲教室查不出结果</li>
+              <li>登录态反复失效</li>
+              <li>地图拖动会回弹</li>
+            </ul>
+          </div>
+
+          <div class="C-sign">
+            <div class="who">
+              更新包在 <b>GitHub Releases</b><br>
+              下载约 <b>2 秒</b>
+            </div>
+          </div>
+
+          <div class="C-btns">
+            <button class="C-btn primary">立即更新</button>
+            <button class="C-btn ghost">我知道了</button>
+            <button class="C-btn bare">不再提醒本次更新</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="caption">
+      <b>学校来信</b>
+      最不像「软件弹窗」的一个。把更新说成一封从维护组寄来的信，落款、日期、邮戳都是真的。适合一个学生自建的小工具 —— 它本来就不是产品，是有人给你递了张纸。
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ D ══════════ -->
+<div class="stage" id="sD">
+  <div class="col">
+    <div class="phone">
+      <div class="notch"></div>
+      <div class="statusbar"><span>9:41</span><div class="r"><i class="dot"></i><i class="dot"></i><div class="batt"></div></div></div>
+      <div class="behind">
+        <div class="bar w60"></div><div class="card"></div><div class="bar w80"></div>
+      </div>
+      <div class="scrim"></div>
+
+      <div class="D-sheet">
+        <div class="D-head">
+          <div class="D-ver">m20 <em>↑</em></div>
+          <div class="D-tag">BUILD 201 · AVAILABLE</div>
+        </div>
+
+        <div class="D-rule"></div>
+
+        <div class="D-scroll">
+          <div class="D-group">
+            <div class="D-glabel">NEW</div>
+            <div class="D-item"><span class="D-idx">01</span><span class="D-itxt">地图属性共建</span></div>
+            <div class="D-item"><span class="D-idx">02</span><span class="D-itxt">自定义课程</span></div>
+            <div class="D-item"><span class="D-idx">03</span><span class="D-itxt">2023 级培养方案</span></div>
+            <div class="D-item"><span class="D-idx">04</span><span class="D-itxt">账页主题 · 调试日志</span></div>
+          </div>
+          <div class="D-group">
+            <div class="D-glabel">FIX</div>
+            <div class="D-item fix"><span class="D-idx">05</span><span class="D-itxt">教师搜索崩溃</span></div>
+            <div class="D-item fix"><span class="D-idx">06</span><span class="D-itxt">空闲教室查不出结果</span></div>
+            <div class="D-item fix"><span class="D-idx">07</span><span class="D-itxt">登录态反复失效</span></div>
+            <div class="D-item fix"><span class="D-idx">08</span><span class="D-itxt">地图拖动回弹</span></div>
+          </div>
+        </div>
+
+        <div class="D-foot">
+          <div class="D-meta"><span>5.31 MB</span><span>≈ 2 s</span></div>
+          <div class="D-row">
+            <button class="btn ghost" style="flex:.8">我知道了</button>
+            <button class="btn primary" style="flex:1.2">立即更新</button>
+          </div>
+          <button class="btn bare" style="width:100%;margin-top:4px">不再提醒本次更新</button>
+        </div>
+      </div>
+    </div>
+    <div class="caption">
+      <b>更新账页</b>
+      最克制的一个：当成一页账。编号、分区、可滚动，条目多也不会崩。按钮改成「主次同行」，把「不再提醒」压到最弱 —— 它本来就不该抢注意力。
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelectorAll('.tab').forEach(t=>{
+    t.onclick=()=>{
+      document.querySelectorAll('.tab').forEach(x=>x.classList.remove('on'));
+      document.querySelectorAll('.stage').forEach(x=>x.classList.remove('on'));
+      t.classList.add('on');
+      document.getElementById('s'+t.dataset.s).classList.add('on');
+    };
+  });
+</script>
+</body>
+</html>

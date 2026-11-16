@@ -2,6 +2,10 @@ package cn.dkarbon.enroute.ui.map
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,6 +20,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,6 +31,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -41,9 +49,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -62,6 +72,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -112,8 +123,18 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     var baseBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
     var addingField by remember { mutableStateOf(false) }
     var deletingField by remember { mutableStateOf<String?>(null) }
+    var controlsVisible by remember { mutableStateOf(false) }
+    var lastGestureAt by remember { mutableLongStateOf(0L) }
 
     LaunchedEffect(Unit) { if (ui.mapPackage == null) vm.openCampusMap() }
+
+    // 顶部控件：最后一次地图手势后 2.5s 无操作就淡出（重按手势会取消上一轮计时）
+    LaunchedEffect(lastGestureAt) {
+        if (lastGestureAt > 0L) {
+            kotlinx.coroutines.delay(MapViewRules.CONTROLS_IDLE_MS)
+            controlsVisible = false
+        }
+    }
 
     // 底图位图（只读一次；换包时重读）
     LaunchedEffect(ui.mapPackage?.manifest?.version, ui.mapPackage?.baseFile) {
@@ -135,10 +156,12 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
         }
     }
     // ── 参与共建（票 23）：入口就在地图页，不用滚到设置里去翻 ──
-    // 状态来自 `MapContributeStore`（设置页用的是同一个 store，所以两处天然同步）
-    val contributeStore = remember { cn.dkarbon.enroute.data.map.MapContributeStore(ctx.applicationContext) }
-    var contributeOn by remember { mutableStateOf(contributeStore.isEnabled()) }
+    // 状态与设置页同一个 store，天然同步；上传走 MapUploader（一次同意，之后导出直接上云）
+    val uploader = remember { cn.dkarbon.enroute.data.map.MapUploader(ctx.applicationContext) }
+    var contributeOn by remember { mutableStateOf(uploader.isEnabled()) }
     var askContribute by remember { mutableStateOf(false) }
+    var exportHint by remember { mutableStateOf("") }
+    val exportScope = androidx.compose.runtime.rememberCoroutineScope()
 
     val saveGeo = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/geo+json"),
@@ -151,23 +174,14 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     val manifest = pkg?.manifest
     val selected = pkg?.features?.firstOrNull { it.id == ui.mapSelectedId }
 
-    // ── 共享数据集（票 22）：进页面时按 5 分钟窗口静默拉增量 ──
-    // 只有 `rev` 变了才会落盘并触发重组；304 / 无变化什么都不做（界面不闪）。
+    // ── 共享数据集（票 22 / 2026-11-16）：**按需**拉取，不再每次开地图自动拉 ──
+    // 初次进入只读本地缓存（current() 只读盘），要更新就点下面「同步」按钮。
     val appCtx = androidx.compose.ui.platform.LocalContext.current.applicationContext
     val datasetClient = remember { cn.dkarbon.enroute.data.map.MapDatasetClient(appCtx) }
     var dataset by remember { mutableStateOf(datasetClient.current()) }
     var syncing by remember { mutableStateOf(false) }
     var syncNote by remember { mutableStateOf("") }
     val syncScope = androidx.compose.runtime.rememberCoroutineScope()
-
-    LaunchedEffect(manifest?.version) {
-        val ver = manifest?.version.orEmpty()
-        if (ver.isNotBlank()) {
-            datasetClient.syncAsync(ver) { ds -> dataset = ds }
-            dataset = datasetClient.current()
-            datasetClient.lastError().takeIf { it.isNotBlank() }?.let { syncNote = it }
-        }
-    }
 
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize().imePadding()) {
@@ -301,6 +315,12 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             val tapSlopPx = with(density) { MapViewRules.TAP_SLOP_DP.dp.toPx() }
             val doubleTapSlopPx = with(density) { MapViewRules.DOUBLE_TAP_SLOP_DP.dp.toPx() }
 
+            /** 任何拖动 / 缩放 / 双击都算「碰过地图」→ 顶部控件淡入并重置 2.5s 倒计时 */
+            fun noteGesture() {
+                lastGestureAt = System.currentTimeMillis()
+                controlsVisible = true
+            }
+
             // 回弹动画必须跑在普通协程里：`awaitEachGesture` 的受限挂起作用域不能直接调 animate
             val uiScope = androidx.compose.runtime.rememberCoroutineScope()
 
@@ -360,6 +380,36 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                     snapBack()   // 滑完（或到点）统一回弹，越界的那点位移在这里收干净
                 }
             }
+
+            // ── 选中后把要素框到可视区上半部分：底部面板会盖住下半，地图得让路 ──
+            LaunchedEffect(ui.mapSelectedId) {
+                val id = ui.mapSelectedId
+                if (id.isEmpty()) return@LaunchedEffect
+                val f = pkg?.features?.firstOrNull { it.id == id } ?: return@LaunchedEffect
+                val z0 = zoom
+                val px0 = panX
+                val py0 = panY
+                val tf = MapProjection.withUser(base, z0.toDouble(), px0, py0, cw, ch)
+                val plan = MapViewRules.frameFeature(z0, px0, py0, tf, f.bounds, cw, ch)
+                val lx = MapViewRules.panLimit(
+                    bboxW * base.scale.toFloat() * plan.zoom, cw, MapViewRules.viewMargin(cw),
+                )
+                val ly = MapViewRules.panLimit(
+                    bboxH * base.scale.toFloat() * plan.zoom, ch, MapViewRules.viewMargin(ch),
+                )
+                val tx = MapViewRules.clampToBounds(plan.panX, lx)
+                val ty = MapViewRules.clampToBounds(plan.panY, ly)
+                if (plan.zoom == z0 && tx == px0 && ty == py0) return@LaunchedEffect
+                androidx.compose.animation.core.animate(
+                    initialValue = 0f,
+                    targetValue = 1f,
+                    animationSpec = androidx.compose.animation.core.tween(MapViewRules.FRAME_ANIM_MS),
+                ) { v, _ ->
+                    zoom = z0 + (plan.zoom - z0) * v
+                    panX = px0 + (tx - px0) * v
+                    panY = py0 + (ty - py0) * v
+                }
+            }
             Column(Modifier.fillMaxWidth()) {
                 // clipToBounds：放大后画面会超出地图块（Canvas 默认不裁剪，会溢到图例上）
                 Box(Modifier.fillMaxWidth().height(mapH).clipToBounds()) {
@@ -405,6 +455,7 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                                         } else {
                                             val pan = centroid - lastCentroid
                                             moved += pan.getDistance()
+                                            if (pressed.size >= 2 || moved > tapSlopPx) noteGesture()
                                             val zoomChange =
                                                 if (lastDistance > 1f && distance > 1f) distance / lastDistance
                                                 else 1f
@@ -461,6 +512,7 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                                         // （票 23 ①：以前是 `zoom *= 2`，以画布中心为不动点，
                                         //  所以主人一直觉得「放大还是中心放大」。现在锚点=手指位置，
                                         //  与捏合缩放同一个模型，公式在 MapViewRules.doubleTapZoom 里，有单测。）
+                                        noteGesture()
                                         tapPending.value?.cancel()
                                         tapPending.value = null
                                         tapLastAt.longValue = 0L
@@ -533,22 +585,16 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                         )
                     }
 
-                    // 浮标（贴在地图块内部，不占版面高度）
-                    Box(
-                        Modifier.align(Alignment.BottomStart).padding(start = Space.m, bottom = Space.s)
-                            .clip(RectangleShape).background(t.card).border(StrokeTokens.hairline, t.outline)
-                            .clickable {
-                                zoom = 1f; panX = 0f; panY = 0f; vm.clearMapSelection()
-                            }
-                            .padding(horizontal = 12.dp, vertical = 7.dp),
-                    ) { Text("重置视图", fontSize = 10.5.sp, color = t.inkSoft) }
-                    Box(
-                        Modifier.align(Alignment.BottomEnd).padding(end = Space.m, bottom = Space.s)
-                            .background(t.card).border(StrokeTokens.hairline, t.outline)
-                            .padding(horizontal = 8.dp, vertical = 5.dp),
-                    ) {
-                        Text("${"%.1f".format(zoom)}×", fontSize = 10.sp, color = t.inkFaint, fontFamily = NumericFont)
-                    }
+                    // 浮标（贴在地图块内部，不占版面高度）：2.5s 不碰地图就淡出
+                    FloatingMapControls(
+                        visible = controlsVisible,
+                        resetModifier = Modifier.align(Alignment.BottomStart),
+                        zoomModifier = Modifier.align(Alignment.BottomEnd),
+                        zoomLabel = "%.1f".format(zoom) + "×",
+                        onReset = {
+                            zoom = 1f; panX = 0f; panY = 0f; vm.clearMapSelection()
+                        },
+                    )
 
                     // 包坏了：绝不白屏
                     if (pkg != null && !pkg.ok) {
@@ -623,35 +669,17 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             }
         }
 
-        // ── 参与共建的确认弹窗（票 23）：与设置页**同一个** composable / 同一份文案 ──
+        // ── 参与共建的同意弹窗（票 23）：与设置页**同一个** composable / 同一份文案 ──
         if (askContribute) {
             cn.dkarbon.enroute.ui.settings.MapContributeConsentDialog(
                 onDismiss = { askContribute = false },
                 onConfirm = {
                     askContribute = false
-                    contributeStore.setEnabled(true)
-                    contributeStore.setAcknowledged(true)
+                    uploader.setEnabled(true)
                     contributeOn = true
+                    exportHint = "已开启：之后「导出标注」直接上传"
                     android.widget.Toast.makeText(ctx, "已开启参与共建", android.widget.Toast.LENGTH_SHORT).show()
                 },
-            )
-        }
-
-        // ── 属性面板（可编辑，票 12 §7）──
-        if (selected != null && manifest != null) {
-            PropertyPanel(
-                feature = selected,
-                edits = ui.mapEdits,
-                kindOptions = manifest.kindOptions(),
-                // 官方基线字段名（票 13 B 路）：只读层，来自 asset 的 manifest.customFields
-                officialFields = manifest.customFields,
-                dataset = dataset,
-                onChangeName = { vm.setMapFeatureName(selected.id, it) },
-                onChangeKind = { vm.setMapFeatureKind(selected.id, it) },
-                onChangeField = { f, v -> vm.setMapFeatureField(selected.id, f, v) },
-                onAddField = { addingField = true },
-                onDeleteField = { deletingField = it },
-                onClose = { vm.clearMapSelection() },
             )
         }
 
@@ -660,16 +688,35 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             Modifier.fillMaxWidth().padding(horizontal = Space.l, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SmallButton("导出标注") { vm.exportMapAnnotations() }
-            Spacer(Modifier.width(Space.s))
-            // 未开启 → 点开确认弹窗（与设置页同一个 `MapContributeConsentDialog`）
-            // 已开启 → 只显示状态，不再重复解释（AGENTS.md：按钮只留名字 + 状态）
-            SmallButton(if (contributeOn) "参与共建 · 已开" else "参与共建") {
-                if (contributeOn) {
-                    contributeOn = contributeStore.isEnabled()   // 只是回读一下真实状态
+            SmallButton("导出标注") {
+                vm.exportMapAnnotations()
+                val ver = manifest?.version.orEmpty()
+                if (!contributeOn) {
+                    exportHint = "已导出到本地 · 未开启共建，不会上传"
+                } else if (ver.isBlank()) {
+                    exportHint = "地图包还没加载完"
                 } else {
-                    askContribute = true
+                    exportHint = ""
+                    val sid = ui.profile.studentNo
+                    val hasName = ui.profile.name.isNotBlank()
+                    exportScope.launch {
+                        val r = uploader.uploadFromEdits(ui.mapEdits, ver, sid, hasName)
+                        exportHint = when (r) {
+                            is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Ok ->
+                                "已上传 ${r.resp.accepted} 条到云端"
+                            is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Failed -> r.message
+                            cn.dkarbon.enroute.data.map.MapUploader.Outcome.NothingToDo -> "没有可上传的标注"
+                        }
+                    }
                 }
+            }
+            Spacer(Modifier.width(Space.s))
+            // 未开启 → 去开启（与设置页同一个 `MapContributeConsentDialog`，一次同意）
+            // 已开启 → 只显示状态；之后「导出标注」直接上传，不再二次确认
+            if (contributeOn) {
+                Text("共建已开", fontSize = 9.sp, color = t.inkFaint)
+            } else {
+                SmallButton("去开启") { askContribute = true }
             }
             Spacer(Modifier.width(Space.s))
             if (ui.mapExportGeoJson.isNotEmpty()) {
@@ -690,9 +737,14 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                         if (ver.isBlank()) return@clickable
                         syncing = true
                         syncScope.launch {
+                            val before = datasetClient.current()
                             val ds = runCatching { datasetClient.sync(ver, force = true) }.getOrNull()
                             if (ds != null) dataset = ds
-                            syncNote = datasetClient.lastError()
+                            syncNote = when {
+                                ds != null -> "已更新 ${cn.dkarbon.enroute.data.map.MapDataset.updatedCount(before, ds)} 条"
+                                datasetClient.lastError().isNotBlank() -> datasetClient.lastError()
+                                else -> "已是最新"
+                            }
                             syncing = false
                         }
                     }
@@ -704,6 +756,15 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 fontSize = 9.sp,
                 color = t.inkFaint,
                 fontFamily = NumericFont,
+            )
+        }
+        if (exportHint.isNotBlank()) {
+            Text(
+                exportHint,
+                fontSize = 9.sp,
+                lineHeight = 13.sp,
+                color = t.primary,
+                modifier = Modifier.padding(horizontal = Space.l).padding(bottom = 4.dp),
             )
         }
         if (syncNote.isNotBlank()) {
@@ -723,6 +784,27 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 modifier = Modifier.padding(horizontal = Space.l).padding(bottom = 4.dp),
             )
         }
+        }
+
+        // ── 属性面板（可编辑，票 12 §7）：底部面板，贴屏幕下沿 ──
+        if (selected != null && manifest != null) {
+            PropertyPanel(
+                feature = selected,
+                features = pkg?.features.orEmpty(),
+                selectedId = ui.mapSelectedId,
+                onSelect = { vm.selectMapFeature(it) },
+                edits = ui.mapEdits,
+                kindOptions = manifest.kindOptions(),
+                officialFields = manifest.customFields,
+                dataset = dataset,
+                onChangeName = { vm.setMapFeatureName(selected.id, it) },
+                onChangeKind = { vm.setMapFeatureKind(selected.id, it) },
+                onChangeField = { f, v -> vm.setMapFeatureField(selected.id, f, v) },
+                onAddField = { addingField = true },
+                onDeleteField = { deletingField = it },
+                onClose = { vm.clearMapSelection() },
+                modifier = Modifier.align(Alignment.BottomCenter).imePadding(),
+            )
         }
 
         // 共建引导卡（票 12 §8.2）：首次进地图页自动弹一次，「怎么补？」随时可开
@@ -766,6 +848,9 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
 @Composable
 private fun PropertyPanel(
     feature: MapFeature,
+    features: List<MapFeature>,
+    selectedId: String,
+    onSelect: (String) -> Unit,
     edits: MapEdits,
     kindOptions: List<Pair<String, String>>,
     /** 官方基线自带的字段名（`manifest.customFields`）；空表＝这一版没有官方标注 */
@@ -778,101 +863,154 @@ private fun PropertyPanel(
     onAddField: () -> Unit,
     onDeleteField: (String) -> Unit,
     onClose: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val t = InkTokens.current
     val row = MapEditsOps.rowOf(feature, edits)
     var name by remember(feature.id) { mutableStateOf(row.name.ifBlank { feature.name }) }
+    val initialPage = features.indexOfFirst { it.id == selectedId }.coerceAtLeast(0)
+    val pagerState = rememberPagerState(initialPage = initialPage, pageCount = { features.size })
 
-    Column(
-        Modifier.fillMaxWidth().heightIn(max = 340.dp)
-            .background(t.card)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = Space.m, vertical = Space.s),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                row.name.ifBlank { "未命名要素" },
-                fontSize = 13.sp,
-                color = t.ink,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.weight(1f),
-            )
-            Text("id ${feature.id}", fontSize = 9.sp, color = t.inkFaint, fontFamily = NumericFont)
-            Spacer(Modifier.width(Space.s))
-            Text("✕", fontSize = 12.sp, color = t.inkFaint, modifier = Modifier.clickable(onClick = onClose))
+    // 地图点选 → 头部翻到对应页
+    LaunchedEffect(selectedId, features) {
+        val idx = features.indexOfFirst { it.id == selectedId }
+        if (idx >= 0 && pagerState.currentPage != idx) pagerState.animateScrollToPage(idx)
+    }
+    // 头部滑动 → 选中同步（地图高亮由同一份 selectedId 驱动）
+    LaunchedEffect(pagerState) {
+        snapshotFlow { pagerState.settledPage }.collect { page ->
+            if (page in features.indices && features[page].id != selectedId) onSelect(features[page].id)
         }
+    }
 
-        // 名称
-        LabeledInput(
-            label = "名称",
-            value = name,
-            singleLine = true,
-            onChange = {
-                name = it
-                onChangeName(it)
-            },
-        )
+    val sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+    Box(
+        modifier
+            .fillMaxWidth()
+            .fillMaxHeight(0.4f)
+            .clip(sheetShape)
+            .background(t.card)
+            .border(StrokeTokens.hairline, t.outline, sheetShape),
+    ) {
+        Column(Modifier.fillMaxSize()) {
+            Box(
+                Modifier.fillMaxWidth().padding(top = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Box(Modifier.width(36.dp).height(3.dp).background(t.outline.copy(alpha = 0.55f)))
+            }
 
-        // 类别（19 个码，从 manifest.kindLabels 来）
-        Text("类别", fontSize = 10.sp, color = t.inkFaint)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-            items(kindOptions, key = { it.first }) { (code, label) ->
-                val on = row.kind == code
+            Row(
+                Modifier.fillMaxWidth().padding(start = Space.m, end = Space.s, top = 2.dp, bottom = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.weight(1f),
+                    beyondViewportPageCount = 1,
+                ) { page ->
+                    val f = features[page]
+                    val r = MapEditsOps.rowOf(f, edits)
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        Text(
+                            r.name.ifBlank { f.name.ifBlank { "未命名要素" } },
+                            fontSize = 13.sp,
+                            color = t.ink,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false),
+                        )
+                        Spacer(Modifier.width(Space.s))
+                        Text("id ${f.id}", fontSize = 9.sp, color = t.inkFaint, fontFamily = NumericFont, maxLines = 1)
+                    }
+                }
+                Spacer(Modifier.width(Space.s))
+                Text(
+                    "✕",
+                    fontSize = 12.sp,
+                    color = t.inkFaint,
+                    modifier = Modifier.clickable(onClick = onClose).padding(horizontal = Space.xs, vertical = Space.xs),
+                )
+            }
+
+            Column(
+                Modifier.weight(1f).verticalScroll(rememberScrollState())
+                    .padding(horizontal = Space.m, vertical = Space.s),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                // 名称
+                LabeledInput(
+                    label = "名称",
+                    value = name,
+                    singleLine = true,
+                    onChange = {
+                        name = it
+                        onChangeName(it)
+                    },
+                )
+
+                // 类别（19 个码，从 manifest.kindLabels 来）
+                Text("类别", fontSize = 10.sp, color = t.inkFaint)
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    items(kindOptions, key = { it.first }) { (code, label) ->
+                        val on = row.kind == code
+                        Box(
+                            Modifier.clip(RectangleShape)
+                                .background(if (on) t.cardAlt else t.paper)
+                                .border(if (on) 1.5.dp else StrokeTokens.hairline, if (on) t.primary else t.outline)
+                                .clickable { onChangeKind(if (on) "" else code) }
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                        ) {
+                            Text(label, fontSize = 10.5.sp, color = if (on) t.ink else t.inkSoft)
+                        }
+                    }
+                }
+
+                // 自定义字段（全局共享）：长按字段名可删
+                // 票 22：三档来源（待上传 / 共建 / 内置），**每一行都标出来** ——
+                // 用户必须能一眼看出「这条是谁的数据」，这是主人接受共享风险后的最低限度。
+                val rows = MapDataset.rows(feature, edits, dataset, officialFields)
+                val hasNonLocal = rows.any { it.source != MapDataset.Source.PENDING }
+                rows.forEach { row ->
+                    LabeledInput(
+                        label = row.name,
+                        value = row.value,
+                        singleLine = row.name.length > 6,
+                        onLongPressLabel = if (row.editable) ({ onDeleteField(row.name) }) else null,
+                        onChange = { if (row.editable) onChangeField(row.name, it) },
+                        // 只有「待上传」可编辑；共建/内置是只读层（要改就「＋ 添加字段」用同名列覆盖）
+                        readOnly = !row.editable,
+                        badge = MapDataset.label(row.source),
+                    )
+                }
+                if (hasNonLocal) {
+                    Text(
+                        "「待上传」= 你填的、还没生效到服务器；「共建」= 服务器共享数据；" +
+                            "「内置」= 安装包里的基线。\n服务器有同名字段时以服务器为准；要覆盖共建值，「＋ 添加字段」加同名列。",
+                        fontSize = 8.5.sp,
+                        lineHeight = 12.sp,
+                        color = t.inkFaint,
+                    )
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    SmallButton("＋ 添加字段") { onAddField() }
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        "字段名全局共享（所有要素同一列）",
+                        fontSize = 8.5.sp,
+                        color = t.inkFaint,
+                    )
+                }
+                // 票 12b 的入口：本票不做，说明清楚，不造假数据
                 Box(
-                    Modifier.clip(RectangleShape)
-                        .background(if (on) t.cardAlt else t.paper)
-                        .border(if (on) 1.5.dp else StrokeTokens.hairline, if (on) t.primary else t.outline)
-                        .clickable { onChangeKind(if (on) "" else code) }
-                        .padding(horizontal = 10.dp, vertical = 5.dp),
+                    Modifier.fillMaxWidth().border(StrokeTokens.hairline, t.outline).padding(vertical = 6.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Text(label, fontSize = 10.5.sp, color = if (on) t.ink else t.inkSoft)
+                    Text("这栋楼今天的课（票 12b 待接入）", fontSize = 9.5.sp, color = t.inkFaint)
                 }
             }
-        }
-
-        // 自定义字段（全局共享）：长按字段名可删
-        // 票 22：三档来源（待上传 / 共建 / 内置），**每一行都标出来** ——
-        // 用户必须能一眼看出「这条是谁的数据」，这是主人接受共享风险后的最低限度。
-        val rows = MapDataset.rows(feature, edits, dataset, officialFields)
-        val hasNonLocal = rows.any { it.source != MapDataset.Source.PENDING }
-        rows.forEach { row ->
-            LabeledInput(
-                label = row.name,
-                value = row.value,
-                singleLine = row.name.length > 6,
-                onLongPressLabel = if (row.editable) ({ onDeleteField(row.name) }) else null,
-                onChange = { if (row.editable) onChangeField(row.name, it) },
-                // 只有「待上传」可编辑；共建/内置是只读层（要改就「＋ 添加字段」用同名列覆盖）
-                readOnly = !row.editable,
-                badge = MapDataset.label(row.source),
-            )
-        }
-        if (hasNonLocal) {
-            Text(
-                "「待上传」= 你填的、还没生效到服务器；「共建」= 服务器共享数据；" +
-                    "「内置」= 安装包里的基线。\n服务器有同名字段时以服务器为准；要覆盖共建值，「＋ 添加字段」加同名列。",
-                fontSize = 8.5.sp,
-                lineHeight = 12.sp,
-                color = t.inkFaint,
-            )
-        }
-
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            SmallButton("＋ 添加字段") { onAddField() }
-            Spacer(Modifier.weight(1f))
-            Text(
-                "字段名全局共享（所有要素同一列）",
-                fontSize = 8.5.sp,
-                color = t.inkFaint,
-            )
-        }
-        // 票 12b 的入口：本票不做，说明清楚，不造假数据
-        Box(
-            Modifier.fillMaxWidth().border(StrokeTokens.hairline, t.outline).padding(vertical = 6.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("这栋楼今天的课（票 12b 待接入）", fontSize = 9.5.sp, color = t.inkFaint)
         }
     }
 }
@@ -1035,7 +1173,13 @@ private fun DrawScope.drawFeatures(
         translate(-minX.toFloat(), -maxY.toFloat())
     }) {
         val strokeSrc = (style.strokeWidth * 2f / transform.scale).toFloat().coerceAtLeast(0.05f)
-        val strokeSel = style.selectedStrokeWidth.toFloat() / transform.scale.toFloat()
+        // 选中外发光：由内到外 2dp 实描边 + 4dp α0.35 + 7dp α0.15，主色（农械橘）。
+        // 宽都除以 scale：让发光在**屏幕**上是恒定 dp，不随缩放变粗。
+        val scalePx = transform.scale.toFloat().coerceAtLeast(0.0001f)
+        val glowInner = 2.dp.toPx() / scalePx
+        val glowMid = 4.dp.toPx() / scalePx
+        val glowOuter = 7.dp.toPx() / scalePx
+        val glowColor = theme.primary
         paths.forEach { (f, path) ->
             val isSel = f.id == selectedId
             if (hasBitmap) {
@@ -1044,11 +1188,9 @@ private fun DrawScope.drawFeatures(
                 val strokeColor = parseColor(layerStroke.ifBlank { style.stroke }, theme.outline)
                 if (isSel) {
                     drawPath(path, color = fillColor.copy(alpha = style.selectedFillAlpha))
-                    drawPath(
-                        path,
-                        color = strokeColor.copy(alpha = style.selectedStrokeAlpha),
-                        style = Stroke(width = strokeSel),
-                    )
+                    drawPath(path, color = glowColor.copy(alpha = 0.15f), style = Stroke(width = glowOuter))
+                    drawPath(path, color = glowColor.copy(alpha = 0.35f), style = Stroke(width = glowMid))
+                    drawPath(path, color = glowColor, style = Stroke(width = glowInner))
                 } else {
                     drawPath(path, color = fillColor.copy(alpha = style.fillAlpha))
                     drawPath(
@@ -1063,7 +1205,9 @@ private fun DrawScope.drawFeatures(
                 val baseColor = parseColor(MapViewRules.vectorFillHex(f, layerFill), theme.cardAlt)
                 if (isSel) {
                     drawPath(path, color = baseColor)
-                    drawPath(path, color = parseColor(style.stroke, theme.outline), style = Stroke(width = strokeSel))
+                    drawPath(path, color = glowColor.copy(alpha = 0.15f), style = Stroke(width = glowOuter))
+                    drawPath(path, color = glowColor.copy(alpha = 0.35f), style = Stroke(width = glowMid))
+                    drawPath(path, color = glowColor, style = Stroke(width = glowInner))
                 } else {
                     drawPath(path, color = baseColor.copy(alpha = 0.9f))
                     drawPath(path, color = parseColor(style.stroke, theme.outline).copy(alpha = 0.45f), style = Stroke(width = strokeSrc))
@@ -1180,6 +1324,44 @@ private fun MapGuideCard(onDismiss: () -> Unit, onStart: () -> Unit) {
                     contentAlignment = Alignment.Center,
                 ) { Text("开始标注", fontSize = 12.sp, color = t.paper, fontWeight = FontWeight.Bold) }
             }
+        }
+    }
+}
+
+@Composable
+private fun FloatingMapControls(
+    visible: Boolean,
+    resetModifier: Modifier,
+    zoomModifier: Modifier,
+    zoomLabel: String,
+    onReset: () -> Unit,
+) {
+    val t = InkTokens.current
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = tween(MapViewRules.CONTROLS_FADE_MS)),
+        exit = fadeOut(animationSpec = tween(MapViewRules.CONTROLS_FADE_MS)),
+        modifier = resetModifier,
+    ) {
+        Box(
+            Modifier.padding(start = Space.m, bottom = Space.s)
+                .clip(RectangleShape).background(t.card).border(StrokeTokens.hairline, t.outline)
+                .clickable(onClick = onReset)
+                .padding(horizontal = 12.dp, vertical = 7.dp),
+        ) { Text("重置视图", fontSize = 10.5.sp, color = t.inkSoft) }
+    }
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(animationSpec = tween(MapViewRules.CONTROLS_FADE_MS)),
+        exit = fadeOut(animationSpec = tween(MapViewRules.CONTROLS_FADE_MS)),
+        modifier = zoomModifier,
+    ) {
+        Box(
+            Modifier.padding(end = Space.m, bottom = Space.s)
+                .background(t.card).border(StrokeTokens.hairline, t.outline)
+                .padding(horizontal = 8.dp, vertical = 5.dp),
+        ) {
+            Text(zoomLabel, fontSize = 10.sp, color = t.inkFaint, fontFamily = NumericFont)
         }
     }
 }

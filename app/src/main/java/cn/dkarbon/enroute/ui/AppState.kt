@@ -71,11 +71,15 @@ data class AppState(
     val exams: List<ExamItem> = emptyList(),
     val examsLoading: Boolean = false,
     val examsMsg: String = "",
+    /** 考试数据的上次成功抓取时刻（epoch ms；0 = 从没抓过，页顶据此标「数据取自 …」） */
+    val examsFetchedAt: Long = 0L,
 
     // ── 成绩 ──
     val scores: List<ScoreItem> = emptyList(),
     val scoresLoading: Boolean = false,
     val scoresMsg: String = "",
+    /** 成绩明细的上次成功抓取时刻（epoch ms；0 = 从没抓过） */
+    val scoresFetchedAt: Long = 0L,
 
     // ── 诊断（仅 debug 面板用）──
     val probe: List<ProbeResult> = emptyList(),
@@ -99,6 +103,8 @@ data class AppState(
      * 这正是「失败不覆盖旧值」那条纪律的配套：给旧数据，就必须标出它的年纪。
      */
     val cacheUpdatedLabel: String = "",
+    /** 学分进度 + 绩点（每日档）的上次成功抓取时刻（epoch ms；0 = 从没抓过，页顶「数据取自 …」用） */
+    val homeDailyFetchedAt: Long = 0L,
 
     // ── 空闲教室 ──
     val campuses: List<CampusOption> = emptyList(),
@@ -110,6 +116,8 @@ data class AppState(
     val roomsCampusNo: String = "",
     /** 当前选中的教学楼号 */
     val roomsBuildingNo: String = "",
+    /** 校区/教学楼列表的上次成功抓取时刻（epoch ms；0 = 从没抓过，页顶据此标「数据取自 …」） */
+    val roomsListsFetchedAt: Long = 0L,
     /** 当前查看的节次 1..12；0 表示"按现在时间自动取" */
     val roomsSession: Int = 0,
     /** 0 今天 / 1 明天 / 2 后天 */

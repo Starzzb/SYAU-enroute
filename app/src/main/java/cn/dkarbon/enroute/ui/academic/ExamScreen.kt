@@ -105,6 +105,19 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                 onMore = { showMore = true },
             )
 
+            // 页顶一行：这数据是几时取的（缓存命中直读时不打网络，必须标出年龄）
+            val fetchStamp = remember(ui.examsFetchedAt) {
+                cn.dkarbon.enroute.data.CachePolicy.fetchStamp(System.currentTimeMillis(), ui.examsFetchedAt)
+            }
+            if (fetchStamp.isNotBlank()) {
+                Text(
+                    fetchStamp,
+                    fontSize = 11.5.sp,
+                    color = t.inkFaint,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
+                )
+            }
+
             if (ui.exams.isEmpty()) {
                 AcademicProblem(
                     t = t,

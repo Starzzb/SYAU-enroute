@@ -83,13 +83,13 @@ import cn.dkarbon.enroute.ui.ledger.LedgerGroupTitle
 import cn.dkarbon.enroute.ui.ledger.LedgerHeader
 import cn.dkarbon.enroute.ui.ledger.LedgerRow
 import cn.dkarbon.enroute.ui.ledger.LedgerTnum
-import cn.dkarbon.enroute.ui.theme.InkTokenSet
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Motion
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Soil
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
+import cn.dkarbon.enroute.ui.theme.feedChannelInk
 import cn.dkarbon.enroute.ui.theme.primaryInk
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -559,7 +559,7 @@ private fun RefreshFailLine(banner: FeedBanner, onDetail: () -> Unit) {
 
 // ── 频道筛选文字行 ───────────────────────────────────────
 
-/** 频道筛选：账页式一行 11.5sp 文字，选中 ink+SemiBold 且下方 2dp 短横线，未选中 inkSoft。 */
+/** 频道筛选：账页式一行 11.5sp 文字。选中项文字 + 2dp 短横线吃该频道语义强调色，未选中 inkSoft。 */
 @Composable
 private fun ChannelFilterRow(
     cats: List<String>,
@@ -578,6 +578,8 @@ private fun ChannelFilterRow(
     ) {
         cats.forEachIndexed { i, c ->
             val selected = currentPage == i
+            // 选中项：文字与短横线都吃频道强调色（色系语义见 ui/theme/FeedChannelColors.kt）
+            val accent = if (selected) feedChannelInk(c) else t.inkSoft
             // 36dp 整行触区；Column 恒定高度（文字 + 2dp 间隙 + 2dp 线），切页时文字不跳
             Box(
                 Modifier.height(36.dp).clickable(onClickLabel = "切到$c 频道") { onSelect(i) },
@@ -588,14 +590,14 @@ private fun ChannelFilterRow(
                         c,
                         fontSize = 11.5.sp,
                         fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (selected) t.ink else t.inkSoft,
+                        color = accent,
                     )
                     Spacer(Modifier.height(2.dp))
                     Box(
                         Modifier
                             .width(16.dp)
                             .height(2.dp)
-                            .background(if (selected) t.ink else Color.Transparent),
+                            .background(if (selected) accent else Color.Transparent),
                     )
                 }
             }
@@ -920,19 +922,18 @@ private fun FeedQuickActions(
     val t = InkTokens.current
     val ctx = LocalContext.current
     val cb = LocalClipboardManager.current
-    val cat = categoryColor(item.category, t)
     val unread = item.readAt == null
     var copied by remember { mutableStateOf(false) }
 
-    SheetScaffold(accent = cat, onDismiss = onDismiss) {
+    SheetScaffold(accent = t.ink, onDismiss = onDismiss) {
         Row(Modifier.padding(start = Space.l, end = Space.l, top = Space.m, bottom = Space.s)) {
             Box(
                 Modifier
                     .size(32.dp)
-                    .background(cat.copy(alpha = if (t.isDark) 0.22f else 0.10f))
-                    .border(Stroke.hairline, cat.copy(alpha = 0.45f)),
+                    .background(Color.Transparent)
+                    .border(Stroke.hairline, t.outline),
                 contentAlignment = Alignment.Center,
-            ) { Text(item.category.take(2), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = cat) }
+            ) { Text(item.category.take(2), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = t.inkSoft) }
             Spacer(Modifier.width(Space.m))
             Column(Modifier.weight(1f)) {
                 Text(
@@ -1298,17 +1299,6 @@ private fun SectionLabel(text: String) {
 
 private fun sanitizeSummary(s: String): String =
     s.replace("id=\"vsb_content\">", "").trim()
-
-/** 频道 → 颜色（语义跟设计文档：钢青=教务，主色=竞赛） */
-internal fun categoryColor(category: String, t: InkTokenSet): Color = when (category) {
-    "教务" -> t.slate
-    "竞赛" -> t.primary
-    "就业" -> if (t.isDark) Color(0xFFB99BA6) else Color(0xFF5A3A46)
-    "通知" -> t.amber
-    "学工" -> t.olive
-    "新闻" -> if (t.isDark) Color(0xFF7E9CC0) else Color(0xFF37516B)
-    else -> t.inkFaint
-}
 
 private fun shortDate(d: String): String =
     if (d.length >= 10) d.substring(5) else d.ifBlank { "—" }

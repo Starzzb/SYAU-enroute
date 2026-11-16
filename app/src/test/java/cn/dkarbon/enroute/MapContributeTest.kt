@@ -13,8 +13,9 @@ import org.junit.Test
 /**
  * 地图共建上传的**隐私与契约红线**（票 13 阶段 B）。纯 JVM。
  *
- * 这一层最值钱的断言是第 1 条：**请求体里不许出现任何身份键**。
- * 隐私红线不该靠人工 review —— 一个手滑把 `sid` 加回去，这里就该红。
+ * 2026-11-16 起：学号随补丁发送（只从内存态学籍取、不落盘），所以请求体里
+ * **必须**出现 `sid`；不再有 shouldSend / preview 这类多重闸门。
+ * 隐私红线剩下的部分：不发定位、不发姓名本身、不发 `userKey` 这种服务端不认的键。
  *
  * 另外几条按「以 server.js 为准」的规则锁住：
  * · `featureId` 只认 `^f\d{1,6}$`（带下标的 `f0_1` 会被服务端整条拒）
@@ -45,6 +46,7 @@ class MapContributeTest {
         release = "16",
         ssaid = "ssaid-abcdef012345",
         installId = "install-xyz",
+        sid = "2024156048",
     )
 
     @Test
@@ -67,13 +69,22 @@ class MapContributeTest {
         assertTrue(body.contains("\"ssaid\":\"ssaid-abcdef012345\""))
         assertTrue(body.contains("\"installId\":\"install-xyz\""))
         assertTrue(body.contains("\"appVer\":\"0.3.0+m20\""))
-        // **禁止的**（票 22 红线：学号仍然不传）
-        assertFalse("不许出现学号字段 sid", body.contains("\"sid\""))
+        assertTrue(body.contains("\"hasName\":false"))
+        // 2026-11-16 起：学号随补丁发送（服务端只落 sid_enc/HMAC，明文不落盘）
+        assertTrue("学号必须随补丁发送", body.contains("\"sid\":\"2024156048\""))
+        // **禁止的**（红线没变的部分）
         assertFalse("服务端不认 userKey 这个名字", body.contains("userKey"))
         assertFalse("不许出现定位", body.contains("\"lat\"") || body.contains("\"lng\"") || body.contains("location"))
         assertFalse("不许出现中文姓名键", body.contains("姓名"))
         // 注：`"field":"name"` 是**字段名**（固定字段 name/kind 也要上传），不是隐私泄露
         assertTrue(body.contains("\"field\":\"name\""))
+    }
+
+    @Test
+    fun `sid is omitted when blank - not logged in`() {
+        val noSid = client().copy(sid = "")
+        val body = MapContribute.body("2026.11.14-1", noSid, emptyList())
+        assertFalse("没登录就不出现 sid 键", body.contains("\"sid\""))
     }
 
     @Test
@@ -86,7 +97,7 @@ class MapContributeTest {
         assertEquals(
             "client 里只能有这些键；多一个都算偷偷多传",
             setOf(
-                "did", "manufacturer", "model", "device", "sdkInt",
+                "did", "sid", "hasName", "manufacturer", "model", "device", "sdkInt",
                 "release", "ssaid", "installId", "appVer",
             ),
             keys,
@@ -107,14 +118,6 @@ class MapContributeTest {
         val noSdk = client().copy(sdkInt = 0)
         val body = MapContribute.body("2026.11.14-1", noSdk, emptyList())
         assertFalse("取不到就不发这个键，别写 0", body.contains("\"sdkInt\""))
-    }
-
-    @Test
-    fun `the switch is the only gate - nothing is sent when it is off`() {
-        val patches = MapContribute.patchesFrom(edits())
-        assertFalse("关着 → 一条都不发", MapContribute.shouldSend(enabled = false, patches = patches))
-        assertFalse("没东西 → 也不发", MapContribute.shouldSend(enabled = true, patches = emptyList()))
-        assertTrue(MapContribute.shouldSend(enabled = true, patches = patches))
     }
 
     @Test
@@ -275,13 +278,5 @@ class MapContributeTest {
         assertNull(MapContribute.parseResponse("not json"))
         assertNull(MapContribute.parseResponse("{}"))                       // 缺 reasons
         assertNull("缺 reasons 数组必须判失败，否则会把失败当成功", MapContribute.parseResponse("""{"accepted":1}"""))
-    }
-
-    @Test
-    fun `preview line is human readable`() {
-        val s = MapContribute.preview(5, 2, listOf("层数", "所属单位"))
-        assertTrue(s.contains("5 条"))
-        assertTrue(s.contains("2 个地块"))
-        assertTrue(s.contains("层数"))
     }
 }

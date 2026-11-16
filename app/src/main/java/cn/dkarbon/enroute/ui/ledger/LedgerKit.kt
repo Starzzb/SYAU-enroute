@@ -37,6 +37,7 @@ import cn.dkarbon.enroute.ui.feed.FeedRows
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.SerifFont
 import cn.dkarbon.enroute.ui.theme.Space
+import cn.dkarbon.enroute.ui.theme.feedChannelInk
 import java.time.LocalDate
 
 /**
@@ -214,6 +215,7 @@ fun LedgerGroupBreak(modifier: Modifier = Modifier) {
  *
  * 为什么摘要颜色用 inkSoft 而不是 inkFaint：摘要 13sp 是「第二正文」，inkFaint 在纸底只有 5.36:1，
  * 长句会累；inkSoft（8.73:1）读起来才不眯眼。元信息才是 inkFaint 的定位注。
+ * 元信息里的**分类标签**例外：用频道语义强调色 [feedChannelInk]，其余（截止/平台状态/日期）仍 inkFaint。
  *
  * @param compact 密度切换（原「紧凑卡」）：true 时只显示标题 + 元信息，摘要退场。
  * @param lastInGroup 组内最后一条之后不画分隔线（修正 B）。
@@ -290,7 +292,7 @@ fun LedgerRow(
             }
             Spacer(Modifier.height(6.dp))
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(item.category, fontSize = 11.5.sp, lineHeight = 16.sp, color = t.inkFaint)
+                Text(item.category, fontSize = 11.5.sp, lineHeight = 16.sp, color = feedChannelInk(item.category))
                 if (dl != null) {
                     Text(" · ", fontSize = 11.5.sp, lineHeight = 16.sp, color = t.inkFaint)
                     Text(

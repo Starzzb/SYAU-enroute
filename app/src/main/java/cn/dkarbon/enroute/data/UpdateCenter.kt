@@ -11,6 +11,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -78,7 +81,10 @@ class UpdateCenter(private val ctx: Context) {
                 continue
             }
             return@withContext when (val parsed = UpdateParse.latest(text)) {
-                is LatestResult.Fail -> CheckResult.Failed(parsed.reason)
+                is LatestResult.Fail -> {
+                    _available.value = null
+                    CheckResult.Failed(parsed.reason)
+                }
                 is LatestResult.Ok -> {
                     val info = parsed.info
                     when (UpdateVersions.relation(info.versionCode, localCode)) {
@@ -86,7 +92,9 @@ class UpdateCenter(private val ctx: Context) {
                             prefs.edit()
                                 .putLong(KEY_AVAILABLE_CODE, info.versionCode)
                                 .putString(KEY_AVAILABLE_NAME, info.versionName)
+                                .putString(KEY_AVAILABLE_INFO, serializeInfo(info))
                                 .apply()
+                            _available.value = info
                             CheckResult.Available(info, UpdateVersions.isMandatory(info, localCode))
                         }
                         UpdateRelation.SAME -> {
@@ -103,6 +111,7 @@ class UpdateCenter(private val ctx: Context) {
             }
         }
         if (silent) DebugLog.log("UPDATE", "静默检查失败：$lastErr")
+        _available.value = null
         CheckResult.Failed(lastErr)
     }
 
@@ -113,8 +122,17 @@ class UpdateCenter(private val ctx: Context) {
         return prefs.getString(KEY_AVAILABLE_NAME, null)
     }
 
+    /** 「不再提醒本次更新」压制的版本号（只存一个 Long，见文档 §1.2） */
+    fun dismissedCode(): Long = prefs.getLong(KEY_DISMISSED_CODE, 0L)
+
+    /** 记下「这个版本不再提醒」；下一版（versionCode 变了）照常弹 */
+    fun dismissVersion(code: Long) {
+        prefs.edit().putLong(KEY_DISMISSED_CODE, code).apply()
+    }
+
     private fun clearAvailable() {
-        prefs.edit().remove(KEY_AVAILABLE_CODE).remove(KEY_AVAILABLE_NAME).apply()
+        prefs.edit().remove(KEY_AVAILABLE_CODE).remove(KEY_AVAILABLE_NAME).remove(KEY_AVAILABLE_INFO).apply()
+        _available.value = null
     }
 
     // ── 下载 ─────────────────────────────────────────────
@@ -267,6 +285,9 @@ class UpdateCenter(private val ctx: Context) {
      * 不然没网时每次冷启动都重试，白烧流量和电。
      */
     fun maybeAutoCheckAsync() {
+        // 先把「上次已发现的新版」发出来：今天若还没到 24h 不重新查，弹窗也要能弹
+        //（文档 §1.2「我知道了 → 下次启动继续弹」依赖这一点）。
+        restorePendingFromPrefs()
         val now = System.currentTimeMillis()
         val last = prefs.getLong(KEY_LAST_AUTO, 0L).takeIf { it > 0L }
         if (!UpdateSchedule.shouldAutoCheck(now, last)) return
@@ -274,7 +295,52 @@ class UpdateCenter(private val ctx: Context) {
         scope.launch { runCatching { check(silent = true) } }
     }
 
+    /** 从上次落盘的完整 [UpdateInfo] 恢复进程级 `available`（只认比本机新的） */
+    private fun restorePendingFromPrefs() {
+        if (_available.value != null) return
+        val saved = prefs.getString(KEY_AVAILABLE_INFO, null) ?: return
+        val info = (UpdateParse.latest(saved) as? LatestResult.Ok)?.info ?: return
+        if (info.versionCode <= BuildConfig.VERSION_CODE.toLong()) return
+        _available.value = info
+    }
+
     companion object {
+        /**
+         * 进程级「有新版」信号（文档 §3.1）。检查在 Application 跑、展示在 UI 层，
+         * 两者靠它连接。用 [StateFlow] 不用 SharedFlow：UI 可能晚于检查完成才订阅，
+         * SharedFlow 会丢掉早到的事件。
+         */
+        private val _available = MutableStateFlow<UpdateInfo?>(null)
+        val available: StateFlow<UpdateInfo?> = _available.asStateFlow()
+
+        /**
+         * 「立即更新」的一次性下载请求：弹窗点「立即更新」→ 跳设置页，
+         * [cn.dkarbon.enroute.ui.settings.UpdateSection] 读到后自动开始下载（文档 §1.4 / §3.4 方案 A）。
+         * 消费后由 UpdateSection 置空，避免重进设置页时重复下载。
+         */
+        private val _downloadRequest = MutableStateFlow<UpdateInfo?>(null)
+        val downloadRequest: StateFlow<UpdateInfo?> = _downloadRequest.asStateFlow()
+
+        fun requestDownload(info: UpdateInfo) {
+            _downloadRequest.value = info
+        }
+
+        fun consumeDownloadRequest() {
+            _downloadRequest.value = null
+        }
+
+        /** [UpdateInfo] → latest.json 同构 JSON（落盘用，反序列化直接复用 [UpdateParse.latest]） */
+        private fun serializeInfo(info: UpdateInfo): String =
+            org.json.JSONObject()
+                .put("versionCode", info.versionCode)
+                .put("versionName", info.versionName)
+                .put("url", info.url)
+                .put("sha256", info.sha256)
+                .put("size", info.size)
+                .put("notes", info.notes)
+                .put("minSupported", info.minSupported)
+                .toString()
+
         /**
          * `latest.json` 的三个候选地址，按顺序试（第一个拿到就用）。
          *
@@ -301,6 +367,8 @@ class UpdateCenter(private val ctx: Context) {
         private const val KEY_LAST_AUTO = "lastAutoCheckAt"
         private const val KEY_AVAILABLE_CODE = "availableCode"
         private const val KEY_AVAILABLE_NAME = "availableName"
+        private const val KEY_AVAILABLE_INFO = "availableInfo"
+        private const val KEY_DISMISSED_CODE = "dismissedCode"
 
         /** 异常 → 人话（**直接显示给用户**） */
         fun describeNetError(e: Throwable?): String {
