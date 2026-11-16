@@ -167,7 +167,7 @@ fun CourseQuickActions(
             QuickRow(
                 index = "02",
                 title = "查看完整详情",
-                subtitle = "周次矩阵 · 课程号 · 完整地点（可在矩阵里点周跳转）",
+                subtitle = "周次矩阵 · 课程号 · 完整地点",
                 onClick = {
                     onDetail()
                     close()

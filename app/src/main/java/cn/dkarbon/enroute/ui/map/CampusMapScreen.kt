@@ -267,10 +267,6 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             val transformNow = androidx.compose.runtime.rememberUpdatedState(transform)
             val featuresNow = androidx.compose.runtime.rememberUpdatedState(pkg?.features.orEmpty())
             val features = pkg?.features.orEmpty()
-            // 提示条的三个数字必须从**合并后的实际数据**算（标注也算进去，票 12 §8.1）
-            val mergedRows = remember(pkg, ui.mapEdits) {
-                MapEditsOps.merged(pkg?.features.orEmpty(), ui.mapEdits)
-            }
             val paths = remember(pkg) { features.map { it to buildPath(it) } }
             val groups = remember(manifest, pkg) { manifest?.let { MapLayers.split(it, features) } }
 
@@ -614,58 +610,40 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 }
 
                 // ── 图例（顶栏按钮控显示/隐藏，默认显示）──
-                // 只列「本图实际出现过的 kind」；一个都没有时说明原因，别显示空框。
-                if (showLegend) {
-                    val present = features.filter { it.kind.isNotBlank() }.groupBy { it.kind }
+                // 只列「本图实际出现过的 kind」；一个都没有就整块不显示。
+                val present = features.filter { it.kind.isNotBlank() }.groupBy { it.kind }
+                if (showLegend && present.isNotEmpty()) {
                     Column(
                         Modifier.fillMaxWidth().padding(horizontal = Space.l, vertical = 4.dp)
                             .heightIn(max = 84.dp).verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(3.dp),
                     ) {
                         Text("图例", fontSize = 10.sp, color = t.ink, fontWeight = FontWeight.Bold)
-                        if (present.isEmpty()) {
-                            Text(
-                                "本图还没有标类别",
-                                fontSize = 9.5.sp,
-                                lineHeight = 14.sp,
-                                color = t.inkFaint,
-                            )
-                        } else {
-                            present.entries.sortedByDescending { it.value.size }.chunked(2).forEach { row ->
-                                Row(
-                                    Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(Space.m),
-                                ) {
-                                    row.forEach { (k, list) ->
-                                        Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-                                            Box(
-                                                Modifier.size(9.dp)
-                                                    .background(parseColor(list.firstOrNull()?.color.orEmpty(), t.cardAlt))
-                                                    .border(StrokeTokens.hairline, t.outline),
-                                            )
-                                            Spacer(Modifier.width(5.dp))
-                                            Text(
-                                                "${kindLabel(k, manifest)} ${list.size}",
-                                                fontSize = 9.sp,
-                                                color = t.inkSoft,
-                                            )
-                                        }
+                        present.entries.sortedByDescending { it.value.size }.chunked(2).forEach { row ->
+                            Row(
+                                Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(Space.m),
+                            ) {
+                                row.forEach { (k, list) ->
+                                    Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                                        Box(
+                                            Modifier.size(9.dp)
+                                                .background(parseColor(list.firstOrNull()?.color.orEmpty(), t.cardAlt))
+                                                .border(StrokeTokens.hairline, t.outline),
+                                        )
+                                        Spacer(Modifier.width(5.dp))
+                                        Text(
+                                            "${kindLabel(k, manifest)} ${list.size}",
+                                            fontSize = 9.sp,
+                                            color = t.inkSoft,
+                                        )
                                     }
-                                    if (row.size == 1) Spacer(Modifier.weight(1f))
                                 }
+                                if (row.size == 1) Spacer(Modifier.weight(1f))
                             }
                         }
                     }
                 }
-
-                // ── 常驻提示条（票 12 §8.1：不可关闭；数字从实际数据算，不许写死）──
-                MapNudgeBar(
-                    total = mergedRows.size,
-                    named = mergedRows.count { it.name.isNotBlank() },
-                    kinded = mergedRows.count { it.kind.isNotBlank() },
-                    hint = ui.mapGuideHint,
-                    onClick = { vm.openMapGuide() },
-                )
             }
         }
 
@@ -807,13 +785,6 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             )
         }
 
-        // 共建引导卡（票 12 §8.2）：首次进地图页自动弹一次，「怎么补？」随时可开
-        if (ui.mapGuideVisible) {
-            MapGuideCard(
-                onDismiss = { vm.closeMapGuide(false) },
-                onStart = { vm.closeMapGuide(true) },
-            )
-        }
     }
 
     // 加字段对话框
@@ -971,7 +942,6 @@ private fun PropertyPanel(
                 // 票 22：三档来源（待上传 / 共建 / 内置），**每一行都标出来** ——
                 // 用户必须能一眼看出「这条是谁的数据」，这是主人接受共享风险后的最低限度。
                 val rows = MapDataset.rows(feature, edits, dataset, officialFields)
-                val hasNonLocal = rows.any { it.source != MapDataset.Source.PENDING }
                 rows.forEach { row ->
                     LabeledInput(
                         label = row.name,
@@ -984,32 +954,7 @@ private fun PropertyPanel(
                         badge = MapDataset.label(row.source),
                     )
                 }
-                if (hasNonLocal) {
-                    Text(
-                        "「待上传」= 你填的、还没生效到服务器；「共建」= 服务器共享数据；" +
-                            "「内置」= 安装包里的基线。\n服务器有同名字段时以服务器为准；要覆盖共建值，「＋ 添加字段」加同名列。",
-                        fontSize = 8.5.sp,
-                        lineHeight = 12.sp,
-                        color = t.inkFaint,
-                    )
-                }
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    SmallButton("＋ 添加字段") { onAddField() }
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        "字段名全局共享（所有要素同一列）",
-                        fontSize = 8.5.sp,
-                        color = t.inkFaint,
-                    )
-                }
-                // 票 12b 的入口：本票不做，说明清楚，不造假数据
-                Box(
-                    Modifier.fillMaxWidth().border(StrokeTokens.hairline, t.outline).padding(vertical = 6.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("这栋楼今天的课（票 12b 待接入）", fontSize = 9.5.sp, color = t.inkFaint)
-                }
+                SmallButton("＋ 添加字段") { onAddField() }
             }
         }
     }
@@ -1112,8 +1057,6 @@ private fun AddFieldDialog(existing: List<String>, onDismiss: () -> Unit, onConf
         title = { Text("添加字段", fontSize = 14.sp) },
         text = {
             Column {
-                Text("字段名会加到所有要素上（同一列，值可为空）", fontSize = 11.sp)
-                Spacer(Modifier.height(8.dp))
                 TextField(
                     value = text,
                     onValueChange = { text = it.take(12) },
@@ -1218,115 +1161,6 @@ private fun DrawScope.drawFeatures(
 }
 
 // ── 小组件 ──────────────────────────────────────────────────
-
-/**
- * 页内常驻提示条（票 12 §8.1）：**不可关闭**。
- *
- * 数据诚实的一条：三个数字全从当前载入的数据算（含用户标注），没有一个是写死的常量。
- * 点整条或右侧「怎么补？」都打开引导卡。
- */
-@Composable
-private fun MapNudgeBar(
-    total: Int,
-    named: Int,
-    kinded: Int,
-    hint: String,
-    onClick: () -> Unit,
-) {
-    val t = InkTokens.current
-    Column(
-        Modifier.fillMaxWidth()
-            .padding(horizontal = Space.l, vertical = 4.dp)
-            .background(t.cardAlt)
-            .border(StrokeTokens.hairline, t.outline)
-            .clickable(onClick = onClick)
-            .padding(horizontal = Space.s, vertical = 6.dp),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                MapNudge.line(total, named, kinded),
-                fontSize = 9.5.sp,
-                lineHeight = 14.sp,
-                color = t.inkSoft,
-                modifier = Modifier.weight(1f),
-            )
-            Spacer(Modifier.width(Space.xs))
-            Text(
-                MapNudge.ACTION,
-                fontSize = 9.5.sp,
-                color = t.primary,
-                fontWeight = FontWeight.Bold,
-            )
-        }
-        if (hint.isNotBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text(hint, fontSize = 9.sp, color = t.primary)
-        }
-    }
-}
-
-/** 共建引导卡（票 12 §8.2）：五步 + 隐私小字 + 两个按钮 */
-@Composable
-private fun MapGuideCard(onDismiss: () -> Unit, onStart: () -> Unit) {
-    val t = InkTokens.current
-    Box(
-        Modifier.fillMaxSize().background(Color(0x66000000)),
-        contentAlignment = Alignment.Center,
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = Space.l)
-                .background(t.card).border(1.5.dp, t.outline)
-                .padding(Space.l)
-                .heightIn(max = 520.dp)
-                .verticalScroll(rememberScrollState()),
-        ) {
-            Text(MapNudge.GUIDE_TITLE, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = t.ink)
-            Spacer(Modifier.height(3.dp))
-            Text(MapNudge.GUIDE_SUBTITLE, fontSize = 10.5.sp, lineHeight = 15.sp, color = t.inkFaint)
-            Spacer(Modifier.height(Space.s))
-
-            MapNudge.GUIDE_STEPS.forEachIndexed { i, (title, body) ->
-                Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.Top) {
-                    Text(
-                        "${i + 1}",
-                        fontSize = 10.sp,
-                        color = t.primary,
-                        fontWeight = FontWeight.Bold,
-                        fontFamily = NumericFont,
-                        modifier = Modifier.width(16.dp),
-                    )
-                    Column(Modifier.weight(1f)) {
-                        Text(title, fontSize = 11.5.sp, color = t.ink, fontWeight = FontWeight.Medium)
-                        Text(body, fontSize = 10.sp, lineHeight = 15.sp, color = t.inkSoft)
-                    }
-                }
-            }
-
-            Spacer(Modifier.height(Space.s))
-            // 隐私 + 数据诚实的底线，必须显示
-            Text(
-                MapNudge.GUIDE_FOOTNOTE,
-                fontSize = 9.5.sp,
-                lineHeight = 14.sp,
-                color = t.inkFaint,
-            )
-            Spacer(Modifier.height(Space.m))
-
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.s)) {
-                Box(
-                    Modifier.weight(1f).border(StrokeTokens.hairline, t.outline)
-                        .clickable(onClick = onDismiss).padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center,
-                ) { Text("知道了", fontSize = 12.sp, color = t.inkSoft) }
-                Box(
-                    Modifier.weight(1f).background(t.primary)
-                        .clickable(onClick = onStart).padding(vertical = 10.dp),
-                    contentAlignment = Alignment.Center,
-                ) { Text("开始标注", fontSize = 12.sp, color = t.paper, fontWeight = FontWeight.Bold) }
-            }
-        }
-    }
-}
 
 @Composable
 private fun FloatingMapControls(

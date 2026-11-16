@@ -229,10 +229,6 @@ data class AppState(
     val mapSelectedId: String = "",
     /** 换图后在新版里找不到的标注 id（绝不静默丢弃） */
     val mapOrphans: List<String> = emptyList(),
-    /** 「共建引导」卡片是否可见（首次进地图页自动弹一次，票 12 §8.2） */
-    val mapGuideVisible: Boolean = false,
-    /** 「开始标注」后的一句提示 */
-    val mapGuideHint: String = "",
     /** 导出结果的一句话 */
     val mapExportMsg: String = "",
     val mapExportGeoJson: String = "",

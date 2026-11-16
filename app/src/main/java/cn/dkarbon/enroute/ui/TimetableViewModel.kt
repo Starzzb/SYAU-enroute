@@ -1041,42 +1041,19 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 "地图包 ${pkg.manifest.version}（${pkg.source}）${pkg.features.size} 面 · " +
                     "标注 ${edits.features.size} 条 · 孤立 ${orphans.size} · $path",
             )
-            // 共建引导（票 12 §8.3）：第一次进地图页自动弹一次；之后只能从「怎么补？」打开
-            val guideSeen = withContext(Dispatchers.IO) { runCatching { prefs.mapGuideSeen }.getOrDefault(false) }
+            // 共建引导已移除（票 12 §8.3 的首次自动弹不再需要）：点任意地块即见编辑面板
             _ui.value = _ui.value.copy(
                 mapPackage = pkg,
                 mapLoading = false,
                 mapEdits = edits,
                 mapOrphans = orphans,
                 mapSelectedId = "",
-                mapGuideVisible = !guideSeen,
                 mapMsg = when {
                     !pkg.ok -> "地图包读不出来：${cn.dkarbon.enroute.data.map.MapPackageRules.describe(pkg.issue)}"
                     else -> pkg.fallbackNote
                 },
             )
         }
-    }
-
-    /** 「怎么补？」或在设置里再次查看共建引导 */
-    fun openMapGuide() {
-        _ui.value = _ui.value.copy(mapGuideVisible = true, mapGuideHint = "")
-    }
-
-    /**
-     * 关掉引导卡（两个按钮都走这里）。
-     *
-     * 关一次就记下「弹过了」—— 下次进页面不再自动弹，但「怎么补？」随时能开。
-     * @param start true = 点了「开始标注」，给一句「去点地图上任意一块」
-     */
-    fun closeMapGuide(start: Boolean = false) {
-        viewModelScope.launch {
-            withContext(Dispatchers.IO) { runCatching { prefs.mapGuideSeen = true } }
-        }
-        _ui.value = _ui.value.copy(
-            mapGuideVisible = false,
-            mapGuideHint = if (start) cn.dkarbon.enroute.ui.map.MapNudge.START_HINT else "",
-        )
     }
 
     fun selectMapFeature(id: String) {

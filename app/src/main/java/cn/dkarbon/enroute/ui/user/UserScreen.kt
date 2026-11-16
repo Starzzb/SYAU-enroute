@@ -472,7 +472,7 @@ private fun UserHeaderMenu(
             UserMenuRow(
                 index = "01",
                 title = "刷新",
-                sub = "只刷新身份 + 学分/绩点这一组（票 24）",
+                sub = "只刷新身份 + 学分/绩点这一组",
                 enabled = refreshEnabled,
                 onClick = { onRefresh(); onDismiss() },
             )
