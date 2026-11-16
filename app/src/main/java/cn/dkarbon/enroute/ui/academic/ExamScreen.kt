@@ -202,7 +202,6 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                 t = t,
                 ui = ui,
                 vm = vm,
-                paths = listOf(AcademicApi.examPathPreview()),
                 onDismiss = { showDiag = false },
             )
         }

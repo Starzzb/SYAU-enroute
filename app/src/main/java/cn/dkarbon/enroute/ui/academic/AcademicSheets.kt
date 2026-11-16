@@ -479,76 +479,10 @@ fun DiagnoseSheet(
     t: InkTokenSet,
     ui: AppState,
     vm: TimetableViewModel,
-    paths: List<String>,
     onDismiss: () -> Unit,
 ) {
-    AcademicSheet(
-        t = t,
-        title = "接口诊断",
-        subtitle = "只读，不发任何写请求。请求会走当前登录态（如果登录过）",
-        onDismiss = onDismiss,
-    ) {
-        Text("这两个页面用的地址", fontSize = 10.5.sp, color = t.inkFaint)
-        Spacer(Modifier.height(6.dp))
-        paths.forEach { p ->
-            SelectionContainer {
-                Text(
-                    p,
-                    fontSize = 9.5.sp,
-                    lineHeight = 14.sp,
-                    fontFamily = NumericFont,
-                    color = t.inkSoft,
-                    modifier = Modifier.padding(vertical = 2.dp),
-                )
-            }
-        }
-        Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            SheetAction(
-                t = t,
-                label = if (ui.probing) "探测中…" else "跑一次诊断",
-                primary = true,
-                enabled = !ui.probing,
-                onClick = { vm.runProbe() },
-            )
-        }
-        if (ui.probeMsg.isNotBlank()) {
-            Spacer(Modifier.height(8.dp))
-            Text(ui.probeMsg, fontSize = 10.5.sp, lineHeight = 16.sp, color = t.inkFaint)
-        }
-        if (ui.probe.isNotEmpty()) {
-            Spacer(Modifier.height(10.dp))
-            ui.probe.forEach { p ->
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .background(t.card)
-                        .border(Stroke.hairline, t.rule)
-                        .padding(8.dp),
-                ) {
-                    Text(
-                        "${if (p.looksLikeJson) "JSON" else "非JSON"} · ${p.status} · ${p.bytes}B",
-                        fontSize = 10.sp,
-                        fontFamily = NumericFont,
-                        color = if (p.looksLikeJson) t.olive else t.inkFaint,
-                    )
-                    Text(p.path, fontSize = 9.5.sp, lineHeight = 14.sp, fontFamily = NumericFont, color = t.inkSoft)
-                    if (p.sample.isNotBlank()) {
-                        Spacer(Modifier.height(2.dp))
-                        Text(p.sample, fontSize = 9.sp, lineHeight = 13.sp, color = t.inkFaint, maxLines = 4)
-                    }
-                }
-            }
-        } else if (!ui.probing) {
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "还没跑过诊断。如果上面这些地址都返回不了 JSON，多半是没连校园网 / 登录态过期。",
-                fontSize = 10.sp,
-                lineHeight = 15.sp,
-                color = t.inkFaint,
-            )
-        }
+    AcademicSheet(t = t, title = "接口诊断", onDismiss = onDismiss) {
+        ProbePanel(t = t, ui = ui, onRun = { vm.runProbe() })
     }
 }
 

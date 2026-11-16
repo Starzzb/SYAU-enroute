@@ -189,7 +189,6 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
             t = t,
             ui = ui,
             vm = vm,
-            paths = listOf(AcademicApi.scorePathPreview()),
             onDismiss = { showDiag = false },
         )
     }

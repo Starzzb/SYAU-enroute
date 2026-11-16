@@ -36,8 +36,8 @@ object UrpHomeApi {
 
     // ── 路径 ──────────────────────────────────────────────
     private const val PROFILE = "/student/rollManagement/rollInfo/index"
-    private const val PLAN_INDEX = "/student/integratedQuery/instructionPlanQuery/detail/index"
-    private const val PASS_INDEX = "/student/integratedQuery/scoreQuery/allPassingScores/index"
+    internal const val PLAN_INDEX = "/student/integratedQuery/instructionPlanQuery/detail/index"
+    internal const val PASS_INDEX = "/student/integratedQuery/scoreQuery/allPassingScores/index"
     private const val CAMPUS_LIST = "/student/teachingResources/freeClassroom/queryCodeCampusList"
     private const val BUILDING_LIST = "/student/teachingResources/freeClassroom/queryCodeTeaBuildingList"
     private const val FREE_ROOMS = "/student/teachingResources/freeClassroom/today"
@@ -56,10 +56,10 @@ object UrpHomeApi {
     internal const val CLASSROOM_PAGE_SIZE = 200
 
     /** 培养方案页里那次性的随机 token */
-    private val PLAN_TOKEN_RE = Regex("""instructionPlanQuery/([A-Za-z0-9]{8,16})/detail""")
+    internal val PLAN_TOKEN_RE = Regex("""instructionPlanQuery/([A-Za-z0-9]{8,16})/detail""")
 
     /** 及格成绩页里那次性的随机 token */
-    private val PASS_TOKEN_RE = Regex("""scoreQuery/([A-Za-z0-9]{8,16})/allPassingScores""")
+    internal val PASS_TOKEN_RE = Regex("""scoreQuery/([A-Za-z0-9]{8,16})/allPassingScores""")
 
     // ── 模型 ──────────────────────────────────────────────
 

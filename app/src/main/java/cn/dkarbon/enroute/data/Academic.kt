@@ -363,44 +363,108 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
     // ── 诊断 ──────────────────────────────────────────────
 
     /**
-     * 把真实用到的几条路径打一遍，给设置页「接口诊断」用。
-     * 现在列出了真接口，所以它的作用变成「确认登录态还有效 / 学校换版本了没」。
+     * 逐条探 [ProbeCatalog.specs]，探完一条回调一条 —— UI 才能一条一条地放锁和钥匙。
+     *
+     * 顺序由 [ProbeCatalog.specs] 决定，不能打乱：成绩数据要用成绩首页给出的 token，
+     * 培养方案明细要用方案页给出的 token。全部及格那条是**两步流**（先打
+     * `allPassingScores/index` 抠 token，再打 `allPassingScores/callback`），
+     * 行里报的是 callback 的结果 —— token 本身不上 UI。
+     *
+     * 只读：这 14 条全是 GET，不碰选课、退课、报名、评教。
+     *
+     * @param onStep (索引, 结果)，索引与 [ProbeCatalog.specs] 一一对应。
      */
-    suspend fun probe(session: UrpClient.Session): List<ProbeResult> {
-        val out = mutableListOf<ProbeResult>()
+    suspend fun probeEach(
+        session: UrpClient.Session,
+        onStep: (index: Int, result: ProbeResult) -> Unit,
+    ) {
         val today = LocalDate.now()
         val examPath = "$EXAM_DETAIL?start=${today.minusDays(100).format(DASH)}" +
             "&end=${today.plusDays(150).format(DASH)}&_=${System.currentTimeMillis()}"
 
-        // ① 考试（先预热考试页，否则 detail 恒返回 203）
-        runCatching { get(EXAM_INDEX, session) }
-        out += runCatching {
-            val (status, body) = get(examPath, session)
-            ProbeResult(examPath, status, body.length, body.trimStart().startsWith("["), body.take(200))
-        }.getOrElse { ProbeResult(examPath, -1, 0, false, "请求失败：${it.message}") }
+        var scoreToken: String? = null
+        var planToken: String? = null
 
-        // ② 成绩首页（拿 token）
-        var token: String? = null
-        out += runCatching {
-            val (status, body) = get(SCORE_INDEX, session)
-            token = TOKEN_RE.find(body)?.groupValues?.get(1)
-            ProbeResult(
-                SCORE_INDEX, status, body.length, false,
-                "token=" + (token ?: "未找到") + " · " + body.take(120).replace("\n", " "),
-            )
-        }.getOrElse { ProbeResult(SCORE_INDEX, -1, 0, false, "请求失败：${it.message}") }
+        ProbeCatalog.specs.forEachIndexed { i, spec ->
+            val pair: Pair<ProbeResult, String> = when (spec.id) {
+                // 考试页顺带当明细的预热：不先开这一页，detail 恒返回 203。
+                "exam.index" -> once(examPath, session)
 
-        // ③ 成绩数据
-        token?.let { tk ->
-            val dataPath = "/student/integratedQuery/scoreQuery/$tk/allTermScores/data"
-            out += runCatching {
-                val (status, body) = get(dataPath, session)
-                ProbeResult(dataPath, status, body.length, body.trimStart().startsWith("{"), body.take(200))
-            }.getOrElse { ProbeResult(dataPath, -1, 0, false, "请求失败：${it.message}") }
+                "score.index" -> once(SCORE_INDEX, session).also { p ->
+                    scoreToken = TOKEN_RE.find(p.second)?.groupValues?.get(1)
+                }
+
+                "score.data" -> scoreToken?.let {
+                    once("/student/integratedQuery/scoreQuery/$it/allTermScores/data", session)
+                } ?: noToken(spec.path, "成绩首页没给出 token")
+
+                "score.pass" -> {
+                    val tk = once(UrpHomeApi.PASS_INDEX, session).second.let { html ->
+                        UrpHomeApi.PASS_TOKEN_RE.find(html)?.groupValues?.get(1)
+                    }
+                    tk?.let {
+                        once("/student/integratedQuery/scoreQuery/$it/allPassingScores/callback", session)
+                    } ?: noToken(spec.path, "全部及格页没给出 token")
+                }
+
+                "plan.index" -> once(UrpHomeApi.PLAN_INDEX, session).also { p ->
+                    planToken = UrpHomeApi.PLAN_TOKEN_RE.find(p.second)?.groupValues?.get(1)
+                }
+
+                "plan.detail" -> planToken?.let {
+                    once("/student/integratedQuery/instructionPlanQuery/$it/detail/callback", session)
+                } ?: noToken(spec.path, "培养方案页没给出 token")
+
+                // 查教师是 POST 表单接口，GET 会 405。参数取「空学期 + 空关键字 + 只要 1 条」：
+                // 服务器照样回 JSON（`records: []`），足以说明这条接口还活着。
+                "teacher.search" -> call(
+                    spec.path, session,
+                    listOf(
+                        "executiveEducationPlanNumber" to "",
+                        "departmentNum" to "",
+                        "teacherName" to "",
+                        "pageNum" to "1",
+                        "pageSize" to "1",
+                    ),
+                )
+
+                // 空闲教室是**会话粘滞**的两步：先 POST 选中楼栋，GET 才答得出那一栋。
+                // 第一步只是选择视图（不写任何数据），第二步才是要报的那一条。
+                "room.free" -> {
+                    call(
+                        "/student/teachingResources/freeClassroom/today", session,
+                        listOf("position" to "001_1", "xqm" to ""),
+                    )
+                    once("/student/teachingResources/freeClassroom/today/11?dayplus=0", session)
+                }
+
+                else -> once(spec.path, session)
+            }
+            onStep(i, pair.first)
         }
-
-        return out
     }
+
+    /** 打一个地址（默认 GET，给了 [form] 就 POST 表单），返回结果和用来抠 token 的完整正文 */
+    private fun call(
+        path: String,
+        session: UrpClient.Session,
+        form: List<Pair<String, String>>? = null,
+    ): Pair<ProbeResult, String> =
+        runCatching { if (form == null) get(path, session) else post(path, form, session) }
+            .map { (code, body) ->
+                val head = body.trimStart()
+                val json = head.startsWith("{") || head.startsWith("[")
+                ProbeResult(path, code, body.length, json, head.take(200)) to body
+            }
+            .getOrElse {
+                ProbeResult(path, -1, 0, false, "请求失败：${it.message}") to ""
+            }
+
+    private fun once(path: String, session: UrpClient.Session) = call(path, session)
+
+    /** 前置页面没给出 token —— 请求根本没有发出去，如实记成失败，不伪造状态码 */
+    private fun noToken(path: String, why: String): Pair<ProbeResult, String> =
+        ProbeResult(path, -1, 0, false, why) to ""
 
     // ── 工具 ──────────────────────────────────────────────
 
@@ -431,6 +495,45 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
             code to body
         } catch (e: Exception) {
             DebugLog.error("API", "GET ${path.take(80)} 失败：${e.javaClass.simpleName} ${e.message}")
+            throw e
+        } finally {
+            conn.disconnect()
+        }
+    }
+
+    /** 诊断用的一次 POST 表单请求。只给只读的两条（查教师、选空闲教室的楼栋）用 */
+    private fun post(
+        path: String,
+        form: List<Pair<String, String>>,
+        session: UrpClient.Session,
+    ): Pair<Int, String> {
+        DebugLog.request("API", "POST", path)
+        val body = form.joinToString("&") {
+            "${java.net.URLEncoder.encode(it.first, "UTF-8")}=" +
+                java.net.URLEncoder.encode(it.second, "UTF-8")
+        }
+        val conn = URL(URP + path).openConnection() as java.net.HttpURLConnection
+        return try {
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.connectTimeout = 12_000
+            conn.readTimeout = 20_000
+            conn.instanceFollowRedirects = true
+            conn.setRequestProperty("User-Agent", UA)
+            conn.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01")
+            conn.setRequestProperty("X-Requested-With", "XMLHttpRequest")
+            conn.setRequestProperty("Referer", "$URP/")
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+            val cookie = session.cookieHeader()
+            if (cookie.isNotBlank()) conn.setRequestProperty("Cookie", cookie)
+            conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
+            val code = conn.responseCode
+            val stream = if (code in 200..299) conn.inputStream else conn.errorStream
+            val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
+            DebugLog.http("API", "POST", path, code, text.length, preview = text)
+            code to text
+        } catch (e: Exception) {
+            DebugLog.error("API", "POST ${path.take(80)} 失败：${e.javaClass.simpleName} ${e.message}")
             throw e
         } finally {
             conn.disconnect()

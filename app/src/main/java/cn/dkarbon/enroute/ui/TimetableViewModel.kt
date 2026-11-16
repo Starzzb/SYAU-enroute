@@ -2025,21 +2025,26 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         cn.dkarbon.enroute.data.DebugLog.log("DATA", "载入示例数据：考试 ${exams.size} 场 / 成绩 ${scores.size} 条")
     }
 
-    // ── 诊断：把候选接口全打一遍 ──────────────────────────
+    // ── 诊断：把候选接口逐条打一遍 ────────────────────────
     fun runProbe() {
         val s = session
         if (s == null) {
-            _ui.value = _ui.value.copy(probeMsg = "先登录一次再诊断", probing = false)
+            _ui.value = _ui.value.copy(probing = false, probe = emptyList(), probeMsg = "先登录一次")
             return
         }
-        _ui.value = _ui.value.copy(probing = true, probeMsg = "探测中…", probe = emptyList())
+        _ui.value = _ui.value.copy(probing = true, probeMsg = "", probe = emptyList())
         viewModelScope.launch {
-            val r = runCatching { withContext(Dispatchers.IO) { AcademicApi.probe(s) } }
+            // 探一条推一条：界面靠 probe.size 决定哪一行正在被钥匙戳。
+            val err = runCatching {
+                withContext(Dispatchers.IO) {
+                    AcademicApi.probeEach(s) { _, r ->
+                        _ui.value = _ui.value.copy(probe = _ui.value.probe + r)
+                    }
+                }
+            }.exceptionOrNull()
             _ui.value = _ui.value.copy(
                 probing = false,
-                probe = r.getOrDefault(emptyList()),
-                probeMsg = r.exceptionOrNull()?.let { friendlyError(it) }
-                    ?: "探测完成，看下面哪条返回了 JSON",
+                probeMsg = err?.let { friendlyError(it) } ?: "",
             )
         }
     }

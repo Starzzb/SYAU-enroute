@@ -43,6 +43,7 @@ import cn.dkarbon.enroute.data.SessionState
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.SessionText
 import cn.dkarbon.enroute.ui.TimetableViewModel
+import cn.dkarbon.enroute.ui.academic.ProbePanel
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
@@ -433,62 +434,7 @@ fun SettingsScreen(
         }
 
         Spacer(Modifier.height(8.dp))
-        Text(
-            "接口诊断：课表/考试/成绩的真实接口是靠探测出来的，学校若升级版本，这里能先看出来。",
-            fontSize = 10.5.sp,
-            lineHeight = 16.sp,
-            color = t.inkFaint,
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                Modifier
-                    .clip(RectangleShape)
-                    .background(if (ui.probing) t.cardAlt else t.card)
-                    .clickable(enabled = !ui.probing) { vm.runProbe() }
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-            ) {
-                Text(
-                    if (ui.probing) "探测中…" else "开始诊断",
-                    fontSize = 12.sp,
-                    color = if (ui.probing) t.inkFaint else t.ink,
-                )
-            }
-            if (ui.probeMsg.isNotBlank()) {
-                Spacer(Modifier.width(10.dp))
-                Text(ui.probeMsg, fontSize = 10.sp, color = t.inkFaint)
-            }
-        }
-
-        if (ui.probe.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            ui.probe.forEach { p ->
-                Column(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                        .clip(RectangleShape)
-                        .background(t.card)
-                        .padding(8.dp),
-                ) {
-                    Text(
-                        "${if (p.looksLikeJson) "✅" else "·"} ${p.status}  ${p.bytes}B  ${p.path}",
-                        fontSize = 9.5.sp,
-                        fontFamily = NumericFont,
-                        color = if (p.looksLikeJson) t.olive else t.inkFaint,
-                    )
-                    if (p.sample.isNotBlank()) {
-                        Text(
-                            p.sample,
-                            fontSize = 9.sp,
-                            lineHeight = 13.sp,
-                            color = t.inkFaint,
-                            maxLines = 3,
-                        )
-                    }
-                }
-            }
-        }
+        ProbePanel(t = t, ui = ui, onRun = { vm.runProbe() })
 
         // ── 关于 ──
         // 票 26 ②：这一块只留**功能**，长文字搬家到独立页 AboutScreen。
