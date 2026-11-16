@@ -53,6 +53,21 @@
 单上下文（根目录 `GLOSSARY.md` + `docs/adr/`，两者目前尚未创建，按需由 `/domain-modeling` 懒生成）。
 详见 `docs/agents/domain.md`。
 
+## 图标：只用 `material-icons-core`，超出部分自己画（2026-11-16）
+
+`material-icons-extended` 的 aar 有 **34 MB**（core 只有 0.8 MB）。release 有 R8 剥离，
+最终 APK 差别不到 1 KB；但 **debug 不剥离**，开发期装包和构建都会被它拖慢。
+
+规矩：
+
+- 依赖只留 `androidx.compose.material:material-icons-core`
+- core 里没有、又确实要用的图标，画在 `app/src/main/java/cn/dkarbon/enroute/ui/icons/AppIcons.kt`
+- 画布一律 24dp、viewport 24×24，与 core 口径一致，这样 `Icon(size = 19.dp)` 的观感不变
+- 颜色写 `Color.Black`，交给 `Icon(tint = ...)` 覆盖，不要在图标里写死主题色
+
+现有自绘五个：`Article`（资讯）、`Today`（本周）、`StarBorder`（收藏未选中）、
+`MarkEmailUnread` / `MarkEmailUnreadFilled`（未读）。再加之前先确认 core 里真的没有：
+`Icons.Outlined.*` 在 core 里是**有**的（`Close`、`Search` 都在），别想当然地重画。
 ## 并发构建（血泪教训）
 
 **同一时间只允许一个 Gradle 构建**。两个进程同时写 `app/build/intermediates` 会出现

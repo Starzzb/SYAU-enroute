@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Badge
@@ -64,6 +63,7 @@ import cn.dkarbon.enroute.ui.theme.Stroke
 import cn.dkarbon.enroute.ui.timetable.TimetableScreen
 import cn.dkarbon.enroute.ui.user.UserScreen
 import kotlinx.coroutines.delay
+import cn.dkarbon.enroute.ui.icons.AppIcons
 
 private const val FIRST_FRAME_SETTLE_MS = 500L
 
@@ -148,7 +148,7 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
                     HardTab("课表", Icons.Default.DateRange, tab == 0, 0) { tab = 0 }
                     HardTab(
                         label = "资讯",
-                        icon = Icons.AutoMirrored.Filled.Article,
+                        icon = AppIcons.Article,
                         selected = tab == 1,
                         index = 1,
                         // 正在看资讯时不挂徽标（未读数页头已承载）；切走恢复

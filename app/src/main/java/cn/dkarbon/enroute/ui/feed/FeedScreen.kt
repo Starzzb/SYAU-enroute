@@ -44,11 +44,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material.icons.outlined.FilterAltOff
-import androidx.compose.material.icons.outlined.MarkEmailUnread
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.MarkEmailUnread
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.material.icons.Icons
@@ -107,6 +103,7 @@ import cn.dkarbon.enroute.ui.theme.primaryInk
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import cn.dkarbon.enroute.ui.icons.AppIcons
 
 /** 页眉整条高度：44dp 行 + 1dp 页眉线，收起动画按它塌缩。 */
 private val FeedHeaderHeight = 45.dp
@@ -524,7 +521,7 @@ private fun SearchRow(
                 onClick = onToggleUnread,
             ) {
                 Icon(
-                    imageVector = if (onlyUnread) Icons.Filled.MarkEmailUnread else Icons.Outlined.MarkEmailUnread,
+                    imageVector = if (onlyUnread) AppIcons.MarkEmailUnreadFilled else AppIcons.MarkEmailUnread,
                     contentDescription = null,
                     tint = if (onlyUnread) accent else t.inkSoft,
                     modifier = Modifier.size(19.dp),
@@ -537,7 +534,7 @@ private fun SearchRow(
                 onClick = onToggleStarred,
             ) {
                 Icon(
-                    imageVector = if (starredOnly) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    imageVector = if (starredOnly) Icons.Filled.Star else AppIcons.StarBorder,
                     contentDescription = null,
                     tint = if (starredOnly) t.amber else t.inkSoft,
                     modifier = Modifier.size(19.dp),

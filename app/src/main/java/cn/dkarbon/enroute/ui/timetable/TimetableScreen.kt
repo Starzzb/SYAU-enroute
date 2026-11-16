@@ -34,7 +34,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.Today
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ripple
 import androidx.compose.material3.Button
@@ -99,6 +98,7 @@ import cn.dkarbon.enroute.ui.theme.primaryInk
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.util.Calendar
+import cn.dkarbon.enroute.ui.icons.AppIcons
 
 // ── 底纹手势驱动（滑动才转）────────────────────────────────
 // drive 单位 = 「圈」（1.0 = 超立方体一个完整四维周期，与 MathBackdropMotion 的 phase 同单位）。
@@ -1196,7 +1196,7 @@ private fun WeekHeader(
                 icon = Icons.AutoMirrored.Filled.ArrowForward,
                 tint = if (week < maxWeek) t.inkSoft else t.outline,
             )
-            HeaderIcon(icon = Icons.Default.Today, tint = t.primary)
+            HeaderIcon(icon = AppIcons.Today, tint = t.primary)
         }
 
             // ── 48dp 触区（透明，不参与布局）────────────────────
