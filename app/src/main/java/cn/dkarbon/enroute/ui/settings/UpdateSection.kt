@@ -1,5 +1,8 @@
 package cn.dkarbon.enroute.ui.settings
 
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,6 +16,8 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -85,7 +90,7 @@ internal fun UpdateSection() {
                     state = Ui.Ready(r.apk, info)
                 UpdateCenter.DownloadResult.Cancelled ->
                     state = Ui.Available(info, UpdateVersions.isMandatory(info, BuildConfig.VERSION_CODE.toLong()))
-                is UpdateCenter.DownloadResult.Failed -> state = Ui.Error(r.message)
+                is UpdateCenter.DownloadResult.Failed -> state = Ui.Error(r.message, info.url, helpTextFor(info, r.message))
             }
         }
     }
@@ -232,12 +237,53 @@ internal fun UpdateSection() {
             is Ui.Error -> {
                 Spacer(Modifier.height(6.dp))
                 StatusLine(s.message, t.brick)
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    "不着急的话可以稍后再试；更新只是可选动作，不影响现在的使用。",
-                    fontSize = 10.sp,
-                    color = t.inkFaint,
-                )
+                Spacer(Modifier.height(8.dp))
+                // GitHub Release 在部分网络下不通（App 内 HttpURLConnection 过不了，
+                // 但系统浏览器有时能过 —— 两者的代理/TLS 栈不同）。
+                // 三个出口全是动作名，不写"为什么会失败"之类的说明（AGENTS.md）。
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(
+                        onClick = {
+                            // 用外部浏览器打开 Release 页；连 info.url 都拿不到时退到仓库 releases 列表
+                            val target = s.url.ifBlank { RELEASES_PAGE }
+                            runCatching {
+                                ctx.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(target))
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                )
+                            }
+                        },
+                        modifier = Modifier.heightIn(min = 40.dp),
+                    ) { Text("浏览器下载", fontSize = 12.sp) }
+
+                    Spacer(Modifier.width(8.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            val cb = ctx.getSystemService(android.content.Context.CLIPBOARD_SERVICE)
+                                as? android.content.ClipboardManager
+                            cb?.setPrimaryClip(
+                                android.content.ClipData.newPlainText("更新求助", s.helpText),
+                            )
+                            Toast.makeText(ctx, "已复制", Toast.LENGTH_SHORT).show()
+                        },
+                        modifier = Modifier.heightIn(min = 40.dp),
+                    ) { Text("复制求助文本", fontSize = 12.sp) }
+
+                    Spacer(Modifier.width(8.dp))
+
+                    TextButton(
+                        onClick = {
+                            runCatching {
+                                ctx.startActivity(
+                                    Intent(Intent.ACTION_VIEW, Uri.parse(ISSUES_PAGE))
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                                )
+                            }
+                        },
+                        modifier = Modifier.heightIn(min = 40.dp),
+                    ) { Text("联系开发者", fontSize = 12.sp) }
+                }
             }
             is Ui.NeedPermission -> {
                 Spacer(Modifier.height(6.dp))
@@ -247,6 +293,22 @@ internal fun UpdateSection() {
     }
 }
 
+
+/** 仓库 issues 页：下载不通时给用户一个能说话的入口 */
+private const val ISSUES_PAGE = "https://github.com/Starzzb/SYAU-enroute/issues"
+private const val RELEASES_PAGE = "https://github.com/Starzzb/SYAU-enroute/releases"
+
+/**
+ * 「求助文本」：复制到剪贴板让用户直接发给开发者。
+ *
+ * 带三样东西就够了 —— 从哪版到哪版、失败原因、一句话诉求。
+ * 版本号**动态拼**，不写死（否则下个版本又得改）。
+ */
+private fun helpTextFor(info: UpdateInfo, reason: String): String = buildString {
+    append("我在更新到 ${info.versionName} 时下载失败（当前 ${BuildConfig.VERSION_NAME}）。\n")
+    append("失败原因：$reason\n")
+    append("请给我一个可用下载地址，谢谢。")
+}
 /** 页面级状态（不进 VM，页面退出即丢；只有「有新版本」的名字落盘） */
 private sealed interface Ui {
     data object Idle : Ui
@@ -256,7 +318,18 @@ private sealed interface Ui {
     data class Available(val info: UpdateInfo, val mandatory: Boolean) : Ui
     data class Downloading(val done: Long, val total: Long) : Ui
     data class Ready(val apk: File, val info: UpdateInfo) : Ui
-    data class Error(val message: String) : Ui
+    /**
+     * 出错状态。
+     *
+     * @param message 给用户看的一句话原因
+     * @param url 已知的下载地址（有就用作「浏览器下载」的目标；拿不到时退到 releases 列表页）
+     * @param helpText 预填的求助文本（复制到剪贴板，用户粘给开发者）
+     */
+    data class Error(
+        val message: String,
+        val url: String = "",
+        val helpText: String = "",
+    ) : Ui
     data class NeedPermission(val text: String) : Ui
 }
 

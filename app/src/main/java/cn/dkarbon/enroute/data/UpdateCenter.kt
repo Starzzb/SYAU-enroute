@@ -61,19 +61,20 @@ class UpdateCenter(private val ctx: Context) {
         val localName = BuildConfig.VERSION_NAME
         var lastErr = "连不上服务器（可能没网，或服务器在维护）"
 
-        for (url in MANIFEST_URLS) {
-            val res = runCatching { httpGetText(url, timeoutMs = 10_000) }
+        for (raw in MANIFEST_URLS) {
+            // 每条都带按小时变化的 ?t=，绕开 jsDelivr 的 12 小时边缘缓存
+            val url = cacheBusted(raw, hourStamp())
+            val res = runCatching { httpGetText(url, timeoutMs = MANIFEST_TIMEOUT_MS) }
             val text = res.getOrNull()
             if (text == null) {
                 val e = res.exceptionOrNull()
                 val msg = e?.message.orEmpty()
-                // 仓库改名 / 换默认分支这类错误**不会自己好**，但用户永远看不到
-                // （会静默回落到明文 http，正好绕过前缀钉死）。所以在日志里留一条 ERROR：
-                // raw 地址 404 基本等于「仓库名或分支写错了」，见 MANIFEST_URLS 的注释。
-                if (url.contains("raw.githubusercontent.com") && msg.contains("404")) {
+                // 仓库改名 / 换默认分支这类错误**不会自己好**，但用户永远看不到。
+                // 所以在日志里留一条 ERROR：raw 地址 404 基本等于「仓库名或分支写错了」。
+                if (raw.contains("raw.githubusercontent.com") && msg.contains("404")) {
                     DebugLog.error(
                         "UPDATE",
-                        "latest.json 在 GitHub raw 上 404：$url —— 仓库名或默认分支可能写错了" +
+                        "latest.json 在 GitHub raw 上 404：$raw —— 仓库名或默认分支可能写错了" +
                             "（默认分支是 master，不是 main）",
                     )
                 }
@@ -342,26 +343,51 @@ class UpdateCenter(private val ctx: Context) {
                 .toString()
 
         /**
-         * `latest.json` 的三个候选地址，按顺序试（第一个拿到就用）。
+         * `latest.json` 的候选地址，按顺序试（第一个拿到就用）。
          *
-         * **为什么首选 GitHub raw**：明文 http 上的 `latest.json` 可以被中间人连同 `sha256`
-         * 一起改掉 —— 那样「校验通过」就失去意义了。走 https 的 raw 文件没有这个洞；
-         * 自己的机器只作回落，且 APK 入口地址还**钉死了本仓库前缀**
-         * （[UpdatePolicy.PINNED_RELEASE_PREFIX]）：攻击者拿不到本仓库的写权限，
-         * 就提供不出任何**可安装**的包 —— **最坏结果只是「下载失败」**。
+         * ## 2026-11-16 全面改版（实测驱动）
          *
-         * 回落为什么留着（2026-11-14 复议）：`47.95.12.198` 已在 `network_security_config.xml`
-         * 里放行明文（地图补丁上报必须走它，那台机器没有 TLS），所以回落**是可用的**，
-         * 不是死路。若日志里再出现 `Cleartext HTTP traffic to 47.95.12.198 not permitted`，
-         * 说明 network config 没生效 —— 那条 ERROR 正好当探针用，别删。
+         * 真机上点「检查更新」长期卡在「正在连接服务器…」，实测三个源的真实情况：
+         *
+         * | 源 | 实测结果 |
+         * |---|---|
+         * | `raw.githubusercontent.com` | **超时**（国内不通） |
+         * | `cdn.jsdelivr.net/gh/…@master/…` | **5 次全通，428–656ms** |
+         * | `fastly.jsdelivr.net/…` | 同源换节点，作备份 |
+         * | 自建 `47.95.12.198:18082/app/latest.json` | **000（连接被掐）** |
+         * | 自建 `47.95.12.198:18081/app/latest.json` | **404** |
+         *
+         * 也就是说：改版前**主力国内不通、两个回落全是死的**，能连上才怪。
+         * 自建机上只有 `/map/api/` 配了 nginx 路由，`/app/` 这条从来没配置过 ——
+         * 下面保留它们只是**给将来真部署时留位**，并标注清楚现在不可用，
+         * 免得下一个人又以为有可用回落而在真机上白等超时。
+         *
+         * ## 为什么 composer 清单可以放 CDN，APK 不行
+         *
+         * 清单只有 408 字节，被中间人改掉也没用：真正的防线是
+         * [UpdatePolicy.PINNED_RELEASE_PREFIX]（APK 地址必须指向本仓库 releases）+ sha256。
+         * 攻击者拿不到本仓库写权限，就提供不出**可安装**的包 —— **最坏结果只是「下载失败」**。
+         * APK 本体（50MB+）不放自建机：个人机没 TLS，且 50MB 分发不是它该干的活。
+         *
+         * 顺序：jsDelivr 主（国内实测最快）→ fastly 备份 → GitHub raw（境外最快）→ 自建（现不可用）。
+         * timeout 从 10s 收到 6s：四条最坏 24s 太久，用户等不了；实测通的那条约 500ms。
          */
         val MANIFEST_URLS = listOf(
-            // ① 首选：GitHub raw（https，手机链路上 TLS 不会被 RST）
+            // ① 主力：jsDelivr（国内实测 428–656ms，5/5 通）
+            "https://cdn.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
+            // ② 备份：同一份内容的另一个 CDN 节点（jsDelivr 有多个 edge，主节点抽风时还能过）
+            "https://fastly.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
+            // ③ GitHub raw：境外/能直连时最快，保留但不能当主力
             "https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ② 回落：自己的机器（<2KB，明文，只在 raw 拉不到时用；已由 network config 放行）
+            // ④⑤ 自建机：⚠️ 2026-11-16 实测 18082=000(连接被掐)、18081=404，
+            //      nginx 只配了 /map/api/，/app/ 这条从未存在。放最后且静默失败。
             "http://47.95.12.198:18082/app/latest.json",
             "http://47.95.12.198:18081/app/latest.json",
         )
+
+        /** 单条源的超时；通的那条约 500ms，6s 已足够且不让用户干等 */
+        private const val MANIFEST_TIMEOUT_MS = 6_000
+
 
         private const val UA = "SYAU-Enroute (personal student test build; update check)"
         private const val KEY_LAST_AUTO = "lastAutoCheckAt"
@@ -411,6 +437,10 @@ class UpdateCenter(private val ctx: Context) {
                     conn.readTimeout = timeoutMs * 2
                     conn.setRequestProperty("User-Agent", UA)
                     conn.setRequestProperty("Accept", "application/json,*/*;q=0.8")
+                    // jsDelivr 对 @master 的缓存是 s-maxage=43200（12 小时），
+                    // 不加这条会「发新版半天内查不到」。No-cache 让它回源，
+                    // URL 上的 ?t= 再兜一层（见 cacheBusted）。
+                    conn.setRequestProperty("Cache-Control", "no-cache, no-store")
                     val code = conn.responseCode
                     if (code in 300..399) {
                         val loc = conn.getHeaderField("Location") ?: break
@@ -425,6 +455,28 @@ class UpdateCenter(private val ctx: Context) {
             }
             throw java.io.IOException("跳转太多次")
         }
+
+        /**
+         * 给 URL 加一个按小时变化的查询参数，绕开 CDN 的边缘缓存。
+         *
+         * **为什么需要**：jsDelivr 的响应头是 `s-maxage=43200`（12 小时）+ `max-age=604800`（7 天）。
+         * 我在 2026-11-16 实测：改完 `latest.json` 立刻请求，返回的还是 12 小时前的旧内容。
+         * 有这条参数后每次都是新的 key，CDN 只能回源。
+         *
+         * ⚠️ 只对**清单**用，不要加到 APK 下载地址上 —— 那会让 sha256 校验的缓存优势归零，
+         * 而且 GitHub Release 的资产地址本来就不走这层缓存。
+         *
+         * @param hourStamp `yyyyMMddHH` 形态的时间戳（调用方传入，便于单测）
+         */
+        fun cacheBusted(url: String, hourStamp: String): String {
+            if (hourStamp.isBlank()) return url
+            val sep = if (url.contains('?')) '&' else '?'
+            return "$url${sep}t=$hourStamp"
+        }
+
+        /** 当前小时戳 `yyyyMMddHH`（本地时区，够用 —— 只用来区分缓存 key） */
+        fun hourStamp(now: Long = System.currentTimeMillis()): String =
+            java.text.SimpleDateFormat("yyyyMMddHH", java.util.Locale.US).format(java.util.Date(now))
 
         private fun hostOf(url: String): String =
             runCatching { URI(url).host.orEmpty() }.getOrDefault("")
