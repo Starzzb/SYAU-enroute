@@ -70,6 +70,36 @@ object UpdatePolicy {
     )
 
     /**
+     * **下载镜像**（2026-11-16 加，实测驱动）。
+     *
+     * GitHub Releases 在国内经常下不动，实测这两个代理能通：
+     * `gh-proxy.com`（HEAD 1372ms、实下 512KB 拿到 PK 头）、`ghproxy.net`（HEAD 5876ms）。
+     * 用法是把原始地址**整条拼在代理域名后面**：
+     * `https://gh-proxy.com/https://github.com/...apk`
+     *
+     * ⚠️ 镜像只做「**下载**」，不做「清单」的主源 —— 因为它是个第三方转发，
+     * 清单用镜像等于把「谁决定发什么版本」交出去一半。清单走直连 GitHub 的源。
+     *
+     * ⚠️ 镜像**不参与** [isAllowedApkUrl] 的前缀钉死：那条只校验 `latest.json` 里的入口地址。
+     * 镜像地址由 [mirrorsOf] 从**已通过校验的**入口地址拼出来，所以安全性由构造保证。
+     */
+    val MIRROR_PREFIXES = listOf(
+        "https://gh-proxy.com/",
+        "https://ghproxy.net/",
+    )
+
+    /** 镜像主机（只用于「下载过程中的跳转」白名单，不放行 `latest.json` 入口） */
+    val MIRROR_HOSTS = listOf("gh-proxy.com", "ghproxy.net")
+
+    /**
+     * 下载候选地址：**直连优先**，失败再走镜像。
+     *
+     * @param original 已经过 [isAllowedApkUrl] 校验的入口地址
+     */
+    fun mirrorsOf(original: String): List<String> =
+        listOf(original) + MIRROR_PREFIXES.map { it + original }
+
+    /**
      * **APK 只许来自本仓库的 Releases**（`AboutScreen` 里的仓库地址就是这个）。
      *
      * 301 之后会跳到 `objects.githubusercontent.com/...`，那条是**下载过程中的跳转**，
@@ -109,7 +139,8 @@ object UpdatePolicy {
         val u = runCatching { URI(url.trim()) }.getOrNull() ?: return false
         if (!u.scheme.equals("https", ignoreCase = true)) return false
         val host = u.host?.lowercase() ?: return false
-        return host.isNotBlank() && host in ALLOWED_APK_HOSTS
+        // 跳转白名单 = GitHub 自己的域 + 下载镜像域（镜像是我们从已校验地址拼出来的）
+        return host.isNotBlank() && (host in ALLOWED_APK_HOSTS || host in MIRROR_HOSTS)
     }
 }
 

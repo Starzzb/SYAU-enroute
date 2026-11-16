@@ -22,23 +22,25 @@ class UpdateSourceOrderTest {
     private val urls = UpdateCenter.MANIFEST_URLS
 
     @Test
-    fun `主力源是 jsDelivr 而不是 GitHub raw`() {
-        // 这条是本次改版的核心：国内 GitHub raw 超时，放第一位等于每次都白等 6 秒
+    fun `首位是能拿到新内容的源，不是 jsDelivr`() {
+        // 2026-11-16 二次实测：jsDelivr 对 @master 缓存 12 小时且 purge 无效 ——
+        // 发新版后它会继续返回旧内容（实测 purge 返回 CF/FY 均 true，内容仍是上一版）。
+        // 所以首位必须是直读 GitHub 的源（gh-proxy / githack / raw），jsDelivr 只能垫底。
         assertTrue(
-            "首位应为 jsDelivr，实际是 ${urls.first()}",
-            urls.first().contains("cdn.jsdelivr.net"),
+            "首位不能是 jsDelivr，实际是 ${urls.first()}",
+            !urls.first().contains("jsdelivr.net"),
         )
-        assertTrue("清单里应仍保留 fastly 备份", urls.any { it.contains("fastly.jsdelivr.net") })
-        assertTrue("清单里应仍保留 GitHub raw", urls.any { it.contains("raw.githubusercontent.com") })
+        assertTrue("清单里应保留 jsDelivr 作最后兜底", urls.any { it.contains("jsdelivr.net") })
+        assertTrue("清单里应有直读 GitHub 的源", urls.any { it.contains("raw.githubusercontent.com") })
     }
 
     @Test
-    fun `GitHub raw 不能排在 jsDelivr 前面`() {
-        val jsIdx = urls.indexOfFirst { it.contains("cdn.jsdelivr.net") }
-        val rawIdx = urls.indexOfFirst { it.contains("raw.githubusercontent.com") }
+    fun `jsDelivr 必须排在所有直读源之后`() {
+        val jsIdx = urls.indexOfFirst { it.contains("jsdelivr.net") }
+        val directIdx = urls.indexOfFirst { !it.contains("jsdelivr.net") }
         assertTrue("必须有 jsDelivr 源", jsIdx >= 0)
-        assertTrue("必须有 GitHub raw 源", rawIdx >= 0)
-        assertTrue("jsDelivr 应排在 raw 之前（jsIdx=$jsIdx, rawIdx=$rawIdx）", jsIdx < rawIdx)
+        assertTrue("必须有直读源", directIdx >= 0)
+        assertTrue("jsDelivr 有 12 小时缓存，必须排在直读源之后（js=$jsIdx, direct=$directIdx）", jsIdx > directIdx)
     }
 
     @Test
@@ -62,6 +64,42 @@ class UpdateSourceOrderTest {
             val ok = u.startsWith("https://") || u.contains("47.95.12.198")
             assertTrue("清单地址 $u 既不是 https 也不是已放行明文的自建机", ok)
         }
+    }
+
+    // ── 下载镜像 ───────────────────────────────────────────
+
+    @Test
+    fun `镜像地址由已校验的入口地址拼出`() {
+        val original = "https://github.com/Starzzb/SYAU-enroute/releases/download/m22/SYAU-enroute-m22.apk"
+        val list = cn.dkarbon.enroute.data.UpdatePolicy.mirrorsOf(original)
+        assertEquals("第一项必须是直连", original, list.first())
+        assertTrue("应至少有一个镜像", list.size >= 2)
+        list.drop(1).forEach {
+            assertTrue("镜像 $it 必须以镜像域开头且原样包含原始地址", it.endsWith(original) && it != original)
+        }
+    }
+
+    @Test
+    fun `入口地址校验拒绝镜像域（钉死只针对入口）`() {
+        // latest.json 里的 url 必须是本仓库 Releases —— 镜像地址不许当入口
+        val mirror = "https://gh-proxy.com/https://github.com/Starzzb/SYAU-enroute/releases/download/m22/a.apk"
+        assertTrue("镜像地址不应通过入口校验", !cn.dkarbon.enroute.data.UpdatePolicy.isAllowedApkUrl(mirror))
+    }
+
+    @Test
+    fun `镜像域允许作为下载跳转目标`() {
+        assertTrue(
+            "gh-proxy 应允许跳转",
+            cn.dkarbon.enroute.data.UpdatePolicy.isAllowedRedirect("https://gh-proxy.com/x"),
+        )
+        assertTrue(
+            "objects.githubusercontent.com 仍应允许",
+            cn.dkarbon.enroute.data.UpdatePolicy.isAllowedRedirect("https://objects.githubusercontent.com/x"),
+        )
+        assertTrue(
+            "无关域名仍应拒绝",
+            !cn.dkarbon.enroute.data.UpdatePolicy.isAllowedRedirect("https://evil.com/x"),
+        )
     }
 
     // ── cache-busting ──────────────────────────────────────

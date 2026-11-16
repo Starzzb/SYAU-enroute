@@ -152,7 +152,34 @@ class UpdateCenter(private val ctx: Context) {
      *   ——回调在 **IO 线程**被调用。UI 层直接写 Compose state 是安全的（快照写入线程安全，
      *   重组在主线程读），但**别在回调里做重活**（每 64KB 一次，会很频繁）。
      */
+    /**
+     * 下载 APK：**直连优先，失败逐个走镜像**（2026-11-16）。
+     *
+     * 为什么需要：GitHub Releases 在国内经常下不动（连接被掐），但同一份资产经
+     * `gh-proxy.com` 能下（实测实下 512KB 拿到 PK 头、HEAD 1372ms）。
+     * 镜像地址由 [UpdatePolicy.mirrorsOf] 从**已通过前缀钉死的**入口地址拼出，
+     * 所以安全性由构造保证 —— 镜像只能转发这一个包，不能指向别处。
+     *
+     * 注意 404/403 这类**确定性失败**也照样换镜像：GitHub 对国内 IP 有时给 403 限流。
+     */
     suspend fun download(
+        info: UpdateInfo,
+        onProgress: (Long, Long) -> Unit = { _, _ -> },
+    ): DownloadResult {
+        val candidates = UpdatePolicy.mirrorsOf(info.url)
+        var last: DownloadResult.Failed? = null
+        for ((i, url) in candidates.withIndex()) {
+            val r = downloadOnce(url, info, onProgress)
+            if (r is DownloadResult.Ready) return r
+            if (r is DownloadResult.Cancelled) return r
+            last = r as? DownloadResult.Failed
+            DebugLog.log("UPDATE", "下载候选 ${i + 1}/${candidates.size} 失败（${hostOf(url)}）：${last?.message}")
+        }
+        return last ?: DownloadResult.Failed("没有可用的下载地址")
+    }
+
+    private suspend fun downloadOnce(
+        startUrl: String,
         info: UpdateInfo,
         onProgress: (Long, Long) -> Unit = { _, _ -> },
     ): DownloadResult = withContext(Dispatchers.IO) {
@@ -163,7 +190,7 @@ class UpdateCenter(private val ctx: Context) {
 
         var conn: HttpURLConnection? = null
         try {
-            var current = info.url
+            var current = startUrl
             var hops = 0
             while (true) {
                 if (hops++ > 5) return@withContext DownloadResult.Failed("下载地址跳转太多次，已放弃")
@@ -373,20 +400,20 @@ class UpdateCenter(private val ctx: Context) {
          * timeout 从 10s 收到 6s：四条最坏 24s 太久，用户等不了；实测通的那条约 500ms。
          */
         val MANIFEST_URLS = listOf(
-            // ① 主力：jsDelivr（国内实测 428–656ms，5/5 通）
-            "https://cdn.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
-            // ② 备份：同一份内容的另一个 CDN 节点（jsDelivr 有多个 edge，主节点抽风时还能过）
-            "https://fastly.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
-            // ③ GitHub raw：境外/能直连时最快，保留但不能当主力
+            // ① gh-proxy：实测 832ms 且**内容是最新的**（见下方 jsDelivr 的坑）
+            "https://gh-proxy.com/https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
+            // ② raw.githack：实测 1148ms，内容新
+            "https://raw.githack.com/Starzzb/SYAU-enroute/master/releases/latest.json",
+            // ③ GitHub raw 直连：实测 669ms，但国内时通时不通
             "https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ④⑤ 自建机：⚠️ 2026-11-16 实测 18082=000(连接被掐)、18081=404，
-            //      nginx 只配了 /map/api/，/app/ 这条从未存在。放最后且静默失败。
-            "http://47.95.12.198:18082/app/latest.json",
-            "http://47.95.12.198:18081/app/latest.json",
+            // ④⑤ jsDelivr：最快（428–656ms）但**分支缓存 12 小时且 purge 无效** —— 放后面，
+            //      只在前面全挂时用；用了也可能拿到旧版本（表现为「已是最新」，不会误报更新）
+            "https://cdn.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
+            "https://fastly.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
         )
 
         /** 单条源的超时；通的那条约 500ms，6s 已足够且不让用户干等 */
-        private const val MANIFEST_TIMEOUT_MS = 6_000
+        private const val MANIFEST_TIMEOUT_MS = 5_000
 
 
         private const val UA = "SYAU-Enroute (personal student test build; update check)"
