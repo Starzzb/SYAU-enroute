@@ -402,10 +402,10 @@ class UpdateCenter(private val ctx: Context) {
         val MANIFEST_URLS = listOf(
             // ① gh-proxy：实测 832ms 且**内容是最新的**（见下方 jsDelivr 的坑）
             "https://gh-proxy.com/https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ② raw.githack：实测 1148ms，内容新
-            "https://raw.githack.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ③ GitHub raw 直连：实测 669ms，但国内时通时不通
+            // ② GitHub raw 直连：实测 669ms，内容总是新的（国内时通时不通，故放第二）
             "https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
+            // ③ raw.githack：实测 904ms，但**会缓存**（2026-11-16 实测给的是上一版），故降级
+            "https://raw.githack.com/Starzzb/SYAU-enroute/master/releases/latest.json",
             // ④⑤ jsDelivr：最快（428–656ms）但**分支缓存 12 小时且 purge 无效** —— 放后面，
             //      只在前面全挂时用；用了也可能拿到旧版本（表现为「已是最新」，不会误报更新）
             "https://cdn.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
