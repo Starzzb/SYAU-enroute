@@ -21,6 +21,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.draw.clipToBounds
+import kotlin.math.roundToInt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -283,27 +287,31 @@ private fun ReelDigit(
             .size(width = 46.dp, height = window)
             .clip(RectangleShape)
             .background(t.card)
-            .border(1.dp, if (changed) t.primary else t.outline, RectangleShape),
+            .border(1.dp, if (changed) t.primary else t.outline, RectangleShape)
+            .clipToBounds(),
     ) {
         if (!changed) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 DigitText(fromDigit, color = t.inkSoft)
             }
         } else {
+            // 两个数字**平级**，各自按进度位移：旧值向上滚出、新值从下方滚入。
+            // 不用「Column 装两格 + 整体 translationY」的写法 —— 那个在真机上量出来是空白
+            // （2026-11-16 实测：240→999 三位全是变化位，三格全空），因为嵌套层的高度链
+            // 一旦被父级约束影响，位移就把两格都推到了可视区外。
+            val p by progress.asState()
             Box(
                 Modifier
                     .fillMaxSize()
-                    .graphicsLayer { translationY = -windowPx * progress.value },
-            ) {
-                Column {
-                    Box(Modifier.size(width = 46.dp, height = window), contentAlignment = Alignment.Center) {
-                        DigitText(fromDigit, color = t.inkSoft)
-                    }
-                    Box(Modifier.size(width = 46.dp, height = window), contentAlignment = Alignment.Center) {
-                        DigitText(toDigit, color = t.primary)
-                    }
-                }
-            }
+                    .offset { IntOffset(0, (-windowPx * p).roundToInt()) },
+                contentAlignment = Alignment.Center,
+            ) { DigitText(fromDigit, color = t.inkSoft) }
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .offset { IntOffset(0, (windowPx * (1f - p)).roundToInt()) },
+                contentAlignment = Alignment.Center,
+            ) { DigitText(toDigit, color = t.primary) }
         }
     }
 }
