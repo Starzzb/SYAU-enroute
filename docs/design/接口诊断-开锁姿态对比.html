@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>开锁姿态对比</title>
+<style>
+  body{margin:0;padding:34px;background:#E4DFD5;font-family:-apple-system,"PingFang SC",sans-serif;color:#1A1611;}
+  h1{font-size:18px;margin:0 0 6px;}
+  p.sub{font-size:12.5px;color:#5F574C;margin:0 0 28px;line-height:1.7;max-width:760px;}
+  .rail{display:flex;gap:16px;flex-wrap:wrap;}
+  .cell{width:150px;background:#F5F2EC;border:1px solid #C9C2B4;padding:16px 12px;text-align:center;}
+  .cell .tag{font-size:11px;color:#8A8074;letter-spacing:.08em;margin-bottom:14px;}
+  svg{overflow:visible;}
+  .cell .big{width:76px;height:84px;margin:8px auto 0;color:#1A1611;}
+  .cell .row{display:flex;justify-content:center;margin:18px 0 0;}
+  .cell .mini{width:36px;height:40px;color:#1A1611;display:block;}
+  .cell .note{font-size:10.5px;line-height:1.5;color:#8A8074;margin-top:12px;text-align:left;}
+</style></head>
+<body>
+<h1>开锁姿态对比 —— 哪个一眼就看出「开了」</h1>
+<p class="sub">同一个锁体，只换锁梁的位移方式。看大图和 36px 小图，小图才是 App 里的真实尺寸。</p>
+<div class="rail" id="rail"></div>
+<script>
+const BODY = `
+<rect x="6" y="17" width="24" height="18" rx="1.5" stroke="currentColor" stroke-width="2.2" fill="none"/>
+<path class="tick" d="M11.6 26.2l4.2 4.2 8.2-9" stroke="currentColor" stroke-width="2.4"
+      stroke-linecap="round" stroke-linejoin="round" fill="none"/>`;
+const SHACKLE = `<path d="M10 17V11a8 8 0 0116 0v6" stroke="currentColor" stroke-width="2.2"
+      stroke-linecap="round" fill="none"/>`;
+
+const VARIANTS = [
+  { k:'A', t:'translate(-9px,-7px) rotate(-16deg)',
+    note:'整体提升左移，轻微倾斜。右腿离开锁体 7 个单位，露缝。' },
+  { k:'B', t:'translate(-11px,-10px) rotate(-26deg)',
+    note:'提更高、倾更多，缺口最大但开始像在飞。' },
+  { k:'C', t:'rotate(-44deg) translate(1px,-2px)',
+    note:'只绕右腿转（当前版本）—— 缺点：斜线压在体上，读成信封。' },
+  { k:'D', t:'translate(-9px,-7px)',
+    note:'纯垂直上提不倾斜，最稳，但少了「掀开」的劲。' },
+  { k:'E', t:'translate(-12px,-8px) rotate(-90deg)',
+    note:'向右倒下，像盖子掀开。几乎认不出是锁。' },
+];
+
+function svg(t, cls){
+  return `<svg class="${cls}" viewBox="0 0 36 40" fill="none">
+    <g style="transform-box:view-box;transform-origin:25px 16px;transform:${t}">${SHACKLE}</g>
+    ${BODY}
+  </svg>`;
+}
+function closed(cls){
+  return `<svg class="${cls}" viewBox="0 0 36 40" fill="none">
+    <g>${SHACKLE}</g>${BODY.replace(/class="tick"[^/]*d="[^"]*"/,'class="tick" stroke-dashoffset="26" d="M11.6 26.2l4.2 4.2 8.2-9"')}
+  </svg>`;
+}
+
+document.getElementById('rail').innerHTML =
+  `<div class="cell"><div class="tag">闭合（对照）</div>
+     <div class="big">${closed('').replace(/<svg[^>]*>/,'<svg viewBox="0 0 36 40" width="76" height="84" fill="none">')}</div>
+     <div class="row">${closed('mini')}</div>
+     <div class="note">没开的样子，用来对照。</div></div>` +
+  VARIANTS.map(v=>`
+    <div class="cell">
+      <div class="tag">${v.k}</div>
+      <div class="big">${svg(v.t,'').replace(/<svg[^>]*>/,'<svg viewBox="0 0 36 40" width="76" height="84" fill="none">')}</div>
+      <div class="row">${svg(v.t,'mini')}</div>
+      <div class="note">${v.note}</div>
+    </div>`).join('');
+</script>
+</body></html>
