@@ -139,6 +139,21 @@ Get-Content build-compile-log.txt | Select-String 'BUILD SUCCESSFUL|BUILD FAILED
 **唯一例外**：法律/隐私类必须知情同意的内容（如"会传输学号"），这类属于**义务告知**，
 必须出现在决策点上，且要如实、完整。
 
+### Release 说明只写一句话（2026-11-16，主人指令）
+
+GitHub Release 的 description **一句话讲清这版是什么**，然后指向 CHANGELOG。
+
+- 不写分节小标题、不列改动清单、不贴截图说明
+- 详细内容一律放仓库 `CHANGELOG.md`（以及 `docs/_probe/` 里的实现清单）
+- `latest.json` 的 `notes` 仍然是**一句话**（它在弹窗里显示，长了会撑爆版面）
+
+示例：
+
+```
+修复更新弹窗里程表真机空白。详见 CHANGELOG.md。
+```
+
+
 
 ## 前端设计纪律：全部作废（2026-11-15，主人指令）
 
