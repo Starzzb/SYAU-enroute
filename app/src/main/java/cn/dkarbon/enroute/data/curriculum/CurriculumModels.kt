@@ -22,6 +22,8 @@ data class PlanIndexEntry(
     val type: String = "",
     val bytes: Int = 0,
     val courses: Int = 0,
+    /** 在该年年包（`plans/<年>.jsonl.br`）里的行号，0 起；-1 = 旧格式资产 */
+    val line: Int = -1,
 )
 
 /** `plan_index.json` 的解析结果：年份 → 该年所有专业条目 */

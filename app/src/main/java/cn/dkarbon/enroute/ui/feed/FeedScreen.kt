@@ -79,6 +79,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -92,6 +93,7 @@ import cn.dkarbon.enroute.ui.ledger.LedgerGroupTitle
 import cn.dkarbon.enroute.ui.ledger.LedgerHeader
 import cn.dkarbon.enroute.ui.ledger.LedgerRow
 import cn.dkarbon.enroute.ui.ledger.LedgerTnum
+import cn.dkarbon.enroute.ui.settings.ISSUES_PAGE
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Motion
 import cn.dkarbon.enroute.ui.theme.NumericFont
@@ -154,6 +156,12 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
     val cats = FeedViewModel.CATEGORIES
     val pagerState = rememberPagerState(pageCount = { cats.size })
     val scope = rememberCoroutineScope()
+
+    // 顶部来源条的两个出口：回源站核对原文 / 把错漏报给开发者
+    val ctx = LocalContext.current
+    val openUrl: (String) -> Unit = { u ->
+        runCatching { ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(u))) }
+    }
 
     // 首帧后补抓一次：冷启动不被网络拖住
     LaunchedEffect(Unit) { vm.refreshIfEmpty() }
@@ -252,6 +260,12 @@ private fun FeedListView(ui: FeedUiState, vm: FeedViewModel, modifier: Modifier)
                         onSearch = { searchFocus.requestFocus() },
                         onMore = { headerMenu = true },
                         modifier = Modifier.requiredHeight(FeedHeaderHeight),
+                    )
+
+                    // 来源条：条目来自校内公开页面，给「源站 / 反馈」两个出口
+                    SourceNoteBar(
+                        onSource = { openUrl(SOURCE_PAGE) },
+                        onFeedback = { openUrl(ISSUES_PAGE) },
                     )
 
                     SearchRow(
@@ -1423,3 +1437,63 @@ private fun shortDate(d: String): String =
 
 private fun hostOf(url: String): String =
     runCatching { Uri.parse(url).host ?: url }.getOrDefault(url)
+
+// ── 信源条（2026-11-17 主人指令）────────────────────────────
+
+/** 「源站」落到哪里：教务处通知公告，资讯里占比最大的那一栏 */
+private const val SOURCE_PAGE = "https://jwc.syau.edu.cn/index/jwtz.htm"
+
+/**
+ * 资讯页顶部的来源条。
+ *
+ * 页里每一条都是抓来的校内公开页面 —— 顶部给两个出口：
+ * 「源站」回教务处通知公告核对原文，「反馈」把错漏报给开发者。
+ *
+ * 文案纪律：不写「点击此处」「可前往」这类说明书式文字。
+ * 两个动作名本身就是出口，下划线是「露边」——表示这里能点。
+ */
+@Composable
+private fun SourceNoteBar(onSource: () -> Unit, onFeedback: () -> Unit) {
+    val t = InkTokens.current
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().heightIn(min = 32.dp).padding(horizontal = Space.l),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "条目摘自校内公开页面",
+                fontSize = 9.5.sp,
+                lineHeight = 13.sp,
+                color = t.inkFaint,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            NoteAction("源站", onSource)
+            Spacer(Modifier.width(Space.m))
+            NoteAction("反馈", onFeedback)
+        }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Space.l)
+                .height(Stroke.hairline)
+                .background(t.rule),
+        )
+    }
+}
+
+@Composable
+private fun NoteAction(label: String, onClick: () -> Unit) {
+    val t = InkTokens.current
+    Text(
+        label,
+        fontSize = 10.sp,
+        lineHeight = 14.sp,
+        color = t.inkSoft,
+        textDecoration = TextDecoration.Underline,
+        modifier = Modifier
+            .clickable(onClickLabel = label, onClick = onClick)
+            .padding(vertical = 7.dp, horizontal = 3.dp),
+    )
+}

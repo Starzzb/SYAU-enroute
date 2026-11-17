@@ -1,0 +1,59 @@
+{
+ "thxy.syau.edu.cn": {
+  "error": "HTTPError: HTTP Error 404: Not Found"
+ },
+ "nxy.syau.edu.cn": {
+  "error": "HTTPError: HTTP Error 404: Not Found"
+ },
+ "spxy.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "jgxy.syau.edu.cn": {
+  "error": "HTTPError: HTTP Error 404: Not Found"
+ },
+ "xdxy.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "gcxy.syau.edu.cn": {
+  "error": "HTTPError: HTTP Error 404: Not Found"
+ },
+ "slxy.syau.edu.cn": {
+  "error": "HTTPError: HTTP Error 404: Not Found"
+ },
+ "yyxy.syau.edu.cn": {
+  "error": "HTTPError: HTTP Error 404: Not Found"
+ },
+ "zbxy.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "lin.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "swxy.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "lxy.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "myxy.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "marx.syau.edu.cn": {
+  "error": "HTTPError: HTTP Error 404: Not Found"
+ },
+ "tyb.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ },
+ "wyb.syau.edu.cn": {
+  "count": 0,
+  "items": []
+ }
+}

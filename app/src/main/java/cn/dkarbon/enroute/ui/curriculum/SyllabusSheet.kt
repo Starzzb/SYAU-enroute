@@ -280,7 +280,7 @@ private fun SyllabusBody(s: Syllabus, msg: String) {
 
     Spacer(Modifier.height(Space.s))
     Text(
-        "大纲来源：土地与环境学院本科课程大纲（2021 版）· 内置资产",
+        "大纲来源：14 个学院《本科课程大纲（2021 版）》· 内置资产",
         fontSize = 9.sp,
         color = t.inkFaint,
     )

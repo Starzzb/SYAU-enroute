@@ -9,7 +9,7 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
 > Task :app:preBuild UP-TO-DATE
 > Task :app:preReleaseBuild UP-TO-DATE
-> Task :app:generateReleaseBuildConfig UP-TO-DATE
+> Task :app:generateReleaseBuildConfig
 > Task :app:checkReleaseAarMetadata UP-TO-DATE
 > Task :app:generateReleaseResValues UP-TO-DATE
 > Task :app:mapReleaseSourceSetPaths UP-TO-DATE
@@ -17,12 +17,10 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:mergeReleaseResources UP-TO-DATE
 > Task :app:packageReleaseResources UP-TO-DATE
 > Task :app:parseReleaseLocalResources UP-TO-DATE
-> Task :app:createReleaseCompatibleScreenManifests UP-TO-DATE
+> Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease UP-TO-DATE
-> Task :app:processReleaseMainManifest UP-TO-DATE
-> Task :app:processReleaseManifest UP-TO-DATE
-> Task :app:processReleaseManifestForPackage UP-TO-DATE
-> Task :app:processReleaseResources UP-TO-DATE
+> Task :app:processReleaseMainManifest
+> Task :app:processReleaseManifest
 > Task :app:javaPreCompileRelease UP-TO-DATE
 > Task :app:extractProguardFiles UP-TO-DATE
 > Task :app:mergeReleaseJniLibFolders UP-TO-DATE
@@ -39,14 +37,18 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:mergeReleaseAssets UP-TO-DATE
 > Task :app:compressReleaseAssets UP-TO-DATE
 > Task :app:extractReleaseVersionControlInfo UP-TO-DATE
-> Task :app:optimizeReleaseResources UP-TO-DATE
 > Task :app:collectReleaseDependencies UP-TO-DATE
 > Task :app:sdkReleaseDependencyData UP-TO-DATE
 > Task :app:validateSigningRelease UP-TO-DATE
 > Task :app:writeReleaseAppMetadata UP-TO-DATE
 > Task :app:writeReleaseSigningConfigVersions UP-TO-DATE
+> Task :app:processReleaseManifestForPackage
+> Task :app:processReleaseResources
+> Task :app:optimizeReleaseResources
 > Task :app:compileReleaseKotlin
-> Task :app:compileReleaseJavaWithJavac UP-TO-DATE
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:199:33 Condition is always 'true'.
+
+> Task :app:compileReleaseJavaWithJavac
 > Task :app:generateReleaseLintVitalReportModel
 > Task :app:mergeReleaseGeneratedProguardFiles UP-TO-DATE
 > Task :app:processReleaseJavaRes UP-TO-DATE
@@ -56,15 +58,15 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:minifyReleaseWithR8
 > Task :app:compileReleaseArtProfile
 > Task :app:packageRelease
-> Task :app:createReleaseApkListingFileRedirect UP-TO-DATE
+> Task :app:createReleaseApkListingFileRedirect
 
 > Task :app:lintVitalAnalyzeRelease
 Warning: Unable to initialize metrics, ensure C:\Users\28759\.android is writable, details: C:\Users\28759\.android\analytics.settings (¾Ü¾ø·ÃÎÊ¡£)
 
-> Task :app:lintVitalReportRelease UP-TO-DATE
+> Task :app:lintVitalReportRelease
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 2m 31s
-48 actionable tasks: 8 executed, 40 up-to-date
+BUILD SUCCESSFUL in 2m 56s
+48 actionable tasks: 18 executed, 30 up-to-date
 EXIT=0 

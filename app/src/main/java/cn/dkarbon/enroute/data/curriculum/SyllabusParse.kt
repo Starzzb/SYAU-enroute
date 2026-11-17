@@ -36,6 +36,8 @@ object SyllabusParse {
                 theoryHours = hours.getOrNull(0).orEmpty(),
                 labHours = hours.getOrNull(1).orEmpty(),
                 bytes = str(o, "bytes").toIntOrNull() ?: 0,
+                pack = str(o, "pack"),
+                line = str(o, "line").toIntOrNull() ?: -1,
             )
         }.filter { it.name.isNotBlank() && it.id.isNotBlank() }
     }

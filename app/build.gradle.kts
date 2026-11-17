@@ -30,8 +30,8 @@ android {
         applicationId = "cn.dkarbon.enroute"
         minSdk = 26
         targetSdk = 35
-        versionCode = 290
-        versionName = "0.7.1+m28"
+        versionCode = 300
+        versionName = "0.7.2+m29"
 
         // 「关于」页要显示构建来源：commit 短哈希 + 构建日期。
         // 开源软件的 About 页惯例是把「这一版到底是哪份代码」写清楚，方便反馈问题时对照。
@@ -107,6 +107,12 @@ android {
         // 调试页靠 BuildConfig.DEBUG 判断，release 包里自动消失
         buildConfig = true
     }
+    androidResources {
+        // 大纲/方案资产是**已经用 brotli 压过的** `.br`（4.6 MB → 见 docs/规划-课程大纲内嵌压缩.md）。
+        // 再让 AAPT 走一次 deflate 只会白耗打包时间、且完全压不动（熵已榨干）；
+        // 声明 noCompress 让它们按原样进包，运行时由 BrotliInputStream 解。
+        noCompress.add("br")
+    }
     packaging {
         resources.excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
     }
@@ -133,6 +139,9 @@ dependencies {
     implementation("androidx.glance:glance-appwidget:1.1.1")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // 课程大纲 / 培养方案资产的 brotli 解码（纯 Java，98 KB，无 native 依赖）。
+    // 选它而不是 gzip：同一批语料 brotli q11 比 gzip -9 小 43%（4.27 MB vs 7.46 MB）。
+    implementation("org.brotli:dec:0.1.2")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
 

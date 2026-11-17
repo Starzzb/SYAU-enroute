@@ -341,8 +341,8 @@ internal fun UpdateSection() {
 }
 
 
-/** 仓库 issues 页：下载不通时给用户一个能说话的入口 */
-private const val ISSUES_PAGE = "https://github.com/Starzzb/SYAU-enroute/issues"
+/** 仓库 issues 页：下载不通时给用户一个能说话的入口；资讯页顶部「反馈」也复用它 */
+internal const val ISSUES_PAGE = "https://github.com/Starzzb/SYAU-enroute/issues"
 private const val RELEASES_PAGE = "https://github.com/Starzzb/SYAU-enroute/releases"
 
 /**

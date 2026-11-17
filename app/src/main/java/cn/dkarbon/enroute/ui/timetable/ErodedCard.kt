@@ -2,7 +2,6 @@ package cn.dkarbon.enroute.ui.timetable
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -31,8 +30,13 @@ import kotlin.math.sin
  *   · 边缘有**不规则咬痕**（不是一条直线）
  *   · 吃到一半时，上半截已褪色，下半截仍是原色 —— 视觉上能"读出进度"
  *
- * 技术做法：把「已吃高度」当作裁切边界，在裁切区之上叠加一层
- * 向下的灰色渐变蒙版，配合纸色小圆打出的咬痕。
+ * 2026-11-17 主人修正：「侵蚀效果要减轻，保证进度条过去之后能看得到课程名称，还可以点击查看」。
+ * 技术做法改了两处，顺序是**先洗后写字**：
+ *   1) 旧做法用 `clipRect` 把上半截正文裁掉 —— 下课（progress≥1）时课名整块消失，卡片还被残影顶掉。
+ *      现在**不裁正文**，正文永远整块画在最后，字压在洗色层之上，读得清。
+ *   2) 掉色层只在正文背后把纸底洗淡（不透明度降权），咬痕半径与裂纹数量减半，
+ *      吃过之后是「旧纸」而不是「空白」。
+ * 点击/长按由调用方挂在 [modifier] 上，跟渲染无关，所以卡片一直可点。
  */
 @Composable
 fun ErodedCard(
@@ -59,17 +63,14 @@ fun ErodedCard(
             .background(wash)
             .border(0.75.dp, spine.copy(alpha = 0.30f), shape)
             .drawWithContent {
-                val cut = size.height * progress.coerceIn(0f, 1f)
+                val p = progress.coerceIn(0f, 1f)
+                val cut = size.height * p
 
-                // 1) 先画原卡片（只画未被吃掉的下半部分）
-                clipRect(top = cut) { this@drawWithContent.drawContent() }
-
-                // 2) 被吃掉的上半区：覆盖掉色层
-                if (progress > 0f) {
-                    // 顶部到底部的掉色渐变（越靠上越灰、越透明）
+                // 1) 先洗纸底：被吃掉的高度里，卡片色洗成旧纸色（只动背景，不动字）
+                if (p > 0f) {
                     drawRect(
                         brush = Brush.verticalGradient(
-                            colors = listOf(gone, faded.copy(alpha = 0.85f), faded.copy(alpha = 0.4f)),
+                            colors = listOf(gone, faded.copy(alpha = 0.55f), faded.copy(alpha = 0.18f)),
                             startY = 0f,
                             endY = cut.coerceAtLeast(1f),
                         ),
@@ -77,14 +78,14 @@ fun ErodedCard(
                         size = Size(size.width, cut),
                     )
 
-                    // 3) 咬痕：一排纸色半圆盖住裁切硬边，形成不规则缺口（CET6 同款）。
-                    //    相位由 progress 驱动，避免逐帧跳动。
-                    if (progress > 0.05f) {
+                    // 2) 咬痕：一排纸色半圆压在洗色层的下缘，形成不规则缺口（CET6 同款）。
+                    //    2026-11-17 收小到 0.18–0.24 步宽，避免啃到课名。
+                    if (p > 0.05f) {
                         val teeth = 7
                         val step = size.width / teeth
                         for (i in 0 until teeth) {
-                            val wobble = sin((progress * 40f + i * 1.7f)) * size.height * 0.035f
-                            val r = step * (0.34f + (i % 3) * 0.06f)
+                            val wobble = sin((p * 40f + i * 1.7f)) * size.height * 0.02f
+                            val r = step * (0.18f + (i % 3) * 0.03f)
                             drawCircle(
                                 color = paper,
                                 radius = r,
@@ -93,20 +94,23 @@ fun ErodedCard(
                         }
                     }
 
-                    // 4) 侵蚀区里的细小裂纹（短竖线，随进度增多）
-                    val cracks = (progress * 12).toInt().coerceAtMost(8)
+                    // 3) 侵蚀区里的细小裂纹：只到 4 条、透明度减半，落在字的缝隙里
+                    val cracks = (p * 6).toInt().coerceAtMost(4)
                     repeat(cracks) { i ->
-                        val cx = size.width * (0.12f + i * 0.11f)
+                        val cx = size.width * (0.12f + i * 0.22f)
                         val cy = cut * (0.35f + (i % 3) * 0.18f)
                         drawLine(
                             color = (if (isDark) Color(0xFF6E675C) else Color(0xFF9C948A))
-                                .copy(alpha = 0.35f),
+                                .copy(alpha = 0.18f),
                             start = Offset(cx, cy),
-                            end = Offset(cx + size.width * 0.03f, cy + cut * 0.10f),
+                            end = Offset(cx + size.width * 0.03f, cy + cut * 0.08f),
                             strokeWidth = 0.6.dp.toPx(),
                         )
                     }
                 }
+
+                // 4) 正文最后画：整块，永不裁切 —— 进度条过去之后课名照样在、照样点得开
+                this@drawWithContent.drawContent()
             },
     ) {
         content()

@@ -43,6 +43,7 @@ object CurriculumParse {
                     type = str(o, "type"),
                     bytes = num(o, "bytes"),
                     courses = num(o, "courses"),
+                    line = num(o, "line").takeIf { o.containsKey("line") } ?: -1,
                 )
             }.filter { it.id.isNotBlank() }
             if (entries.isNotEmpty()) byYear[year] = entries
@@ -89,10 +90,18 @@ object CurriculumParse {
 
     // ── 单专业方案 ────────────────────────────────────────
 
-    /** 解析单专业方案 JSON。字段缺失一律空串/空表，不抛异常、不补猜。 */
-    fun plan(text: String): CurriculumPlan {
-        val o = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
+    /**
+     * 解析单专业方案 JSON。字段缺失一律空串/空表，不抛异常、不补猜。
+     *
+     * @param pool 课程行共享池（`plans/pool.json.br` 解出来的 `[{课程代码,课程名称,…}]`）。
+     *   2026-11-17 起资产的「课程设置与教学进程」**存的是池下标**（`[0,1,2,1253,…]`）——
+     *   17232 行课程只有 5574 种不同文本，抽池后 brotli 体积再降 40%。
+     *   传空池 = 旧格式（原样是对象数组），保持兼容。
+     */
+    fun plan(text: String, pool: List<JsonElement> = emptyList()): CurriculumPlan {
+        val raw = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
             ?: return CurriculumPlan()
+        val o = if (pool.isEmpty()) raw else expandPool(raw, pool)
         val courses = (o["课程设置与教学进程"] as? JsonArray)
             ?.filterIsInstance<JsonObject>()
             ?.map { c ->
@@ -138,6 +147,27 @@ object CurriculumParse {
             semesterTable = table(o["各学期学分分配表"]),
             notes = notes.map { (k, v) -> k to tidy(v) },
         )
+    }
+
+    /** 课程行共享池：`plans/pool.json.br` 是**一整行 JSON 数组**（5574 条课程行）。 */
+    fun pool(text: String): List<JsonElement> =
+        runCatching { json.parseToJsonElement(text) as? JsonArray }.getOrNull()?.toList().orEmpty()
+
+    /**
+     * 把「课程设置与教学进程」里的**池下标**换回原始课程行。
+     *
+     * 只替换能对上下标的元素；对不上（越界/非数字）的元素**原样保留**——
+     * 宁可这一行解析成空课程，也不许拿相邻行冒充（数据诚实）。
+     */
+    private fun expandPool(o: JsonObject, pool: List<JsonElement>): JsonObject {
+        val arr = o["课程设置与教学进程"] as? JsonArray ?: return o
+        val expanded = JsonArray(
+            arr.map { el ->
+                val i = (el as? JsonPrimitive)?.content?.trim()?.toIntOrNull()
+                if (i != null && i in pool.indices) pool[i] else el
+            },
+        )
+        return JsonObject(o.toMutableMap().apply { put("课程设置与教学进程", expanded) })
     }
 
     /**

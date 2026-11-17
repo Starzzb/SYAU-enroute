@@ -727,18 +727,15 @@ internal fun GridArea(
                                     when {
                                         course == null -> Unit
                                         // 票 17 重做：账页走「浮起便签」渲染（顶帽 + 圆角 + 软阴影）
-                                        ed -> if (prog >= 0.999f) {
-                                            LedgerResidue(course)
-                                        } else {
-                                            LedgerCourseCell(
-                                                course = course,
-                                                progress = prog,
-                                                isNow = isTodayCol && prog > 0f,
-                                                onClick = { onCourseClick(course) },
-                                                onLongClick = { onCourseLongClick(course) },
-                                            )
-                                        }
-                                        prog >= 0.999f -> EatenResidue()
+                                        // 2026-11-17 主人指令：下课也别把卡片换成残影 —— 课名要一直在，
+                                        // 而且一直点得开。侵蚀只做「褪色」，不做「删除」。
+                                        ed -> LedgerCourseCell(
+                                            course = course,
+                                            progress = prog,
+                                            isNow = isTodayCol && prog > 0f,
+                                            onClick = { onCourseClick(course) },
+                                            onLongClick = { onCourseLongClick(course) },
+                                        )
                                         else -> CourseCard(
                                             course = course,
                                             progress = prog,

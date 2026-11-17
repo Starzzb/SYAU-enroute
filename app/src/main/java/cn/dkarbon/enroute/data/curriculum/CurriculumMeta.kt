@@ -8,8 +8,8 @@ package cn.dkarbon.enroute.data.curriculum
  */
 object CurriculumMeta {
 
-    /** assets 生成日期（META.json 的 `generated`）；写进界面让用户知道这份内置数据多新 */
-    const val GENERATED = "2026-11-14"
+    /** assets 生成日期（压包产物重建日，见 `curriculum/packed_meta.json`）；写进界面让用户知道这份内置数据多新 */
+    const val GENERATED = "2026-11-17"
 
     private val TOTAL_PAGES = mapOf("2023" to 689, "2024" to 695, "2025" to 693)
 

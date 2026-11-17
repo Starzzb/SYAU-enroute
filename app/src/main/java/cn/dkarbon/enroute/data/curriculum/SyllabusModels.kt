@@ -3,11 +3,12 @@ package cn.dkarbon.enroute.data.curriculum
 /**
  * 课程大纲的数据模型（票 10）。
  *
- * 资产：`assets/curriculum/syllabus_index.json`（166 门索引）+ `syllabus_<id>.json`（单门大纲），
- * 来源：**土地与环境学院 2021 版课程大纲**（892 页 PDF）。
+ * 资产：`assets/curriculum/syllabus/index.json.br`（2066 门索引）+ `syllabus/<学院>.jsonl.br`（学院包，
+ * 每行一门；索引指向 pack 文件的第 line 行）。两者都是 brotli（q11/lgwin22），读取层负责解压。
+ * 来源：**14 个学院 2021 版课程大纲**（14 册 PDF，合计 11,146 页）。
  *
- * ⚠️ 覆盖率是硬事实：册子只收**土环 166 门**。本学期 7 门课里 4 门有、3 门通识课没有 ——
- * 「没有大纲」是正常现象，界面必须照实说，不许空卡片、不许转圈。
+ * ⚠️ 覆盖率是硬事实：收录 14 个学院的 **2066 门**，通识课（形势与政策、社会主义发展史等）
+ * 与其它年级的课不在其中 ——「没有大纲」是正常现象，界面必须照实说，不许空卡片、不许转圈。
  */
 
 /** 索引里的一条 */
@@ -22,6 +23,10 @@ data class SyllabusIndexEntry(
     val theoryHours: String = "",
     val labHours: String = "",
     val bytes: Int = 0,
+    /** 所属学院包文件名（`assets/curriculum/syllabus/<学院>.jsonl.br`）；空 = 旧格式资产 */
+    val pack: String = "",
+    /** 在该包里的行号（0 起）。`.jsonl` 一行一门，按行定位不用解整包 */
+    val line: Int = -1,
 ) {
     /** `3 学分 · 48 / 0 学时`；缺项就少一段 */
     val creditHoursLabel: String

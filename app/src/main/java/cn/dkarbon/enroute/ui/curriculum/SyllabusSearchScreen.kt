@@ -123,8 +123,8 @@ fun SyllabusSearchScreen(ui: AppState, vm: TimetableViewModel) {
         if (ui.syllabusList.isEmpty() && !ui.syllabusIndexLoading && ui.syllabusIndexMsg.isBlank()) {
             Box(Modifier.fillMaxSize().padding(Space.xxl), contentAlignment = Alignment.Center) {
                 Text(
-                    "没有匹配的课程。\n这本册子只收土地与环境学院 ${ui.syllabusIndex.size} 门（2021 版），" +
-                        "通识课与外院课不在其中。",
+                    "没有匹配的课程。\n内置大纲收录 14 个学院 2021 版共 ${ui.syllabusIndex.size} 门，" +
+                        "通识课与其它年级的课不在其中。",
                     fontSize = 11.5.sp,
                     lineHeight = 18.sp,
                     color = t.inkSoft,
@@ -145,7 +145,7 @@ fun SyllabusSearchScreen(ui: AppState, vm: TimetableViewModel) {
                 item(key = "src") {
                     Spacer(Modifier.height(Space.s))
                     SyllabusNote(
-                        "大纲来源：土地与环境学院本科课程大纲（2021 版），共 892 页、167 门，" +
+                        "大纲来源：14 个学院《本科课程大纲（2021 版）》共 14 册 11,146 页，" +
                             "内置资产收录 ${ui.syllabusIndex.size} 门 · 通识课（形势与政策、社会主义发展史等）不在此册内",
                     )
                 }

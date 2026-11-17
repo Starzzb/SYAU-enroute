@@ -1,0 +1,747 @@
+{
+ "thxy.syau.edu.cn": {
+  "学院": "土地与环境学院",
+  "主机": "thxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "人才培养",
+    "url": "https://thxy.syau.edu.cn/<span style='color:red;font-size:9pt'>转换链接错误</span>"
+   }
+  ]
+ },
+ "nxy.syau.edu.cn": {
+  "学院": "农学院",
+  "主机": "nxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [
+   {
+    "栏目": "教学工作 |",
+    "url": "https://nxy.syau.edu.cn/jxgz1.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://nxy.syau.edu.cn/jxgz1/pyfa.htm"
+     },
+     {
+      "文本": "我院召开2025级本科人才培养方案修订专家论证会",
+      "url": "https://nxy.syau.edu.cn/info/1225/6627.htm"
+     },
+     {
+      "文本": "我院召开2025级农学专业人才培养方案修订研讨会",
+      "url": "https://nxy.syau.edu.cn/info/1225/6626.htm"
+     },
+     {
+      "文本": "农学院本科人才培养方案",
+      "url": "https://nxy.syau.edu.cn/info/1225/3035.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "培养方案",
+    "url": "https://nxy.syau.edu.cn/jxgz1/pyfa.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://nxy.syau.edu.cn/jxgz1/pyfa.htm"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "教学工作 |",
+    "url": "https://nxy.syau.edu.cn/jxgz1.htm"
+   },
+   {
+    "文本": "培养方案",
+    "url": "https://nxy.syau.edu.cn/jxgz1/pyfa.htm"
+   }
+  ]
+ },
+ "spxy.syau.edu.cn": {
+  "学院": "食品学院",
+  "主机": "spxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [
+   {
+    "栏目": "人才培养",
+    "url": "https://spxy.syau.edu.cn/rcpy1.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://spxy.syau.edu.cn/rcpy1/bksjy/pyfa.htm"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "人才培养",
+    "url": "https://spxy.syau.edu.cn/rcpy1.htm"
+   }
+  ]
+ },
+ "jgxy.syau.edu.cn": {
+  "学院": "经济管理学院",
+  "主机": "jgxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "人才培养",
+    "url": "https://jgxy.syau.edu.cn/rcpy/yjsxm.htm"
+   }
+  ]
+ },
+ "xdxy.syau.edu.cn": {
+  "学院": "信息与电气工程学院",
+  "主机": "xdxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [
+   {
+    "栏目": "培养方案",
+    "url": "https://xdxy.syau.edu.cn/yjspy/pyfa.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://xdxy.syau.edu.cn/yjspy/pyfa.htm"
+     },
+     {
+      "文本": "农业工程学科（0828）硕士研究生培养方案（适用...",
+      "url": "https://xdxy.syau.edu.cn/info/1036/3521.htm"
+     },
+     {
+      "文本": "直博生农业工程学科（0828）培养方案（适用于202...",
+      "url": "https://xdxy.syau.edu.cn/info/1036/3524.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "· 电气工程及其自动化专业人才培养方案",
+    "url": "https://xdxy.syau.edu.cn/info/1030/1970.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://xdxy.syau.edu.cn/yjspy/pyfa.htm"
+     },
+     {
+      "文本": "2025版沈阳农业大学本科人才培养方案.pdf",
+      "url": "https://xdxy.syau.edu.cn/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1575651257&wbfileid=11838925"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "培养方案",
+    "url": "https://xdxy.syau.edu.cn/yjspy/pyfa.htm"
+   },
+   {
+    "文本": "· 电气工程及其自动化专业人才培养方案",
+    "url": "https://xdxy.syau.edu.cn/info/1030/1970.htm"
+   }
+  ]
+ },
+ "gcxy.syau.edu.cn": {
+  "学院": "工程学院",
+  "主机": "gcxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [
+   {
+    "栏目": "工程学院暑期开展专业认证教学大纲修订工作会议",
+    "url": "https://gcxy.syau.edu.cn/info/1094/4943.htm",
+    "页面标题": "工程学院暑期开展专业认证教学大纲修订工作会议-工程学院",
+    "含大纲": true,
+    "条目数": 0,
+    "条目": []
+   }
+  ],
+  "培养方案线索": [
+   {
+    "栏目": "人才培养",
+    "url": "https://gcxy.syau.edu.cn/info/1260/2168.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://gcxy.syau.edu.cn/rcpy/bksjy/pyfa.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "工程学院暑期开展专业认证教学大纲修订工作会议",
+    "url": "https://gcxy.syau.edu.cn/info/1094/4943.htm",
+    "条目": []
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "人才培养",
+    "url": "https://gcxy.syau.edu.cn/info/1260/2168.htm"
+   },
+   {
+    "文本": "工程学院暑期开展专业认证教学大纲修订工作会议",
+    "url": "https://gcxy.syau.edu.cn/info/1094/4943.htm"
+   }
+  ]
+ },
+ "slxy.syau.edu.cn": {
+  "学院": "水利学院",
+  "主机": "slxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "水利学院本科教学研究成果展示",
+    "url": "https://slxy.syau.edu.cn/info/1172/7863.htm"
+   },
+   {
+    "文本": "水利学院本科教学成果与奖励展示",
+    "url": "https://slxy.syau.edu.cn/info/1175/7867.htm"
+   },
+   {
+    "文本": "本科教学",
+    "url": "https://slxy.syau.edu.cn/jyjx/bksjy.htm"
+   }
+  ]
+ },
+ "yyxy.syau.edu.cn": {
+  "学院": "园艺学院",
+  "主机": "yyxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [
+   {
+    "栏目": "本科教学",
+    "url": "https://yyxy.syau.edu.cn/bkjx1.htm",
+    "条目": [
+     {
+      "文本": "研究生培养方案",
+      "url": "https://yyxy.syau.edu.cn/yjsjy1/yjspyfa.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "研究生培养方案",
+    "url": "https://yyxy.syau.edu.cn/yjsjy1/yjspyfa.htm",
+    "条目": [
+     {
+      "文本": "研究生培养方案",
+      "url": "https://yyxy.syau.edu.cn/yjsjy1/yjspyfa.htm"
+     },
+     {
+      "文本": "园艺学学科（0902）直博生培养方案（适用2025级）",
+      "url": "https://yyxy.syau.edu.cn/info/1027/3898.htm"
+     },
+     {
+      "文本": "园艺学学科（0902）硕士研究生培养方案（适用2025级）",
+      "url": "https://yyxy.syau.edu.cn/info/1027/3897.htm"
+     },
+     {
+      "文本": "园艺学学科（0902）博士研究生（含硕博连读）培养方案（适用2025级）",
+      "url": "https://yyxy.syau.edu.cn/info/1027/3896.htm"
+     },
+     {
+      "文本": "农业博士（园艺领域）专业学位研究生培养方案（适用2025级）",
+      "url": "https://yyxy.syau.edu.cn/info/1027/3893.htm"
+     },
+     {
+      "文本": "草学学科（0909）硕士研究生培养方案（适用2025级）",
+      "url": "https://yyxy.syau.edu.cn/info/1027/3892.htm"
+     },
+     {
+      "文本": "园艺学学科（0902）硕士研究生培养方案（适用于2018、2019级）",
+      "url": "https://yyxy.syau.edu.cn/info/1027/1646.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "园艺学院多措并举推进本科教学运行管理工作",
+    "url": "https://yyxy.syau.edu.cn/info/1047/4236.htm",
+    "条目": [
+     {
+      "文本": "研究生培养方案",
+      "url": "https://yyxy.syau.edu.cn/yjsjy1/yjspyfa.htm"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "本科教学",
+    "url": "https://yyxy.syau.edu.cn/bkjx1.htm"
+   },
+   {
+    "文本": "研究生培养方案",
+    "url": "https://yyxy.syau.edu.cn/yjsjy1/yjspyfa.htm"
+   },
+   {
+    "文本": "园艺学院多措并举推进本科教学运行管理工作",
+    "url": "https://yyxy.syau.edu.cn/info/1047/4236.htm"
+   }
+  ]
+ },
+ "zbxy.syau.edu.cn": {
+  "学院": "植物保护学院",
+  "主机": "zbxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [
+   {
+    "栏目": "我院两位教师获评沈阳农业大学本科教学名师",
+    "url": "https://zbxy.syau.edu.cn/info/1036/5815.htm",
+    "页面标题": "我院两位教师获评沈阳农业大学本科教学名师-沈阳农业大学植物保护学院",
+    "含大纲": true,
+    "条目数": 1,
+    "条目": [
+     {
+      "文本": "教学大纲",
+      "url": "https://zbxy.syau.edu.cn/jyjx/bksjy/jxdg.htm"
+     }
+    ]
+   }
+  ],
+  "培养方案线索": [
+   {
+    "栏目": "我院两位教师获评沈阳农业大学本科教学名师",
+    "url": "https://zbxy.syau.edu.cn/info/1036/5815.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://zbxy.syau.edu.cn/jyjx/bksjy/pyfa1.htm"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "我院两位教师获评沈阳农业大学本科教学名师",
+    "url": "https://zbxy.syau.edu.cn/info/1036/5815.htm"
+   }
+  ]
+ },
+ "lin.syau.edu.cn": {
+  "学院": "林学院",
+  "主机": "lin.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [
+   {
+    "栏目": "人才培养",
+    "url": "https://lin.syau.edu.cn/rcpy.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://lin.syau.edu.cn/rcpy/pyfa.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2025级）",
+      "url": "https://lin.syau.edu.cn/info/1040/6219.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2024级）",
+      "url": "https://lin.syau.edu.cn/info/1040/6218.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2023级）",
+      "url": "https://lin.syau.edu.cn/info/1040/4793.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2018级+2019级）",
+      "url": "https://lin.syau.edu.cn/info/1040/2269.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "培养方案",
+    "url": "https://lin.syau.edu.cn/rcpy/pyfa.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://lin.syau.edu.cn/rcpy/pyfa.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2025级）",
+      "url": "https://lin.syau.edu.cn/info/1040/6219.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2024级）",
+      "url": "https://lin.syau.edu.cn/info/1040/6218.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2023级）",
+      "url": "https://lin.syau.edu.cn/info/1040/4793.htm"
+     },
+     {
+      "文本": "林学院本科人才培养方案（2018级+2019级）",
+      "url": "https://lin.syau.edu.cn/info/1040/2269.htm"
+     },
+     {
+      "文本": "森林保护专业2017级本科人才培养方案",
+      "url": "https://lin.syau.edu.cn/info/1040/1132.htm"
+     },
+     {
+      "文本": "园林专业2017级本科人才培养方案",
+      "url": "https://lin.syau.edu.cn/info/1040/1133.htm"
+     },
+     {
+      "文本": "林学专业2017级本科人才培养方案",
+      "url": "https://lin.syau.edu.cn/info/1040/1134.htm"
+     },
+     {
+      "文本": "风景园林专业2017级本科人才培养方案",
+      "url": "https://lin.syau.edu.cn/info/1040/1131.htm"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "人才培养",
+    "url": "https://lin.syau.edu.cn/rcpy.htm"
+   },
+   {
+    "文本": "培养方案",
+    "url": "https://lin.syau.edu.cn/rcpy/pyfa.htm"
+   }
+  ]
+ },
+ "swxy.syau.edu.cn": {
+  "学院": "生物科学技术学院",
+  "主机": "swxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [
+   {
+    "栏目": "培养方案",
+    "url": "https://swxy.syau.edu.cn/yjs/pyfa.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://swxy.syau.edu.cn/yjs/pyfa.htm"
+     },
+     {
+      "文本": "生物与医药硕士专业学位研究生培养方案",
+      "url": "https://swxy.syau.edu.cn/info/1033/5671.htm"
+     },
+     {
+      "文本": "生物学学科硕士研究生培养方案",
+      "url": "https://swxy.syau.edu.cn/info/1033/5670.htm"
+     },
+     {
+      "文本": "生物学学科博士研究生（含硕博连读）培养方案",
+      "url": "https://swxy.syau.edu.cn/info/1033/5669.htm"
+     },
+     {
+      "文本": "生物学直博生培养方案",
+      "url": "https://swxy.syau.edu.cn/info/1033/5668.htm"
+     },
+     {
+      "文本": "直博生物学培养方案",
+      "url": "https://swxy.syau.edu.cn/info/1033/3137.htm"
+     },
+     {
+      "文本": "博士生物学培养方案（含硕博连读）",
+      "url": "https://swxy.syau.edu.cn/info/1033/3136.htm"
+     },
+     {
+      "文本": "学硕生物学培养方案",
+      "url": "https://swxy.syau.edu.cn/info/1033/3135.htm"
+     },
+     {
+      "文本": "生物与医药专业学位硕士研究生培养方案（适用全日制和非全日制专业学...",
+      "url": "https://swxy.syau.edu.cn/info/1033/3134.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "本科教学",
+    "url": "https://swxy.syau.edu.cn/bk.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://swxy.syau.edu.cn/yjs/pyfa.htm"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "培养方案",
+    "url": "https://swxy.syau.edu.cn/yjs/pyfa.htm"
+   },
+   {
+    "文本": "本科教学",
+    "url": "https://swxy.syau.edu.cn/bk.htm"
+   }
+  ]
+ },
+ "lxy.syau.edu.cn": {
+  "学院": "理学院",
+  "主机": "lxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "我院与园艺学院开展通专融合人才培养交流",
+    "url": "https://lxy.syau.edu.cn/info/1105/2540.htm"
+   }
+  ]
+ },
+ "myxy.syau.edu.cn": {
+  "学院": "动物科学与医学学院",
+  "主机": "myxy.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": []
+ },
+ "marx.syau.edu.cn": {
+  "学院": "马克思主义学院",
+  "主机": "marx.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "教学工作",
+    "url": "https://marx.syau.edu.cn/jxgz/bkjx.htm"
+   }
+  ]
+ },
+ "tyb.syau.edu.cn": {
+  "学院": "体育部",
+  "主机": "tyb.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": []
+ },
+ "wyb.syau.edu.cn": {
+  "学院": "外语部",
+  "主机": "wyb.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [],
+  "培养方案线索": [],
+  "错误": null,
+  "导航命中": []
+ },
+ "jwc.syau.edu.cn": {
+  "学院": "教务处",
+  "主机": "jwc.syau.edu.cn",
+  "首页": 200,
+  "大纲线索": [
+   {
+    "栏目": "人才培养",
+    "url": "https://jwc.syau.edu.cn/rcpy.htm",
+    "页面标题": "人才培养-教务处",
+    "含大纲": true,
+    "条目数": 2,
+    "条目": [
+     {
+      "文本": "课程大纲",
+      "url": "https://jwc.syau.edu.cn/rcpy/kcdg.htm"
+     },
+     {
+      "文本": "2023-03-24沈阳农业大学本科课程大纲（2021版）",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1235&wbnewsid=7213"
+     }
+    ]
+   },
+   {
+    "栏目": "培养方案",
+    "url": "https://jwc.syau.edu.cn/rcpy/pyfa.htm",
+    "页面标题": "培养方案-教务处",
+    "含大纲": true,
+    "条目数": 1,
+    "条目": [
+     {
+      "文本": "课程大纲",
+      "url": "https://jwc.syau.edu.cn/rcpy/kcdg.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "课程大纲",
+    "url": "https://jwc.syau.edu.cn/rcpy/kcdg.htm",
+    "页面标题": "课程大纲-教务处",
+    "含大纲": true,
+    "条目数": 3,
+    "条目": [
+     {
+      "文本": "课程大纲",
+      "url": "https://jwc.syau.edu.cn/rcpy/kcdg.htm"
+     },
+     {
+      "文本": "2023-03-24沈阳农业大学本科课程大纲（2021版）",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1235&wbnewsid=7213"
+     },
+     {
+      "文本": "2020-04-102017级本科课程教学大纲",
+      "url": "https://jwc.syau.edu.cn/info/1235/4757.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "[04-23]学校召开2026年第二次教学工作例会",
+    "url": "https://jwc.syau.edu.cn/info/1154/10503.htm",
+    "页面标题": "学校召开2026年第二次教学工作例会-教务处",
+    "含大纲": true,
+    "条目数": 1,
+    "条目": [
+     {
+      "文本": "课程大纲",
+      "url": "https://jwc.syau.edu.cn/rcpy/kcdg.htm"
+     }
+    ]
+   }
+  ],
+  "培养方案线索": [
+   {
+    "栏目": "人才培养",
+    "url": "https://jwc.syau.edu.cn/rcpy.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://jwc.syau.edu.cn/rcpy/pyfa.htm"
+     },
+     {
+      "文本": "2025-10-302025版本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=10329"
+     },
+     {
+      "文本": "2024-08-262024级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=9354"
+     },
+     {
+      "文本": "2023-08-292023级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=7893"
+     },
+     {
+      "文本": "2022-11-242022级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=6874"
+     },
+     {
+      "文本": "2021-09-142021级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=5967"
+     },
+     {
+      "文本": "2020-09-112020级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=5381"
+     },
+     {
+      "文本": "2020-09-112019级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=5380"
+     }
+    ]
+   },
+   {
+    "栏目": "培养方案",
+    "url": "https://jwc.syau.edu.cn/rcpy/pyfa.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://jwc.syau.edu.cn/rcpy/pyfa.htm"
+     },
+     {
+      "文本": "2025-10-302025版本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=10329"
+     },
+     {
+      "文本": "2024-08-262024级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=9354"
+     },
+     {
+      "文本": "2023-08-292023级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=7893"
+     },
+     {
+      "文本": "2022-11-242022级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=6874"
+     },
+     {
+      "文本": "2021-09-142021级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=5967"
+     },
+     {
+      "文本": "2020-09-112020级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=5381"
+     },
+     {
+      "文本": "2020-09-112019级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=5380"
+     },
+     {
+      "文本": "2020-04-162018级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=4789"
+     },
+     {
+      "文本": "2020-04-162017级本科人才培养方案",
+      "url": "https://jwc.syau.edu.cn/content.jsp?urltype=news.NewsContentUrl&wbtreeid=1234&wbnewsid=4788"
+     }
+    ]
+   },
+   {
+    "栏目": "课程大纲",
+    "url": "https://jwc.syau.edu.cn/rcpy/kcdg.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://jwc.syau.edu.cn/rcpy/pyfa.htm"
+     }
+    ]
+   },
+   {
+    "栏目": "[04-23]学校召开2026年第二次教学工作例会",
+    "url": "https://jwc.syau.edu.cn/info/1154/10503.htm",
+    "条目": [
+     {
+      "文本": "培养方案",
+      "url": "https://jwc.syau.edu.cn/rcpy/pyfa.htm"
+     }
+    ]
+   }
+  ],
+  "错误": null,
+  "导航命中": [
+   {
+    "文本": "人才培养",
+    "url": "https://jwc.syau.edu.cn/rcpy.htm"
+   },
+   {
+    "文本": "培养方案",
+    "url": "https://jwc.syau.edu.cn/rcpy/pyfa.htm"
+   },
+   {
+    "文本": "课程大纲",
+    "url": "https://jwc.syau.edu.cn/rcpy/kcdg.htm"
+   },
+   {
+    "文本": "[04-23]学校召开2026年第二次教学工作例会",
+    "url": "https://jwc.syau.edu.cn/info/1154/10503.htm"
+   }
+  ]
+ }
+}

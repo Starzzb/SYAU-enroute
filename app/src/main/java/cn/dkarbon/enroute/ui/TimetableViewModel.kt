@@ -799,8 +799,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                     entry == null && match.candidates.isNotEmpty() ->
                         "有 ${match.candidates.size} 门课名字对得上，不替你猜"
                     entry == null ->
-                        "这本院级大纲册子里没有「${name.ifBlank { code }}」—— 册子只收土地与环境学院的 " +
-                            "$count 门（2021 版），通识课与外院课通常不在其中"
+                        "内置大纲里没有「${name.ifBlank { code }}」—— 收录 14 个学院 2021 版共 " +
+                            "$count 门，通识课与其它年级的课通常不在其中"
                     detail == null -> "索引里有这门课，但大纲文件没读到（资产可能不完整）"
                     else -> ""
                 },

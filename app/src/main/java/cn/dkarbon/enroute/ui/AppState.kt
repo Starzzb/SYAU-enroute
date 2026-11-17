@@ -183,7 +183,7 @@ data class AppState(
     val planMsg: String = "",
 
     // ── 课程大纲（票 10）──
-    /** 大纲索引（166 门，一次读入内存） */
+    /** 大纲索引（2066 门，一次读入内存） */
     val syllabusIndex: List<SyllabusIndexEntry> = emptyList(),
     /** 搜索框内容 */
     val syllabusQuery: String = "",
