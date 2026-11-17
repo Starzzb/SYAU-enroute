@@ -75,6 +75,14 @@ object ProbeCatalog {
         return if (spec.expectJson) r.looksLikeJson else r.bytes > 0
     }
 
+    /**
+     * 服务器**明确拒绝**这次请求（403 / 412 / 429）。
+     *
+     * 与「连不上」「没登录」是三种完全不同的事，界面必须分开说，
+     * 不能笼统写成「失败」——那等于把"对方说了不"和"我们没问到"混成一锅。
+     */
+    fun refused(status: Int): Boolean = status == 403 || status == 412 || status == 429
+
     /** 行内那行小字：「200 · 1.2 KB」/「— · 超时」 */
     fun metaLine(r: ProbeResult?): String {
         if (r == null) return "…"
@@ -92,3 +100,4 @@ object ProbeCatalog {
         else -> "${n / 1024} KB"
     }
 }
+

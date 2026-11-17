@@ -63,8 +63,8 @@ object UrpClient {
      */
     private const val CAMPUS_LIST = "/student/teachingResources/freeClassroom/queryCodeCampusList"
 
-    private val UA = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
+    /** `extraHeaders` 里用这个值表示「这次不发 Referer」（地址栏直达 / 302 送来的顶层导航） */
+    private const val NO_REFERER = "<none>"
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
@@ -133,7 +133,10 @@ object UrpClient {
         // ── ① 取登录页，抠 lt ────────────────────────────
         val loginUrl = "$SSO/tpass/login?service=" +
             URLEncoder.encode("$URP/login", "UTF-8")
-        val page = httpGet(session, loginUrl, secure = true)
+        val page = httpGet(
+            session, loginUrl, secure = true, nav = true,
+            extraHeaders = mapOf("Referer" to NO_REFERER),
+        )
         val lt = Regex("""name="lt"\s+value="([^"]+)"""")
             .find(page)?.groupValues?.get(1)
             ?: Regex("""value="(LT-[^"]+)"""")
@@ -150,10 +153,7 @@ object UrpClient {
             "$SSO/tpass/rsa",
             "",
             secure = true,
-            extraHeaders = mapOf(
-                "X-Requested-With" to "XMLHttpRequest",
-                "Referer" to loginUrl,
-            ),
+            extraHeaders = mapOf("Referer" to loginUrl),
         )
         val publicKey = Regex(""""publicKey"\s*:\s*"([^"]+)"""")
             .find(keyBody)?.groupValues?.get(1)
@@ -175,8 +175,11 @@ object UrpClient {
         // 只记长度，不记内容：表单里有 RSA 密文账号密码 + lt 票据
         DebugLog.log("URP", "→ POST SSO 提交登录（表单 ${form.length} 字节，内容已隐去）")
 
-        val resp = httpPost(session, "$SSO/tpass/login?service=" + URLEncoder.encode("$URP/login", "UTF-8"),
-            form, secure = true)
+        val resp = httpPost(
+            session, "$SSO/tpass/login?service=" + URLEncoder.encode("$URP/login", "UTF-8"),
+            form, secure = true, nav = true,
+            extraHeaders = mapOf("Referer" to NO_REFERER),
+        )
         DebugLog.step(
             "URP",
             "SSO 返回 ${resp.length} 字节；含 errormsghide=${resp.contains("errormsghide")} 又回登录页=${resp.contains("loginForm")}",
@@ -186,7 +189,7 @@ object UrpClient {
         // 必须跟进去，URP 才会用 ticket 换到自己的 JSESSIONID。
         // httpPost 内部已经跟随 302，但 POST 的响应体为空，
         // 所以这里再主动访问一次 URP 首页确保会话建立。
-        runCatching { httpGet(session, "$URP/index") }.getOrNull()?.let { html ->
+        runCatching { httpGet(session, "$URP/index", nav = true) }.getOrNull()?.let { html ->
             session.displayName = parseDisplayName(html)
             DebugLog.step(
                 "URP",
@@ -220,14 +223,7 @@ object UrpClient {
      */
     suspend fun verifySession(session: Session): SessionProbe = withContext(Dispatchers.IO) {
         val body = runCatching {
-            httpGet(
-                session, "$URP$CAMPUS_LIST",
-                extraHeaders = mapOf(
-                    "X-Requested-With" to "XMLHttpRequest",
-                    "Accept" to "application/json, text/javascript, */*; q=0.01",
-                    "Referer" to "$URP/",
-                ),
-            )
+            httpGet(session, "$URP$CAMPUS_LIST")
         }.getOrElse {
             // 超时/拒绝连接/不在校园网：会话可能还活着，我们只是问不到 —— 不能判过期
             DebugLog.step("SESSION", "验活未完成：${it.javaClass.simpleName}（多半不在校园网）")
@@ -268,14 +264,7 @@ object UrpClient {
 
         val url = "$URP/student/courseSelect/thisSemesterCurriculum/ajaxStudentSchedule/callback"
         DebugLog.step("URP", "开始拉课表")
-        httpGet(
-            session, url,
-            extraHeaders = mapOf(
-                "X-Requested-With" to "XMLHttpRequest",
-                "Referer" to "$URP/student/courseSelect/thisSemesterCurriculum/index",
-                "Accept" to "application/json, text/javascript, */*; q=0.01",
-            ),
-        )
+        httpGet(session, url)
     }
 
     /**
@@ -296,9 +285,7 @@ object UrpClient {
             session, url,
             body = HistorySemesters.scheduleBody(planCode),
             extraHeaders = mapOf(
-                "X-Requested-With" to "XMLHttpRequest",
                 "Referer" to "$URP/student/courseSelect/calendarSemesterCurriculum/index",
-                "Accept" to "application/json, text/javascript, */*; q=0.01",
             ),
         )
     }
@@ -312,7 +299,8 @@ object UrpClient {
         httpGet(
             session,
             "$URP/student/courseSelect/calendarSemesterCurriculum/index",
-            extraHeaders = mapOf("Referer" to "$URP/index"),
+            nav = true,
+            extraHeaders = mapOf("Referer" to "$URP/student/courseSelect/index"),
         )
     }
 
@@ -469,7 +457,8 @@ object UrpClient {
         url: String,
         secure: Boolean = false,
         extraHeaders: Map<String, String> = emptyMap(),
-    ): String = request(session, url, "GET", null, secure, extraHeaders)
+        nav: Boolean = false,
+    ): String = request(session, url, "GET", null, secure, extraHeaders, nav)
 
     private fun httpPost(
         session: Session,
@@ -477,7 +466,8 @@ object UrpClient {
         body: String,
         secure: Boolean = false,
         extraHeaders: Map<String, String> = emptyMap(),
-    ): String = request(session, url, "POST", body, secure, extraHeaders)
+        nav: Boolean = false,
+    ): String = request(session, url, "POST", body, secure, extraHeaders, nav)
 
     private fun request(
         session: Session,
@@ -486,6 +476,7 @@ object UrpClient {
         body: String?,
         secure: Boolean,
         extraHeaders: Map<String, String>,
+        nav: Boolean = false,
     ): String {
         var currentUrl = url
         var currentMethod = method
@@ -499,15 +490,25 @@ object UrpClient {
             conn.readTimeout = 25000
             conn.requestMethod = currentMethod
 
-            conn.setRequestProperty("User-Agent", UA)
+            val path = runCatching { java.net.URI(currentUrl).rawPath }.getOrNull() ?: "/"
+            UrpThrottle.await(conn.url.host)
+            UrpHeaders.apply(
+                conn = conn,
+                path = path,
+                method = currentMethod,
+                nav = nav && hops == 0,
+                referer = extraHeaders["Referer"],
+                omitReferer = extraHeaders["Referer"] == NO_REFERER,
+                logTag = if (hops == 0) "URP" else null,
+            )
             if (session.cookies.isNotEmpty()) {
                 conn.setRequestProperty("Cookie", session.cookieHeader())
             }
-            extraHeaders.forEach { (k, v) -> conn.setRequestProperty(k, v) }
-
+            extraHeaders.forEach { (k, v) ->
+                if (k != "Referer") conn.setRequestProperty(k, v)
+            }
             if (currentMethod == "POST") {
                 conn.doOutput = true
-                conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                 val bytes = (currentBody ?: "").toByteArray(Charsets.UTF_8)
                 conn.setFixedLengthStreamingMode(bytes.size)
                 conn.outputStream.use { it.write(bytes) }
@@ -561,3 +562,4 @@ object UrpClient {
         return Base64.encodeToString(encrypted, Base64.NO_WRAP)
     }
 }
+

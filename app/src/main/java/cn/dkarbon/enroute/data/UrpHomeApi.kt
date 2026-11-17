@@ -29,8 +29,6 @@ object UrpHomeApi {
 
     private const val URP = "http://" + AcademicApi.URP_HOST
 
-    private val UA = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
@@ -982,7 +980,7 @@ object UrpHomeApi {
         val conn = URL(URP + path).openConnection() as HttpURLConnection
         return try {
             conn.requestMethod = "GET"
-            applyCommon(conn, s)
+            applyCommon(conn, s, path, "GET")
             read(conn, path, s)
         } catch (e: Exception) {
             DebugLog.error("HOME", "GET ${path.take(80)} 失败：${e.javaClass.simpleName} ${e.message}")
@@ -1001,8 +999,7 @@ object UrpHomeApi {
         return try {
             conn.requestMethod = "POST"
             conn.doOutput = true
-            applyCommon(conn, s)
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+            applyCommon(conn, s, path, "POST")
             conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             read(conn, path, s)
         } catch (e: Exception) {
@@ -1013,14 +1010,16 @@ object UrpHomeApi {
         }
     }
 
-    private fun applyCommon(conn: HttpURLConnection, s: UrpClient.Session) {
+    /**
+     * 头一律交给 [UrpHeaders] 统一设（含 `Accept` / `Referer` / `Sec-Fetch-*` / `Origin`），
+     * 这里只管超时、跳转与 `Cookie`。
+     */
+    private fun applyCommon(conn: HttpURLConnection, s: UrpClient.Session, path: String, method: String) {
         conn.connectTimeout = 12_000
         conn.readTimeout = 20_000
         conn.instanceFollowRedirects = true
-        conn.setRequestProperty("User-Agent", UA)
-        conn.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01")
-        conn.setRequestProperty("X-Requested-With", "XMLHttpRequest")
-        conn.setRequestProperty("Referer", "$URP/")
+        UrpThrottle.await(conn.url.host)
+        UrpHeaders.apply(conn, path = path, method = method, logTag = "HOME")
         val cookie = s.cookieHeader()
         if (cookie.isNotBlank()) conn.setRequestProperty("Cookie", cookie)
     }
@@ -1066,3 +1065,4 @@ object UrpHomeApi {
             "过滤字段未实测，靠客户端匹配) — 占用课表另有一条未探明路由",
     )
 }
+

@@ -145,8 +145,6 @@ object AcademicApi {
     /** 与 [UrpClient] 里的私有常量保持一致（那边没暴露，这里复制一份，改一处记得改两处） */
     private const val URP = "http://$URP_HOST"
 
-    private val UA = "Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 " +
-        "(KHTML, like Gecko) Chrome/120.0 Mobile Safari/537.36"
 
     private val json = Json { ignoreUnknownKeys = true; isLenient = true }
 
@@ -496,10 +494,8 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
             conn.connectTimeout = 12_000
             conn.readTimeout = 20_000
             conn.instanceFollowRedirects = true
-            conn.setRequestProperty("User-Agent", UA)
-            conn.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01")
-            conn.setRequestProperty("X-Requested-With", "XMLHttpRequest")
-            conn.setRequestProperty("Referer", "$URP/")
+            UrpThrottle.await(conn.url.host)
+            UrpHeaders.apply(conn, path = path, method = "GET", logTag = "API")
             val cookie = session.cookieHeader()
             if (cookie.isNotBlank()) conn.setRequestProperty("Cookie", cookie)
             val code = conn.responseCode
@@ -533,11 +529,8 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
             conn.connectTimeout = 12_000
             conn.readTimeout = 20_000
             conn.instanceFollowRedirects = true
-            conn.setRequestProperty("User-Agent", UA)
-            conn.setRequestProperty("Accept", "application/json, text/javascript, */*; q=0.01")
-            conn.setRequestProperty("X-Requested-With", "XMLHttpRequest")
-            conn.setRequestProperty("Referer", "$URP/")
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+            UrpThrottle.await(conn.url.host)
+            UrpHeaders.apply(conn, path = path, method = "POST", logTag = "API")
             val cookie = session.cookieHeader()
             if (cookie.isNotBlank()) conn.setRequestProperty("Cookie", cookie)
             conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
@@ -557,3 +550,4 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
     /** 供外部（设置页）显示用的「接口版本」标记 */
     fun apiVersion(): String = "urp-syau/2 · " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd"))
 }
+

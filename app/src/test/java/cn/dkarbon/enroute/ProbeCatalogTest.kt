@@ -99,4 +99,13 @@ class ProbeCatalogTest {
             assertTrue("${spec.id} 路径必须以 / 开头", spec.path.startsWith("/student/"))
         }
     }
+    @Test
+    fun `服务器明确拒绝与连不上分开算`() {
+        assertTrue(ProbeCatalog.refused(403))
+        assertTrue(ProbeCatalog.refused(412))
+        assertTrue(ProbeCatalog.refused(429))
+        assertFalse(ProbeCatalog.refused(302))
+        assertFalse(ProbeCatalog.refused(500))
+        assertFalse(ProbeCatalog.refused(-1))
+    }
 }

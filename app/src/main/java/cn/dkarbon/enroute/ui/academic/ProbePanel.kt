@@ -98,6 +98,12 @@ fun ProbePanel(
         val r = ui.probe.getOrNull(i)
         r != null && ProbeCatalog.ok(ProbeCatalog.specs[i], r)
     }
+    // 断里再分两笔：服务器明说「不」（403/412/429）与压根没问到，是两件事
+    val refusedCount = (0 until done).count { i ->
+        val r = ui.probe.getOrNull(i)
+        r != null && ProbeCatalog.refused(r.status)
+    }
+    val failCount = done - okCount - refusedCount
 
     // 开跑就自己撑开，不用再点一次
     LaunchedEffect(running) { if (running) expanded = true }
@@ -136,9 +142,17 @@ fun ProbePanel(
                 color = t.inkSoft,
                 modifier = Modifier.padding(start = 14.dp),
             )
-            if (done > 0 && done - okCount > 0) {
+            if (done > 0 && failCount > 0) {
                 Text(
-                    text = " · ${done - okCount} 断",
+                    text = " · $failCount 断",
+                    fontSize = 11.5.sp,
+                    fontFamily = NumericFont,
+                    color = t.rust,
+                )
+            }
+            if (done > 0 && refusedCount > 0) {
+                Text(
+                    text = " · $refusedCount 拒",
                     fontSize = 11.5.sp,
                     fontFamily = NumericFont,
                     color = t.rust,
