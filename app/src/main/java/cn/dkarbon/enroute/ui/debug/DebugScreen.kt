@@ -208,7 +208,7 @@ fun DebugScreen(
         if (entries.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(28.dp), contentAlignment = Alignment.Center) {
                 Text(
-                    "还没有日志。\n去「课表」页登录一次，这里就会记下每一步请求。",
+                    "还没有日志。",
                     fontSize = 12.sp,
                     lineHeight = 19.sp,
                     color = t.inkFaint,

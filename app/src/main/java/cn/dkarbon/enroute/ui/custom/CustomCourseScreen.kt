@@ -104,7 +104,7 @@ private fun CustomCourseList(ui: AppState, vm: TimetableViewModel) {
                 Modifier.fillMaxWidth().border(Stroke.hairline, t.outline).padding(Space.l),
             ) {
                 Text(
-                    "还没有自定义课。\n"+ "可以按周次排（第 3–16 周），也可以只排某一天。",
+                    "还没有自定义课。",
                     fontSize = 11.sp,
                     lineHeight = 17.sp,
                     color = t.inkFaint,
@@ -179,13 +179,6 @@ private fun RuleKindStep(onWeekly: () -> Unit, onSingle: () -> Unit) {
     Column(Modifier.fillMaxSize().padding(horizontal = Space.l)) {
         Spacer(Modifier.height(Space.s))
         Text("这门课怎么排？", fontSize = 15.sp, color = t.ink, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(4.dp))
-        Text(
-            "先选一种；之后还能「再加一个时间」（比如前八周周二、后八周周四）。",
-            fontSize = 10.sp,
-            lineHeight = 15.sp,
-            color = t.inkFaint,
-        )
         Spacer(Modifier.height(Space.l))
         KindCard(
             title = "按周次重复",

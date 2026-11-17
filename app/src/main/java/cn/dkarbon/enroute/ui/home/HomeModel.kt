@@ -202,13 +202,11 @@ object HomeModel {
         return when (issue) {
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.OK,
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.NOTHING_FREE ->
-                "${who}这一节没有空闲教室。换一节课次，或者选「明天 / 后天」看看"
+                "${who}这一节没有空闲教室"
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.NO_SESSION ->
-                "没拿到数据（不是「没有空教室」）。教务登录态可能已失效，或当前不在校园网 —— " +
-                    "回「课表」页重新登录、连上校园网再刷新"
+                "没拿到数据（不是「没有空教室」）。教务登录态可能已失效，或当前不在校园网"
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.PICK_LOST ->
-                "服务器返回的不是你选的那栋楼（「先选楼再查」这步没生效）。刷新后再试一次；" +
-                    "若一直这样，说明教务接口行为改了，去设置页跑一次接口诊断"
+                "服务器返回的不是你选的那栋楼（「先选楼再查」这步没生效）。刷新后再试一次"
         }
     }
 
@@ -369,9 +367,7 @@ object HomeModel {
      * 所以在实测补齐之前，这一段只能如实说「暂缺」——
      * **绝不能拿一张空课表冒充「这间教室今天没人用」**，那是假数据，会让人白跑一趟。
      */
-    fun occupancyHint(): String =
-        "暂缺：教务把「教室档案」和「教室占用课表」分成两条接口，后者的请求参数还没实测（2026-11-14）。" +
-            "这里先不摆空表，等实测通了再补 —— 在此之前请以现场为准。"
+    fun occupancyHint(): String = "暂缺"
 
     /**
      * 「没查到这间教室」时交代**检索覆盖面**：翻了 scanned 条、库里共 totalCount 间。
@@ -392,8 +388,8 @@ object HomeModel {
 
     /** 教师搜索的空态文案：区分「没搜」和「搜了没有」 */
     fun teacherEmptyHint(keyword: String): String = when {
-        keyword.isBlank() -> "输入教师姓名搜索（支持部分匹配，如「董」）"
-        else -> "没找到「$keyword」。换个字试试，或确认这学期 TA 有排课"
+        keyword.isBlank() -> "教师姓名"
+        else -> "没找到「$keyword」。"
     }
 
     // ── 节次 ──────────────────────────────────────────────

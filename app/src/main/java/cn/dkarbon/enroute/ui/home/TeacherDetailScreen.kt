@@ -130,7 +130,11 @@ fun TeacherDetailScreen(ui: AppState, vm: TimetableViewModel) {
                     LabelRow(label, value)
                 }
                 if (info.fields.rows().isEmpty()) {
-                    HintText("官网这页正文里没抽到职称/研究方向这类字段，下面原文可直接看")
+                    if (info.sections.isNotEmpty()) {
+                        Text("原文", fontSize = 11.5.sp, color = t.ink, fontWeight = FontWeight.Medium)
+                    } else {
+                        HintText("暂缺")
+                    }
                 }
                 info.sections.take(3).forEach { sec ->
                     Spacer(Modifier.height(Space.xs))

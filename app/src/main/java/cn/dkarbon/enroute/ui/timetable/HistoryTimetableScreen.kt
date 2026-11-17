@@ -117,7 +117,7 @@ fun HistoryTimetableScreen(ui: AppState, vm: TimetableViewModel) {
                     when {
                         ui.historyLoading -> "正在读这一学期的课表…"
                         ui.historyMsg.isNotBlank() -> ui.historyMsg
-                        else -> "选一个学期看看"
+                        else -> ""
                     },
                     fontSize = 12.sp,
                     lineHeight = 19.sp,

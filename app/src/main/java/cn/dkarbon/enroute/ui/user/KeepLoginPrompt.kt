@@ -89,13 +89,6 @@ fun KeepLoginPrompt(vm: TimetableViewModel) {
                     Text("不了，每次手动登录", fontSize = 12.sp, color = t.inkSoft)
                 }
             }
-            Spacer(Modifier.height(Space.s))
-            Text(
-                "选「不了」也不会影响现在使用；只是教务会话过期后要再输一次密码。",
-                fontSize = 9.5.sp,
-                lineHeight = 14.sp,
-                color = t.inkFaint,
-            )
         }
     }
 }

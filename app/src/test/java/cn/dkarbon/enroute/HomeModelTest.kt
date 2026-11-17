@@ -13,6 +13,7 @@ import cn.dkarbon.enroute.data.UrpHomeApi.TermScore
 import cn.dkarbon.enroute.ui.home.HomeModel
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -210,19 +211,22 @@ class HomeModelTest {
 
     @Test
     fun `空闲教室空态三分法`() {
-        // ① 真的没空教室：告诉用户换节次/换天，而不是让他以为坏了
+        // ① 真的没空教室：只陈述事实，不劝用户换节次（动作交给界面上的选择器）
         val nothing = HomeModel.freeRoomsEmptyHint(FreeRoomsIssue.NOTHING_FREE, "第二教学楼")
         assertTrue(nothing, nothing.contains("这一节没有空闲教室"))
-        assertTrue(nothing, nothing.contains("明天"))
-        // ② 会话/网络：绝不能说自己「没有空教室」，要给可执行的下一步
+        assertFalse(nothing, nothing.contains("明天"))
+        // ② 会话/网络：绝不能说自己「没有空教室」，也不能替用户猜原因
         val noSession = HomeModel.freeRoomsEmptyHint(FreeRoomsIssue.NO_SESSION, "第二教学楼")
         assertTrue(noSession, noSession.contains("不是「没有空教室」"))
         assertTrue(noSession, noSession.contains("校园网"))
-        assertTrue(noSession, noSession.contains("重新登录"))
-        // ③ 选楼没生效：说明是故障，并指向刷新/诊断
+        assertFalse(noSession, noSession.contains("回「"))
+        // ③ 选楼没生效：说明是故障
         val lost = HomeModel.freeRoomsEmptyHint(FreeRoomsIssue.PICK_LOST, "第二教学楼")
         assertTrue(lost, lost.contains("不是你选的那栋楼"))
         assertTrue(lost, lost.contains("刷新"))
+        // 三种原因必须读起来不同，否则用户没法判断该做什么
+        assertNotEquals(nothing, noSession)
+        assertNotEquals(noSession, lost)
         // 楼名缺失时不留半截句子
         assertTrue(HomeModel.freeRoomsEmptyHint(FreeRoomsIssue.NOTHING_FREE).startsWith("这栋楼"))
     }
@@ -262,7 +266,7 @@ class HomeModelTest {
     fun `教师行与空态文案`() {
         assertEquals("土环 · 教授", HomeModel.teacherLine(TeacherHit("董秀茹", "1", "土环", "教授")))
         assertEquals("教授", HomeModel.teacherLine(TeacherHit("某", "1", "", "教授")))
-        assertTrue(HomeModel.teacherEmptyHint("").contains("输入教师姓名"))
+        assertEquals("教师姓名", HomeModel.teacherEmptyHint(""))
         assertTrue(HomeModel.teacherEmptyHint("董").contains("没找到「董」"))
     }
 
@@ -329,10 +333,8 @@ class HomeModelTest {
     @Test
     fun `占用那一段必须明说暂缺且不冒充空表`() {
         val hint = HomeModel.occupancyHint()
-        // 关键词：暂缺 + 说明为什么 + 「以现场为准」
-        assertTrue(hint, hint.contains("暂缺"))
-        assertTrue(hint, hint.contains("实测"))
-        assertTrue(hint, hint.contains("现场"))
+        // 没探明就只留占位词：不解释为什么、不写页面路线（那些进 docs）
+        assertEquals("暂缺", hint)
         // 绝不能出现「没有课/空闲」这种会让人白跑一趟的说法
         assertFalse(hint, hint.contains("没有课"))
         assertFalse(hint, hint.contains("全天空闲"))

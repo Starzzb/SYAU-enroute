@@ -167,7 +167,6 @@ fun CourseQuickActions(
             QuickRow(
                 index = "02",
                 title = "查看完整详情",
-                subtitle = "周次矩阵 · 课程号 · 完整地点",
                 onClick = {
                     onDetail()
                     close()
@@ -200,7 +199,7 @@ fun CourseQuickActions(
 private fun QuickRow(
     index: String,
     title: String,
-    subtitle: String,
+    subtitle: String? = null,
     onClick: () -> Unit,
 ) {
     val t = InkTokens.current
@@ -230,15 +229,17 @@ private fun QuickRow(
                 fontWeight = FontWeight.Medium,
                 color = t.ink,
             )
-            Spacer(Modifier.height(3.dp))
-            Text(
-                subtitle,
-                fontSize = 9.5.sp,
-                lineHeight = 13.sp,
-                color = t.inkFaint,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            if (subtitle != null) {
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    subtitle,
+                    fontSize = 9.5.sp,
+                    lineHeight = 13.sp,
+                    color = t.inkFaint,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
     Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))

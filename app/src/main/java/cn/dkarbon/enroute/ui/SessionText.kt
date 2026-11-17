@@ -87,9 +87,9 @@ object SessionText {
 
     /** 没有可用会话时，各接口面板的提示 */
     fun noSessionHint(s: SessionState): String = when (s) {
-        SessionState.None -> "还没登录。回「课表」页登录一次即可（只在校内网可用）"
+        SessionState.None -> "未登录（只在校内网可用）"
         SessionState.Active -> "" // 有会话却走到这里说明是别的错误，不给误导性提示
-        SessionState.Expired -> "会话已过期。到「我的」页身份卡续期一次即可（只在校内网可用）"
+        SessionState.Expired -> "会话已过期（只在校内网可用）"
     }
 
     /** 设置页「数据」块那一行小字 */

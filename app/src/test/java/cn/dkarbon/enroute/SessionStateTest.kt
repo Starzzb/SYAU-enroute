@@ -169,12 +169,15 @@ class SessionStateTest {
     }
 
     @Test
-    fun `接口面板提示按三态分开 过期指向续期而不是重新登录`() {
+    fun `接口面板提示按三态分开 只说事实不指路`() {
         val none = SessionText.noSessionHint(SessionState.None)
         val expired = SessionText.noSessionHint(SessionState.Expired)
-        assertTrue(none.contains("还没登录"))
+        assertTrue(none.contains("未登录"))
         assertTrue(expired.contains("过期"))
-        assertTrue(expired.contains("续期"))
+        // 不写「回某页」「到某页」这种页面路线：状态说事实，动作交给按钮
+        assertFalse(none.contains("回「"))
+        assertFalse(expired.contains("回「"))
+        assertFalse(expired.contains("到「"))
         assertNotEquals(none, expired)
     }
 

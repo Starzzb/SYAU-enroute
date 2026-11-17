@@ -102,14 +102,6 @@ fun SettingsScreen(
         // 风格：管语汇（硬朗农业 / 笺），与上面的明暗正交
         // 学院纸本已于 2026-11-14 按主人要求下线（token 代码留着，UI 不再露出）
         Spacer(Modifier.height(10.dp))
-        Text(
-            "硬朗农业＝黑土＋农械橘的方角网格；" +
-                "笺＝没有格线，用填充色带与隔行底色分区；衬线承担标题与数字，课程是浮起的便签（圆角、软阴影本套专属）。",
-            fontSize = 10.5.sp,
-            lineHeight = 15.sp,
-            color = t.inkFaint,
-        )
-        Spacer(Modifier.height(6.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             cn.dkarbon.enroute.ui.theme.StyleSet.SELECTABLE.map { style ->
                 style to cn.dkarbon.enroute.ui.theme.StyleSet.name(style)
@@ -210,7 +202,7 @@ fun SettingsScreen(
                 if (ui.remindersEnabled && !canNotify) {
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "⚠ 还没给通知权限，提醒不会响 —— 关一次再开一次会重新请求",
+                        "⚠ 还没给通知权限，提醒不会响",
                         fontSize = 10.sp,
                         color = t.brick,
                     )
@@ -309,8 +301,7 @@ fun SettingsScreen(
                 Spacer(Modifier.height(2.dp))
                 Text(
                     "课表、周次校准、主题、提醒开关、已排提醒、调试日志、登录会话（含加密存档与密钥）、" +
-                        "本机保存的密码、校园地图标注。\n" +
-                        "清完像新装一样，可以重新登录。",
+                        "本机保存的密码、校园地图标注。",
                     fontSize = 10.5.sp,
                     lineHeight = 15.sp,
                     color = t.inkFaint,
@@ -348,12 +339,6 @@ fun SettingsScreen(
         ) {
             Column(Modifier.weight(1f)) {
                 Text("调试日志", fontSize = 13.sp, color = t.ink)
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    "每次登录/抓取的请求、状态码、响应原文都在里面，可导出成文档发我",
-                    fontSize = 10.5.sp,
-                    color = t.inkFaint,
-                )
             }
             Icon(
                 Icons.AutoMirrored.Filled.KeyboardArrowRight,
@@ -392,7 +377,7 @@ fun SettingsScreen(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "清空历史日志文件（不动当前内存缓冲）",
+                "清空历史日志",
                 fontSize = 10.5.sp,
                 color = t.inkFaint,
                 modifier = Modifier.weight(1f),

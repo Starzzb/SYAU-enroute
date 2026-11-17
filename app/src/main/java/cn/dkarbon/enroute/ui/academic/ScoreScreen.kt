@@ -94,18 +94,8 @@ fun ScoreScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modif
             onMore = { showMore = true },
         )
 
-        // 页顶一行：这数据是几时取的（缓存命中直读时不打网络，必须标出年龄）
-        val fetchStamp = remember(ui.scoresFetchedAt) {
-            cn.dkarbon.enroute.data.CachePolicy.fetchStamp(System.currentTimeMillis(), ui.scoresFetchedAt)
-        }
-        if (fetchStamp.isNotBlank()) {
-            Text(
-                fetchStamp,
-                fontSize = 11.5.sp,
-                color = t.inkFaint,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 2.dp),
-            )
-        }
+        // 年龄只在下面那行红字里说一次（「本地缓存 · 成绩 11 小时前」）；
+        // 这里原来还叠了一行「数据取自 11-16 22:13」，同一件事两种写法，已删。
 
         if (ui.scores.isEmpty()) {
             AcademicProblem(

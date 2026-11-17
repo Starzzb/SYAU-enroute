@@ -112,6 +112,14 @@
       --in app-debug.apk --out app-debug-release-signed.apk
   ```
 - **绝不能为了装上而卸载**：会清掉课表缓存、地图标注、已保存的登录凭据
+- **点安装弹窗前先认包名，不许只按文字匹配**（2026-11-17 血的教训）：
+  脚本用 `text="安装"` 找按钮时，前台可能已经不是安装器，而是华为应用市场的
+  「安装成功」页——那页的「值得一试」推荐位也全是「安装」按钮，于是连点五个，
+  把快手极速版 / 智联招聘 / 扫描全能王 / 国泰君安期货装到了人家手机上。
+  正确姿势：每次 `uiautomator dump` 后先取 `package="…"`，
+  **只在 `com.android.packageinstaller`（`PackageInstallerActivity`）/ `com.huawei.appmarket` 的
+  安装确认浮层里、且待装包名与本轮 push 的一致时**才 tap；
+  认不出包名就停下来等人看，宁可失败也不要盲点。
 
 ## local.properties 写法
 

@@ -251,7 +251,7 @@ private fun SyllabusBody(s: Syllabus, msg: String) {
             headers = listOf("教学内容", "线上", "线下", "实验", "合计"),
             rows = rows,
             footer = s.hoursTotal?.let { "合计 $it 学时（原表有空白行时不显示合计）" }
-                ?: "原表有空白学时行，故不显示合计（不拿空白当 0 相加）",
+                ?: "暂缺",
         )
     }
 

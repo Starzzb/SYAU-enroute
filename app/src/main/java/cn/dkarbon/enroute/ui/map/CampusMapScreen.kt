@@ -220,17 +220,6 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 modifier = Modifier.fillMaxWidth().padding(horizontal = Space.l, vertical = 1.dp),
             )
         }
-        // 源数据 id 重复：临时的序号已兜住，但要让主人知道该重新导出
-        if ((pkg?.duplicateIds ?: 0) > 0) {
-            Text(
-                "注意：这份地图里有  个要素 id 重复（已临时加序号区分）；" +
-                    "建议重新导出，让每个面有唯一 id",
-                fontSize = 9.5.sp,
-                lineHeight = 14.sp,
-                color = t.primary,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = Space.l, vertical = 1.dp),
-            )
-        }
         // 孤立标注：换图后 id 对不上 —— 绝不静默丢弃
         if (ui.mapOrphans.isNotEmpty()) {
             Text(

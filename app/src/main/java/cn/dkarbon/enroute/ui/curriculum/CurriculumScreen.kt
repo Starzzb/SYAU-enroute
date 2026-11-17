@@ -315,19 +315,11 @@ private fun androidx.compose.foundation.lazy.LazyListScope.creditItems(plan: Cur
                 Text("按学分结构表", fontSize = 11.5.sp, color = t.inkFaint)
             } else if (CurriculumParse.creditTableMissing(plan)) {
                 Text("学分结构表暂缺", fontSize = 14.sp, color = t.ink, fontWeight = FontWeight.Bold)
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "这份 PDF 里这一页的表格没能提取出来。按数据诚实规则，这里不显示推算值" +
-                        "（课程设置里列的是全部候选课，求和会虚高）",
-                    fontSize = 10.5.sp,
-                    lineHeight = 16.sp,
-                    color = t.inkFaint,
-                )
             } else {
                 Text("学分结构表里没有『总学分』行", fontSize = 14.sp, color = t.ink, fontWeight = FontWeight.Bold)
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    "原表的这一行没被提取到。同样不显示推算值，避免把选修候选课的学分算进应修学分",
+                    "暂缺",
                     fontSize = 10.5.sp,
                     lineHeight = 16.sp,
                     color = t.inkFaint,

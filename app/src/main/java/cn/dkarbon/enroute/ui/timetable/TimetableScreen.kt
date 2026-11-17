@@ -1339,8 +1339,6 @@ private fun ImportPanel(ui: AppState, vm: TimetableViewModel) {
         item {
             Spacer(Modifier.height(26.dp))
             Text("还没有课程表", fontSize = 17.sp, fontWeight = FontWeight.Bold, color = t.ink)
-            Spacer(Modifier.height(6.dp))
-            Text("两种方式选一个", fontSize = 12.5.sp, color = t.inkFaint)
             Spacer(Modifier.height(20.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -1410,16 +1408,6 @@ private fun ImportPanel(ui: AppState, vm: TimetableViewModel) {
         } else {
             item {
                 Column(Modifier.fillMaxWidth()) {
-                    Text("电脑生成 JSON 后推到目录：", fontSize = 11.5.sp, color = t.inkFaint)
-                    Spacer(Modifier.height(6.dp))
-                    Text(
-                        "adb push karbon-timetable.json /data/local/tmp/enroute-data/",
-                        fontSize = 10.sp,
-                        lineHeight = 15.sp,
-                        fontFamily = NumericFont,
-                        color = t.inkFaint,
-                    )
-                    Spacer(Modifier.height(14.dp))
                     Button(
                         onClick = { vm.loadTimetableFromDevice() },
                         modifier = Modifier.fillMaxWidth(),

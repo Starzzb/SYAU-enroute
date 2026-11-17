@@ -454,21 +454,28 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         return hasAny
     }
 
-    /** 「更新于：身份 3 天前 · 绩点 2 小时前 · 考试 刚刚」；没有缓存 → 空串（不显示假时间） */
+    /**
+     * 「更新于：身份·学分·绩点 27 分钟前 · 考试·成绩 11 小时前」；没有缓存 → 空串（不显示假时间）。
+     *
+     * 同年份的项目并成一组：一行只有一句「什么时候取的」，才不会被折行拆成
+     * 「考试 / 11 小时前」两段。全都一样老就只写年龄，不再点名。
+     */
     private fun cacheLine(now: Long = nowMs()): String {
-        val parts = buildList {
-            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.profileAt)
-                .takeIf { it.isNotBlank() }?.let { add("身份 $it") }
-            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.creditAt)
-                .takeIf { it.isNotBlank() }?.let { add("学分 $it") }
-            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.scoreStatsAt)
-                .takeIf { it.isNotBlank() }?.let { add("绩点 $it") }
-            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.examsAt)
-                .takeIf { it.isNotBlank() }?.let { add("考试 $it") }
-            cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, cache.scoresAt)
-                .takeIf { it.isNotBlank() }?.let { add("成绩 $it") }
+        val groups = LinkedHashMap<String, MutableList<String>>()
+        fun tag(name: String, at: Long) {
+            val age = cn.dkarbon.enroute.data.CachePolicy.ageLabel(now, at)
+            if (age.isNotBlank()) groups.getOrPut(age) { mutableListOf() }.add(name)
         }
-        return if (parts.isEmpty()) "" else "更新于：" + parts.joinToString(" · ")
+        tag("身份", cache.profileAt)
+        tag("学分", cache.creditAt)
+        tag("绩点", cache.scoreStatsAt)
+        tag("考试", cache.examsAt)
+        tag("成绩", cache.scoresAt)
+        if (groups.isEmpty()) return ""
+        if (groups.size == 1) return "更新于 " + groups.keys.first()
+        return "更新于：" + groups.entries.joinToString(" · ") { (age, names) ->
+            names.joinToString("·") + " " + age
+        }
     }
 
     /** 考试页/考试卡的「数据是缓存」提示：有考试才说，没有就留空（空态自己有话） */
@@ -711,7 +718,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 planMsg = when {
                     idx == null -> "没读到内置培养方案资产（安装包可能不完整）"
                     idx.years.isEmpty() -> "内置培养方案里没有任何年份的数据"
-                    entry == null -> "没按学籍专业定位到方案，请在下面手动选专业"
+                    entry == null -> "未匹配到方案"
                     plan == null -> "读「$year 级 ${entry.major}」的方案失败（资产缺失或损坏）"
                     else -> ""
                 },
@@ -891,8 +898,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val s = session
         if (s == null) {
             _ui.value = _ui.value.copy(
-                historyMsg = "还没登录。历年课表要打教务（10.2.0.47，只在校内网可用）——" +
-                    "回「课表」页登录一次即可",
+                historyMsg = "未登录，读不到学期列表",
             )
             return
         }
@@ -975,7 +981,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 _ui.value = _ui.value.copy(
                     historyLoading = false,
                     historyFromCache = false,
-                    historyMsg = "还没登录，读不到这一学期的课表 —— 回「课表」页登录一次",
+                    historyMsg = "未登录，读不到这一学期的课表",
                 )
                 return@launch
             }
@@ -1482,12 +1488,12 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     /**
      * 没有可用会话时的提示。
      *
-     * **按三态分开说**：过期了就说「过期、去续期」，别说成「还没登录」——
-     * 学生明明登过，被告知「没登录」只会以为自己点错了。
+     * **按三态分开说**：过期了就说「过期」，别说成「未登录」——
+     * 学生明明登过，被告知「没登录」只会以为自己点错了。只说状态这个事实，不写页面路线。
      */
     private fun noSessionHint(): String =
         SessionText.noSessionHint(_ui.value.sessionState).ifBlank {
-            "拿不到会话。回「课表」页重新登录一次（只在校内网可用）"
+            "拿不到会话（只在校内网可用）"
         }
 
     /**
@@ -1527,7 +1533,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 cacheUpdatedLabel = stale,
                 homeMsg = when {
                     (needIdentity && !okIdentity) || (needProgress && !okProgress) ->
-                        "这次没刷新成功（可能不在校园网）。" +
+                        "这次没刷新成功。" +
                             (if (cache.isEmpty) "本机也还没有缓存。" else "$stale —— 显示的是缓存")
                     else -> ""
                 },
@@ -1547,7 +1553,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             val ok = fetchIdentity(s)
             _ui.value = _ui.value.copy(
                 homeLoading = false,
-                homeMsg = if (ok) "" else "身份没刷新成功（可能不在校园网），显示的还是缓存",
+                homeMsg = if (ok) "" else "身份没刷新成功，显示的还是缓存",
                 cacheUpdatedLabel = cacheLine(),
             )
         }
@@ -1565,7 +1571,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             val ok = fetchProgress(s)
             _ui.value = _ui.value.copy(
                 homeLoading = false,
-                homeMsg = if (ok) "" else "学分/绩点没刷新成功（可能不在校园网），显示的还是缓存",
+                homeMsg = if (ok) "" else "学分/绩点没刷新成功，显示的还是缓存",
                 cacheUpdatedLabel = cacheLine(),
             )
         }
@@ -1803,8 +1809,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 roomDetailMsg = when {
                     r.isFailure -> friendlyError(r.exceptionOrNull()!!)
                     look == null -> "没查到这间教室的记录"
-                    look.sessionLost -> "没拿到数据：教务登录态可能已失效，或当前不在校园网 —— " +
-                        "回「课表」页重新登录、连上校园网再试"
+                    look.sessionLost -> "未登录或不在校园网"
                     look.info == null ->
                         cn.dkarbon.enroute.ui.home.HomeModel.classroomMissHint(look.totalCount, look.scanned)
                     else -> ""
@@ -1910,9 +1915,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 teacherSchedule = res?.schedule ?: cn.dkarbon.enroute.data.UrpHomeApi.TeacherSchedule(),
                 teacherScheduleMsg = when {
                     r.isFailure -> friendlyError(r.exceptionOrNull()!!)
-                    res == null || res.sessionLost ->
-                        "没拿到课表：教务登录态可能已失效，或当前不在校园网 —— " +
-                            "回「课表」页重新登录、连上校园网后再刷新"
+                    res == null || res.sessionLost -> "未登录或不在校园网"
                     res.schedule.isEmpty ->
                         "这位老师本学期（" +
                             cn.dkarbon.enroute.ui.home.HomeModel.termLabel(termCode) + "）没有排课"

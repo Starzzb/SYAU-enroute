@@ -268,14 +268,14 @@ private fun UserRoot(
                 // 原顶条的「刷新 / 设置」收进 ⋯ 菜单，入口不丢
                 onMore = { headerMenu = true },
             )
-            // 页顶一行：绩点/学分/排名（每日档）是几时取的。命中缓存直读时不打网络，必须标出年龄。
-            val dailyStamp = remember(ui.homeDailyFetchedAt) {
-                cn.dkarbon.enroute.data.CachePolicy.fetchStamp(System.currentTimeMillis(), ui.homeDailyFetchedAt)
-            }
-            if (dailyStamp.isNotBlank()) {
+            // 页顶一行：这些数字是几时取的。命中缓存直读时不打网络，必须标出年龄。
+            // 只用这一行——曾经页顶写「数据取自 08:50」、卡下再写「更新于 27 分钟前」，
+            // 同一屏两套时间口径互相打架，还容易被折行拆成半个词。
+            if (ui.cacheUpdatedLabel.isNotBlank()) {
                 Text(
-                    dailyStamp,
+                    ui.cacheUpdatedLabel,
                     fontSize = 11.5.sp,
+                    lineHeight = 17.sp,
                     color = t.inkFaint,
                     modifier = Modifier.padding(horizontal = Space.l, vertical = 2.dp),
                 )
@@ -379,11 +379,10 @@ private fun UserRoot(
                     ),
                 )
 
-                // 缓存时间/主页提示（数据诚实：显示的是旧数据就必须标出年龄）
-                if (ui.cacheUpdatedLabel.isNotBlank() || ui.homeMsg.isNotBlank()) {
+                // 主页提示（年龄已挪到页顶那一行，这里只说失败/过期）
+                if (ui.homeMsg.isNotBlank()) {
                     Spacer(Modifier.height(6.dp))
-                    if (ui.cacheUpdatedLabel.isNotBlank()) HomeFootNote(ui.cacheUpdatedLabel)
-                    if (ui.homeMsg.isNotBlank()) HomeFootNote(ui.homeMsg)
+                    HomeFootNote(ui.homeMsg)
                 }
 
                 // ── 校园（1 行）：离线示意图，不申请定位 ──
@@ -472,14 +471,12 @@ private fun UserHeaderMenu(
             UserMenuRow(
                 index = "01",
                 title = "刷新",
-                sub = "只刷新身份 + 学分/绩点这一组",
                 enabled = refreshEnabled,
                 onClick = { onRefresh(); onDismiss() },
             )
             UserMenuRow(
                 index = "02",
                 title = "设置",
-                sub = "主题、字号、教务与数据",
                 onClick = { onSettings(); onDismiss() },
             )
             Box(
@@ -492,12 +489,11 @@ private fun UserHeaderMenu(
     }
 }
 
-/** 页头菜单里的一条动作：序号 + 动作名 + 一句副文案（≥48dp 触区） */
+/** 页头菜单里的一条动作：序号 + 动作名（≥48dp 触区） */
 @Composable
 private fun UserMenuRow(
     index: String,
     title: String,
-    sub: String,
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
@@ -518,15 +514,6 @@ private fun UserMenuRow(
                 color = if (enabled) t.ink else t.inkFaint,
             )
         }
-        Spacer(Modifier.height(2.dp))
-        Text(
-            sub,
-            fontSize = 9.5.sp,
-            lineHeight = 13.sp,
-            color = t.inkFaint,
-            maxLines = 1,
-            modifier = Modifier.padding(start = 27.dp),
-        )
     }
     Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
 }
