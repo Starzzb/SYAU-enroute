@@ -122,10 +122,12 @@ object FacultyRepository {
             }
             val saved = store.write(info)
             store.trim()
+            // 图片按需下到本地（失败不影响文字；下次点开再补）
+            val pics = runCatching { FacultyImages.ensure(ctx, info.images) }.getOrElse { emptyList() }
             DebugLog.log(
                 "FACULTY",
                 "官网抓取成功：${source.college} / 容器=${info.template} / 字段=" +
-                    info.fields.rows().map { it.first } + " / 落盘=$saved",
+                    info.fields.rows().map { it.first } + " / 图=${pics.size} / 落盘=$saved",
             )
             return FacultyResult(info = info)
         }

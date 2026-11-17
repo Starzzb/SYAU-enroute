@@ -1,7 +1,6 @@
 package cn.dkarbon.enroute
 
 import cn.dkarbon.enroute.data.faculty.FacultyParser
-import cn.dkarbon.enroute.data.faculty.FacultyPrivacy
 import cn.dkarbon.enroute.data.feed.FeedHttp
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
@@ -61,10 +60,10 @@ class FacultyLiveWalkTest {
 
         assertTrue("正文应含姓名", text.contains(name))
         assertTrue("正文应含研究相关段落", text.contains("研究"))
-        val scrubbed = FacultyPrivacy.scrub(text)
-        assertTrue(
-            "脱敏后不应再有 11 位手机号",
-            !Regex("""(?<!\d)1[3-9]\d{9}(?!\d)""").containsMatchIn(scrubbed),
-        )
+        // 2026-11-17 起不做隐私删改：官网公开的对外联系方式原样保留
+        val images = FacultyParser.images(page.body, found!!, limit = 4)
+        println("[LIVE] 正文图片数=${images.size}")
+        images.forEach { println("[LIVE]   img $it") }
+        assertTrue("应能抽出至少一张正文图片", images.isNotEmpty())
     }
 }

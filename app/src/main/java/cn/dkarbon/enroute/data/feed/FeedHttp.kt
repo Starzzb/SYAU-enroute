@@ -71,6 +71,49 @@ object FeedHttp {
         return Resp(-1, "", url)
     }
 
+    /**
+     * 取二进制（图片）。与 [get] 同一套 UA / 超时 / 跳转策略，只是不解码成文本。
+     *
+     * @return 2xx 的字节；非 2xx 或异常返回 null（图片是锦上添花，不值得让整页失败）
+     */
+    fun getBytes(url: String, timeoutMs: Int = 15_000): ByteArray? {
+        val startedAt = System.nanoTime()
+        var current = url
+        var hops = 0
+        while (hops < 5) {
+            val conn = runCatching { URL(current).openConnection() as HttpURLConnection }.getOrNull() ?: return null
+            try {
+                conn.requestMethod = "GET"
+                conn.instanceFollowRedirects = false
+                conn.connectTimeout = timeoutMs
+                conn.readTimeout = timeoutMs * 2
+                conn.setRequestProperty("User-Agent", UA)
+                conn.setRequestProperty("Accept", "image/*,*/*;q=0.8")
+                conn.setRequestProperty("Accept-Language", "zh-CN,zh;q=0.9")
+                val code = conn.responseCode
+                val loc = conn.getHeaderField("Location")
+                if (code in 300..399 && loc != null) {
+                    current = FeedParser.resolve(current, loc)
+                    hops++
+                    continue
+                }
+                if (code !in 200..299) {
+                    DebugLog.http("FEED", "IMG", current, code, 0, elapsedMs = msSince(startedAt), note = "非 2xx")
+                    return null
+                }
+                val bytes = conn.inputStream.use { it.readBytes() }
+                DebugLog.http("FEED", "IMG", current, code, bytes.size, elapsedMs = msSince(startedAt))
+                return bytes
+            } catch (e: Exception) {
+                DebugLog.error("FEED", "取图片失败 $current · ${e.javaClass.simpleName}: ${e.message}")
+                return null
+            } finally {
+                runCatching { conn.disconnect() }
+            }
+        }
+        return null
+    }
+
     /** 从 nanoTime 起算到现在的毫秒数 */
     private fun msSince(startedAt: Long): Long = (System.nanoTime() - startedAt) / 1_000_000
 

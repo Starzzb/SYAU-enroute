@@ -97,7 +97,9 @@ class FacultyStore(ctx: Context) {
         if (key.isBlank()) return null
         val f = File(dir, "$key.json")
         if (!f.isFile) return null
-        return runCatching { FacultyCache.fromJson(f.readText(Charsets.UTF_8)) }.getOrNull()
+        val info = runCatching { FacultyCache.fromJson(f.readText(Charsets.UTF_8)) }.getOrNull()
+        // 旧结构（做过隐私删改的那些）一律当没缓存，让下一次点开重抓原文
+        return info?.takeIf { it.schema == FacultyInfo.SCHEMA }
     }
 
     /** 原子写：先写 `.tmp` 再改名，避免掉电/进程被杀留下半个 JSON */

@@ -4,7 +4,6 @@ import cn.dkarbon.enroute.data.faculty.FacultyCache
 import cn.dkarbon.enroute.data.faculty.FacultyFail
 import cn.dkarbon.enroute.data.faculty.FacultyInfo
 import cn.dkarbon.enroute.data.faculty.FacultyParser
-import cn.dkarbon.enroute.data.faculty.FacultyPrivacy
 import cn.dkarbon.enroute.data.faculty.FacultyResult
 import cn.dkarbon.enroute.data.faculty.FacultySources
 import cn.dkarbon.enroute.ui.home.HomeModel
@@ -120,39 +119,31 @@ class FacultyParseTest {
     }
 
     @Test
-    fun `办公电话只收学校总机格式`() {
+    fun `座机与手机都收进电话字段`() {
         val f = FacultyParser.fieldsOf("办公电话：024-88487135；手机：13464032492")
-        assertEquals("024-88487135", f.phone)
-        assertFalse("手机号不该进字段", f.phone.contains("13464032492"))
+        assertEquals("024-88487135 · 13464032492", f.phone)
     }
 
-    // ── 合规：隐私清洗 ───────────────────────────────────
+    // ── 原文照收：官网写什么就留什么（2026-11-17 主人定：公开信息不删改） ──
 
     @Test
-    fun `手机号 QQ 私人邮箱不落地`() {
+    fun `官网公开的电话与邮箱一个都不少`() {
         val info = parse("det_zbxy_1808.html", "方红")
         assertNotNull(info)
         val blob = (info!!.rawText + info.fields.rows().joinToString { it.second } +
             info.sections.joinToString { it.text + it.title })
-        // 实测这份页面里就有这三样，必须一个都不剩
-        assertFalse("手机号落地了", blob.contains("13464032492"))
-        assertFalse("QQ 号落地了", blob.contains("1147888178"))
-        assertFalse("私人邮箱落地了", blob.contains("snzhibao@163.com"))
-        assertFalse("还残留隐私：${info.fields.email}", FacultyPrivacy.containsPrivate(blob))
-        // 校方邮箱要留（那是公务联系方式）
-        assertEquals("fanghong@syau.edu.cn", info.fields.email)
+        // 这三样本就在官网正文里，现在要求原样保留，不再删
+        // 这三样本就在官网正文里，现在要求原样保留，不再删
+        assertTrue("手机号被删了", blob.contains("13464032492"))
+        assertTrue("QQ 号被删了", blob.contains("1147888178"))
+        assertTrue("邮箱没收到", info.fields.email.contains("fanghong@syau.edu.cn"))
     }
 
     @Test
-    fun `非校方邮箱一律丢掉`() {
+    fun `邮箱收原文里的全部地址而不是只留校方那个`() {
         val info = parse("det_swxy_quanbo.html", "曲波")
         assertNotNull(info)
-        assertFalse("163 邮箱不该进缓存", info!!.rawText.contains("@163.com"))
-        assertFalse(FacultyPrivacy.containsPrivate(info.fields.email))
-        assertTrue(
-            "清洗器不能把校方邮箱也洗掉",
-            !FacultyPrivacy.containsPrivate("联系：name@syau.edu.cn"),
-        )
+        assertTrue("私人邮箱也该收", info!!.rawText.contains("@163.com"))
     }
 
     // ── 栏目页找人 ───────────────────────────────────────
@@ -247,3 +238,5 @@ class FacultyParseTest {
         assertTrue(stale, stale.contains("更新失败"))
     }
 }
+
+

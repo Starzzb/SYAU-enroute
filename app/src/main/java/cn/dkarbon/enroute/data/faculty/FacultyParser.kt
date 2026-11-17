@@ -146,12 +146,12 @@ object FacultyParser {
             Regex("""(?:办公地点|办公室|办公地址)\s*[：:]?\s*([^\n。；，,]{2,40})"""),
         ).firstNotNullOfOrNull { re -> re.find(flat)?.groupValues?.get(1)?.trim()?.takeIf { it.isNotBlank() } }
             .orEmpty()
-        // 只留学院的公务电话（024-8xxxxxxx），手机号一律不算
-        val phone = Regex("""024[-\s]?(\d{7,8})""").find(flat)
-            ?.let { "024-" + it.groupValues[1] }.orEmpty()
-        // 只留校方邮箱；163/qq/sina 之类属私人联系方式，抽的时候就丢掉
-        val email = Regex("""[A-Za-z0-9._%+\-]+@syau\.edu\.cn""", RegexOption.IGNORE_CASE)
-            .find(flat)?.value.orEmpty()
+        // 电话：官网写几个就收几个（座机与手机都算）——这是官网公开的对外联系方式
+        val phones = Regex("""(?:024[-\s]?\d{7,8}|1[3-9]\d{9})""").findAll(flat)
+            .map { it.value.replace(" ", "-") }.distinct().take(3).toList()
+        // 邮箱同理：原文给了几个收几个（校方、私人都是他自己公开写的）
+        val emails = Regex("""[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}""", RegexOption.IGNORE_CASE)
+            .findAll(flat).map { it.value }.distinct().take(3).toList()
         val sex = Regex("""[，,]\s*(男|女)\s*[，,]""").find(flat)?.groupValues?.get(1).orEmpty()
         val birth = Regex("""(\d{4})\s*年\s*(\d{1,2})\s*月\s*生""").find(flat)
             ?.let { "${it.groupValues[1]} 年 ${it.groupValues[2]} 月" }.orEmpty()
@@ -160,11 +160,11 @@ object FacultyParser {
             title = title,
             degree = degree,
             supervisor = supervisor,
-            research = FacultyPrivacy.scrub(research).take(200),
+            research = research.take(200),
             role = role,
-            office = FacultyPrivacy.scrub(office),
-            phone = phone,
-            email = email,
+            office = office,
+            phone = phones.joinToString(" · "),
+            email = emails.joinToString(" · "),
             sex = sex,
             birth = birth,
         )
@@ -184,8 +184,8 @@ object FacultyParser {
             val body = buf.toString().trim()
             if (!title.isNullOrBlank() && body.length >= 20) {
                 out += FacultySection(
-                    title = FacultyPrivacy.scrub(title!!),
-                    text = FacultyPrivacy.scrub(body).take(SECTION_TEXT_LIMIT),
+                    title = title!!,
+                    text = body.take(SECTION_TEXT_LIMIT),
                 )
             }
             buf.setLength(0)
@@ -273,6 +273,35 @@ object FacultyParser {
             .toList()
     }
 
+    /**
+     * 正文里的图片（绝对地址）。
+     *
+     * 只认 VSB 正文图：`/__local/…` 与 `/_vsl/…`。站点皮肤图（`/images/logo.png`、
+     * `/temp/canvas.png`、栏目头图）一律排除 —— 它们每页都有，与这位老师无关。
+     */
+    fun images(html: String, baseUrl: String, limit: Int = 6): List<String> {
+        if (html.isBlank()) return emptyList()
+        return Regex("""(?is)<img[^>]+src\s*=\s*["']([^"']+)["']""")
+            .findAll(html)
+            .map { it.groupValues[1].trim() }
+            .filter { src ->
+                src.isNotBlank() &&
+                    !src.startsWith("data:") &&
+                    !src.contains("/images/", ignoreCase = true) &&
+                    !src.contains("/temp/", ignoreCase = true) &&
+                    !src.contains("logo", ignoreCase = true) &&
+                    !src.contains("canvas", ignoreCase = true) &&
+                    (
+                        src.contains("/__local/") || src.contains("/_vsl/") ||
+                            Regex("""(?i)\.(jpe?g|png|webp)(?:[?#].*)?$""").containsMatchIn(src)
+                        )
+            }
+            .map { resolveUrl(baseUrl, it) }
+            .distinct()
+            .take(limit)
+            .toList()
+    }
+
     /** 相对地址 → 绝对地址（`../../info/1611/4929.htm` → `https://thxy.syau.edu.cn/info/1611/4929.htm`） */
     fun resolveUrl(baseUrl: String, href: String): String {
         if (href.startsWith("http://") || href.startsWith("https://")) return href
@@ -309,35 +338,9 @@ object FacultyParser {
             template = body.container,
             fields = fields,
             sections = sections,
-            rawText = FacultyPrivacy.scrub(body.text).take(RAW_TEXT_LIMIT),
+            rawText = body.text.take(RAW_TEXT_LIMIT),
+            images = images(html, sourceUrl),
         )
     }
 }
 
-/**
- * 隐私清洗（票 05 §6 的合规红线）。
- *
- * 抽取阶段就要做，**不是**界面层遮一下 —— 清不掉的东西会进缓存、进日志。
- * 三类一律丢：个人手机号、QQ 号、非校方邮箱（163/qq/sina…）。
- */
-object FacultyPrivacy {
-
-    private val MOBILE = Regex("""(?<!\d)1[3-9]\d{9}(?!\d)""")
-    private val QQ = Regex("""(?i)QQ\s*[:：]?\s*\d{5,12}""")
-    private val PRIVATE_MAIL = Regex(
-        """[A-Za-z0-9._%+\-]+@(?!syau\.edu\.cn)[A-Za-z0-9.\-]+\.[A-Za-z]{2,}""",
-        RegexOption.IGNORE_CASE,
-    )
-
-    fun scrub(text: String): String {
-        if (text.isBlank()) return text
-        var s = MOBILE.replace(text, "")
-        s = QQ.replace(s, "")
-        s = PRIVATE_MAIL.replace(s, "")
-        return s.replace(Regex("""[ \t]{2,}"""), " ").trim()
-    }
-
-    /** 单元测试与自检用：这段文本里还残留隐私吗 */
-    fun containsPrivate(text: String): Boolean =
-        MOBILE.containsMatchIn(text) || QQ.containsMatchIn(text) || PRIVATE_MAIL.containsMatchIn(text)
-}

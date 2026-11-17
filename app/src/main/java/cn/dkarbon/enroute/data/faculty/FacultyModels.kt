@@ -23,9 +23,18 @@ data class FacultyInfo(
     val fields: FacultyFields = FacultyFields(),
     /** 长文本小节（教育经历/工作经历/论文…），前端折叠显示 */
     val sections: List<FacultySection> = emptyList(),
-    /** 正文纯文本兜底（≤8KB，已过隐私清洗） */
+    /** 正文纯文本兜底（≤8KB，与官网原文一致，不做删改） */
     val rawText: String = "",
-)
+    /** 正文里的图片绝对地址（官网原样，缓存时下到本地） */
+    val images: List<String> = emptyList(),
+    /** 缓存结构版本：字段语义变了就加一，旧条目自动作废重抓 */
+    val schema: Int = SCHEMA,
+) {
+    companion object {
+        /** 2 = 不再做隐私删改、加入图片（2026-11-17） */
+        const val SCHEMA = 2
+    }
+}
 
 @Serializable
 data class FacultySection(val title: String = "", val text: String = "")
@@ -61,8 +70,8 @@ data class FacultyFields(
         "行政职务" to role,
         "研究方向" to research,
         "办公地点" to office,
-        "办公电话" to phone,
-        "校方邮箱" to email,
+        "电话" to phone,
+        "邮箱" to email,
         "性别" to sex,
         "出生年月" to birth,
     ).filter { it.second.isNotBlank() }
@@ -102,3 +111,4 @@ data class FacultyResult(
     /** 原始异常摘要（只进调试日志，不上屏） */
     val error: String = "",
 )
+
