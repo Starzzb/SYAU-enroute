@@ -103,7 +103,7 @@ internal fun UpdateSection() {
 
             UpdateInstall.Step.Settings -> {
                 pendingApk = apk
-                runCatching { permissionLauncher.launch(center.unknownSourcesIntent(apk)) }
+                runCatching { permissionLauncher.launch(center.unknownSourcesIntent()) }
                     .onFailure {
                         pendingApk = null
                         state = Ui.Error("打不开系统设置：${it.message ?: "未知原因"}")
@@ -421,3 +421,4 @@ private fun fmt(bytes: Long): String = when {
     bytes >= 1024L -> "%d KB".format(bytes / 1024L)
     else -> "$bytes B"
 }
+

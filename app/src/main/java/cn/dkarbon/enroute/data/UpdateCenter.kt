@@ -288,10 +288,18 @@ class UpdateCenter(private val ctx: Context) {
     /** 系统是否允许本 App 装未知来源应用（Android 8+ 一直是按 App 授权的） */
     fun canInstallPackages(): Boolean = ctx.packageManager.canRequestPackageInstalls()
 
-    /** 去系统设置开「安装未知应用」—— 权限被拒时给的可执行出路 */
-    fun unknownSourcesIntent(apk: File): Intent =
-        Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, apkUri(apk))
-            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    /**
+     * 去系统设置开「安装未知应用」—— 权限被拒时给的可执行出路。
+     *
+     * 数据 URI **必须是 `package:<自己的包名>`**：这个 action 只认包名，
+     * 传 APK 的 content URI 会在真机上直接 `No Activity found to handle Intent`
+     * （2026-11-17 实测，见 CHANGELOG m28）。所以这里不要 APK 参数。
+     */
+    fun unknownSourcesIntent(): Intent =
+        Intent(
+            Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+            Uri.parse(UpdateInstall.permissionData(ctx.packageName)),
+        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
     /**
      * 交给系统安装器。**调用方必须先确认已下载且校验通过**。
@@ -521,4 +529,12 @@ object UpdateInstall {
 
     fun step(canInstallPackages: Boolean): Step =
         if (canInstallPackages) Step.Installer else Step.Settings
+
+    /**
+     * 「安装未知应用」系统页认的数据 URI —— **只认包名**。
+     *
+     * 单独抽出来是为了让单测钉住这条契约：曾经传的是 APK 的 content URI，
+     * 真机上 `startActivity` 直接抛 `No Activity found`，更新链路断在最后一步。
+     */
+    fun permissionData(pkg: String): String = "package:$pkg"
 }

@@ -6,6 +6,15 @@
 
 ---
 
+## m28 · 0.7.1+m28（2026-11-17）
+
+修 m27 的更新断点：没有「安装未知应用」权限时，App 拉不起系统设置页。
+
+- `unknownSourcesIntent()` 的数据 URI 从 APK 的 `content://` 改成 `package:<包名>` ——
+  `ACTION_MANAGE_UNKNOWN_APP_SOURCES` 只认包名，传 APK 路径真机报
+  `No Activity found to handle Intent`，更新链路断在最后一步
+- 抽 `UpdateInstall.permissionData(pkg)` 并加单测，钉住「只认包名」这条契约
+- m27 已发布的包保留不动，线上改指 m28
 ## m27 · 0.7.0+m27（2026-11-17）
 
 请求头对齐浏览器、教师官网原文与配图。
@@ -177,5 +186,6 @@
 
 本会话之前的历史未逐条记录（仓库早期只有两个提交）。已知内容：
 考试接口补预热请求、课表回退、资讯页重构、竞赛信息源接入（m13–m18）。
+
 
 

@@ -1,9 +1,9 @@
 {
-  "versionCode": 280,
-  "versionName": "0.7.0+m27",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m27/SYAU-enroute-m27.apk",
-  "sha256": "e4444685055d959ec6d5daf38675acf68fbc67cb2b657a98b60b466990ec0a45",
+  "versionCode": 290,
+  "versionName": "0.7.1+m28",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m28/SYAU-enroute-m28.apk",
+  "sha256": "e555fb74832070478a71c0160392bd76e0754cd15c917d5529390d9dba5a5de1",
   "size": 5618900,
-  "notes": "请求头对齐浏览器，教师官网资料改为原文照收并显示文中配图。详见 CHANGELOG.md。",
+  "notes": "修 m27 的更新断点：没有安装权限时拉不起系统设置页。详见 CHANGELOG.md。",
   "minSupported": 0
 }
