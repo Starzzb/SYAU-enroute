@@ -1,9 +1,9 @@
 {
-  "versionCode": 260,
-  "versionName": "0.6.0+m25",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m25/SYAU-enroute-m25.apk",
-  "sha256": "75007c9dbb31dee6ea530ddcdf8290907c95143870129e38444a661858cb5686",
-  "size": 5618900,
-  "notes": "接口诊断改长条入口、铰链开锁，修好培养方案明细与已修学分。详见 CHANGELOG.md。",
+  "versionCode": 270,
+  "versionName": "0.6.1+m26",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m26/SYAU-enroute-m26.apk",
+  "sha256": "368f982693af16ae7d12d19669ddc05bbeea1949f70d117391eb2a59a792c29d",
+  "size": 5618896,
+  "notes": "界面只留事实，删掉二十处指路与自解释文案。详见 CHANGELOG.md。",
   "minSupported": 0
 }
