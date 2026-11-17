@@ -13,8 +13,13 @@
 - `unknownSourcesIntent()` 的数据 URI 从 APK 的 `content://` 改成 `package:<包名>` ——
   `ACTION_MANAGE_UNKNOWN_APP_SOURCES` 只认包名，传 APK 路径真机报
   `No Activity found to handle Intent`，更新链路断在最后一步
+- 去掉那个 Intent 上的 `FLAG_ACTIVITY_NEW_TASK`：它是经 `ActivityResultLauncher` 发起的，
+  独立 task 会让结果回不到原 Activity（真机实测勾完开关返回，回调不触发）
+- 补一条回前台兜底：`ON_RESUME` 时若权限已给且手里还攥着待装 APK，直接唤起安装器
+  —— 手势返回、从最近任务切回、系统页自己 finish 这三种情况都不再需要用户再点一次
+- 「已就绪」那句话不再说「交给系统安装器」（那时其实还没交），改成只说下载与校验
 - 抽 `UpdateInstall.permissionData(pkg)` 并加单测，钉住「只认包名」这条契约
-- m27 已发布的包保留不动，线上改指 m28
+- m27 已发布的包保留不动，线上改指 m28（同号覆盖，因为二者相隔十几分钟、无人下载过旧包）
 ## m27 · 0.7.0+m27（2026-11-17）
 
 请求头对齐浏览器、教师官网原文与配图。
@@ -186,6 +191,7 @@
 
 本会话之前的历史未逐条记录（仓库早期只有两个提交）。已知内容：
 考试接口补预热请求、课表回退、资讯页重构、竞赛信息源接入（m13–m18）。
+
 
 
 

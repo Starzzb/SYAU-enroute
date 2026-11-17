@@ -299,7 +299,9 @@ class UpdateCenter(private val ctx: Context) {
         Intent(
             Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
             Uri.parse(UpdateInstall.permissionData(ctx.packageName)),
-        ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        )
+        // 不加 FLAG_ACTIVITY_NEW_TASK：这个 Intent 是经 ActivityResultLauncher 发起的，
+        // 独立 task 会让结果回不到原 Activity（真机实测：勾完开关返回，回调不触发）。
 
     /**
      * 交给系统安装器。**调用方必须先确认已下载且校验通过**。

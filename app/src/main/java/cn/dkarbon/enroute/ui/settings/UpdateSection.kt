@@ -112,6 +112,25 @@ internal fun UpdateSection() {
         }
     }
 
+    // 兜底：用户若没走「回调」那条路（手势返回、从最近任务切回、开关系统页自己 finish），
+    // 回到前台时再检查一次 —— 只要权限已经给了，就立刻把安装器拉起来。
+    // 真机实测过回调不到的情形，所以这条不是冗余。
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                val apk = pendingApk
+                if (apk != null && center.canInstallPackages()) {
+                    pendingApk = null
+                    runCatching { ctx.startActivity(center.installIntent(apk)) }
+                        .onFailure { state = Ui.Error("打不开系统安装器：${it.message ?: "未知原因"}") }
+                }
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     // 「立即更新」跳转（文档 §1.4 / §3.4 方案 A）：弹窗点「立即更新」→ 请求自动下载，
     // 跳到设置页时这里消费请求，用户不必再点一次「下载」。未确认前不下载的契约不变
     // —— 点「立即更新」本身就是确认。
@@ -264,7 +283,7 @@ internal fun UpdateSection() {
             }
             is Ui.Ready -> {
                 Spacer(Modifier.height(6.dp))
-                StatusLine("已下载并通过 sha256 校验，交给系统安装器（${fmt(s.apk.length())}）", t.olive)
+                StatusLine("已下载并通过 sha256 校验（${fmt(s.apk.length())}）", t.olive)
             }
             is Ui.Error -> {
                 Spacer(Modifier.height(6.dp))
