@@ -1,9 +1,9 @@
 {
-  "versionCode": 290,
-  "versionName": "0.7.1+m28",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m28/SYAU-enroute-m28.apk",
-  "sha256": "8bbb481399946ee98cf1b834b6a94be080a6089fbd388da2610631e950c8e922",
-  "size": 5618900,
-  "notes": "修 m27 的更新断点：没有安装权限时自动拉系统设置页，回来自动装。详见 CHANGELOG.md。",
+  "versionCode": 300,
+  "versionName": "0.7.2+m29",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m29/SYAU-enroute-m29.apk",
+  "sha256": "db61f296cb5001026406e5ca59e9fa892f8c319268f472a97271565d7a5c7b36",
+  "size": 8354337,
+  "notes": "内置大纲扩到 14 个学院 2066 门，下课后的课仍可查看。详见 CHANGELOG.md。",
   "minSupported": 0
 }
