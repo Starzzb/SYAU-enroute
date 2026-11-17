@@ -223,6 +223,56 @@ object FacultyParser {
         }.distinct().toList()
     }
 
+    /**
+     * 兄弟栏目：师资栏目页的导航里就带着同目录的其它栏目
+     * （`szdw/jsxl/zgjzc.htm` 这页上能点到 `fgjzc.htm`、`js.htm`）。
+     *
+     * 只用页面自己给出的链接，**不猜路径** —— 所以「一院一配」不必把每个职称栏都写全。
+     * 只认同目录（同 `substringBeforeLast('/')`）的 `.htm`；导航里指向 `../../xygk/…`
+     * 的那些天然被排除。
+     */
+    fun siblingColumns(listHtml: String, listUrl: String, limit: Int = 6): List<String> {
+        val self = listUrl.substringBefore('#').substringBefore('?')
+        val dir = self.substringBeforeLast('/', "")
+        if (dir.isEmpty() || dir == self) return emptyList()
+        val anchor = Regex("""(?is)<a\b[^>]*href\s*=\s*"([^"]+)"[^>]*>(.*?)</a>""")
+        return anchor.findAll(listHtml).mapNotNull { m ->
+            val href = m.groupValues[1].trim()
+            if (href.contains('?') || href.startsWith("#")) return@mapNotNull null
+            val url = resolveUrl(self, href).substringBefore('#').substringBefore('?')
+            if (!url.endsWith(".htm") || url == self) return@mapNotNull null
+            if (url.substringBeforeLast('/') != dir) return@mapNotNull null
+            val file = url.substringAfterLast('/')
+            // 同目录下的翻页（`fgjzc/1.htm`）不在这里返回，交给 pagination()
+            if (file.equals("index.htm", true)) return@mapNotNull null
+            url
+        }.distinct().take(limit).toList()
+    }
+
+    /**
+     * 栏目自身的翻页：`…/fgjzc.htm` 页底给的 `fgjzc/1.htm`、`fgjzc/2.htm`。
+     *
+     * 只认「以本栏目文件名当目录名」下的 `数字.htm`，按页码升序。
+     * 土环的副高栏就这样分成两页 —— 不翻页会漏掉半栏人（蒋卓东在第 2 页）。
+     */
+    fun pagination(listHtml: String, listUrl: String, limit: Int = 8): List<String> {
+        val self = listUrl.substringBefore('#').substringBefore('?')
+        if (!self.endsWith(".htm")) return emptyList()
+        val prefix = self.removeSuffix(".htm") + "/"
+        val anchor = Regex("""(?is)<a\b[^>]*href\s*=\s*"([^"]+)"[^>]*>(.*?)</a>""")
+        return anchor.findAll(listHtml).mapNotNull { m ->
+            val url = resolveUrl(self, m.groupValues[1].trim()).substringBefore('#').substringBefore('?')
+            if (!url.startsWith(prefix)) return@mapNotNull null
+            val file = url.removePrefix(prefix)
+            if (!Regex("""\d+\.htm""").matches(file)) return@mapNotNull null
+            file.removeSuffix(".htm").toInt() to url
+        }.distinctBy { it.second }
+            .sortedBy { it.first }
+            .map { it.second }
+            .take(limit)
+            .toList()
+    }
+
     /** 相对地址 → 绝对地址（`../../info/1611/4929.htm` → `https://thxy.syau.edu.cn/info/1611/4929.htm`） */
     fun resolveUrl(baseUrl: String, href: String): String {
         if (href.startsWith("http://") || href.startsWith("https://")) return href

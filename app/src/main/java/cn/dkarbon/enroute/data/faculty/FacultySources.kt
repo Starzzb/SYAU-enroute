@@ -41,7 +41,7 @@ object FacultySources {
     )
 
     private val ROWS = listOf(
-        Row("土地与环境学院", "thxy.syau.edu.cn", listOf("/szdw/jsxl/zgjzc.htm", "/szdw/bssds.htm"), listOf("土环", "土地与环境", "土地与环境学院", "土环学院")),
+        Row("土地与环境学院", "thxy.syau.edu.cn", listOf("/szdw/jsxl/zgjzc.htm", "/szdw/jsxl/fgjzc.htm", "/szdw/bssds.htm"), listOf("土环", "土地与环境", "土地与环境学院", "土环学院")),
         Row("农学院", "nxy.syau.edu.cn", listOf("/szdw1.htm"), listOf("农学", "农学院")),
         Row("食品学院", "spxy.syau.edu.cn", listOf("/szdw/zysz.htm", "/szdw/dsfc.htm"), listOf("食品", "食品学院")),
         Row("经济管理学院", "jgxy.syau.edu.cn", listOf("/szdw/bssds.htm"), listOf("经管", "经管学院", "经济管理")),

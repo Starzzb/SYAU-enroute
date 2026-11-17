@@ -27,6 +27,14 @@ object FacultyRepository {
     private const val TIMEOUT_MS = 12_000
 
     /**
+     * 一次查询最多打几个栏目页（含翻页与兄弟栏目）。
+     *
+     * 只为**一位老师**、**用户点开时**才跑，所以给一个硬上限：即便某个院把师资栏目
+     * 拆成十几页，也不会变成爬站。超出上限就按已有结果说实话（找不到 / 网络不行）。
+     */
+    private const val MAX_PAGES = 10
+
+    /**
      * 读一位老师的官网公开信息（阻塞调用，必须在 IO 线程里跑）。
      *
      * @param dept 教务侧的 `departmentName`（`土环` / `农学` …），用来选站
@@ -65,19 +73,37 @@ object FacultyRepository {
         val candidates = mutableListOf<String>()
         var sawColumn = false
 
-        for (path in source.columns) {
-            val listUrl = source.columnUrl(path)
+        // 待探页面队列：配置里的栏目打头，页内自己给出的「翻页」与「兄弟栏目」追加在后。
+        // 这样配置只写一个入口也不会漏掉同组栏目（正高/副高/教师系列是同一个下拉），
+        // 也不必为每个院把每页都写进表里 —— 链接是页面给的，不是我们猜的。
+        val queue = ArrayDeque<String>()
+        source.columns.forEach { queue.addLast(source.columnUrl(it)) }
+        val visited = mutableSetOf<String>()
+        var budget = MAX_PAGES
+
+        while (queue.isNotEmpty() && budget-- > 0) {
+            val listUrl = queue.removeFirst()
+            if (!visited.add(listUrl)) continue
             val listPage = runCatching { FeedHttp.get(listUrl, TIMEOUT_MS) }.getOrNull()
             if (listPage == null) { sawNetworkError = true; continue }
             if (listPage.status !in 200..299) { sawNetworkError = sawNetworkError || listPage.status < 0; continue }
             sawColumn = true
             val links = FacultyParser.findDetailLinks(listPage.body, name, listPage.finalUrl)
-            if (links.isEmpty()) continue
+            if (links.isEmpty()) {
+                // 这一页没找到：把它自己的翻页和同目录兄弟栏目排进队列继续找
+                queue += FacultyParser.pagination(listPage.body, listPage.finalUrl)
+                queue += FacultyParser.siblingColumns(listPage.body, listPage.finalUrl)
+                continue
+            }
             candidates += links
-            if (links.size > 1) return FacultyResult(fail = FacultyFail.Ambiguous, candidates = candidates)
+            if (candidates.size > 1) return FacultyResult(fail = FacultyFail.Ambiguous, candidates = candidates)
 
             val detail = runCatching { FeedHttp.get(links.first(), TIMEOUT_MS) }.getOrNull()
-            if (detail == null || detail.status !in 200..299) { sawNetworkError = true; continue }
+            if (detail == null || detail.status !in 200..299) {
+                sawNetworkError = true
+                queue += FacultyParser.pagination(listPage.body, listPage.finalUrl)
+                continue
+            }
             val info = FacultyParser.parseDetail(
                 html = detail.body,
                 name = name,
@@ -89,7 +115,9 @@ object FacultyRepository {
                 fetchedAt = fetchedAt,
             )
             if (info == null) {
-                DebugLog.error("FACULTY", "详情页抽不出正文：${source.host}${path}（工号=$key）")
+                DebugLog.error("FACULTY", "详情页抽不出正文：$listUrl（工号=$key）")
+                // 详情页抽不出东西：同组的其它栏目里也许有另一位同名的页面，接着找
+                queue += FacultyParser.siblingColumns(listPage.body, listPage.finalUrl)
                 continue
             }
             val saved = store.write(info)
