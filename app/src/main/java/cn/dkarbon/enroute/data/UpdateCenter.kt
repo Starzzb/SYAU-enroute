@@ -509,3 +509,16 @@ class UpdateCenter(private val ctx: Context) {
             runCatching { URI(url).host.orEmpty() }.getOrDefault("")
     }
 }
+
+/**
+ * 装包前的决策：没有「安装未知应用」权限就先去系统设置页，有权限就直接交给安装器。
+ *
+ * 抽成纯函数是为了能在 JVM 单测里钉死「没权限时绝不直接 startActivity(安装器)」——
+ * 那条路只会静默失败（系统抛 SecurityException 或什么都不发生），真机上很难看出是权限问题。
+ */
+object UpdateInstall {
+    enum class Step { Settings, Installer }
+
+    fun step(canInstallPackages: Boolean): Step =
+        if (canInstallPackages) Step.Installer else Step.Settings
+}

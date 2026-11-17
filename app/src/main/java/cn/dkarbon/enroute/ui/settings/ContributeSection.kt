@@ -118,13 +118,16 @@ internal fun ContributeSection(ui: AppState) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("共享标注数据", fontSize = 12.sp, color = t.ink)
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    pullNote.ifBlank { "按需拉取服务器最新属性" },
-                    fontSize = 10.5.sp,
-                    lineHeight = 15.sp,
-                    color = t.inkFaint,
-                )
+                // 只有真的拉过一次、有结果可报时才出来（结果数是事实，不是说明）
+                if (pullNote.isNotBlank()) {
+                    Spacer(Modifier.height(2.dp))
+                    Text(
+                        pullNote,
+                        fontSize = 10.5.sp,
+                        lineHeight = 15.sp,
+                        color = t.inkFaint,
+                    )
+                }
             }
             SmallPill(
                 text = if (pulling) "拉取中…" else "拉取最新标注",

@@ -3,6 +3,8 @@ package cn.dkarbon.enroute.ui.settings
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -38,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.BuildConfig
 import cn.dkarbon.enroute.data.UpdateCenter
 import cn.dkarbon.enroute.data.UpdateInfo
+import cn.dkarbon.enroute.data.UpdateInstall
 import cn.dkarbon.enroute.data.UpdateVersions
 import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
@@ -60,7 +63,8 @@ import java.io.File
  * ## 交互契约（票 15 红线）
  * - 点「检查更新」才会联网；启动时的静默检查在 [cn.dkarbon.enroute.EnRouteApp] 里，每天最多一次
  * - 未确认前**不下载**（要用户点「下载」），下载中可**取消**
- * - 下载完只到「已就绪」，**安装必须用户再点一次**；没有「未知来源」权限就明说去哪开
+ * - 下载完只到「已就绪」，**安装必须用户再点一次**；没有「安装未知应用」权限时
+ *   App 自己拉起那一页（`ACTION_MANAGE_UNKNOWN_APP_SOURCES`），回来自动接着装
  * - 所有失败都是人话（由 [UpdateCenter] 提供），**不静默**
  */
 @Composable
@@ -74,6 +78,39 @@ internal fun UpdateSection() {
     // 状态机：Idle → Checking → (Latest | Available) → Downloading → Ready/Failed
     var state by remember { mutableStateOf<Ui>(Ui.Idle) }
     var job by remember { mutableStateOf<Job?>(null) }
+
+    // 「安装未知应用」是**按 App** 授权的系统开关，App 勾不上它，但可以自己把人送到那一页、
+    // 回来接着装：下载完发现没权限就自动拉一次，回来立刻交给安装器，用户不用再点第二下，
+    // 界面上也不必写「请去设置里允许…」这种说明书（AGENTS.md）。
+    var pendingApk by remember { mutableStateOf<File?>(null) }
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult(),
+    ) {
+        val apk = pendingApk ?: return@rememberLauncherForActivityResult
+        pendingApk = null
+        if (center.canInstallPackages()) {
+            runCatching { ctx.startActivity(center.installIntent(apk)) }
+                .onFailure { state = Ui.Error("打不开系统安装器：${it.message ?: "未知原因"}") }
+        }
+        // 还是没允许：什么都不说，按钮仍是「安装」，再点就再走一次
+    }
+
+    fun install(apk: File) {
+        when (UpdateInstall.step(center.canInstallPackages())) {
+            UpdateInstall.Step.Installer ->
+                runCatching { ctx.startActivity(center.installIntent(apk)) }
+                    .onFailure { state = Ui.Error("打不开系统安装器：${it.message ?: "未知原因"}") }
+
+            UpdateInstall.Step.Settings -> {
+                pendingApk = apk
+                runCatching { permissionLauncher.launch(center.unknownSourcesIntent(apk)) }
+                    .onFailure {
+                        pendingApk = null
+                        state = Ui.Error("打不开系统设置：${it.message ?: "未知原因"}")
+                    }
+            }
+        }
+    }
 
     // 「立即更新」跳转（文档 §1.4 / §3.4 方案 A）：弹窗点「立即更新」→ 请求自动下载，
     // 跳到设置页时这里消费请求，用户不必再点一次「下载」。未确认前不下载的契约不变
@@ -101,6 +138,12 @@ internal fun UpdateSection() {
             beginDownload(info)
         }
         UpdateCenter.consumeDownloadRequest()
+    }
+
+    // 下载完先要权限：没有「安装未知应用」就自己把人送到那一页，回来自动接着装
+    LaunchedEffect(state) {
+        val s = state
+        if (s is Ui.Ready && !center.canInstallPackages()) install(s.apk)
     }
 
     // 进页面时把「上次检查发现的版本」用上，省一次请求（红点逻辑同源）
@@ -132,18 +175,7 @@ internal fun UpdateSection() {
                     PillButton(
                         text = "安装",
                         primary = true,
-                        onClick = {
-                            if (center.canInstallPackages()) {
-                                runCatching { ctx.startActivity(center.installIntent(s.apk)) }
-                                    .onFailure {
-                                        state = Ui.Error("打不开系统安装器：${it.message ?: "未知原因"}")
-                                    }
-                            } else {
-                                // 权限被拒：给一条可执行的路，而不是只说「失败了」
-                                runCatching { ctx.startActivity(center.unknownSourcesIntent(s.apk)) }
-                                state = Ui.NeedPermission("系统还没允许本 App 安装应用。请在上面打开的设置里允许「安装未知应用」。")
-                            }
-                        },
+                        onClick = { install(s.apk) },
                     )
                 }
                 is Ui.Checking -> PillButton(text = "检查中…", enabled = false, onClick = {})
@@ -285,10 +317,6 @@ internal fun UpdateSection() {
                     ) { Text("联系开发者", fontSize = 12.sp) }
                 }
             }
-            is Ui.NeedPermission -> {
-                Spacer(Modifier.height(6.dp))
-                StatusLine(s.text, t.amber)
-            }
         }
     }
 }
@@ -330,7 +358,6 @@ private sealed interface Ui {
         val url: String = "",
         val helpText: String = "",
     ) : Ui
-    data class NeedPermission(val text: String) : Ui
 }
 
 @Composable
