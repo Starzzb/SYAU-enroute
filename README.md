@@ -13,7 +13,7 @@
 | 语言与工具链  | Kotlin 2.0.21、AGP 8.7.3、Gradle 8.11.1、JDK 17                       |
 | 界面      | Jetpack Compose（BOM 2024.10.01）、Material 3、material-icons-extended |
 | 最低与目标版本 | minSdk 26、targetSdk 35                                             |
-| 版本      | `0.6.1+m26`／versionCode 270                                            |
+| 版本      | `0.7.0+m27`／versionCode 280                                            |
 | 协程与并发   | kotlinx-coroutines 1.9.0                                           |
 | 序列化     | kotlinx-serialization-json 1.7.3                                   |
 | 生命周期    | lifecycle 2.8.7（runtime／viewmodel-compose／runtime-compose）         |
@@ -67,4 +67,5 @@ Kotlin 源码 27392 行，单测 440 条分布在 35 个测试类里。R8 之后
 木鱼图形来自 IvanHanloth/wooden-fish，MIT。食物图标来自 Twemoji，CC-BY 4.0，转成了 VectorDrawable。主题字体用了 IBM Plex Mono（OFL）和 Noto Serif SC（OFL）。
 
 项目本身以 MIT 许可发布，见仓库根目录的 `LICENSE`。
+
 

@@ -99,6 +99,9 @@ fun TeacherDetailScreen(ui: AppState, vm: TimetableViewModel) {
                 .padding(horizontal = Space.l, vertical = Space.m),
             verticalArrangement = Arrangement.spacedBy(Space.s),
         ) {
+            // ── 官网正文图片（有就贴在顶部，没有不占位）──
+            TeacherPhotoRow(ui.facultyInfo?.images.orEmpty())
+
             // ── 课表块 ──
             BlockTitle(
                 title = "TA 这学期的课表",
