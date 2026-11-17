@@ -24,8 +24,8 @@ import org.junit.Test
 /**
  * 校园地图 v1（票 12）：解析、等比映射、**y 轴翻转**、射线命中、逻辑层拆分、标注编辑与导出。
  *
- * 夹具是**真数据**（`assets/map/manifest.json` + `campus.geojson`，90 面，原样拷贝）：
- * 想验证「字段全空、只有一条有名字」这种现状时用它；
+ * 夹具是**真数据**（`assets/map/manifest.json` + `campus.geojson`，v5final 173 面 15 类，原样拷贝）：
+ * 想验证「类别已按图填好、只有一条有名字」这种现状时用它；
  * 射线命中/洞这类需要精确坐标的，用合成小多边形（确定性更好）。
  */
 class MapTest {
@@ -54,7 +54,7 @@ class MapTest {
     fun `真数据 manifest 的字段都对得上`() {
         val m = manifest()
         assertEquals(1, m.schema)
-        assertEquals("2026.11.14-1", m.version)
+        assertEquals("2026.11.17-1", m.version)
         assertEquals("local", m.crs)
         assertEquals("up", m.yAxis)   // y 轴向上：翻转的责任在 MapTransform
         assertTrue(m.isValidBox)
@@ -63,31 +63,34 @@ class MapTest {
         assertEquals(0.03f, m.style.fillAlpha, 1e-6f)
         assertEquals(0.22f, m.style.strokeAlpha, 1e-6f)
         assertEquals(0.3f, m.style.selectedFillAlpha, 1e-6f)
-        // 19 个类别码 → 属性面板的「类别」下拉
-        assertEquals(19, m.kindLabels.size)
-        assertEquals("教学楼", m.kindLabels["teach"])
-        assertEquals("运动场", m.kindLabels["sport"])
+        // v5final 的 15 个中文类 + 9 个 v5 没覆盖的旧码 + 其他 = 25 个码 → 属性面板的「类别」下拉
+        assertEquals(25, m.kindLabels.size)
+        assertEquals("学科楼", m.kindLabels["学科楼"])
+        assertEquals("运动场地", m.kindLabels["运动场地"])
+        assertEquals("校门", m.kindLabels["gate"])
         assertEquals(listOf("base@1x.webp", 1024, 648).toString(), listOf(m.base?.file, m.base?.width, m.base?.height).toString())
         assertNotNull(m.layers.firstOrNull { it.name == "campus" })
     }
 
     @Test
-    fun `真数据 90 个面且字段空是现状`() {
+    fun `真数据 173 个面且类别已按图填好`() {
         val fs = features()
-        assertEquals(90, fs.size)
-        // 主人只标了一条名字，类别全空 —— 这正是「属性编辑」要解决的
+        assertEquals(173, fs.size)
+        // 名称仍只有主人标的那一条；类别则已按修复成果全部填满
         assertEquals(1, fs.count { it.name.isNotBlank() })
-        assertEquals(0, fs.count { it.kind.isNotBlank() })
-        val f19 = fs.first { it.id == "f19" }
-        assertEquals("九州体育场", f19.name)
-        assertTrue("矢量化色值要带上", f19.color.startsWith("#"))
-        assertTrue("pack.py 算好的面积要带上", f19.areaPx > 0.0)
-        // ⚠️ 源数据 id 不唯一（实测 f0 出现 43 次）——解析层临时加序号兜住，
-        //    这样标注不会 43 个面共用一条；解析时也要把重复次数报出来让界面提示
+        assertEquals(173, fs.count { it.kind.isNotBlank() })
+        val f30 = fs.first { it.id == "f30" }
+        assertEquals("九州体育场", f30.name)
+        assertTrue("矢量化色值要带上", f30.color.startsWith("#"))
+        assertTrue("pack.py 算好的面积要带上", f30.areaPx > 0.0)
+        // v5final 的 ID 来自平面剖分后的重编号（1..168 唯一），不再有 43 个面共用 ID=0
         assertEquals(fs.size, fs.map { it.id }.distinct().size)
         val doc = MapParse.geoJson(res("campus.geojson"))!!
-        assertEquals(42, doc.duplicateIds)
-        assertTrue(fs.any { it.id == "f0#2" })
+        assertEquals(0, doc.duplicateIds)
+        // 15 类都在，且没有虚类（原数据里「水体」是图上不存在的类）
+        val kinds = fs.map { it.kind }.toSet()
+        assertTrue("学科楼" in kinds && "学生宿舍" in kinds && "山体林地" in kinds)
+        assertFalse("水体" in kinds)
     }
 
     @Test
@@ -244,7 +247,7 @@ class MapTest {
         val good = MapPackageRules.validate(res("manifest.json"), res("campus.geojson"))
         assertEquals(MapIssue.NONE, good.issue)
         assertTrue(good.ok)
-        assertEquals(90, good.features.size)
+        assertEquals(173, good.features.size)
         assertEquals("base@1x.webp", good.baseFile)
 
         val badSchema = res("manifest.json").replace("\"schema\": 1", "\"schema\": 9")
@@ -309,7 +312,7 @@ class MapTest {
         assertEquals("九州体育场", f19.name)
         assertEquals("sport", f19.kind)
         // 自定义字段全局：没标过的要素也有这两列（值为空）
-        val other = rows.first { it.feature.id == "f10" }
+        val other = rows.first { it.feature.id == "f2" }
         assertEquals(listOf("层数", "所属单位"), other.fields.map { it.first })
         assertTrue(other.fields.all { it.second.isBlank() })
 

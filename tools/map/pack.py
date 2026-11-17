@@ -159,12 +159,65 @@ def feats_from_shp(shp_path):
     return feats, dup_count
 
 
+def ring_area(poly):
+    """Polygon 坐标（[外环, 洞…]）→ 面积（鞋带公式，洞要减掉）。"""
+    def shoelace(ring):
+        s = 0.0
+        for i in range(len(ring) - 1):
+            x1, y1 = ring[i][0], ring[i][1]
+            x2, y2 = ring[i + 1][0], ring[i + 1][1]
+            s += x1 * y2 - x2 * y1
+        return abs(s) / 2.0
+
+    if not poly:
+        return 0.0
+    a = shoelace(poly[0])
+    for hole in poly[1:]:
+        a -= shoelace(hole)
+    return max(a, 0.0)
+
+
+def split_multipolygon(feats):
+    """MultiPolygon 拆成多个 Polygon 要素（v1 契约只接受 Polygon）。
+
+    App 端 `MapPackageRules` 见到任何非 Polygon 就整包判 BAD_GEOMETRY 回退内置，
+    所以拆分必须在打包这一步做完。拆出的第 2..n 块 id 加 `_2`/`_3` 后缀保唯一，
+    面积按几何重算（源 `面积` 是一整块的值，拆开后不能照抄）。
+    """
+    out, split, dropped = [], 0, 0
+    for f in feats:
+        g = f.get("geometry") or {}
+        if g.get("type") != "MultiPolygon":
+            out.append(f)
+            continue
+        for i, poly in enumerate(g.get("coordinates") or []):
+            fid = f["id"] if i == 0 else f"{f['id']}_{i + 1}"
+            area = round(ring_area(poly), 1)
+            if area < 1.0:          # 退化碎片（面积 0），留着只会被点中却什么都看不到
+                dropped += 1
+                continue
+            props = dict(f["properties"])
+            props["id"] = fid
+            props["areaPx"] = area
+            out.append({"type": "Feature", "id": fid, "properties": props,
+                        "geometry": {"type": "Polygon", "coordinates": poly}})
+            split += 1
+    if split or dropped:
+        print(f"  MultiPolygon 拆开：{split} 块（v1 只收 Polygon），丢弃退化碎片 {dropped} 块")
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--shp", default=r"D:\Download\沈阳农大校园矢量化\图层\校园图块.shp")
+    ap.add_argument(
+        "--shp",
+        default=r"D:\Download\沈阳农大校园矢量化\矢量修复成果\校园图块_v5.shp",
+        help="默认取 v5final（平面剖分后的 185 面、15 类）；旧的 90 面版本在 ..\\图层\\校园图块.shp",
+    )
     ap.add_argument("--base", default=r"D:\Download\沈阳农大校园矢量化\图层\校园底图_像素坐标.tif")
     ap.add_argument("--out", default=r"O:/dev/enroute-android/app/src/main/assets/map")
-    ap.add_argument("--version", default="2026.11.14-1")
+    ap.add_argument("--version", default="2026.11.17-1")
+    ap.add_argument("--date", default=None, help="manifest.generated，默认今天")
     ap.add_argument(
         "--from-geojson", default=None, metavar="FILE",
         help="改从「已合并标注」的 FeatureCollection 打包（merge_edits.py 的 merged_campus.geojson）："
@@ -190,7 +243,8 @@ def main():
         print(f"来源 GeoJSON: {args.from_geojson}  要素={len(feats)}  重复 id={dup_count}")
     else:
         feats, dup_count = feats_from_shp(args.shp)
-        origin = "校园规划示意图矢量化（校园图块.shp，%d 面）" % len(feats)
+        origin = "沈阳农大校园矢量化 v5final（校园图块_v5.shp，%d 面，平面剖分 100%% 覆盖）" % len(feats)
+    feats = split_multipolygon(feats)  # v1 契约只收 Polygon，包出去之前必须拆干净
 
     kinds = {}
     for x in feats:
@@ -226,7 +280,7 @@ def main():
             "duplicates": dup_count,
             "note": "" if dup_count == 0 else "源图层 ID 字段存在 0 或重复值，已退化命名；建议在 ArcGIS 重算 ID 后重出图",
         },
-        "generated": "2026-11-14",
+        "generated": args.date or __import__("datetime").date.today().isoformat(),
         "base": {"file": "base@1x.webp", "width": W, "height": H},
         "style": {
             "mode": "overlay",
@@ -241,12 +295,20 @@ def main():
             {"name": "campus", "file": "campus.geojson", "geom": "polygon", "label": "校园要素", "filter": {}},
         ],
         # 类别码表：App 端图例与信息卡用它把 kind 显示成中文；空类别时按 colorGroup 上色不影响
+        #
+        # v5final 的 `类别` 字段本身就是中文（15 类，平面剖分后全校 100% 覆盖），
+        # 所以这里以中文类名为码；后面几个旧码只留 v5 没有、但用户手工标注会用到的类别
+        # （图书馆/校门/水面/卫生间…），v5 已覆盖的 teach/dorm/office/road 等不再重复列出。
         "kindLabels": {
-            "teach": "教学楼", "lab": "实验楼", "library": "图书馆", "dorm": "宿舍",
-            "office": "办公楼", "gym": "体育场馆", "hall": "会堂", "hospital": "校医院",
-            "food": "食堂", "canteen": "小卖/报亭", "wc": "卫生间", "park": "停车场",
-            "gate": "校门", "bus": "校车站", "sport": "运动场", "green": "绿地",
-            "water": "水面", "road": "道路/广场", "other": "其他",
+            "学科楼": "学科楼", "公共楼": "公共楼", "办公楼": "办公楼",
+            "学生宿舍": "学生宿舍", "学生食堂": "学生食堂", "家属区": "家属区",
+            "运动场地": "运动场地", "停车场": "停车场", "绿地": "绿地",
+            "缓坡绿地": "缓坡绿地", "山体林地": "山体林地",
+            "机动车通道": "机动车通道", "机动车禁行道路": "机动车禁行道路",
+            "校外道路": "校外道路", "背景底色": "背景底色",
+            "library": "图书馆", "hall": "会堂", "gym": "体育场馆",
+            "hospital": "校医院", "canteen": "小卖/报亭", "wc": "卫生间",
+            "gate": "校门", "bus": "校车站", "water": "水面", "other": "其他",
         },
         # 众包带来的自定义字段名（App 信息卡按这个顺序显示）
         "customFields": custom,

@@ -4,7 +4,7 @@ package cn.dkarbon.enroute.data.map
  * 校园地图 v1 的数据模型（票 12）。
  *
  * 契约全文：`docs/校园地图-数据契约与接入方案.md`；真数据由 `tools/map/pack.py` 生成，
- * 放在 `assets/map/`（版本 `2026.11.14-1`，90 个面）。
+ * 放在 `assets/map/`（版本 `2026.11.17-1`，v5final 173 个面 / 15 类 / 真底图）。
  *
  * v1 是**相对位置**（`crs = "local"`，像素坐标，**y 轴向上**），不做 GPS、不申请任何定位权限。
  */

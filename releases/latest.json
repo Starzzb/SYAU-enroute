@@ -1,9 +1,9 @@
 {
-  "versionCode": 300,
-  "versionName": "0.7.2+m29",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m29/SYAU-enroute-m29.apk",
-  "sha256": "db61f296cb5001026406e5ca59e9fa892f8c319268f472a97271565d7a5c7b36",
-  "size": 8354337,
-  "notes": "内置大纲扩到 14 个学院 2066 门，下课后的课仍可查看。详见 CHANGELOG.md。",
+  "versionCode": 310,
+  "versionName": "0.7.3+m30",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m30/SYAU-enroute-m30.apk",
+  "sha256": "b4c326b9415a58ccff5a037aecefddce8db07f1ff1d0c5318a3ae8cfc02620a4",
+  "size": 8470457,
+  "notes": "校园地图换成 173 面、15 类的矢量图层，底图也是真图了。详见 CHANGELOG.md。",
   "minSupported": 0
 }
