@@ -384,6 +384,7 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
 
         var scoreToken: String? = null
         var planToken: String? = null
+        var planFajhh: String? = null
 
         ProbeCatalog.specs.forEachIndexed { i, spec ->
             val pair: Pair<ProbeResult, String> = when (spec.id) {
@@ -409,11 +410,24 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
 
                 "plan.index" -> once(UrpHomeApi.PLAN_INDEX, session).also { p ->
                     planToken = UrpHomeApi.PLAN_TOKEN_RE.find(p.second)?.groupValues?.get(1)
+                    planFajhh = UrpHomeApi.PLAN_FAJHH_RE.find(p.second)?.groupValues?.get(1)
                 }
 
-                "plan.detail" -> planToken?.let {
-                    once("/student/integratedQuery/instructionPlanQuery/$it/detail/callback", session)
-                } ?: noToken(spec.path, "培养方案页没给出 token")
+                // callback 只认 POST，且必须带 fajhh（方案计划号）；GET 会回
+                // 400 Required String parameter 'fajhh' is not present。
+                "plan.detail" -> {
+                    val tk = planToken
+                    val fj = planFajhh
+                    if (tk != null && fj != null) {
+                        call(
+                            "/student/integratedQuery/instructionPlanQuery/$tk/detail/callback",
+                            session,
+                            listOf("fajhh" to fj, "showMode" to "enrolled"),
+                        )
+                    } else {
+                        noToken(spec.path, "培养方案页没给出 token 或方案计划号")
+                    }
+                }
 
                 // 查教师是 POST 表单接口，GET 会 405。参数取「空学期 + 空关键字 + 只要 1 条」：
                 // 服务器照样回 JSON（`records: []`），足以说明这条接口还活着。

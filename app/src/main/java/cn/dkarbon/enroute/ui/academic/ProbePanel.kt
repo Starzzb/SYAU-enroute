@@ -16,11 +16,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -33,10 +33,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
@@ -91,6 +93,11 @@ fun ProbePanel(
     val running = ui.probing
     // 已出结果的行 + 正在被戳的那一行
     val rows = (done + if (running) 1 else 0).coerceAtMost(total)
+    // 长条左边那格：通了几个、断了一个。不写「已完成 3/14」这种说明书。
+    val okCount = (0 until done).count { i ->
+        val r = ui.probe.getOrNull(i)
+        r != null && ProbeCatalog.ok(ProbeCatalog.specs[i], r)
+    }
 
     // 开跑就自己撑开，不用再点一次
     LaunchedEffect(running) { if (running) expanded = true }
@@ -100,45 +107,72 @@ fun ProbePanel(
         animationSpec = tween(200, easing = FastOutSlowInEasing),
         label = "winH",
     )
-    val scrollY by animateDpAsState(
-        targetValue = if (expanded) ROW_H * (rows - VIEW).coerceAtLeast(0) else 0.dp,
-        animationSpec = tween(200, easing = FastOutSlowInEasing),
-        label = "winY",
-    )
     val chevron by animateFloatAsState(
         targetValue = if (expanded) 180f else 0f,
         animationSpec = tween(200, easing = FastOutSlowInEasing),
         label = "chev",
     )
+    val scroll = rememberScrollState()
+    // 新行进来就跟到底；手动往上翻时 rows 不变，不会被强行拉回。
+    LaunchedEffect(rows, scroll.maxValue) {
+        if (rows > 0 && expanded) scroll.animateScrollTo(scroll.maxValue)
+    }
 
     Column(modifier.fillMaxWidth()) {
 
-        // ── 按钮 ──
+        // ── 长条：左半边放本次的事实，右部那个格子才是按钮 ──
+        // 整块不响应点击 —— 只有一个明确的按钮，别让它变成「点哪都行」。
         Row(
             Modifier
                 .fillMaxWidth()
                 .height(44.dp)
-                .border(InkStroke.strong, t.ink)
-                .clickable(enabled = !running) {
-                    expanded = true
-                    onRun()
-                }
-                .padding(horizontal = 14.dp),
+                .border(InkStroke.strong, t.ink),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                text = if (expanded && done > 0 && !running) "再来一次" else "诊断",
-                fontSize = 13.5.sp,
-                fontWeight = FontWeight.Medium,
-                color = if (running) t.inkFaint else t.ink,
+                text = if (done == 0) "$total 项" else "$okCount 通",
+                fontSize = 11.5.sp,
+                fontFamily = NumericFont,
+                color = t.inkSoft,
+                modifier = Modifier.padding(start = 14.dp),
             )
+            if (done > 0 && done - okCount > 0) {
+                Text(
+                    text = " · ${done - okCount} 断",
+                    fontSize = 11.5.sp,
+                    fontFamily = NumericFont,
+                    color = t.rust,
+                )
+            }
             Spacer(Modifier.weight(1f))
-            Chevron(color = if (running) t.inkFaint else t.ink, degrees = chevron)
+            Box(
+                Modifier
+                    .width(InkStroke.hairline)
+                    .height(22.dp)
+                    .drawBehind { drawRect(t.ink.copy(alpha = 0.22f)) },
+            )
+            Row(
+                Modifier
+                    .height(44.dp)
+                    .clickable(enabled = !running) {
+                        expanded = true
+                        onRun()
+                    }
+                    .padding(start = 14.dp, end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = if (done > 0 && !running) "重新检测" else "开始检测",
+                    fontSize = 13.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (running) t.inkFaint else t.ink,
+                )
+                Spacer(Modifier.width(8.dp))
+                Chevron(color = if (running) t.inkFaint else t.ink, degrees = chevron)
+            }
         }
 
-        // ── 窗口：固定三行高，多出来的整叠往上滚 ──
-        // 内层必须 unbounded 测量：否则被 height(windowH) 压住，第三行之后的行会被量成 0 高，
-        // 整叠上移后窗口里就是一片空白。
+        // ── 窗口：固定三行高，多出来的整叠往上滚；也可以自己往上拖看历史 ──
         Box(
             Modifier
                 .fillMaxWidth()
@@ -148,8 +182,7 @@ fun ProbePanel(
             Column(
                 Modifier
                     .fillMaxWidth()
-                    .wrapContentHeight(Alignment.Top, unbounded = true)
-                    .offset(y = -scrollY),
+                    .verticalScroll(scroll),
             ) {
                 for (i in 0 until rows) {
                     ProbeRow(
@@ -159,6 +192,38 @@ fun ProbePanel(
                     )
                 }
             }
+
+            // 窗口就三行，被切掉的行会露出半截锁与半行字。用纸色把上下边缘淡掉，
+            // 只用渐隐说明「这里还能翻」，不写任何提示文字。
+            val fade by animateDpAsState(
+                targetValue = if (expanded) 20.dp else 0.dp,
+                animationSpec = tween(200, easing = FastOutSlowInEasing),
+                label = "fade",
+            )
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .drawWithContent {
+                        drawContent()
+                        val h = fade.toPx()
+                        if (h <= 0f) return@drawWithContent
+                        val atTop = scroll.value > 2
+                        val atEnd = scroll.value < scroll.maxValue - 2
+                        if (atTop) {
+                            drawRect(
+                                Brush.verticalGradient(listOf(t.paper, t.paper.copy(alpha = 0f)), 0f, h),
+                                size = Size(size.width, h),
+                            )
+                        }
+                        if (atEnd) {
+                            drawRect(
+                                Brush.verticalGradient(listOf(t.paper.copy(alpha = 0f), t.paper), size.height - h, size.height),
+                                size = Size(size.width, h),
+                                topLeft = Offset(0f, size.height - h),
+                            )
+                        }
+                    },
+            )
         }
 
         // 未登录 / 中途断了 —— 这种情况下没有行可看，才需要一句话
@@ -377,7 +442,8 @@ private fun DrawScope.drawLock(
         )
     }
 
-    // 锁梁：先绕 (25,16) 转 -16°，再整体平移 (-9,-7)。通了才做。
+    // 锁梁：以**右脚底**为铰点往外拧开（34°），右脚留在锁体里不动。
+    // 不能整体平移 —— 那样两端一起离开，看起来像锁头掉了下来，而不是被打开了。
     val shackle = Path().apply {
         moveTo(ox + 10f * u, oy + 17f * u)
         lineTo(ox + 10f * u, oy + 11f * u)
@@ -390,8 +456,7 @@ private fun DrawScope.drawLock(
         lineTo(ox + 26f * u, oy + 17f * u)
     }
     withTransform({
-        rotate(-16f * open, pivot = Offset(ox + 25f * u, oy + 16f * u))
-        translate(-9f * u * open, -7f * u * open)
+        rotate(34f * open, pivot = Offset(ox + 26f * u, oy + 17f * u))
     }) {
         drawPath(shackle, color, style = stroke)
     }

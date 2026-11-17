@@ -32,19 +32,25 @@
   /* ── 诊断区 ───────────────────────────── */
   .diag-title{font-size:15px;font-weight:700;letter-spacing:.02em;margin:0 0 14px;}
 
+  /* 长条：整块不响应点击，只有右部那一格是按钮 */
   .go{
-    display:flex;align-items:center;justify-content:space-between;
-    border:1px solid var(--ink);padding:0 14px;height:44px;
-    font-size:13px;font-weight:600;cursor:pointer;user-select:none;
-    background:transparent;transition:background .16s;
+    display:flex;align-items:center;height:44px;border:1px solid var(--ink);
+    background:transparent;user-select:none;
   }
-  .go:active{background:rgba(26,22,17,.045);}
-  .go .chev{
-    width:9px;height:9px;border-right:1.6px solid var(--ink);border-bottom:1.6px solid var(--ink);
+  .go .fact{padding-left:14px;font-size:11.5px;color:var(--soft);font-variant-numeric:tabular-nums;}
+  .go .fact .bad{color:var(--rust);}
+  .go .cell{
+    margin-left:auto;display:flex;align-items:center;gap:8px;height:44px;
+    padding:0 12px 0 14px;border-left:1px solid rgba(26,22,17,.22);
+    font-size:13.5px;font-weight:500;cursor:pointer;transition:background .16s;
+  }
+  .go .cell:active{background:rgba(26,22,17,.045);}
+  .go.busy .cell{cursor:default;color:var(--faint);}
+  .go .cell .chev{
+    width:9px;height:9px;border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;
     transform:rotate(45deg) translateY(-2px);transition:transform .22s cubic-bezier(.2,0,0,1);
   }
-  .go.busy{cursor:default;}
-  .go.busy .chev{transform:rotate(-135deg) translateY(-2px);}
+  .go.busy .cell .chev{transform:rotate(-135deg) translateY(-2px);}
 
   .sleeve{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,0,0,1);}
   .sleeve.open{grid-template-rows:1fr;}
@@ -82,8 +88,8 @@
   .probe.open .kw{opacity:0;transform:translateX(28px) rotate(6deg);transition:opacity .26s .1s,transform .26s;}
   .probe.reject .kw{opacity:0;transform:translateX(-34px) rotate(-14deg);transition:transform .3s cubic-bezier(.4,0,1,1),opacity .3s .06s;}
 
-  .shackle{transform-box:view-box;transform-origin:25px 16px;transition:transform .34s cubic-bezier(.34,1.5,.64,1);}
-  .probe.open .shackle{transform:translate(-9px,-7px) rotate(-16deg);}
+  .shackle{transform-box:view-box;transform-origin:26px 17px;transition:transform .34s cubic-bezier(.34,1.5,.64,1);}
+  .probe.open .shackle{transform:rotate(34deg);}
   .keyhole{transition:opacity .18s;}
   .probe.open .keyhole{opacity:0;}
   .tick{stroke-dasharray:26;stroke-dashoffset:26;transition:stroke-dashoffset .3s ease-out .18s;}
@@ -130,7 +136,7 @@
   <div class="ctrl">
     <button class="btn" id="replay">重播</button>
     <button class="btn ghost" id="slow">放慢一倍</button>
-    <p class="ctrl-note">14 条依次试过。前 3 条窗口逐渐长高，第 4 条起高度不变、整叠上滚。<br>全部走完后按「再来一次」可重跑，容器不自动收起 —— 结果留给看的人。</p>
+    <p class="ctrl-note">14 条依次试过。前 3 条窗口逐渐长高，第 4 条起高度不变、整叠上滚。<br>全部走完后按「重新检测」可重跑，容器不自动收起 —— 结果留给看的人。</p>
   </div>
 </div>
 
@@ -193,10 +199,20 @@ function mount(el, { open, busy, label, n, states, offset, instant, title, note 
   const viewH = Math.min(n, VIEW) * ROW_H;
   const maxOff = Math.max(0, n - VIEW) * ROW_H;
   const off = (offset === undefined) ? maxOff : offset;
+  // 长条左边那格：没跑之前是总数，跑完是「N 通 · M 断」
+  const st = states.slice(0, n);
+  const okN = st.filter(s => s === 'open').length;
+  const badN = st.filter(s => s === 'reject').length;
+  const fact = (okN + badN === 0)
+    ? `${DATA.length} 项`
+    : `${okN} 通${badN ? ` · <span class="bad">${badN} 断</span>` : ''}`;
   el.innerHTML = `
     ${title ? `<p class="frame-label">${title}</p>` : ""}
     <p class="diag-title">接口诊断</p>
-    <div class="go ${busy?'busy':''}"><span>${label || '诊断'}</span><span class="chev"></span></div>
+    <div class="go ${busy?'busy':''}">
+      <span class="fact">${fact}</span>
+      <span class="cell"><b>${label || '开始检测'}</b><span class="chev"></span></span>
+    </div>
     <div class="sleeve ${open?'open':''}">
       <div class="inner">
         <div class="edge"></div>
@@ -213,7 +229,7 @@ const NOTES = {
   p1: ['① 待机', '容器完全收起。按钮右侧的箭头朝下，暗示下方有东西。'],
   p2: ['② 拉出 · 第一把正在试', '容器从按钮下沿向下撑开（300ms），顶部横线从中间向两侧长出来。钥匙从左侧滑入抵住锁孔，这条还没有结果，只显示「…」。'],
   p3: ['③ 试到第 9 条 · 整叠已滚过一行', '窗口固定 3 行高，第 4 条起不再长高。上一刻窗口里是 5/6/7，这一刻是 6/7/8 —— 中间那 300ms 是整叠一起往上移，不是换一批内容跳出来。底下「培养方案页」的钥匙正抵着锁。'],
-  p4: ['④ 走完 14 条', '第 13 条撞不开，红字、虚线分隔，钥匙弹回来就丢弃，接着试下一条。结果留在窗口里，按钮变「再来一次」。'],
+  p4: ['④ 走完 14 条', '第 13 条撞不开，红字、虚线分隔，钥匙弹回来就丢弃，接着试下一条。结果留在窗口里，按钮变「重新检测」。'],
 };
 ['p1','p2','p3','p4'].forEach(id=>{
   const d = document.createElement('div');
@@ -239,7 +255,7 @@ mount(document.getElementById('p3'), {
 });
 
 mount(document.getElementById('p4'), {
-  ...T('p4'), open:true, busy:false, label:'再来一次', n:14,
+  ...T('p4'), open:true, busy:false, label:'重新检测', n:14,
   states:['open','open','open','open','open','open','open','open','open','open','open','open','reject','open'],
   instant:true,
 });
@@ -282,11 +298,11 @@ async function run(){
   }
 
   goEl.classList.remove('busy');
-  goEl.querySelector('span').textContent = '再来一次';
+  goEl.querySelector('.cell b').textContent = '重新检测';
 
   // 收尾：按最终状态整块重挂一次，末态不依赖增量 DOM 的残留
   mount(liveEl, {
-    open:true, busy:false, label:'再来一次', n:DATA.length,
+    open:true, busy:false, label:'重新检测', n:DATA.length,
     states:DATA.map(d => d.ok ? 'open' : 'reject'),
   });
 }

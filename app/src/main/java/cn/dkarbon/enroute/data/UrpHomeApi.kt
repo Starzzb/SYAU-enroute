@@ -58,6 +58,15 @@ object UrpHomeApi {
     /** 培养方案页里那次性的随机 token */
     internal val PLAN_TOKEN_RE = Regex("""instructionPlanQuery/([A-Za-z0-9]{8,16})/detail""")
 
+    /**
+     * 培养方案页里写死的「方案计划号」。
+     *
+     * callback **必须带 `fajhh`**（方案计划号），不带就是
+     * `400 Required String parameter 'fajhh' is not present` —— 见 2026-11-16 真机日志。
+     * 这个号在页面里以 `instructionPlanQuery("202403112440")` 的形式写死，不在 URL 里。
+     */
+    internal val PLAN_FAJHH_RE = Regex("""instructionPlanQuery\("(\d+)"\)""")
+
     /** 及格成绩页里那次性的随机 token */
     internal val PASS_TOKEN_RE = Regex("""scoreQuery/([A-Za-z0-9]{8,16})/allPassingScores""")
 
@@ -324,12 +333,26 @@ object UrpHomeApi {
     suspend fun fetchProfile(s: UrpClient.Session): StudentProfile =
         parseProfile(get(PROFILE, s))
 
-    /** 培养方案进度：先取页面抠 token，再打 callback */
+    /**
+     * 培养方案进度：先取页面抠 token 与方案计划号，再 **POST** callback。
+     *
+     * 两个坑都在真机日志里验过（2026-11-16）：
+     * 1. callback 是 POST，GET 回 `400 Required String parameter 'fajhh' is not present`；
+     * 2. `fajhh` 不在 URL 上，只以 `instructionPlanQuery("202403112440")` 写在页面脚本里。
+     */
     suspend fun fetchCreditProgress(s: UrpClient.Session): CreditProgress {
         val html = get(PLAN_INDEX, s)
         val tk = PLAN_TOKEN_RE.find(html)?.groupValues?.get(1)
             ?: return CreditProgress()
-        return parseCreditProgress(get("/student/integratedQuery/instructionPlanQuery/$tk/detail/callback", s))
+        val fajhh = PLAN_FAJHH_RE.find(html)?.groupValues?.get(1)
+            ?: return CreditProgress()
+        return parseCreditProgress(
+            postForm(
+                "/student/integratedQuery/instructionPlanQuery/$tk/detail/callback",
+                listOf("fajhh" to fajhh, "showMode" to "enrolled"),
+                s,
+            ),
+        )
     }
 
     /** 成绩统计：同上两步 */
