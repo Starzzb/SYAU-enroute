@@ -87,6 +87,13 @@ class ProbeCatalogTest {
     }
 
     @Test
+    fun `跳转回登录页的行说未登录而不是零字节`() {
+        // 教务把没带有效会话的请求 302 回登录页。这时候报「0 B」等于什么都没说。
+        assertEquals("302 · 未登录", ProbeCatalog.metaLine(ProbeResult("/x", 302, 0, false, "")))
+        assertEquals("302 · 未登录", ProbeCatalog.metaLine(ProbeResult("/x", 302, 512, false, "")))
+    }
+
+    @Test
     fun `每条路径都已落成绝对路径`() {
         ProbeCatalog.specs.forEach { spec ->
             assertTrue("${spec.id} 路径必须以 / 开头", spec.path.startsWith("/student/"))

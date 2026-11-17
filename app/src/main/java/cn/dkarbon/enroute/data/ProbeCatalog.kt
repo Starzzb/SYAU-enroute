@@ -79,6 +79,9 @@ object ProbeCatalog {
     fun metaLine(r: ProbeResult?): String {
         if (r == null) return "…"
         if (r.status <= 0) return "— · 失败"
+        // 3xx 是教务把人踢回登录页：不是接口坏了，是没带有效会话。
+        // 报「0 B」等于什么都没说，报「未登录」才是实话。
+        if (r.status in 300..399) return "${r.status} · 未登录"
         return "${r.status} · ${formatBytes(r.bytes)}"
     }
 

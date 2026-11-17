@@ -162,7 +162,11 @@ fun ProbePanel(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
-                    text = if (done > 0 && !running) "重新检测" else "开始检测",
+                    text = when {
+                        running -> "检测中"
+                        done > 0 -> "重新检测"
+                        else -> "开始检测"
+                    },
                     fontSize = 13.5.sp,
                     fontWeight = FontWeight.Medium,
                     color = if (running) t.inkFaint else t.ink,

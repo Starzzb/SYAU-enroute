@@ -2,7 +2,7 @@
   "versionCode": 260,
   "versionName": "0.6.0+m25",
   "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m25/SYAU-enroute-m25.apk",
-  "sha256": "f4987df15203fcd906e74816057fd4a24c575e3ff124d22b09b6da6d4e0b1e49",
+  "sha256": "75007c9dbb31dee6ea530ddcdf8290907c95143870129e38444a661858cb5686",
   "size": 5618900,
   "notes": "接口诊断改长条入口、铰链开锁，修好培养方案明细与已修学分。详见 CHANGELOG.md。",
   "minSupported": 0

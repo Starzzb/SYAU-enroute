@@ -211,7 +211,7 @@ function mount(el, { open, busy, label, n, states, offset, instant, title, note 
     <p class="diag-title">接口诊断</p>
     <div class="go ${busy?'busy':''}">
       <span class="fact">${fact}</span>
-      <span class="cell"><b>${label || '开始检测'}</b><span class="chev"></span></span>
+      <span class="cell"><b>${busy ? '检测中' : (label || '开始检测')}</b><span class="chev"></span></span>
     </div>
     <div class="sleeve ${open?'open':''}">
       <div class="inner">
