@@ -266,7 +266,8 @@ class HomeModelTest {
     fun `教师行与空态文案`() {
         assertEquals("土环 · 教授", HomeModel.teacherLine(TeacherHit("董秀茹", "1", "土环", "教授")))
         assertEquals("教授", HomeModel.teacherLine(TeacherHit("某", "1", "", "教授")))
-        assertEquals("教师姓名", HomeModel.teacherEmptyHint(""))
+        // 没输入姓名就没有结论可说，不能凭空显示「没找到」
+        assertEquals("", HomeModel.teacherEmptyHint(""))
         assertTrue(HomeModel.teacherEmptyHint("董").contains("没找到「董」"))
     }
 

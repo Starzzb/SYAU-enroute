@@ -388,7 +388,7 @@ object HomeModel {
 
     /** 教师搜索的空态文案：区分「没搜」和「搜了没有」 */
     fun teacherEmptyHint(keyword: String): String = when {
-        keyword.isBlank() -> "教师姓名"
+        keyword.isBlank() -> ""
         else -> "没找到「$keyword」。"
     }
 

@@ -98,17 +98,21 @@ fun TeacherScreen(
         if (ui.teachers.isEmpty()) {
             Box(Modifier.fillMaxSize().padding(Space.xxl), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        when {
-                            ui.teacherLoading -> "搜索中…"
-                            ui.teacherMsg.isNotBlank() -> ui.teacherMsg
-                            else -> HomeModel.teacherEmptyHint(ui.teacherQuery)
-                        },
-                        fontSize = 12.sp,
-                        color = t.inkFaint,
-                        lineHeight = 19.sp,
-                    )
-                    Spacer(Modifier.height(Space.m))
+                    // 还没搜过就什么都不说：「没找到」是检索结论，不能提前替用户下
+                    val emptyLine = when {
+                        ui.teacherLoading -> "搜索中…"
+                        ui.teacherMsg.isNotBlank() -> ui.teacherMsg
+                        else -> ""
+                    }
+                    if (emptyLine.isNotBlank()) {
+                        Text(
+                            emptyLine,
+                            fontSize = 12.sp,
+                            color = t.inkFaint,
+                            lineHeight = 19.sp,
+                        )
+                        Spacer(Modifier.height(Space.m))
+                    }
                     Text(
                         "只在校内网可用 · 数据来自教务系统教师课表",
                         fontSize = 9.5.sp,

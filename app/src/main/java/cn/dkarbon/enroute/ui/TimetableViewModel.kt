@@ -1955,7 +1955,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     // ── 查教师 ────────────────────────────────────────────
 
     fun setTeacherQuery(q: String) {
-        _ui.value = _ui.value.copy(teacherQuery = q)
+        // 改了姓名就撤掉上一次的结论（「没找到」），免得对着新名字还挂着旧结果
+        _ui.value = _ui.value.copy(teacherQuery = q, teacherMsg = "")
     }
 
     /**
