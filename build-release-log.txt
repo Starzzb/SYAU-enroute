@@ -46,8 +46,12 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:processReleaseResources
 > Task :app:optimizeReleaseResources
 > Task :app:compileReleaseKotlin
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/auth/LoginCard.kt:94:21 'fun quadraticBezierTo(x1: Float, y1: Float, x2: Float, y2: Float): Unit' is deprecated. Use quadraticTo() for consistency with cubicTo().
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/curriculum/SyllabusSheet.kt:62:9 Condition is always 'false'.
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/kit/InkNavBar.kt:76:25 'fun quadraticBezierTo(x1: Float, y1: Float, x2: Float, y2: Float): Unit' is deprecated. Use quadraticTo() for consistency with cubicTo().
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/kit/InkNavBar.kt:78:25 'fun quadraticBezierTo(x1: Float, y1: Float, x2: Float, y2: Float): Unit' is deprecated. Use quadraticTo() for consistency with cubicTo().
 w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/map/CampusMapScreen.kt:1095:46 'val Drag: NestedScrollSource' is deprecated. This has been replaced by UserInput.
-w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:199:33 Condition is always 'true'.
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:202:33 Condition is always 'true'.
 
 > Task :app:compileReleaseJavaWithJavac
 > Task :app:generateReleaseLintVitalReportModel
@@ -68,6 +72,6 @@ Warning: Unable to initialize metrics, ensure C:\Users\28759\.android is writabl
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 2m 42s
+BUILD SUCCESSFUL in 15m 9s
 48 actionable tasks: 18 executed, 30 up-to-date
 EXIT=0 
