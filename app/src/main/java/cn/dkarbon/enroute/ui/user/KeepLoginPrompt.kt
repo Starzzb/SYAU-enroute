@@ -92,24 +92,3 @@ fun KeepLoginPrompt(vm: TimetableViewModel) {
         }
     }
 }
-
-/**
- * 会话过期时的「自动续期中…」提示条（票 14）。
- *
- * 只在 [cn.dkarbon.enroute.ui.AppState.reloginRunning] 为 true 时出现 —— 这是一个**短暂态**，
- * 成功后就消失（用户无感），失败则变成「已过期 + 手动登录」的常规文案。
- */
-@Composable
-fun ReloginBanner(modifier: Modifier = Modifier) {
-    val t = InkTokens.current
-    Row(
-        modifier.fillMaxWidth().background(t.cardAlt).padding(horizontal = Space.l, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            Modifier.width(3.dp).height(12.dp).background(t.primary),
-        )
-        Spacer(Modifier.width(Space.s))
-        Text(SessionText.RELATING_NOTE, fontSize = 10.5.sp, color = t.inkSoft)
-    }
-}

@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>m37 阻塞式更新 · 原型</title>
+<style>
+:root{
+  --paper:#F8F5F0; --paper2:#F1ECE3; --card:#FCFAF6; --cardAlt:#F1ECE3;
+  --ink:#2C2C2C; --inkSoft:#4A4A46; --inkFaint:#686660;
+  --rule:#8C8578; --outline:#7E776A;
+  --green:#6B7B6E; --ochre:#A89279; --sand:#C4B9A8; --slate:#697A7C; --seal:#8F4A3A;
+  --brick:#8F4A3A; --olive:#6B7B6E; --amber:#A89279; --rust:#8F4A3A;
+  --primary:#2C2C2C; --accent:#6B7B6E;
+  --pressIn:rgba(44,44,44,.055); --pressOut:rgba(255,255,255,.85);
+  --pressEdgeA:rgba(255,255,255,.9); --pressEdgeB:rgba(44,44,44,.08);
+  --tx1:rgba(104,102,96,.10); --tx2:rgba(104,102,96,.055);
+  --scrim:rgba(25,23,19,.52);
+  --page:#EDE8DE; --tool:#F8F5F0; --toolInk:#2C2C2C;
+}
+body[data-dark="1"]{
+  --paper:#191713; --paper2:#2B2721; --card:#1F1C17; --cardAlt:#2B2721;
+  --ink:#EDE7DA; --inkSoft:#C5BDAD; --inkFaint:#A39A8A;
+  --rule:#7E7668; --outline:#8C8474;
+  --green:#A8BAA5; --ochre:#C9B79C; --sand:#C4B9A8; --slate:#96A8A8; --seal:#C88A78;
+  --brick:#C88A78; --olive:#A8BAA5; --amber:#C9B79C; --rust:#C88A78;
+  --primary:#EDE7DA; --accent:#A89279;
+  --pressIn:rgba(0,0,0,.55); --pressOut:rgba(255,255,255,.045);
+  --pressEdgeA:rgba(255,255,255,.10); --pressEdgeB:rgba(0,0,0,.60);
+  --tx1:rgba(237,231,218,.075); --tx2:rgba(237,231,218,.04);
+  --scrim:rgba(0,0,0,.66);
+  --page:#12100D; --tool:#1F1C17; --toolInk:#EDE7DA;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:var(--page); color:var(--ink);
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased; padding:0 0 60px;
+}
+.toolbar{
+  position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:14px;
+  padding:12px 28px; background:var(--tool); color:var(--toolInk);
+  border-bottom:1px solid var(--outline);
+}
+.toolbar h1{font-size:14px; font-weight:700; letter-spacing:.04em}
+.toolbar .sp{flex:1}
+.toolbar button{
+  font:inherit; font-size:12px; padding:6px 14px; border-radius:6px; cursor:pointer;
+  border:1px solid var(--outline); background:transparent; color:var(--toolInk);
+}
+.toolbar button.on{background:var(--toolInk); color:var(--tool); border-color:var(--toolInk)}
+.hint{font-size:11px; color:var(--inkFaint); letter-spacing:.03em}
+
+.wrap{max-width:1720px; margin:0 auto; padding:26px 28px 0}
+.row{display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start}
+.cap{font-size:11px; color:var(--inkFaint); letter-spacing:.14em; margin:0 0 8px 2px; text-transform:uppercase}
+
+/* ── 手机 ───────────────────────────────── */
+.phone{
+  width:392px; height:812px; border-radius:26px; overflow:hidden; position:relative;
+  background:var(--paper); border:1px solid var(--outline);
+  box-shadow:0 18px 40px -22px rgba(25,23,19,.45);
+  display:flex; flex-direction:column;
+  font-size:13px;
+}
+.statusbar{
+  height:34px; display:flex; align-items:center; justify-content:space-between;
+  padding:0 18px; font-size:11px; color:var(--inkSoft); letter-spacing:.02em; flex:0 0 auto;
+}
+.appbar{
+  flex:0 0 auto; height:46px; display:flex; align-items:center; gap:10px; padding:0 16px;
+  border-bottom:1px solid var(--rule);
+}
+.appbar .back{width:34px;height:34px;display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--inkSoft)}
+.appbar .t{font-size:14.5px; font-weight:700; letter-spacing:.02em}
+.body{flex:1 1 auto; overflow:hidden; position:relative}
+
+/* 纸纹底 */
+.tex-dots{background-image:radial-gradient(circle, var(--tx1) .9px, transparent 1px); background-size:12px 12px}
+.tex-grid{
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 23px, var(--tx2) 23px 24px),
+    repeating-linear-gradient(90deg, transparent 0 23px, var(--tx2) 23px 24px),
+    radial-gradient(circle, var(--tx1) 1.1px, transparent 1.1px);
+  background-size:24px 24px,24px 24px,24px 24px;
+}
+
+/* 底栏 */
+.navwrap{
+  flex:0 0 auto; border-top:1px solid var(--outline); background:var(--card);
+  border-radius:16px 16px 0 0; padding:6px 4px 8px; display:flex;
+  box-shadow:inset 0 1px 0 var(--pressOut);
+}
+.nb{flex:1; height:50px; border-radius:8px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:3px; font-size:9.5px; color:var(--inkFaint)}
+.nb .dot{width:3px;height:3px;border-radius:50%;background:transparent}
+.nb.on{background:var(--cardAlt); color:var(--ink); font-weight:600}
+.nb.on .dot{background:var(--rust)}
+.nb i{font-size:0; width:19px;height:19px;border:1.6px solid currentColor;border-radius:4px; display:block}
+
+/* ── 设置页 ─────────────────────────────── */
+.pad{padding:14px 16px}
+.secttitle{font-size:9px; letter-spacing:.20em; color:var(--inkFaint); margin:16px 0 8px}
+.sbox{
+  border:1px solid var(--outline); border-radius:4px; overflow:hidden;
+  box-shadow:inset 0 14px 14px -10px var(--pressIn), inset 0 -12px 12px -8px var(--pressOut);
+}
+.srow{display:flex; align-items:center; gap:10px; padding:11px 13px; font-size:12.5px; border-bottom:1px solid rgba(140,133,120,.30)}
+.srow:last-child{border-bottom:0}
+.srow .sp{flex:1}
+.srow .v{font-size:11.5px; color:var(--inkSoft); font-variant-numeric:tabular-nums}
+.srow .chev{color:var(--inkFaint); font-size:12px}
+.srow.hot{color:var(--brick); font-weight:600}
+.badge{font-size:9.5px; letter-spacing:.10em; padding:2px 6px; border-radius:3px; background:var(--brick); color:var(--card)}
+
+/* ── 弹窗（提醒，非阻塞） ───────────────── */
+.dlgwrap{position:absolute; inset:0; background:rgba(25,23,19,.34); display:flex; align-items:center; justify-content:center; padding:26px}
+.dlg{
+  width:100%; background:var(--card); border:1px solid var(--outline); border-radius:10px;
+  padding:18px 18px 14px; box-shadow:0 22px 40px -18px rgba(25,23,19,.5);
+}
+.dlg .kicker{font-size:9px; letter-spacing:.20em; color:var(--inkFaint)}
+.dlg h3{font-size:16px; font-weight:800; margin:7px 0 4px; letter-spacing:.01em}
+.dlg .ver{font-size:11px; color:var(--inkFaint); font-variant-numeric:tabular-nums; letter-spacing:.03em}
+.dlg .meta{display:flex; gap:16px; margin:12px 0 12px; font-size:11px; color:var(--inkSoft)}
+.dlg .meta b{font-weight:700; color:var(--ink); font-variant-numeric:tabular-nums}
+.dlg .notes{font-size:12px; line-height:1.75; color:var(--inkSoft); border-top:1px solid rgba(140,133,120,.35); padding-top:10px}
+.dlg .acts{display:flex; gap:10px; margin-top:14px}
+.btn{flex:1; height:40px; border-radius:5px; font:inherit; font-size:13px; font-weight:600; cursor:pointer; border:1.5px solid var(--ink); background:transparent; color:var(--ink)}
+.btn.solid{background:var(--ink); color:var(--card)}
+.btn.ghost{border-color:var(--outline); color:var(--inkSoft); font-weight:500}
+
+/* ── 阻塞浮层 ───────────────────────────── */
+.blockwrap{
+  position:absolute; inset:0; background:var(--scrim); backdrop-filter:blur(2px);
+  display:flex; align-items:center; justify-content:center; padding:22px; z-index:30;
+}
+.bcard{
+  width:100%; background:var(--card); border:1px solid var(--outline); border-radius:10px;
+  box-shadow:0 26px 50px -20px rgba(25,23,19,.55), inset 0 1px 0 var(--pressEdgeA);
+  padding:20px 18px 16px; position:relative; overflow:hidden;
+}
+.bcard::before{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-image:radial-gradient(circle, var(--tx2) .9px, transparent 1px);
+  background-size:12px 12px; opacity:.9;
+}
+.bcard > *{position:relative}
+.bcard .kicker{font-size:9px; letter-spacing:.20em; color:var(--inkFaint)}
+.bcard h3{font-size:16.5px; font-weight:800; margin:6px 0 3px}
+.bcard .ver{font-size:11px; color:var(--inkFaint); font-variant-numeric:tabular-nums}
+
+.bar{margin:18px 0 9px; height:2px; background:rgba(140,133,120,.32); border-radius:1px; position:relative; overflow:hidden}
+.bar i{position:absolute; left:0; top:0; bottom:0; background:var(--ink); border-radius:1px; display:block}
+.barmeta{display:flex; align-items:baseline; justify-content:space-between; font-size:11px; color:var(--inkSoft); font-variant-numeric:tabular-nums}
+.barmeta .pct{font-size:19px; font-weight:800; color:var(--ink); letter-spacing:.01em}
+.grid2{display:grid; grid-template-columns:1fr 1fr; gap:8px 14px; margin-top:14px; font-size:11px; color:var(--inkFaint); font-variant-numeric:tabular-nums}
+.grid2 b{display:block; font-size:12px; font-weight:600; color:var(--inkSoft); margin-top:2px; letter-spacing:.02em}
+
+.failhead{display:flex; gap:10px; align-items:flex-start; margin:4px 0 0}
+.failmark{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--brick);color:var(--brick);
+  display:flex;align-items:center;justify-content:center;font-size:13px; font-weight:700; flex:0 0 auto; margin-top:1px}
+.failreason{font-size:12.5px; line-height:1.8; color:var(--inkSoft)}
+.failreason b{color:var(--ink); font-weight:700}
+
+/* 五档纸纹样张 */
+.swatches{display:flex; gap:14px; flex-wrap:wrap; margin-top:6px}
+.sw{width:196px}
+.sw .box{height:104px; border:1px solid var(--outline); border-radius:4px; background-color:var(--card);
+  box-shadow:inset 0 14px 14px -10px var(--pressIn), inset 0 -12px 12px -8px var(--pressOut)}
+
+/* 样张区把纹路放大一档：实机上只有这个的六成强度，样张太淡就分不出谁是谁 */
+.sw .box{ --tx1:rgba(104,102,96,.22); --tx2:rgba(104,102,96,.15); }
+.sw .box.tex-dots{ --tx1:rgba(104,102,96,.42); }
+
+/* 边缘深度：不铺任何图案，只在四边向内压暗、上沿留一线亮 —— 像纸被压进凹槽 */
+.sw .box.edge{
+  background-color:var(--card);
+  box-shadow:
+    inset 0 16px 20px -10px rgba(44,44,44,.62),
+    inset 0 -16px 20px -10px rgba(44,44,44,.46),
+    inset 18px 0 22px -14px rgba(44,44,44,.40),
+    inset -18px 0 22px -14px rgba(44,44,44,.40),
+    inset 0 1px 0 var(--pressOut),
+    0 1px 2px var(--pressEdgeB);
+}
+body[data-dark="1"] .sw .box.edge{
+  box-shadow:
+    inset 0 16px 18px -12px rgba(0,0,0,.72),
+    inset 0 -16px 18px -12px rgba(0,0,0,.62),
+    inset 16px 0 20px -16px rgba(0,0,0,.55),
+    inset -16px 0 20px -16px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 1px 2px rgba(0,0,0,.5);
+}
+body[data-dark="1"] .sw .box{ --tx1:rgba(237,231,218,.18); --tx2:rgba(237,231,218,.12); }
+body[data-dark="1"] .sw .box.tex-dots{ --tx1:rgba(237,231,218,.34); }
+.sw .nm{font-size:10.5px; color:var(--inkSoft); margin-top:6px; letter-spacing:.04em}
+.sw .no{font-size:9.5px; color:var(--inkFaint); margin-top:1px}
+
+/* 规格区 */
+.specs{display:grid; grid-template-columns:repeat(3,1fr); gap:18px; margin-top:26px}
+.panel{background:var(--card); border:1px solid var(--outline); border-radius:6px; padding:16px 18px}
+.panel h2{font-size:11px; letter-spacing:.18em; color:var(--inkFaint); font-weight:700; margin-bottom:10px}
+.panel table{width:100%; border-collapse:collapse; font-size:11.5px}
+.panel th{text-align:left; font-weight:600; color:var(--inkFaint); font-size:10px; letter-spacing:.10em; padding:4px 6px 6px 0; border-bottom:1px solid rgba(140,133,120,.35)}
+.panel td{padding:6px 6px 6px 0; border-bottom:1px solid rgba(140,133,120,.18); color:var(--inkSoft); vertical-align:top; line-height:1.6}
+.panel td b{color:var(--ink)}
+.panel code{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace; font-size:10.5px; background:var(--cardAlt); padding:1px 4px; border-radius:3px}
+.panel ul{list-style:none; font-size:11.5px; color:var(--inkSoft); line-height:1.95}
+.panel ul li::before{content:"·"; color:var(--inkFaint); margin-right:7px}
+.wide{grid-column:1 / -1}
+.span2{grid-column:span 2}
+.flow{font-family:ui-monospace,Consolas,monospace; font-size:11px; line-height:2.05; color:var(--inkSoft); white-space:pre; overflow-x:auto}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <h1>m37 · 阻塞式更新</h1>
+  <span class="hint">检查提醒 → 点「更新」→ 全屏阻塞下载 → 完成安装</span>
+  <span class="sp"></span>
+  <button id="th">夜墨</button>
+  <button id="rp">重播进度</button>
+</div>
+
+<div class="wrap">
+  <div class="row">
+
+    <!-- ① 提醒（非阻塞） -->
+    <div>
+      <div class="cap">① 检查 → 提醒（不阻塞）</div>
+      <div class="phone">
+        <div class="statusbar"><span>9:41</span><span>100% ▾</span></div>
+        <div class="appbar"><div class="back">‹</div><div class="t">设置</div></div>
+        <div class="body tex-dots">
+          <div class="pad">
+            <div class="secttitle">关于</div>
+            <div class="sbox">
+              <div class="srow"><span>版本</span><span class="sp"></span><span class="v">0.8.3+m37</span></div>
+              <div class="srow"><span>检查更新</span><span class="sp"></span><span class="badge">有新版本</span></div>
+              <div class="srow"><span>开源许可</span><span class="sp"></span><span class="chev">›</span></div>
+            </div>
+            <div class="secttitle">调试</div>
+            <div class="sbox">
+              <div class="srow"><span>教务接口诊断</span><span class="sp"></span><span class="chev">›</span></div>
+            </div>
+          </div>
+
+          <div class="dlgwrap">
+            <div class="dlg">
+              <div class="kicker">发现新版本</div>
+              <h3>沈农在途 0.8.4</h3>
+              <div class="ver">versionCode 840 · 2026-11-21</div>
+              <div class="meta"><span>体积 <b>8.4 MB</b></span><span>最低系统 <b>Android 8</b></span></div>
+              <div class="notes">修复课程大纲在低分屏的字重偏差，考试轴在跨周时不再错位。详见 CHANGELOG.md。</div>
+              <div class="acts">
+                <button class="btn ghost">以后再说</button>
+                <button class="btn solid">更新</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="navwrap">
+          <div class="nb"><i></i><span>课表</span><span class="dot"></span></div>
+          <div class="nb"><i></i><span>资讯</span><span class="dot"></span></div>
+          <div class="nb on"><i></i><span>我的</span><span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 下载中（阻塞） -->
+    <div>
+      <div class="cap">② 下载中 · 全屏阻塞</div>
+      <div class="phone">
+        <div class="statusbar"><span>9:42</span><span>100% ▾</span></div>
+        <div class="appbar"><div class="back">‹</div><div class="t">设置</div></div>
+        <div class="body tex-dots">
+          <div class="pad">
+            <div class="secttitle">关于</div>
+            <div class="sbox">
+              <div class="srow"><span>版本</span><span class="sp"></span><span class="v">0.8.3+m37</span></div>
+              <div class="srow"><span>检查更新</span><span class="sp"></span><span class="badge">有新版本</span></div>
+              <div class="srow"><span>开源许可</span><span class="sp"></span><span class="chev">›</span></div>
+            </div>
+            <div class="secttitle">数据</div>
+            <div class="sbox">
+              <div class="srow"><span>只清课表缓存</span><span class="sp"></span><span class="chev">›</span></div>
+              <div class="srow hot"><span>清除所有数据</span><span class="sp"></span><span class="chev">›</span></div>
+            </div>
+          </div>
+
+          <div class="blockwrap">
+            <div class="bcard">
+              <div class="kicker">正在下载</div>
+              <h3>沈农在途 0.8.4</h3>
+              <div class="ver">versionCode 840 · 8.4 MB</div>
+
+              <div class="bar"><i id="prog" style="width:62%"></i></div>
+              <div class="barmeta"><span class="pct" id="pct">62%</span><span id="amt">5.2 / 8.4 MB · 412 KB/s · 约 8 秒</span></div>
+
+              <div class="grid2">
+                <span>来源<b>gh-proxy.com</b></span>
+                <span>校验<b>完成后 sha256</b></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="navwrap">
+          <div class="nb"><i></i><span>课表</span><span class="dot"></span></div>
+          <div class="nb"><i></i><span>资讯</span><span class="dot"></span></div>
+          <div class="nb on"><i></i><span>我的</span><span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 完成待安装 -->
+    <div>
+      <div class="cap">③ 完成 · 待安装</div>
+      <div class="phone">
+        <div class="statusbar"><span>9:42</span><span>100% ▾</span></div>
+        <div class="appbar"><div class="back">‹</div><div class="t">设置</div></div>
+        <div class="body tex-dots">
+          <div class="pad">
+            <div class="secttitle">关于</div>
+            <div class="sbox">
+              <div class="srow"><span>版本</span><span class="sp"></span><span class="v">0.8.3+m37</span></div>
+              <div class="srow"><span>检查更新</span><span class="sp"></span><span class="badge">有新版本</span></div>
+            </div>
+          </div>
+
+          <div class="blockwrap">
+            <div class="bcard">
+              <div class="kicker">下载完成</div>
+              <h3>沈农在途 0.8.4</h3>
+              <div class="ver">8,523,729 字节 · sha256 已校验</div>
+
+              <div class="bar"><i style="width:100%"></i></div>
+              <div class="barmeta"><span class="pct">100%</span><span>下载完整，可以安装</span></div>
+
+              <div class="grid2">
+                <span>签名<b>与当前版本一致</b></span>
+                <span>安装<b>覆盖升级，留数据</b></span>
+              </div>
+
+              <div class="acts" style="margin-top:16px">
+                <button class="btn solid">安装</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="navwrap">
+          <div class="nb"><i></i><span>课表</span><span class="dot"></span></div>
+          <div class="nb"><i></i><span>资讯</span><span class="dot"></span></div>
+          <div class="nb on"><i></i><span>我的</span><span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 失败 -->
+    <div>
+      <div class="cap">④ 失败 · 给出口</div>
+      <div class="phone">
+        <div class="statusbar"><span>9:43</span><span>100% ▾</span></div>
+        <div class="appbar"><div class="back">‹</div><div class="t">设置</div></div>
+        <div class="body tex-dots">
+          <div class="pad">
+            <div class="secttitle">关于</div>
+            <div class="sbox">
+              <div class="srow"><span>版本</span><span class="sp"></span><span class="v">0.8.3+m37</span></div>
+            </div>
+          </div>
+
+          <div class="blockwrap">
+            <div class="bcard">
+              <div class="kicker">下载中断</div>
+              <h3>沈农在途 0.8.4</h3>
+              <div class="ver">已下 1.6 / 8.4 MB</div>
+
+              <div class="bar"><i style="width:19%; background:var(--brick)"></i></div>
+
+              <div class="failhead">
+                <div class="failmark">!</div>
+                <div class="failreason">
+                  <b>连续 30 秒速度低于 10 KB/s</b><br>
+                  网络在动但传不动 —— 换到 Wi-Fi 或校园网再试。
+                </div>
+              </div>
+
+              <div class="acts" style="margin-top:16px">
+                <button class="btn ghost">稍后</button>
+                <button class="btn solid">重试</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="navwrap">
+          <div class="nb"><i></i><span>课表</span><span class="dot"></span></div>
+          <div class="nb"><i></i><span>资讯</span><span class="dot"></span></div>
+          <div class="nb on"><i></i><span>我的</span><span class="dot"></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="specs">
+
+    <div class="panel wide">
+      <h2>纸纹替换：教务盒不再用回纹</h2>
+      <div class="swatches">
+        <div class="sw"><div class="box edge"></div><div class="nm">EDGE 边缘深度 · 无图案</div><div class="no">教务盒改用它</div></div>
+        <div class="sw"><div class="box tex-dots"></div><div class="nm">DOTS 砂点 · 12dp / α.070</div><div class="no">留给数据卡</div></div>
+        <div class="sw"><div class="box" style="background-image:repeating-linear-gradient(0deg,transparent 0 23px,var(--tx1) 23px 24px),repeating-linear-gradient(90deg,transparent 0 23px,var(--tx1) 23px 24px);background-size:24px 24px"></div><div class="nm">GRID 方格 · 24dp</div><div class="no">考试详情 / 课表</div></div>
+        <div class="sw"><div class="box" style="background-image:linear-gradient(0deg,transparent 24%,var(--tx2) 25% 26%,transparent 27%,transparent 74%,var(--tx2) 75% 76%,transparent 77%),linear-gradient(90deg,transparent 24%,var(--tx2) 25% 26%,transparent 27%,transparent 74%,var(--tx2) 75% 76%,transparent 77%);background-size:30px 30px"></div><div class="nm">CROSS 十字 · 30dp</div><div class="no">资讯详情</div></div>
+        <div class="sw"><div class="box" style="background-image:linear-gradient(30deg,transparent 45%,var(--tx2) 45% 55%,transparent 55%),linear-gradient(150deg,transparent 45%,var(--tx2) 45% 55%,transparent 55%);background-size:27px 27px"></div><div class="nm">WEAVE 织 · 27dp</div><div class="no">大纲详情 / 本机</div></div>
+        <div class="sw"><div class="box" style="background-image:radial-gradient(circle at 50% -18%,transparent 54%,var(--tx2) 55% 56%,transparent 57%);background-size:28px 17px"></div><div class="nm">SCALLOP 鳞 · 28×17dp</div><div class="no">校园盒</div></div>
+      </div>
+      <ul style="margin-top:12px">
+        <li>回纹（MEANDER）整条删掉：绘制函数、枚举值、分配关系全部移除 —— 它在真机上像水印，压到 α.038 仍然抢字。</li>
+        <li><b>教务盒不再用图案，改用「边缘深度」</b>：四边向内压暗 16dp、上沿一线亮边，像纸被压进凹槽。没有纹样，也就没有会抢字的笔划。</li>
+        <li>砂点（DOTS）留着给数据卡：点状纤维最不像图案，纸面只是有点颗粒。</li>
+        <li>其余四款不动：方格配考试、十字配资讯正文、织配大纲与本机、鳞配校园。</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>状态机</h2>
+      <div class="flow">Idle
+  └ 点「更新」/ 静默检查后点「更新」
+       ↓ startDownload(info)
+  Downloading(done,total)   ← 进度回调
+       ├─ 成功 + sha256 过 → Ready(apk)
+       ├─ 失败            → Failed(reason)
+       └─ 取消（无入口）
+  Ready ─ 点「安装」→ 权限 → 系统安装器
+  Failed ─「重试」→ Downloading
+         └「稍后」→ Idle</div>
+      <ul style="margin-top:8px">
+        <li>状态与协程都挂在 <code>UpdateCenter</code>（Application scope），UI 重建、切 tab、转屏都不丢。</li>
+        <li>下载中不给「取消」：按钮只有一个「正在下载」，没有出口，只能等或等它失败。</li>
+        <li>失败才有出口 —— 阻塞不能变成卡死。</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>失败判定（确定规则）</h2>
+      <table>
+        <tr><th>条件</th><th>判定</th></tr>
+        <tr><td>连接 15 秒未建立</td><td><b>连不上</b> · 服务器无响应</td></tr>
+        <tr><td>连上后 20 秒零字节</td><td><b>没有数据</b> · 首包未到</td></tr>
+        <tr><td>连续 30 秒平均 &lt; 10 KB/s</td><td><b>速度过低</b> · 网络在动但传不动</td></tr>
+        <tr><td>总耗时 &gt; 15 分钟未完成</td><td><b>超时</b> · 中断重试</td></tr>
+        <tr><td>收到字节数 ≠ Content-Length</td><td><b>不完整</b> · 少 <code>n</code> 字节</td></tr>
+        <tr><td>sha256 与 manifest 不符</td><td><b>校验失败</b> · 文件已丢弃</td></tr>
+        <tr><td>HTTP 4xx / 5xx 且镜像全挂</td><td><b>源不可用</b> · 五个候选都试过</td></tr>
+      </table>
+      <ul style="margin-top:8px">
+        <li>低速与零字节两条都用「滑动窗口」判：每 5 秒采一次，累计 30 秒不足 300 KB 即判死。</li>
+        <li>失败一律保留 <code>.part</code> 与已下字节数，重试从断点续传（服务端支持 Range 时）。</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>退出拦截矩阵</h2>
+      <table>
+        <tr><th>方式</th><th>结果</th></tr>
+        <tr><td>系统返回键 / 手势返回</td><td><b>吞掉</b> · 下载中与完成态 <code>BackHandler{}</code></td></tr>
+        <tr><td>点遮罩</td><td><b>无效</b> · 遮罩不设 clickable</td></tr>
+        <tr><td>切底部 tab / 打开其它页</td><td><b>无效</b> · 浮层在 Scaffold 之上，盖住底栏</td></tr>
+        <tr><td>转屏 / 切后台再回前台</td><td><b>不中断</b> · 状态在 Application scope</td></tr>
+        <tr><td>Home 到桌面</td><td><b>放行</b> · 系统行为，拦不住</td></tr>
+        <tr><td>划掉进程</td><td><b>放行</b> · 轻量档不做前台服务</td></tr>
+        <tr><td>失败态的返回键</td><td><b>放行</b> · 等同「稍后」</td></tr>
+      </table>
+    </div>
+
+    <div class="panel span2">
+      <h2>Kotlin 落点</h2>
+      <table>
+        <tr><th>文件</th><th>改什么</th></tr>
+        <tr><td><code>data/UpdateCenter.kt</code></td><td>新增 <code>sealed interface DownloadState { Idle / Downloading / Ready / Failed }</code> + <code>downloadState: StateFlow</code> + <code>startDownload(info)</code> + <code>resetDownload()</code>；<code>download()</code> 主体不动</td></tr>
+        <tr><td><code>ui/update/BlockingDownloadSheet.kt</code></td><td>新建。四态卡片 + <code>BackHandler(enabled = state !is Failed){}</code></td></tr>
+        <tr><td><code>ui/EnRouteRoot.kt</code></td><td>订阅 <code>downloadState</code>，非 Idle 时渲染浮层；删「跳设置页」那段</td></tr>
+        <tr><td><code>ui/settings/UpdateSection.kt</code></td><td>只调 <code>startDownload</code>；删本地进度条与下载协程</td></tr>
+        <tr><td><code>ui/update/InstallPermission.kt</code></td><td>新建。把 <code>permissionLauncher</code> + <code>pendingApk</code> + ON_RESUME 兜底抽成 <code>rememberInstallWithPermission()</code></td></tr>
+        <tr><td><code>ui/settings/UpdateDialog.kt</code></td><td>「立即更新」语义改为触发阻塞下载，去掉「跳设置页」提示</td></tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <h2>已拍板的三个决策</h2>
+      <ul>
+        <li><b>阻塞强度</b>：轻量档 —— UI 全屏阻塞 + Application scope 托管。不加前台服务。</li>
+        <li><b>失败态</b>：放行返回键，给「重试 / 稍后」两个出口。</li>
+        <li><b>静默检查</b>：发现新版本仍然只做提醒（弹窗 / 设置页角标），点「更新」之后才进阻塞下载。</li>
+      </ul>
+      <h2 style="margin-top:14px">真机验收</h2>
+      <ul>
+        <li>下载中按返回 → 无反应；点遮罩 → 无反应；切 tab → 被盖住</li>
+        <li>下载中转屏 → 百分比继续走，不回到 0</li>
+        <li>断网 30 秒 → 落到失败态，「稍后」能退出</li>
+        <li>完成点「安装」 → 无权限跳系统设置，回来自动拉安装器</li>
+      </ul>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  var dark = false;
+  var th = document.getElementById('th');
+  th.addEventListener('click', function () {
+    dark = !dark;
+    document.body.setAttribute('data-dark', dark ? '1' : '0');
+    th.textContent = dark ? '宣纸' : '夜墨';
+    th.classList.toggle('on', dark);
+  });
+
+  var prog = document.getElementById('prog');
+  var pct = document.getElementById('pct');
+  var amt = document.getElementById('amt');
+  var timer = null;
+
+  function stop() { if (timer) { clearInterval(timer); timer = null; } }
+
+  document.getElementById('rp').addEventListener('click', function () {
+    stop();
+    var p = 0;
+    prog.style.width = '0%';
+    pct.textContent = '0%';
+    timer = setInterval(function () {
+      p += 2;
+      if (p > 62) p = 62;
+      prog.style.width = p + '%';
+      pct.textContent = Math.round(p) + '%';
+      amt.textContent = (8.4 * p / 100).toFixed(1) + ' / 8.4 MB · ' + (p < 20 ? 190 : 412) + ' KB/s · 约 ' + Math.max(1, Math.round(8 * (62 - p) / 62)) + ' 秒';
+      if (p >= 62) stop();
+    }, 90);
+  });
+})();
+</script>
+</body>
+</html>

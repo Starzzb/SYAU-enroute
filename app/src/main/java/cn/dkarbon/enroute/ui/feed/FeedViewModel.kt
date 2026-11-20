@@ -23,6 +23,8 @@ data class FeedBanner(
     val text: String,
     val at: Long,
     val failed: List<SourceResult> = emptyList(),
+    /** 本次**没路**的校内源（校外网络），不是失败：界面另起一行说「需校园网」 */
+    val skipped: List<SourceResult> = emptyList(),
 ) {
     enum class Tone { OK, PARTIAL, FAIL }
 }
@@ -276,13 +278,28 @@ class FeedViewModel(app: Application) : AndroidViewModel(app) {
                 return@launch
             }
             val failed = report.perSource.filter { it.error != null }
+            val skipped = report.perSource.filter { it.skipped != null }
             val ok = report.failed < report.perSource.size
             if (ok) prefs.feedLastSyncAt = report.at
             val banner = when {
                 report.perSource.isNotEmpty() && failed.size == report.perSource.size ->
                     FeedBanner(FeedBanner.Tone.FAIL, "刷新失败 · ${(failed.first().error ?: "网络不可用").take(30)}", report.at, failed)
                 failed.isNotEmpty() ->
-                    FeedBanner(FeedBanner.Tone.PARTIAL, "新增 ${report.totalNew} 条 · ${failed.size} 个源失败", report.at, failed)
+                    FeedBanner(
+                        FeedBanner.Tone.PARTIAL,
+                        "新增 ${report.totalNew} 条 · ${failed.size} 个源失败",
+                        report.at, failed, skipped,
+                    )
+                // 只有校内源没路：不算失败，但也不能说「已是最新」—— 那一半内容这次没抓
+                skipped.isNotEmpty() ->
+                    // 用 PARTIAL 而不是 OK：OK 横幅 4 秒后自动收起，
+                    // 而「校内 9 个源这次没抓」是**要留在屏幕上**的事实（用户得知道内容不完整）
+                    FeedBanner(
+                        FeedBanner.Tone.PARTIAL,
+                        if (report.totalNew > 0) "新增 ${report.totalNew} 条 · 校内 ${skipped.size} 源需校园网"
+                        else "校内 ${skipped.size} 源需校园网",
+                        report.at, emptyList(), skipped,
+                    )
                 else ->
                     FeedBanner(FeedBanner.Tone.OK, if (report.totalNew > 0) "新增 ${report.totalNew} 条" else "已是最新", report.at)
             }

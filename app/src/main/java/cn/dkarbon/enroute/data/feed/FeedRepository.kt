@@ -59,7 +59,16 @@ class FeedRepository(private val ctx: Context) {
         // 票 20 / D1：整次刷新计时（给「抓取优化」留基线）
         val refreshStart = System.nanoTime()
 
+        // 先探网络身份：校外时校内源**没有路**（教育网 IPv6 出不去），直接跳过，
+        // 不让 9 个源各等 15 秒超时 —— 那是「一片红」的真正来源（2026-11-20 实测）。
+        val campusOk = CampusZone.detect() == CampusZone.Zone.Campus
+
         for (src in FeedSources.ALL.filter { it.enabled }) {
+            if (src.campusOnly && !campusOk) {
+                DebugLog.log("FEED", "${src.name}：校外网络，跳过（需校园网 / 学校 WebVPN）")
+                results += SourceResult(src.key, 0, 0, skipped = "需校园网")
+                continue
+            }
             val srcStart = System.nanoTime()
             val r = runCatching {
                 // 主页 + 已实测翻页语义的额外页（串行、页间 400ms，单页失败不拖垮整源）

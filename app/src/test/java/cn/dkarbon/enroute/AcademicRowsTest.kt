@@ -115,7 +115,7 @@ class AcademicRowsTest {
     // ── 行管线 ────────────────────────────────────────────
 
     @Test
-    fun `行顺序是 今天 本周 更远 已结束 且已结束组倒序`() {
+    fun `行是一条时间流 按开考时间正序 不产组头`() {
         val list = listOf(
             exam("下月", "2026-12-15"),
             exam("昨天", "2026-11-12"),
@@ -125,27 +125,21 @@ class AcademicRowsTest {
         )
         val rows = ExamRows.build(list, today, now, collapsed = emptySet())
 
-        val headers = rows.filterIsInstance<ExamRow.Header>().map { it.bucket }
-        assertEquals(
-            listOf(ExamBucket.TODAY, ExamBucket.THIS_WEEK, ExamBucket.LATER, ExamBucket.PAST),
-            headers,
-        )
-        val pastNames = rows.drop(rows.indexOfFirst { it is ExamRow.Header && it.bucket == ExamBucket.PAST } + 1)
-            .filterIsInstance<ExamRow.Card>().map { it.exam.name }
-        assertEquals(listOf("昨天", "上周"), pastNames)   // 最近考完的在前
+        // m35：桶头取消，轴从过去一路走到未来
+        assertTrue(rows.filterIsInstance<ExamRow.Header>().isEmpty())
+        val names = rows.filterIsInstance<ExamRow.Card>().map { it.exam.name }
+        assertEquals(listOf("上周", "昨天", "今天", "周日", "下月"), names)
     }
 
     @Test
-    fun `已结束折叠后只剩组头 但计数还是真实场次`() {
+    fun `已结束的不再折叠 也不被关进单独的段 仍留在轴上`() {
         val list = listOf(exam("今天", "2026-11-13", "14:00", "15:40"), exam("上周", "2026-11-05"))
+        // 就算外面还按老习惯传了个 collapsed 集合，也不该再吃掉任何一场
         val rows = ExamRows.build(list, today, now, collapsed = setOf(ExamBucket.PAST))
 
-        val pastHeader = rows.filterIsInstance<ExamRow.Header>().first { it.bucket == ExamBucket.PAST }
-        assertTrue(pastHeader.collapsed)
-        assertTrue(pastHeader.collapsible)
-        assertEquals(1, pastHeader.count)
-        // 折叠后不该再有那场考试的卡
-        assertTrue(rows.filterIsInstance<ExamRow.Card>().none { it.exam.name == "上周" })
+        assertTrue(rows.filterIsInstance<ExamRow.Header>().isEmpty())
+        val cards = rows.filterIsInstance<ExamRow.Card>().map { it.exam.name }
+        assertEquals(listOf("上周", "今天"), cards)
     }
 
     @Test

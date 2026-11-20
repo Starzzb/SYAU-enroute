@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -41,6 +42,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -62,6 +65,16 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material3.Icon
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.unit.em
 
 /**
  * 考试安排 —— **时间轴**（2026-11-13 重做，2026-11-20 m31 轨道 D 改版）。
@@ -94,7 +107,14 @@ import kotlinx.coroutines.delay
  * · 每个 Lazy item 都有 key + contentType（见 [ExamRow.rowKey] / [ExamRow.contentType]）。
  */
 @Composable
-fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifier) {
+fun ExamScreen(
+    ui: AppState,
+    vm: TimetableViewModel,
+    modifier: Modifier = Modifier,
+    // 详情是整页新页（m36）：由根节点渲染，列表这层不持有它 ——
+    // 否则详情只是「盖在页内」，上层 SubHeader 与底栏还露在外面。
+    onOpenDetail: (ExamItem, Boolean) -> Unit = { _, _ -> },
+) {
     val t = InkTokens.current
 
     // ── 整页唯一的「现在」：60 秒一跳 ──────────────────────────
@@ -108,16 +128,17 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
     }
     val today = now.toLocalDate()
 
-    // 已考完的默认收起：首屏只给要考的（「更多」面板里可以再打开）
-    var collapsed by remember { mutableStateOf(setOf(ExamBucket.PAST)) }
-    var detail by remember { mutableStateOf<ExamItem?>(null) }
-    var showRawFirst by remember { mutableStateOf(false) }
+    // 已考完的不单独隔离：全都在同一条轴上，往上滑就是过去（2026-11-20，m35）
+    var collapsed by remember { mutableStateOf(emptySet<ExamBucket>()) }
     var showDiag by remember { mutableStateOf(false) }
     var showMore by remember { mutableStateOf(false) }
 
     // 票 26：折叠分组不算「换内容」（只是同一批数据的显隐），所以 resetKey 恒定 ——
     // 从详情浮层返回、或折叠/展开后都停在你刚才那一行。
     val listState = rememberListScrollState()
+    // m35：一条时间流之后，首屏要落在「下一场」，不能从头翻过去的考试。
+    // 只做一次（记在 rememberSaveable 里），用户之后自己滚到哪就停在哪。
+    var jumpedToNext by rememberSaveable { mutableStateOf(false) }
 
     val rows = remember(ui.exams, today, now, collapsed) {
         ExamRows.build(ui.exams, today, now, collapsed)
@@ -204,28 +225,39 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                         modifier = Modifier.padding(horizontal = Axis.ContentStart),
                     )
                 }
+                // 首帧之后把「下一场」那一行顶到可视区顶部（next-up 卡占 index 0）
+                LaunchedEffect(rows, next) {
+                    if (!jumpedToNext && rows.isNotEmpty()) {
+                        val idx = rows.indexOfFirst { it is ExamRow.Card && it.isNext }
+                        if (idx >= 0) {
+                            // 停在「下一场」那一行：它顶到列表首行，上面的旧考试留在滚动区里
+                            runCatching { listState.scrollToItem(idx) }
+                        }
+                        jumpedToNext = true
+                    }
+                }
+                // m35：下一场这条固定在列表之上 —— 它是这页的「现在」，不是列表里的一员。
+                // 放进 LazyColumn 的话它会跟着滚走，用户翻两下就再也找不到下一场。
+                if (next != null) {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = Axis.ContentStart, end = 16.dp, bottom = 2.dp),
+                    ) {
+                        NextUpCard(
+                            t = t,
+                            exam = next,
+                            daysAhead = stats.nextDays,
+                            pulse = pulse,
+                            onClick = { onOpenDetail(next, false) },
+                        )
+                    }
+                }
                 LazyColumn(
                     Modifier.fillMaxSize(),
                     state = listState,
                     contentPadding = PaddingValues(start = 0.dp, end = 16.dp, top = 2.dp, bottom = 28.dp),
                 ) {
-                    if (next != null) {
-                        item(key = "next-up", contentType = "exam-next") {
-                            // 与下方卡片同一条左边线（轴上 24dp + 28dp 留白）
-                            Box(Modifier.padding(start = Axis.ContentStart)) {
-                                NextUpCard(
-                                    t = t,
-                                    exam = next,
-                                    daysAhead = stats.nextDays,
-                                    pulse = pulse,
-                                    onClick = {
-                                        detail = next
-                                        showRawFirst = false
-                                    },
-                                )
-                            }
-                        }
-                    }
                     items(items = rows, key = { it.rowKey }, contentType = { it.contentType }) { row ->
                         when (row) {
                             is ExamRow.Header -> BucketHeader(
@@ -257,29 +289,15 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                                         0f
                                     },
                                     nowLabel = nowLabel,
-                                    onClick = {
-                                        detail = row.exam
-                                        showRawFirst = false
-                                    },
-                                    onLongClick = {
-                                        detail = row.exam
-                                        showRawFirst = true
-                                    },
+                                    onClick = { onOpenDetail(row.exam, false) },
+                                    // 长按 = 「看原文」：直接落在原始 JSON 那一节
+                                    onLongClick = { onOpenDetail(row.exam, true) },
                                 )
                             }
                         }
                     }
                 }
             }
-        }
-
-        detail?.let { e ->
-            ExamDetailSheet(
-                t = t,
-                exam = e,
-                showRawFirst = showRawFirst,
-                onDismiss = { detail = null },
-            )
         }
 
         if (showDiag) {
@@ -381,8 +399,9 @@ private fun NextUpCard(
     exam: ExamItem,
     daysAhead: Long?,
     pulse: Float,
-    onClick: () -> Unit,
+    onClick: (androidx.compose.ui.geometry.Rect?) -> Unit,
 ) {
+    var selfRect by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
     val countdown = ExamRows.countdownLabel(daysAhead) ?: "日期待定"
     val line = listOf(
         "${ExamRows.dayLabel(exam)} ${ExamRows.weekdayLabel(exam)}".trim(),
@@ -390,47 +409,78 @@ private fun NextUpCard(
         ExamRows.placeLabel(exam),
     ).filter { it.isNotBlank() }.joinToString(" · ")
     val scale = 1f + 0.012f * pulse
+    val waveAlpha = if (t.isDark) 0.085f else 0.16f
 
     Box(
         Modifier
             .fillMaxWidth()
             .padding(top = 10.dp, bottom = 6.dp)
             .graphicsLayer { scaleX = scale; scaleY = scale }
-            // 光晕先画（在卡面之下），露出来的就是卡片外沿那 8dp
+            .onGloballyPositioned { selfRect = it.boundsInWindow() }
             .drawBehind { edgeGlow(t.primary, 0.35f + 0.25f * pulse) }
             .background(t.card)
             .drawBehind {
-                // 3dp 主色条：硬朗体系里「当前」的记号（Stroke.accentBar）。
-                // ⚠️ 必须画在 background 之后，否则会被卡面盖掉
-                drawRect(t.primary, size = Size(3.dp.toPx(), size.height))
+                // 左溢出竖直波浪：海报纸的母题，只在卡片左侧被裁一刀
+                // 波幅要压得住卡高：卡片 190dp 上下时，±11dp 的三个波腹才看得出「浪」，
+                // 原来 ±7dp 两段在真机上就是一条直灰带。
+                val amp = 11.dp.toPx()
+                val belly = 24.dp.toPx()
+                val h = size.height
+                val path = Path()
+                path.moveTo(0f, 0f)
+                path.lineTo(belly, 0f)
+                path.cubicTo(belly + amp, h * 0.10f, belly - amp, h * 0.26f, belly, h * 0.38f)
+                path.cubicTo(belly + amp, h * 0.50f, belly - amp, h * 0.66f, belly, h * 0.78f)
+                path.cubicTo(belly + amp * 0.6f, h * 0.86f, belly - amp * 0.3f, h * 0.94f, belly, h)
+                path.lineTo(0f, h)
+                path.close()
+                drawPath(path, t.ink.copy(alpha = waveAlpha))
             }
             .border(Stroke.hairline, t.primary)
-            .clickable(onClick = onClick)
-            .padding(start = 14.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
+            .clickable { onClick(selfRect) }
+            .padding(start = 30.dp, end = 13.dp, top = 12.dp, bottom = 12.dp),
     ) {
-        Column(Modifier.fillMaxWidth()) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("下一场", fontSize = 10.sp, letterSpacing = 0.6.sp, color = t.inkFaint)
-                Spacer(Modifier.weight(1f))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(34.dp)
+                    .background(t.primary.copy(alpha = if (t.isDark) 0.16f else 0.10f), CircleShape),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    Icons.Default.DateRange,
+                    contentDescription = null,
+                    tint = t.primary,
+                    modifier = Modifier.size(17.dp),
+                )
+            }
+            Spacer(Modifier.width(11.dp))
+            Column(Modifier.weight(1f)) {
+                Text("下一场", fontSize = 9.sp, letterSpacing = 0.18.em, color = t.inkFaint)
+                Spacer(Modifier.height(3.dp))
+                Text(
+                    exam.name.ifBlank { "（未命名考试）" },
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = t.ink,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (line.isNotBlank()) {
+                    Spacer(Modifier.height(3.dp))
+                    Text(line, fontSize = 11.sp, lineHeight = 16.sp, color = t.inkSoft)
+                }
+            }
+            Spacer(Modifier.width(10.dp))
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
                     countdown,
-                    fontSize = 13.sp,
+                    fontSize = 12.5.sp,
                     fontWeight = FontWeight.Bold,
                     fontFamily = NumericFont,
                     color = t.primary,
                 )
             }
-            Spacer(Modifier.height(3.dp))
-            Text(
-                exam.name.ifBlank { "（未命名考试）" },
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = t.ink,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(3.dp))
-            Text(line, fontSize = 11.sp, lineHeight = 16.sp, color = t.inkSoft)
         }
     }
 }
@@ -457,7 +507,7 @@ private fun BucketHeader(
         Row(
             Modifier
                 .fillMaxWidth()
-                .heightIn(min = if (header.collapsible) 48.dp else 28.dp)
+                .heightIn(min = 27.dp)
                 .padding(start = Axis.ContentStart, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -484,13 +534,6 @@ private fun BucketHeader(
                 )
             }
         }
-        Box(
-            Modifier
-                .fillMaxWidth()
-                .padding(start = Axis.ContentStart)
-                .height(0.75.dp)
-                .background(t.rule),
-        )
     }
 }
 
@@ -518,8 +561,8 @@ private fun TimelineRow(
     ledPeriod: Int,
     marker: Float,
     nowLabel: String,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
+    onClick: (androidx.compose.ui.geometry.Rect?) -> Unit,
+    onLongClick: (androidx.compose.ui.geometry.Rect?) -> Unit,
 ) {
     val e = row.exam
     val nodeY = Axis.nodeY(gap)
@@ -620,73 +663,126 @@ private fun ExamCard(
     daysAhead: Long?,
     state: EdgeState,
     pulse: Float,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
+    onClick: (androidx.compose.ui.geometry.Rect?) -> Unit,
+    onLongClick: (androidx.compose.ui.geometry.Rect?) -> Unit,
 ) {
+    var selfRect by remember { mutableStateOf<androidx.compose.ui.geometry.Rect?>(null) }
     val countdown = ExamRows.countdownLabel(daysAhead)
     val timeRange = ExamRows.timeRangeLabel(exam)
     val duration = ExamRows.durationLabel(exam)
+    val place = ExamRows.placeLabel(exam)
     val glow = if (state == EdgeState.NEXT) 0.35f + 0.25f * pulse else 0f
     val scale = if (state == EdgeState.NEXT) 1f + 0.012f * pulse else 1f
+    val stripe = (if (t.isDark) Color.White else t.inkFaint)
+        .copy(alpha = if (t.isDark) 0.075f else 0.11f)
+    val sheen = if (t.isDark) Color.White.copy(alpha = 0.030f) else Color.White.copy(alpha = 0.42f)
+    val edgeLight = if (t.isDark) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.90f)
+    val ghost = exam.name.trim().take(1)
 
-    Column(
+    Box(
         Modifier
             .fillMaxWidth()
             // 55% 不透明包住整张卡（含边框与文字）：alpha 放在链首，背景和描边一起淡
             .then(if (state == EdgeState.PAST) Modifier.alpha(0.55f) else Modifier)
             .graphicsLayer { scaleX = scale; scaleY = scale }
+            .onGloballyPositioned { selfRect = it.boundsInWindow() }
+            // 光晕画在最外：卡面之外的那一圈才看得见（卡内会被 background 盖掉）
             .drawBehind { edgeGlow(t.primary, glow) }
             .background(t.card)
+            .drawBehind {
+                // ① 竖向 4dp 条纹：票根纸的底纹
+                val step = 4.dp.toPx()
+                var x = step * 0.5f
+                while (x < size.width) {
+                    drawLine(stripe, Offset(x, 0f), Offset(x, size.height), 1.dp.toPx())
+                    x += step
+                }
+                // ② 115° 斜向光泽：左下暗 → 中段亮 → 右上收暗
+                drawRect(
+                    Brush.linearGradient(
+                        colors = listOf(Color.Transparent, sheen, Color.Transparent),
+                        start = Offset(0f, size.height),
+                        end = Offset(size.width, 0f),
+                    ),
+                )
+                // ③ 内缩 1dp 亮边：双线描边的里那一层
+                drawRect(
+                    color = edgeLight,
+                    topLeft = Offset(1.dp.toPx(), 1.dp.toPx()),
+                    size = Size(size.width - 2.dp.toPx(), size.height - 2.dp.toPx()),
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.dp.toPx()),
+                )
+            }
             .border(Stroke.hairline, if (state == EdgeState.NEXT) t.primary else t.outline)
-            .combinedClickable(onClick = onClick, onLongClick = onLongClick)
-            .padding(horizontal = 12.dp, vertical = 10.dp),
+            .combinedClickable(
+                onClick = { onClick(selfRect) },
+                onLongClick = { onLongClick(selfRect) },
+            )
+            .padding(horizontal = 13.dp, vertical = 10.dp),
     ) {
-        Row(verticalAlignment = Alignment.Top) {
+        // 右下角的大字水印：只取名字第一个字，压到 4.5% 不打扰阅读
+        if (ghost.isNotEmpty() && ghost != "（") {
+            Text(
+                ghost,
+                fontSize = 44.sp,
+                fontWeight = FontWeight.Bold,
+                color = t.ink.copy(alpha = 0.045f),
+                modifier = Modifier.align(Alignment.BottomEnd),
+            )
+        }
+        Column(Modifier.fillMaxWidth()) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("EXAM", fontSize = 8.5.sp, letterSpacing = 0.18.em, color = t.inkFaint)
+                Spacer(Modifier.weight(1f))
+                if (countdown != null) {
+                    Text(
+                        countdown,
+                        fontSize = 11.sp,
+                        fontFamily = NumericFont,
+                        color = if (state == EdgeState.NEXT) t.primary else t.inkSoft,
+                    )
+                    Spacer(Modifier.width(7.dp))
+                }
+                // 两枚小圆环：版式配重，与左上标签一左一右夹住这一行
+                Box(Modifier.size(11.dp).border(1.dp, t.inkFaint.copy(alpha = 0.45f), CircleShape))
+                Spacer(Modifier.width(3.dp))
+                Box(Modifier.size(11.dp).border(1.dp, t.inkFaint.copy(alpha = 0.45f), CircleShape))
+            }
+            Spacer(Modifier.height(5.dp))
             Text(
                 exam.name.ifBlank { "（未命名考试）" },
-                fontSize = 14.sp,
+                fontSize = 14.5.sp,
                 fontWeight = FontWeight.Bold,
                 color = t.ink,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f),
             )
-            if (countdown != null) {
-                Spacer(Modifier.width(8.dp))
+            if (timeRange.isNotBlank() || duration.isNotBlank()) {
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    countdown,
-                    fontSize = 11.sp,
+                    listOf(timeRange, duration).filter { it.isNotBlank() }.joinToString(" · "),
+                    fontSize = 11.5.sp,
                     fontFamily = NumericFont,
-                    color = if (state == EdgeState.NEXT) t.primary else t.inkSoft,
+                    color = t.inkSoft,
                 )
             }
-        }
-        if (timeRange.isNotBlank() || duration.isNotBlank()) {
-            Spacer(Modifier.height(4.dp))
-            Text(
-                listOf(timeRange, duration).filter { it.isNotBlank() }.joinToString(" · "),
-                fontSize = 11.5.sp,
-                fontFamily = NumericFont,
-                color = t.inkSoft,
-            )
-        }
-        val place = ExamRows.placeLabel(exam)
-        if (place.isNotBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text(place, fontSize = 11.sp, lineHeight = 16.sp, color = t.inkSoft)
-        }
-        if (exam.seat.isNotBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text(
-                "座位 ${exam.seat}",
-                fontSize = 10.5.sp,
-                fontFamily = NumericFont,
-                color = t.inkFaint,
-            )
-        }
-        if (exam.name.isBlank() && place.isBlank() && timeRange.isBlank()) {
-            Spacer(Modifier.height(2.dp))
-            Text("这条返回里没有可用的课程名与地点", fontSize = 10.sp, color = t.brick)
+            if (place.isNotBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text(place, fontSize = 11.sp, lineHeight = 16.sp, color = t.inkSoft)
+            }
+            if (exam.seat.isNotBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "座位 ${exam.seat}",
+                    fontSize = 10.5.sp,
+                    fontFamily = NumericFont,
+                    color = t.inkFaint,
+                )
+            }
+            if (exam.name.isBlank() && place.isBlank() && timeRange.isBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text("这条返回里没有可用的课程名与地点", fontSize = 10.sp, color = t.brick)
+            }
         }
     }
 }

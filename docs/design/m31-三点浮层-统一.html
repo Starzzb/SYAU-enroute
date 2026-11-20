@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>沈农在途 · m31 · 三点浮层统一形态（抽屉派 / 面板派）</title>
+<style>
+/* ══════════════════════════════════════════════════════════════════════
+   配色 100% 取自 ui/theme/Theme.kt 的 InkTokenSet（Light / Dark），无新造色。
+   Light: paper #F5F2EC · card #FAF8F4 · cardAlt #EDE8DF · ink #1A1611
+          inkSoft #443E36 · inkFaint #5F574C · rule #8F7E61 · outline #7E7468
+          primary #C74E17 · hardShadow #1A1611
+   Dark : paper #100E0B · card #1A1611 · cardAlt #2B2621 · ink #EDE8DF
+          inkSoft #A1978A · inkFaint #988D82 · rule #7F6F5A · outline #827767
+          primary #EA8F5E · hardShadow #000000
+   语义小面积：olive #3F5A2E / #BCC79B · brick #9B2417 / #E7A093
+   画布：412 × 915 dp（1dp = 1px）
+   ══════════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#F5F2EC; --card:#FAF8F4; --cardAlt:#EDE8DF;
+  --ink:#1A1611; --inkSoft:#443E36; --inkFaint:#5F574C;
+  --rule:#8F7E61; --outline:#7E7468;
+  --primary:#C74E17; --accent:#DE6A2E;
+  --olive:#3F5A2E; --brick:#9B2417;
+  --hardShadow:#1A1611;
+  --page:#241F1A;
+}
+.dark{
+  --paper:#100E0B; --card:#1A1611; --cardAlt:#2B2621;
+  --ink:#EDE8DF; --inkSoft:#A1978A; --inkFaint:#988D82;
+  --rule:#7F6F5A; --outline:#827767;
+  --primary:#EA8F5E; --accent:#DE6A2E;
+  --olive:#BCC79B; --brick:#E7A093;
+  --hardShadow:#000000;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--page);}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+     color:var(--ink);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,monospace;
+      font-variant-numeric:tabular-nums;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+.wrap{padding:26px 28px 60px;min-width:1500px;}
+
+/* ── 文档头 ───────────────────────────────────────────── */
+.doc-head{color:#EFE7DC;}
+.doc-head h1{font-size:19px;font-weight:700;letter-spacing:.02em;}
+.doc-head .meta{margin-top:8px;font-size:12px;color:#C9BEAD;line-height:1.9;max-width:1560px;}
+.doc-head .meta b{color:#EFE7DC;font-weight:600;}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block;
+    border:1px solid rgba(255,255,255,.22);vertical-align:-1px;margin:0 3px 0 10px;}
+
+section{margin-top:34px;}
+.sechead{display:flex;align-items:baseline;gap:14px;border-top:1px solid #4A423A;padding-top:14px;}
+.sechead .no{font-family:ui-monospace,monospace;font-size:11px;color:#DE6A2E;letter-spacing:.14em;}
+.sechead h2{font-size:15px;color:#EFE7DC;font-weight:700;letter-spacing:.02em;}
+.sechead .pos{font-size:12px;color:#C9BEAD;}
+
+.row{display:flex;gap:26px;align-items:flex-start;margin-top:22px;}
+.cell{display:flex;flex-direction:column;gap:9px;}
+.cap{color:#C9BEAD;font-size:11.5px;line-height:1.62;width:412px;}
+.cap b{color:#EFE7DC;font-weight:600;}
+.cap .n{color:#DE6A2E;font-weight:700;margin-right:5px;}
+.cap .k{font-family:ui-monospace,monospace;font-size:10.5px;color:#A99C8B;}
+
+/* ── 手机 ─────────────────────────────────────────────── */
+.phone{width:412px;flex:0 0 412px;position:relative;}
+.screen{
+  position:relative;width:412px;height:915px;overflow:hidden;
+  background:var(--paper);border:1px solid var(--outline);
+}
+.screen.flash{animation:flash 340ms ease-out;}
+@keyframes flash{
+  0%{box-shadow:inset 0 0 0 2px var(--brick);}
+  100%{box-shadow:inset 0 0 0 2px transparent;}
+}
+
+/* 状态栏 */
+.sbar{height:30px;display:flex;align-items:center;justify-content:space-between;
+      padding:0 18px;font-size:10.5px;color:var(--ink);}
+.sbar .r{display:flex;align-items:center;gap:5px;}
+.sig{display:flex;align-items:flex-end;gap:1.5px;height:9px;}
+.sig i{width:2.5px;background:var(--ink);display:block;}
+.sig i:nth-child(1){height:3px}.sig i:nth-child(2){height:5px}
+.sig i:nth-child(3){height:7px}.sig i:nth-child(4){height:9px}
+.batt{width:17px;height:9px;border:1px solid var(--ink);position:relative;}
+.batt::after{content:"";position:absolute;left:1.5px;top:1.5px;bottom:1.5px;width:10px;background:var(--ink);}
+
+/* 页头 */
+.appbar{height:52px;display:flex;align-items:center;padding:0 8px 0 16px;gap:8px;}
+.appbar .ttl{font-size:15px;font-weight:700;color:var(--ink);letter-spacing:.01em;}
+.appbar .st{font-size:11.5px;color:var(--inkFaint);}
+.spacer{flex:1;}
+.ibtn{width:48px;height:48px;display:grid;place-items:center;color:var(--inkSoft);}
+.ibtn svg{display:block;}
+.dot3{font-size:15px;letter-spacing:1px;color:var(--inkSoft);line-height:1;}
+.hr{height:1px;background:var(--rule);}
+
+/* 资讯条目 */
+.item{padding:13px 16px 14px;border-bottom:1px solid var(--rule);}
+.item .h{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--inkFaint);}
+.tag{border:1px solid var(--outline);padding:1px 4px;font-size:9px;color:var(--inkSoft);}
+.item .t{font-size:13.5px;line-height:20px;color:var(--ink);margin-top:6px;font-weight:500;}
+.item .m{font-size:9.5px;color:var(--inkFaint);margin-top:5px;}
+.item.read .t{color:var(--inkSoft);}
+
+/* 底部导航 */
+.navb{position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--paper);
+      border-top:1px solid var(--rule);display:flex;align-items:center;padding:0 8px 10px;z-index:1;}
+.navb .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+          font-size:9px;color:var(--inkFaint);}
+.navb .ni.on{color:var(--primary);}
+.navb svg{display:block;}
+
+/* ── 抽屉（语言 A）───────────────────────────────────── */
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;z-index:6;
+  background:var(--paper);
+  border:1.5px solid var(--outline);border-bottom:none;
+  display:flex;flex-direction:column;
+}
+.sheet .accent{height:3px;background:var(--primary);flex:0 0 3px;}
+.grabwrap{height:22px;flex:0 0 22px;display:grid;place-items:center;cursor:grab;}
+.grabwrap:active{cursor:grabbing;}
+.grab{width:28px;height:3px;background:var(--outline);opacity:.55;}
+.shead{display:flex;align-items:center;gap:10px;padding:0 8px 0 16px;min-height:56px;flex:0 0 auto;}
+.shead .ttl{font-size:15px;font-weight:700;color:var(--ink);line-height:1.15;}
+.shead .sub{font-size:9.5px;color:var(--inkFaint);margin-top:3px;}
+.closebtn{width:48px;height:48px;display:grid;place-items:center;color:var(--inkSoft);flex:0 0 48px;}
+.sbody{flex:1;min-height:0;overflow:hidden;}
+.sbody.scroll{overflow-y:auto;overscroll-behavior:contain;}
+.sbody::-webkit-scrollbar{width:0;}
+
+.seclabel{font-size:9.5px;color:var(--inkFaint);letter-spacing:.10em;
+          padding:13px 16px 5px;}
+.mrow{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;min-height:52px;
+      border-bottom:1px solid var(--rule);}
+.mrow .idx{font-size:9px;color:var(--inkFaint);width:14px;flex:0 0 14px;padding-top:3px;}
+.mrow .body{flex:1;min-width:0;}
+.mrow .rt{font-size:14px;font-weight:500;color:var(--ink);line-height:1.25;}
+.mrow .rs{font-size:9.5px;color:var(--inkFaint);margin-top:3px;line-height:13px;}
+.mrow.off .rt{color:var(--inkFaint);}
+.mrow .chev{color:var(--inkFaint);font-size:13px;padding-top:2px;}
+
+.filters{display:flex;gap:8px;padding:14px 16px 12px;}
+.chip{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;
+      border:1px solid var(--outline);color:var(--inkSoft);font-size:12.5px;}
+.chip .bx{width:11px;height:11px;border:1.5px solid var(--outline);flex:0 0 11px;}
+.chip.on{border-color:var(--primary);color:var(--ink);background:var(--cardAlt);}
+.chip.on .bx{background:var(--primary);border-color:var(--primary);}
+
+.srcrow{display:flex;align-items:center;gap:10px;padding:11px 16px;min-height:44px;
+        border-bottom:1px solid var(--rule);}
+.srcrow .sq{width:6px;height:6px;flex:0 0 6px;background:var(--olive);}
+.srcrow .sq.bad{background:var(--brick);}
+.srcrow .nm{font-size:12.5px;color:var(--ink);flex:1;min-width:0;}
+.srcrow .stt{font-size:9.5px;color:var(--inkFaint);}
+.srcrow .stt.bad{color:var(--brick);}
+.addrow{display:flex;align-items:center;gap:10px;padding:14px 16px;min-height:52px;
+        border-bottom:1px solid var(--rule);}
+.addrow .plus{width:18px;height:18px;border:1px solid var(--outline);display:grid;
+              place-items:center;font-size:12px;color:var(--primary);flex:0 0 18px;}
+.addrow .nm{font-size:13px;color:var(--ink);}
+.flexfill{flex:1 1 auto;min-height:0;}
+.safebar{height:20px;flex:0 0 20px;}
+.homepill{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
+          width:108px;height:4px;border-radius:2px;background:var(--ink);opacity:.18;z-index:8;}
+
+/* 保存条（地图） */
+.savebar{padding:10px 16px 14px;border-top:1px solid var(--rule);background:var(--paper);}
+.btnp{height:44px;background:var(--primary);color:#FFF;display:grid;place-items:center;
+      font-size:14px;font-weight:700;letter-spacing:.02em;}
+.btnp.ghost{background:none;color:var(--ink);border:1px solid var(--outline);font-weight:500;}
+
+/* 地图底图 */
+.mapbg{position:absolute;inset:0;background:var(--paper);}
+.mapgrid{position:absolute;inset:0;
+  background-image:linear-gradient(var(--rule) 1px,transparent 1px),
+                   linear-gradient(90deg,var(--rule) 1px,transparent 1px);
+  background-size:46px 46px;opacity:.22;}
+.road{position:absolute;background:var(--cardAlt);border:1px solid var(--outline);}
+.road.h{height:16px;left:0;right:0;}
+.road.v{width:16px;top:0;bottom:0;}
+.pin{position:absolute;width:18px;height:18px;border:2px solid var(--primary);background:var(--card);}
+.pin.pick{background:var(--primary);}
+.maptools{position:absolute;right:12px;bottom:96px;display:flex;flex-direction:column;gap:8px;z-index:2;}
+.mtool{width:44px;height:44px;background:var(--card);border:1px solid var(--outline);
+       display:grid;place-items:center;color:var(--inkSoft);}
+
+/* ── 面板（语言 B）───────────────────────────────────── */
+.panel{
+  position:absolute;z-index:7;background:var(--card);
+  border:1.5px solid var(--outline);
+  box-shadow:4px 4px 0 var(--hardShadow);
+  display:flex;flex-direction:column;
+}
+.panel .parrow{position:absolute;top:-7px;width:12px;height:12px;background:var(--card);
+  border-left:1.5px solid var(--outline);border-top:1.5px solid var(--outline);
+  transform:rotate(45deg);}
+.panel .phead{display:flex;align-items:center;gap:8px;padding:0 4px 0 14px;min-height:50px;
+  flex:0 0 auto;}
+.panel .pttl{font-size:14px;font-weight:700;color:var(--ink);line-height:1.15;}
+.panel .psub{font-size:9px;color:var(--inkFaint);margin-top:2px;}
+.panel .pclose{width:44px;height:44px;display:grid;place-items:center;color:var(--inkSoft);
+  flex:0 0 44px;}
+.panel .pbody{overflow:hidden;flex:1;min-height:0;}
+.panel .pbody.scroll{overflow-y:auto;}
+.panel .pbody::-webkit-scrollbar{width:0;}
+.panelmask{position:absolute;inset:0;background:rgba(0,0,0,.22);z-index:5;}
+.panel .foot{display:flex;gap:8px;padding:10px 14px 12px;border-top:1px solid var(--rule);}
+.panel .foot .btnp{flex:1;height:40px;}
+
+/* 面板行更紧凑（一屏塞得下更多） */
+.prow{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;min-height:44px;
+      border-bottom:1px solid var(--rule);}
+.prow .idx{font-size:9px;color:var(--inkFaint);width:13px;flex:0 0 13px;padding-top:2px;}
+.prow .rt{font-size:13px;font-weight:500;color:var(--ink);line-height:1.2;}
+.prow .rs{font-size:9px;color:var(--inkFaint);margin-top:2px;line-height:12px;}
+.prow.off .rt{color:var(--inkFaint);}
+.psrc{display:flex;align-items:center;gap:8px;padding:8px 14px;min-height:36px;
+      border-bottom:1px solid var(--rule);}
+.psrc .sq{width:5px;height:5px;flex:0 0 5px;background:var(--olive);}
+.psrc .sq.bad{background:var(--brick);}
+.psrc .nm{font-size:12px;color:var(--ink);flex:1;}
+.psrc .stt{font-size:9px;color:var(--inkFaint);}
+.psrc .stt.bad{color:var(--brick);}
+.padd{display:flex;align-items:center;gap:8px;padding:11px 14px;min-height:42px;
+      border-bottom:1px solid var(--rule);}
+.padd .plus{width:16px;height:16px;border:1px solid var(--outline);display:grid;place-items:center;
+            font-size:11px;color:var(--primary);flex:0 0 16px;}
+.padd .nm{font-size:12.5px;color:var(--ink);}
+.cutrow{height:22px;overflow:hidden;position:relative;border-bottom:1px solid var(--rule);}
+.cutrow::after{content:"";position:absolute;left:0;right:0;top:0;height:10px;background:var(--card);}
+.fadeline{height:1px;background:var(--inkFaint);opacity:.35;}
+
+/* ── 退出路径图 ───────────────────────────────────────── */
+.exits{display:flex;gap:22px;margin-top:18px;flex-wrap:wrap;}
+.dgcell{width:352px;}
+.dg{position:relative;width:352px;height:196px;background:var(--paper);
+    border:1px solid var(--outline);overflow:hidden;}
+.dg .stem{position:absolute;font-size:9px;color:var(--inkFaint);letter-spacing:.1em;}
+.dgcap{font-size:11px;color:#C9BEAD;line-height:1.55;margin-top:8px;}
+.dgcap b{color:#EFE7DC;font-weight:600;}
+.dgscreen{position:absolute;left:20px;right:20px;top:16px;bottom:0;
+          border:1px solid var(--outline);border-bottom:none;background:var(--cardAlt);overflow:hidden;}
+.dgsheet{position:absolute;left:0;right:0;bottom:0;background:var(--card);
+         border-top:1.5px solid var(--ink);box-shadow:0 -8px 16px rgba(26,22,17,.10);}
+.dgacc{height:3px;background:var(--primary);}
+.dggrab{width:28px;height:3px;background:var(--outline);opacity:.75;margin:9px auto 0;}
+.dgtxt{height:6px;background:var(--ink);opacity:.18;margin:11px 16px 0;}
+.dgbar{height:24px;display:flex;align-items:center;gap:6px;padding:0 12px;
+       border-bottom:1px solid var(--outline);background:var(--card);}
+.dgbar span{display:block;height:4px;background:var(--ink);opacity:.34}
+.dgbar span:nth-child(1){width:32px}
+.dgbar span:nth-child(2){width:20px;opacity:.16;margin-left:auto}
+.dgbar span:nth-child(3){width:6px;height:4px;opacity:.34}
+.dgline{height:5px;background:var(--ink);opacity:.13;margin:11px 16px 0}
+.dglayer{position:absolute;left:34px;right:34px;height:26px;border:1px solid var(--outline);
+         background:var(--card);}
+.arr{position:absolute;}
+
+/* 返回层级序列 */
+.seq{display:flex;align-items:flex-end;gap:0;margin-top:18px;}
+.seqframe{width:132px;flex:0 0 132px;}
+.ministrip{position:relative;width:132px;height:238px;background:var(--paper);
+           border:1px solid var(--outline);overflow:hidden;}
+.ministrip .bar{height:6px;background:var(--inkFaint);opacity:.30;margin:10px 12px 0;}
+.ministrip .bar.w1{width:70%;} .ministrip .bar.w2{width:88%;} .ministrip .bar.w3{width:56%;}
+.ministrip .ms{position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--card);
+  border-top:3px solid var(--primary);box-shadow:0 -6px 12px rgba(26,22,17,.10);}
+.ministrip .ms::before{content:"";position:absolute;left:50%;margin-left:-9px;top:8px;width:18px;height:3px;
+  background:var(--outline);opacity:.8;}
+.ministrip .ms::after{content:"";position:absolute;left:12px;right:44px;top:24px;height:6px;
+  background:var(--ink);opacity:.20;}
+.ministrip.home{background:var(--cardAlt);}
+.homegrid{position:absolute;left:22px;top:74px;display:grid;grid-template-columns:26px 26px;
+  gap:14px;}
+.homegrid i{width:26px;height:26px;background:var(--inkFaint);opacity:.45;display:block;}
+.seqarrow{width:64px;flex:0 0 64px;display:flex;flex-direction:column;align-items:center;
+          gap:6px;padding-bottom:96px;}
+.keycap{width:30px;height:30px;border:1px solid var(--outline);display:grid;place-items:center;
+        font-size:14px;color:var(--ink);background:var(--card);}
+.seqarrow .ln{width:26px;height:1px;background:var(--inkFaint);}
+.seqcap{font-size:11px;color:#C9BEAD;text-align:center;line-height:1.45;margin-top:8px;width:132px;}
+.seqlabel{font-size:11px;color:#DE6A2E;letter-spacing:.12em;margin-top:22px;}
+
+/* ── 现状清点表 ───────────────────────────────────────── */
+table.inv{border-collapse:collapse;width:1560px;margin-top:16px;font-size:11.5px;}
+table.inv th{color:#A99C8B;font-weight:600;text-align:left;padding:8px 10px;
+             border-bottom:1px solid #4A423A;letter-spacing:.04em;font-size:11px;}
+table.inv td{color:#DCD2C4;padding:7px 10px;border-bottom:1px solid #362F28;vertical-align:top;
+             line-height:1.5;}
+table.inv td.k{color:#EFE7DC;font-weight:600;}
+table.inv td.p{font-family:ui-monospace,monospace;font-size:10.5px;color:#B7AA98;}
+table.inv td.h{color:#EFE7DC;}
+table.inv tr.x td{color:#7E7468;}
+.pill{display:inline-block;padding:1px 7px;border:1px solid currentColor;font-size:10px;}
+.pill.heavy{color:#DE6A2E;}
+.pill.light{color:#BCC79B;}
+.pill.keep{color:#A1978A;}
+
+/* ── 演示 ─────────────────────────────────────────────── */
+.demo{display:flex;gap:28px;align-items:flex-start;margin-top:22px;}
+.demo-side{width:300px;padding-top:6px;}
+.demo-side h3{font-size:12.5px;color:#EFE7DC;font-weight:600;margin-bottom:12px;}
+.kbtns{display:flex;gap:10px;flex-wrap:wrap;}
+.kb{border:1px solid #6A5F52;background:#2B2621;color:#EFE7DC;font-size:11.5px;
+    padding:9px 13px;display:inline-flex;align-items:center;gap:7px;}
+.kb:hover{border-color:#DE8F5E;}
+.kb .kk{font-family:ui-monospace,monospace;font-size:10px;color:#C9BEAD;}
+.demo-side .hint{font-size:11px;color:#A99C8B;line-height:1.7;margin-top:14px;}
+
+/* 演示遮罩 */
+.d-scrim{position:absolute;inset:0;background:rgba(0,0,0,.30);opacity:0;z-index:5;
+         transition:opacity 180ms;}
+.demo-sheet{height:567px;transition:height 180ms cubic-bezier(.2,.75,.25,1);}
+.demo-panel{top:150px;right:14px;width:322px;opacity:0;transform:translateY(-8px) scale(.985);
+  transform-origin:100% 0;transition:opacity 120ms ease-out,transform 120ms ease-out;
+  pointer-events:none;z-index:7;}
+.p-on .demo-panel{opacity:1;transform:none;pointer-events:auto;}
+.p-on .p-scrim{opacity:1;pointer-events:auto;}
+.p-scrim{position:absolute;inset:0;background:rgba(0,0,0,.22);opacity:0;z-index:5;
+  transition:opacity 140ms;pointer-events:none;}
+
+/* ══════════ 毛玻璃卡（GLASS）════════════════════════════════════
+   三档厚度：模糊 12 / 20 / 28 dp，纸色 86 / 72 / 58 %（亮档）
+   暗档纸底 #100E0B 更深，模糊加厚、纸色再降：16 / 25 / 34 dp，80 / 62 / 46 %
+   边：1 px 上亮下暗双色 + 外投影 + 12 dp 圆角
+   ══════════════════════════════════════════════════════════════ */
+.gcard{
+  position:absolute;z-index:7;display:flex;flex-direction:column;
+  border-radius:12px;border:1px solid var(--gEdge);background:var(--gBg);
+  -webkit-backdrop-filter:blur(var(--gBlur)) saturate(1.10);
+  backdrop-filter:blur(var(--gBlur)) saturate(1.10);
+  box-shadow:inset 0 1px 0 var(--gHi), inset 0 -1px 0 var(--gLo), 0 20px 44px var(--gShadow);
+  overflow:hidden;
+}
+.g1{--gBlur:12px;--gBg:rgba(245,242,236,.86);--gEdge:rgba(26,22,17,.17);
+    --gHi:rgba(255,255,255,.62);--gLo:rgba(26,22,17,.20);--gShadow:rgba(26,22,17,.16);
+    --gLine:rgba(26,22,17,.09);}
+.g2{--gBlur:20px;--gBg:rgba(245,242,236,.72);--gEdge:rgba(26,22,17,.17);
+    --gHi:rgba(255,255,255,.66);--gLo:rgba(26,22,17,.22);--gShadow:rgba(26,22,17,.18);
+    --gLine:rgba(26,22,17,.10);}
+.g3{--gBlur:28px;--gBg:rgba(245,242,236,.58);--gEdge:rgba(26,22,17,.17);
+    --gHi:rgba(255,255,255,.72);--gLo:rgba(26,22,17,.25);--gShadow:rgba(26,22,17,.20);
+    --gLine:rgba(26,22,17,.11);}
+.dark .gcard{--gEdge:rgba(237,232,223,.15);--gHi:rgba(237,232,223,.20);
+    --gLo:rgba(0,0,0,.62);--gShadow:rgba(0,0,0,.60);--gLine:rgba(237,232,223,.09);}
+.dark .g1{--gBlur:16px;--gBg:rgba(16,14,11,.80);}
+.dark .g2{--gBlur:25px;--gBg:rgba(16,14,11,.62);}
+.dark .g3{--gBlur:34px;--gBg:rgba(16,14,11,.46);}
+
+.gcard .accbar2{height:2px;flex:0 0 2px;background:var(--acc,var(--primary));}
+.ghead{display:flex;align-items:center;gap:8px;padding:11px 4px 9px 14px;flex:0 0 auto;}
+.ghead .gttl{font-size:14px;font-weight:700;color:var(--ink);line-height:1.15;}
+.ghead .gsub{font-size:9px;color:var(--inkFaint);margin-top:2px;}
+.gx{width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;color:var(--inkSoft);}
+.gbody{overflow:hidden;flex:1;min-height:0;}
+.grow{display:flex;align-items:center;gap:10px;min-height:44px;padding:9px 14px;
+      border-top:1px solid var(--gLine);}
+.grow.sel{box-shadow:inset 3px 0 0 var(--acc,var(--primary));}
+.grow .gic{width:16px;height:16px;flex:0 0 16px;color:var(--acc,var(--primary));}
+.grow .grt{font-size:13px;font-weight:500;color:var(--ink);line-height:1.2;}
+.grow .grs{font-size:9px;color:var(--inkFaint);margin-top:2px;line-height:12px;}
+.grow .gval{font-size:12px;font-weight:700;color:var(--acc,var(--primary));}
+.grow .gchev{font-size:12px;color:var(--inkFaint);}
+.gcut{position:absolute;left:0;right:0;bottom:0;height:26px;pointer-events:none;
+      background:linear-gradient(to bottom,rgba(245,242,236,0),rgba(245,242,236,.96));}
+.dark .gcut{background:linear-gradient(to bottom,rgba(16,14,11,0),rgba(16,14,11,.96));}
+
+/* 抽屉的毛玻璃版（对照用，不设三档） */
+.sheet.glass{
+  background:var(--gBg);border:1px solid var(--gEdge);border-bottom:none;
+  border-radius:12px 12px 0 0;
+  -webkit-backdrop-filter:blur(var(--gBlur)) saturate(1.10);
+  backdrop-filter:blur(var(--gBlur)) saturate(1.10);
+  box-shadow:inset 0 1px 0 var(--gHi), 0 -18px 40px var(--gShadow);
+}
+
+/* 强调色：只落在 2 dp 顶条 / 图标 / 选中左缘 3 dp / 数值 */
+.acc-brick{--acc:#9B2417;} .acc-olive{--acc:#3F5A2E;}
+.acc-indigo{--acc:#345A66;} .acc-ochre{--acc:#8A6410;}
+.dark .acc-brick{--acc:#E7A093;} .dark .acc-olive{--acc:#BCC79B;}
+.dark .acc-indigo{--acc:#8FB6C4;} .dark .acc-ochre{--acc:#D8B87A;}
+
+/* 卡片背后的真实内容 */
+.padbehind{position:absolute;left:0;right:0;top:83px;bottom:0;}
+.blot{position:absolute;border:none;}
+.blot.c1{background:rgba(199,78,23,.30);}
+.blot.c2{background:rgba(63,90,46,.28);}
+.blot.c3{background:rgba(52,90,102,.26);}
+.blot.c4{background:rgba(155,36,23,.22);}
+
+/* 强调色细看：380 × 520 的局部实拍框 */
+.shot{position:relative;width:372px;height:520px;overflow:hidden;
+      background:var(--paper);border:1px solid var(--outline);}
+.shot .mini{position:absolute;left:0;right:0;height:2px;background:var(--acc,var(--primary));}
+.sfade{position:absolute;z-index:9;left:0;right:0;height:24px;pointer-events:none;
+       background:linear-gradient(to bottom,rgba(245,242,236,0),rgba(245,242,236,.94));}
+.dark .sfade{background:linear-gradient(to bottom,rgba(16,14,11,0),rgba(16,14,11,.94));}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div class="doc-head">
+  <h1>沈农在途 · m31 · 三点（⋯）浮层统一形态</h1>
+  <div class="meta">
+    全 App「点 ⋯ 弹出的一堆操作／配置」共用一套出现与退出语言。画布 412 × 915 dp，多状态并排 + 可重播演示。<br>
+    配色逐值取自 <b>InkTokenSet</b>：
+    <span class="sw" style="background:#F5F2EC"></span>paper
+    <span class="sw" style="background:#FAF8F4"></span>card
+    <span class="sw" style="background:#1A1611"></span>ink
+    <span class="sw" style="background:#443E36"></span>inkSoft
+    <span class="sw" style="background:#5F574C"></span>inkFaint
+    <span class="sw" style="background:#8F7E61"></span>rule
+    <span class="sw" style="background:#C74E17"></span>primary
+    <span class="sw" style="background:#100E0B"></span>dark paper
+    <span class="sw" style="background:#EA8F5E"></span>dark primary
+  </div>
+</div>
+
+<!-- ══════════════════ 语言 A ══════════════════ -->
+<section>
+  <div class="sechead">
+    <span class="no">LANGUAGE A</span>
+    <h2>抽屉派</h2>
+    <span class="pos">内容从屏幕底边推上来，高度即分量：轻量 40 % 无抓手，重度 30 / 62 / 92 带抓手可拖可吸。</span>
+  </div>
+
+  <div class="row">
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.2 15.2 20 20"/></svg></button>
+          <button class="ibtn"><span class="dot3">⋯</span></button>
+        </div>
+        <div class="hr"></div>
+        <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span><span class="spacer"></span><span class="mono">11-20</span></div>
+          <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div>
+          <div class="m mono">报名 11-25 截止</div></div>
+        <div class="item"><div class="h"><span class="tag">通知</span><span class="mono">农大要闻</span><span class="spacer"></span><span class="mono">11-19</span></div>
+          <div class="t">关于 2026 年春季学期选课工作的通知</div>
+          <div class="m mono">11-19 · 未读</div></div>
+        <div class="item read"><div class="h"><span class="tag">讲座</span><span class="mono">创新创业</span><span class="spacer"></span><span class="mono">11-18</span></div>
+          <div class="t">智慧农机装备前沿论坛 第三讲</div>
+          <div class="m mono">11-18 · 已读</div></div>
+
+        <!-- 抽屉：62% -->
+        <div class="d-scrim" style="opacity:.42;pointer-events:none"></div>
+        <div class="sheet" style="height:567px">
+          <div class="accent"></div>
+          <div class="grabwrap"><div class="grab"></div></div>
+          <div class="shead">
+            <div style="flex:1;min-width:0">
+              <div class="ttl">资讯操作</div>
+              <div class="sub mono">全部频道 · 12 未读</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody" data-tpl="t-feed"></div>
+          <div class="sfade" style="bottom:20px"></div>
+          <div class="safebar"></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">A1</span>资讯操作 · 62 % 档。动作组整组可见，来源列表在第 4 行被屏幕底边切断 —— 断口本身就是「下面还有」。<span class="k">567 / 915</span></div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.2 15.2 20 20"/></svg></button>
+          <button class="ibtn"><span class="dot3">⋯</span></button>
+        </div>
+        <div class="hr"></div>
+        <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span><span class="spacer"></span><span class="mono">11-20</span></div>
+          <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div>
+          <div class="m mono">报名 11-25 截止</div></div>
+
+        <div class="d-scrim" style="opacity:.55;pointer-events:none"></div>
+        <div class="sheet" style="height:842px">
+          <div class="accent"></div>
+          <div class="grabwrap"><div class="grab"></div></div>
+          <div class="shead">
+            <div style="flex:1;min-width:0">
+              <div class="ttl">资讯操作</div>
+              <div class="sub mono">全部频道 · 12 未读</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody" data-tpl="t-feed"></div>
+          <div class="safebar"></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">A2</span>同一张抽屉 · 92 % 档。来源七行与「想加别的网站？」全部落地，无一处需要滚动。<span class="k">842 / 915</span></div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="mapbg">
+          <div class="mapgrid"></div>
+          <div class="road h" style="top:250px"></div>
+          <div class="road h" style="top:470px"></div>
+          <div class="road v" style="left:180px"></div>
+          <div class="road v" style="left:330px"></div>
+          <div class="pin pick" style="left:196px;top:300px"></div>
+          <div class="pin" style="left:120px;top:232px"></div>
+          <div class="pin" style="left:300px;top:452px"></div>
+          <div class="maptools">
+            <div class="mtool"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h16M6 16 16 6l2 2L8 18H6z"/></svg></div>
+            <div class="mtool"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg></div>
+          </div>
+        </div>
+        <div class="d-scrim" style="opacity:.30;pointer-events:none"></div>
+        <div class="sheet" style="height:274px">
+          <div class="accent"></div>
+          <div class="grabwrap"><div class="grab"></div></div>
+          <div class="shead" style="min-height:48px">
+            <div style="flex:1;min-width:0">
+              <div class="ttl" style="font-size:14px">图书馆 · 主楼</div>
+              <div class="sub mono">教学楼 · 楼号 A-03</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody">
+            <div class="seclabel" style="padding:11px 16px 3px">分类</div>
+            <div class="filters" style="padding:0 16px 10px">
+              <div class="chip on">教学楼</div><div class="chip">食堂</div><div class="chip">宿舍</div><div class="chip">其他</div>
+            </div>
+            <div class="srcrow" style="min-height:38px;border-bottom:none">
+              <span class="nm" style="flex:0 0 64px;color:var(--inkFaint);font-size:11.5px">楼号</span>
+              <span class="mono" style="font-size:13px;color:var(--ink)">A-03</span>
+              <span class="spacer"></span>
+              <span class="nm" style="flex:0 0 40px;color:var(--inkFaint);font-size:11.5px">层数</span>
+              <span class="mono" style="font-size:13px;color:var(--ink)">5</span>
+            </div>
+          </div>
+          <div class="savebar"><div class="btnp">保存</div></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">A3</span>地图编辑 · 30 % 档。留住底图与标注点，只把「改分类／保存」推到眼前。<span class="k">274 / 915</span></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="mapbg">
+          <div class="mapgrid"></div>
+          <div class="road h" style="top:120px"></div>
+          <div class="road v" style="left:96px"></div>
+          <div class="pin pick" style="left:196px;top:300px"></div>
+        </div>
+        <div class="d-scrim" style="opacity:.55;pointer-events:none"></div>
+        <div class="sheet" style="height:842px">
+          <div class="accent"></div>
+          <div class="grabwrap"><div class="grab"></div></div>
+          <div class="shead" style="min-height:50px">
+            <div style="flex:1;min-width:0">
+              <div class="ttl" style="font-size:14px">图书馆 · 主楼</div>
+              <div class="sub mono">教学楼 · 官方基线</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody" data-tpl="t-map"></div>
+          <div class="savebar"><div class="btnp">保存</div></div>
+          <div class="safebar" style="height:14px"></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">A4</span>地图编辑 · 92 % 档：分类、字段、来源、导出一次到齐，底图退成背景。<span class="k">842 / 915</span></div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">我的</span><span class="st mono">2024000000</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3">⋯</span></button>
+        </div>
+        <div class="hr"></div>
+        <div style="padding:18px 16px 16px;border-bottom:1px solid var(--rule)">
+          <div style="display:flex;gap:14px;align-items:center">
+            <div style="width:54px;height:54px;border:1.5px solid var(--outline);background:var(--cardAlt);
+                        display:grid;place-items:center;font-size:18px;font-weight:700;color:var(--inkSoft)">张</div>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--ink)">张三</div>
+              <div style="font-size:11px;color:var(--inkFaint);margin-top:3px" class="mono">2024000000</div>
+              <div style="font-size:11px;color:var(--inkSoft);margin-top:3px">农学院 · 2024 级</div>
+            </div>
+          </div>
+        </div>
+        <div class="srcrow" style="min-height:52px"><span class="nm">本学期课程</span><span class="mono" style="font-size:13px;color:var(--ink)">12 门</span></div>
+        <div class="srcrow" style="min-height:52px"><span class="nm">待办</span><span class="mono" style="font-size:13px;color:var(--ink)">3 项</span></div>
+
+        <div class="d-scrim" style="opacity:.32;pointer-events:none"></div>
+        <div class="sheet" style="height:366px">
+          <div class="accent"></div>
+          <div class="shead" style="padding-top:10px">
+            <div style="flex:1;min-width:0">
+              <div class="ttl">账户</div>
+              <div class="sub mono">张三 · 2024000000</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody">
+            <div class="mrow"><span class="idx mono">01</span><div class="body"><div class="rt">刷新</div><div class="rs mono">上次 12:40 · 全部成功</div></div><span class="chev">›</span></div>
+            <div class="mrow"><span class="idx mono">02</span><div class="body"><div class="rt">设置</div><div class="rs">主题 · 配色 · 通知</div></div><span class="chev">›</span></div>
+            <div class="mrow"><span class="idx mono">03</span><div class="body"><div class="rt">关于</div><div class="rs mono">v0.31.0 · 2024000000</div></div><span class="chev">›</span></div>
+            <div class="mrow"><span class="idx mono">04</span><div class="body"><div class="rt">退出登录</div></div></div>
+            <div class="flexfill"></div>
+          </div>
+          <div class="safebar"></div>
+        </div>
+        <div class="homepill"></div>
+      </div></div>
+      <div class="cap"><span class="n">A5</span>用户页 ⋯ · 轻量档。40 % 封顶、<b>无抓手</b>；显式关闭落在页头右角 48 dp。<span class="k">366 / 915</span></div>
+    </div>
+
+    <div class="cell dark">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3">⋯</span></button>
+        </div>
+        <div class="hr"></div>
+        <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span></div>
+          <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div></div>
+        <div class="item"><div class="h"><span class="tag">通知</span><span class="mono">农大要闻</span></div>
+          <div class="t">关于 2026 年春季学期选课工作的通知</div></div>
+        <div class="item"><div class="h"><span class="tag">讲座</span><span class="mono">创新创业</span></div>
+          <div class="t">智慧农机装备前沿论坛第二讲</div></div>
+
+        <div class="d-scrim" style="opacity:.50;pointer-events:none"></div>
+        <div class="sheet" style="height:567px">
+          <div class="accent"></div>
+          <div class="grabwrap"><div class="grab"></div></div>
+          <div class="shead">
+            <div style="flex:1;min-width:0">
+              <div class="ttl">资讯操作</div>
+              <div class="sub mono">全部频道 · 12 未读</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody" data-tpl="t-feed"></div>
+          <div class="safebar"></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">A6</span>暗色档。纸底 <span class="k">#100E0B</span> 与抽屉 <span class="k">#100E0B</span> 同值，靠 1.5 dp outline 与 3 dp 主色条分层，不靠阴影。<span class="k">62%</span></div>
+    </div>
+  </div>
+
+  <!-- 退出路径 -->
+  <div class="sechead" style="margin-top:40px;border-top:none;padding-top:0">
+    <span class="no">EXIT</span><h2>抽屉派的四条退路</h2>
+    <span class="pos">抓手下滑 / 遮罩点按 / 显式关闭 / 返回键只关这一层</span>
+  </div>
+  <div class="exits">
+    <div class="dgcell">
+      <div class="dg">
+        <div class="dgscreen">
+          <div class="dgbar"><span></span><span></span><span></span></div>
+          <div class="dgline"></div><div class="dgline" style="width:66%"></div><div class="dgline" style="width:78%"></div>
+          <div class="dgsheet" style="height:106px">
+            <div class="dgacc"></div>
+            <div class="dggrab"></div>
+            <div class="dgtxt"></div><div class="dgtxt" style="width:58%"></div>
+          </div>
+          <div class="arr" style="left:150px;top:66px">
+            <svg width="34" height="90" viewBox="0 0 34 90" fill="none" stroke="#C74E17" stroke-width="1.9">
+              <path d="M17 0v76"/><path d="M9 68l8 9 8-9"/>
+            </svg>
+          </div>
+        </div>
+        <div style="position:absolute;left:20px;right:20px;bottom:-1px;height:10px;
+                    border-top:1px dashed #7E7468;opacity:.8"></div>
+      </div>
+      <div class="dgcap"><b>① 抓手下滑</b> · 跟手，松手吸最近一档；过 20 % 直接落地。</div>
+    </div>
+
+    <div class="dgcell">
+      <div class="dg">
+        <div class="dgscreen">
+          <div class="dgbar"><span></span><span></span><span></span></div>
+          <div class="dgline"></div><div class="dgline" style="width:70%"></div>
+          <div style="position:absolute;left:0;right:0;top:25px;bottom:106px;background:rgba(0,0,0,.34);z-index:2"></div>
+          <div style="position:absolute;left:34px;top:44px;width:34px;height:34px;border:1.5px solid #1A1611;
+                      border-radius:50%;z-index:3;display:grid;place-items:center;background:rgba(250,248,244,.65)">
+            <div style="width:9px;height:9px;background:#1A1611;border-radius:50%"></div>
+          </div>
+          <div class="arr" style="left:76px;top:56px;z-index:3">
+            <svg width="66" height="20" viewBox="0 0 66 20" fill="none" stroke="#1A1611" stroke-width="1.4">
+              <path d="M0 10h50"/><path d="M42 3l8 7-8 7"/>
+            </svg>
+          </div>
+          <div class="dgsheet" style="height:106px;z-index:4">
+            <div class="dgacc"></div><div class="dggrab"></div><div class="dgtxt"></div>
+          </div>
+        </div>
+      </div>
+      <div class="dgcap"><b>② 遮罩点按</b> · 抽屉以外任意处落下即关，遮罩随高度加深（30 % → 55 %）。</div>
+    </div>
+
+    <div class="dgcell">
+      <div class="dg">
+        <div class="dgscreen">
+          <div class="dgbar"><span></span><span></span><span></span></div>
+          <div class="dgline" style="width:64%"></div>
+          <div class="dgsheet" style="top:44px;height:auto;bottom:0">
+            <div class="dgacc"></div>
+            <div style="display:flex;align-items:center;height:34px;padding:0 14px;gap:0">
+              <div style="width:56px;height:7px;background:#1A1611;opacity:.62"></div>
+              <div style="margin-left:auto;width:44px;height:44px;border:1px dashed #1A1611;margin-top:10px"></div>
+            </div>
+            <div class="dgtxt" style="width:78%"></div><div class="dgtxt" style="width:52%"></div>
+          </div>
+          <div style="position:absolute;right:34px;top:60px;width:44px;height:44px;display:grid;place-items:center;z-index:4;color:#1A1611">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M5 5 19 19M19 5 5 19"/></svg>
+          </div>
+          <div class="arr" style="right:86px;top:74px;z-index:4">
+            <svg width="74" height="14" viewBox="0 0 74 14" fill="none" stroke="#1A1611" stroke-width="1.4">
+              <path d="M74 7H16"/><path d="M23 1l-8 6 8 6"/>
+            </svg>
+          </div>
+          <div class="mono" style="position:absolute;left:34px;bottom:12px;font-size:9px;color:#5F574C;letter-spacing:.06em">48 × 48</div>
+        </div>
+      </div>
+      <div class="dgcap"><b>③ 显式关闭</b> · 页头右角恒定的 48 dp ✕，轻量与重度同一位置。</div>
+    </div>
+
+    <div class="dgcell">
+      <div class="dg">
+        <div class="dgscreen" style="left:30px">
+          <div class="dgbar"><span></span><span></span><span></span></div>
+          <div class="dgline"></div><div class="dgline" style="width:72%"></div>
+          <div class="dgsheet" style="height:104px">
+            <div class="dgacc"></div><div class="dggrab"></div><div class="dgtxt"></div>
+          </div>
+          <div class="keycap" style="position:absolute;left:14px;top:72px;z-index:5">‹</div>
+          <div class="arr" style="left:50px;top:84px;z-index:5">
+            <svg width="58" height="18" viewBox="0 0 58 18" fill="none" stroke="#C74E17" stroke-width="1.9">
+              <path d="M0 9h46"/><path d="M39 2l7 7-7 7"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="dgcap"><b>④ 返回键</b> · 只弹这一层，页面留在原地（层级见第三节）。</div>
+    </div>
+  </div>
+
+  <!-- 演示 A -->
+  <div class="sechead" style="margin-top:40px;border-top:none;padding-top:0">
+    <span class="no">DEMO A</span><h2>可拖抽屉 · 重播</h2>
+    <span class="pos">抓手可拖，松手吸附；✕ / 遮罩 / 返回三条退路都在</span>
+  </div>
+  <div class="demo">
+    <div class="phone"><div class="screen" id="dA">
+      <div class="sbar"><span class="mono">9:41</span>
+        <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+      <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+        <span class="spacer"></span>
+        <button class="ibtn" id="dA-open"><span class="dot3">⋯</span></button>
+      </div>
+      <div class="hr"></div>
+      <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span><span class="spacer"></span><span class="mono">11-20</span></div>
+        <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div>
+        <div class="m mono">报名 11-25 截止</div></div>
+      <div class="item"><div class="h"><span class="tag">通知</span><span class="mono">农大要闻</span><span class="spacer"></span><span class="mono">11-19</span></div>
+        <div class="t">关于 2026 年春季学期选课工作的通知</div>
+        <div class="m mono">11-19 · 未读</div></div>
+      <div class="item read"><div class="h"><span class="tag">讲座</span><span class="mono">创新创业</span><span class="spacer"></span><span class="mono">11-18</span></div>
+        <div class="t">智慧农机装备前沿论坛 第三讲</div></div>
+
+      <div class="d-scrim" id="dA-scrim"></div>
+      <div class="sheet demo-sheet" id="dA-sheet">
+        <div class="accent"></div>
+        <div class="grabwrap" id="dA-grab"><div class="grab"></div></div>
+        <div class="shead">
+          <div style="flex:1;min-width:0">
+            <div class="ttl">资讯操作</div>
+            <div class="sub mono">全部频道 · 12 未读</div>
+          </div>
+          <button class="closebtn" id="dA-x">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg>
+          </button>
+        </div>
+        <div class="hr"></div>
+        <div class="sbody scroll" data-tpl="t-feed"></div>
+        <div class="safebar"></div>
+      </div>
+    </div></div>
+
+    <div class="demo-side">
+      <h3>重播一首一收</h3>
+      <div class="kbtns">
+        <button class="kb" id="dA-replay">↻ 重播 <span class="kk">0.62</span></button>
+        <button class="kb" id="dA-back">‹ 返回 <span class="kk">key</span></button>
+      </div>
+      <div class="hint">拖顶部抓手上下滑：30 / 62 / 92 三档吸附；拖到 20 % 以下直接落回屏幕外。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 语言 B ══════════════════ -->
+<section>
+  <div class="sechead">
+    <span class="no">LANGUAGE B</span>
+    <h2>面板派</h2>
+    <span class="pos">卡片贴着触发点长出来（带指向箭头），点外部关闭；超过 6 项在卡片内滚动。</span>
+  </div>
+
+  <div class="row">
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button>
+        </div>
+        <div class="hr"></div>
+        <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span></div>
+          <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div></div>
+
+        <div class="panelmask"></div>
+        <div class="panel" style="left:24px;right:24px;top:118px;height:640px">
+          <div class="parrow" style="right:22px"></div>
+          <div class="phead">
+            <div style="flex:1;min-width:0">
+              <div class="pttl">资讯操作</div>
+              <div class="psub mono">全部频道 · 12 未读</div>
+            </div>
+            <div class="pclose"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="pbody" data-tpl="t-panel-feed"></div>
+          <div class="foot"><div class="btnp ghost">取消</div><div class="btnp">应用</div></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">B1</span>资讯操作。10 项 + 7 个来源 = 卡片内滚动，末行被 1 dp 线切断；箭头指向 ⋯。<span class="k">箭头 ↔ 触发点</span></div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="mapbg">
+          <div class="mapgrid"></div>
+          <div class="road h" style="top:180px"></div>
+          <div class="road h" style="top:420px"></div>
+          <div class="road v" style="left:210px"></div>
+          <div class="pin pick" style="left:96px;top:300px"></div>
+          <div class="pin" style="left:52px;top:520px"></div>
+          <div class="maptools" style="top:96px;bottom:auto">
+            <div class="mtool" style="background:var(--primary);border-color:var(--primary);color:#fff">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20h16M6 16 16 6l2 2L8 18H6z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="panelmask"></div>
+        <div class="panel" style="right:14px;top:152px;width:292px;height:600px">
+          <div class="parrow" style="right:26px"></div>
+          <div class="phead">
+            <div style="flex:1;min-width:0">
+              <div class="pttl">图书馆 · 主楼</div>
+              <div class="psub mono">教学楼 · 官方基线</div>
+            </div>
+            <div class="pclose"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="pbody scroll" data-tpl="t-panel-map"></div>
+          <div class="foot"><div class="btnp ghost">导出</div><div class="btnp">保存</div></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">B2</span>地图编辑。面板挂在右侧铅笔按钮下方，左侧底图与选中的点始终露在外面，改一处就能当场核对。<span class="k">箭头 ↔ 工具按钮</span></div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">我的</span><span class="st mono">2024000000</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button>
+        </div>
+        <div class="hr"></div>
+        <div style="padding:18px 16px 16px;border-bottom:1px solid var(--rule)">
+          <div style="display:flex;gap:14px;align-items:center">
+            <div style="width:54px;height:54px;border:1.5px solid var(--outline);background:var(--cardAlt);
+                        display:grid;place-items:center;font-size:18px;font-weight:700;color:var(--inkSoft)">张</div>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:var(--ink)">张三</div>
+              <div style="font-size:11px;color:var(--inkFaint);margin-top:3px" class="mono">2024000000</div>
+            </div>
+          </div>
+        </div>
+        <div class="srcrow" style="min-height:52px"><span class="nm">本学期课程</span><span class="mono" style="font-size:13px;color:var(--ink)">12 门</span></div>
+
+        <div class="panelmask" style="background:rgba(0,0,0,.18)"></div>
+        <div class="panel" style="right:14px;top:104px;width:246px">
+          <div class="parrow" style="right:22px"></div>
+          <div class="phead" style="min-height:44px">
+            <div style="flex:1"><div class="pttl">账户</div></div>
+            <div class="pclose" style="width:40px;height:40px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="pbody">
+            <div class="prow"><div class="rt">刷新</div></div>
+            <div class="prow"><div class="rt">设置</div></div>
+            <div class="prow"><div class="rt">关于</div></div>
+            <div class="prow" style="border-bottom:none"><div class="rt" style="color:var(--brick)">退出登录</div></div>
+          </div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">B3</span>用户页 ⋯ · 轻量。4 项不滚，卡片高度贴着内容收；箭头不离触发点。<span class="k">246 宽</span></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell dark">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button>
+        </div>
+        <div class="hr"></div>
+        <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span></div>
+          <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div></div>
+        <div class="panelmask"></div>
+        <div class="panel" style="left:24px;right:24px;top:118px;height:620px">
+          <div class="parrow" style="right:22px"></div>
+          <div class="phead">
+            <div style="flex:1;min-width:0">
+              <div class="pttl">资讯操作</div>
+              <div class="psub mono">全部频道 · 12 未读</div>
+            </div>
+            <div class="pclose"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="pbody" data-tpl="t-panel-feed"></div>
+          <div class="foot"><div class="btnp">应用</div></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">B4</span>暗色档。面板 <span class="k">#1A1611</span> 比纸底 <span class="k">#100E0B</span> 亮一档，配 2 dp 硬投影（黑），边界不糊。</div>
+    </div>
+
+    <div class="cell" style="width:730px">
+      <div class="exits" style="margin-top:0">
+        <div class="dgcell" style="width:352px">
+          <div class="dg">
+            <div class="dgscreen">
+              <div style="position:absolute;inset:0;background:rgba(0,0,0,.22)"></div>
+              <div style="position:absolute;left:24px;right:24px;top:14px;bottom:60px;background:#FAF8F4;
+                          border:1.5px solid #7E7468;box-shadow:4px 4px 0 #1A1611">
+                <div style="position:absolute;left:50%;top:-7px;width:12px;height:12px;background:#FAF8F4;
+                            border-left:1.5px solid #7E7468;border-top:1.5px solid #7E7468;transform:translateX(-50%) rotate(45deg)"></div>
+                <div style="position:absolute;left:0;right:0;top:0;height:3px;background:#C74E17"></div>
+                <div style="position:absolute;left:14px;top:16px;width:58px;height:7px;background:#1A1611;opacity:.62"></div>
+                <div style="position:absolute;left:14px;top:34px;height:6px;right:16px;background:#1A1611;opacity:.20"></div>
+                <div style="position:absolute;left:14px;top:50px;height:6px;right:50px;background:#1A1611;opacity:.20"></div>
+                <div style="position:absolute;left:14px;top:66px;height:6px;right:26px;background:#1A1611;opacity:.20"></div>
+                <div style="position:absolute;left:14px;top:82px;height:6px;right:64px;background:#1A1611;opacity:.20"></div>
+              </div>
+              <div style="position:absolute;left:40px;bottom:26px;width:32px;height:32px;border:1px solid #1A1611;
+                          border-radius:50%;display:grid;place-items:center">
+                <div style="width:8px;height:8px;background:#1A1611;border-radius:50%"></div>
+              </div>
+              <div style="position:absolute;left:86px;bottom:38px">
+                <svg width="90" height="14" viewBox="0 0 90 14" fill="none" stroke="#443E36" stroke-width="1.2">
+                  <path d="M0 7h78"/><path d="M71 1l8 6-8 6"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+          <div class="dgcap"><b>① 点外部</b> · 卡片四周任意处落下即关；遮罩只有 22 %，底图不被抹平。</div>
+        </div>
+
+        <div class="dgcell" style="width:352px">
+          <div class="dg">
+            <div style="position:absolute;left:24px;right:24px;top:16px;height:120px;background:#FAF8F4;
+                        border:1.5px solid #7E7468;box-shadow:4px 4px 0 #1A1611">
+              <div style="position:absolute;left:16px;top:14px;height:7px;width:64px;background:#1A1611;opacity:.5"></div>
+              <div style="position:absolute;left:16px;top:30px;height:6px;width:96px;background:#1A1611;opacity:.25"></div>
+            </div>
+            <div style="position:absolute;right:26px;top:22px;width:40px;height:40px;border:1px dashed #7E7468;
+                        display:grid;place-items:center;color:#443E36">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg>
+            </div>
+            <div style="position:absolute;left:44px;top:150px">
+              <svg width="120" height="18" viewBox="0 0 120 18" fill="none" stroke="#C74E17" stroke-width="1.4">
+                <path d="M0 9h108"/><path d="M100 3l8 6-8 6"/>
+              </svg>
+            </div>
+            <div style="position:absolute;left:44px;top:170px;font-size:10px;color:#5F574C" class="mono">44 × 44</div>
+          </div>
+          <div class="dgcap"><b>② 显式关闭</b> · 卡片右上角 ✕，触区 44 dp，位置随卡片但不随内容滚动。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 演示 B -->
+  <div class="sechead" style="margin-top:40px;border-top:none;padding-top:0">
+    <span class="no">DEMO B</span><h2>可点面板 · 重播</h2>
+    <span class="pos">⋯ 开、点外部关、✕ 关、卡片内滚动</span>
+  </div>
+  <div class="demo">
+    <div class="phone"><div class="screen" id="dB">
+      <div class="sbar"><span class="mono">9:41</span>
+        <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+      <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+        <span class="spacer"></span>
+        <button class="ibtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10.5" cy="10.5" r="6.2"/><path d="M15.2 15.2 20 20"/></svg></button>
+        <button class="ibtn" id="dB-open"><span class="dot3">⋯</span></button>
+      </div>
+      <div class="hr"></div>
+      <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span><span class="spacer"></span><span class="mono">11-20</span></div>
+        <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div>
+        <div class="m mono">报名 11-25 截止</div></div>
+      <div class="item"><div class="h"><span class="tag">通知</span><span class="mono">农大要闻</span><span class="spacer"></span><span class="mono">11-19</span></div>
+        <div class="t">关于 2026 年春季学期选课工作的通知</div></div>
+
+      <div class="p-scrim" id="dB-scrim"></div>
+      <div class="panel demo-panel" id="dB-panel">
+        <div class="parrow" style="right:22px"></div>
+        <div class="phead">
+          <div style="flex:1;min-width:0">
+            <div class="pttl">资讯操作</div>
+            <div class="psub mono">全部频道 · 12 未读</div>
+          </div>
+          <button class="pclose" id="dB-x"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></button>
+        </div>
+        <div class="hr"></div>
+        <div class="pbody scroll" data-tpl="t-panel-feed" style="height:430px"></div>
+        <div class="foot"><div class="btnp">应用</div></div>
+      </div>
+    </div></div>
+
+    <div class="demo-side">
+      <h3>重播一次开合</h3>
+      <div class="kbtns">
+        <button class="kb" id="dB-replay">↻ 重播</button>
+        <button class="kb" id="dB-x2">✕ 关闭</button>
+      </div>
+      <div class="hint">卡片内可滚：条目多于 6 项时，卡片高度封顶，多余的往下滚，末行被 1 dp 线切断。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 返回层级 ══════════════════ -->
+<section>
+  <div class="sechead">
+    <span class="no">LAYER</span>
+    <h2>返回键的层级</h2>
+    <span class="pos">第一次返回只收层，第二次才轮到页面 —— 现状是第一次就掉到桌面</span>
+  </div>
+
+  <div class="row" style="gap:40px">
+    <div>
+      <div class="seqlabel">现状 · 三套实现里两套没有 BackHandler</div>
+      <div class="seq">
+        <div class="seqframe"><div class="ministrip">
+          <div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w2"></div>
+          <div class="ms"></div>
+        </div><div class="seqcap">⋯ 浮层打开</div></div>
+        <div class="seqarrow"><div class="keycap">‹</div><div class="ln"></div></div>
+        <div class="seqframe"><div class="ministrip home">
+          <div class="homegrid"><i></i><i></i><i></i><i></i></div>
+        </div><div class="seqcap" style="color:#C97A6B">桌面</div></div>
+      </div>
+    </div>
+
+    <div>
+      <div class="seqlabel">统一后 · 每次返回收一层</div>
+      <div class="seq">
+        <div class="seqframe"><div class="ministrip">
+          <div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w2"></div>
+          <div class="ms"></div>
+        </div><div class="seqcap">⋯ 浮层打开</div></div>
+        <div class="seqarrow"><div class="keycap">‹</div><div class="ln"></div></div>
+        <div class="seqframe"><div class="ministrip">
+          <div class="bar w1"></div><div class="bar w2"></div><div class="bar w3"></div><div class="bar w2"></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;height:20px;border-top:1.5px dashed #7E7468"></div>
+        </div><div class="seqcap">层收起，页原地</div></div>
+        <div class="seqarrow"><div class="keycap">‹</div><div class="ln"></div></div>
+        <div class="seqframe"><div class="ministrip home">
+          <div class="homegrid"><i></i><i></i><i></i><i></i></div>
+        </div><div class="seqcap">再按一次才到桌面</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 毛玻璃 ══════════════════ -->
+<section>
+  <div class="sechead">
+    <span class="no">GLASS</span>
+    <h2>面板派 · 毛玻璃三档</h2>
+    <span class="pos">同一张资讯操作卡、同一片被压住的列表：只换模糊与纸色。亮档 12 / 20 / 28 dp · 86 / 72 / 58 %；暗档加厚到 16 / 25 / 34 dp · 80 / 62 / 46 %</span>
+  </div>
+
+  <div class="row">
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button></div>
+        <div class="hr"></div>
+        <div class="padbehind" data-tpl="t-behind"></div>
+        <div class="gcard g1 acc-brick" style="left:20px;right:20px;top:150px" data-tpl="t-glass"></div>
+      </div></div>
+      <div class="cap"><span class="n">G1</span>薄 · 模糊 12 dp，纸 86 %。底下条目还认得出来，只有边缘被化开。<span class="k">12 / .86</span></div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button></div>
+        <div class="hr"></div>
+        <div class="padbehind" data-tpl="t-behind"></div>
+        <div class="gcard g2 acc-brick" style="left:20px;right:20px;top:150px" data-tpl="t-glass"></div>
+      </div></div>
+      <div class="cap"><span class="n">G2</span>中 · 模糊 20 dp，纸 72 %。字行化成色带，卡上正文依旧 4.9 : 1。<span class="k">20 / .72</span></div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button></div>
+        <div class="hr"></div>
+        <div class="padbehind" data-tpl="t-behind"></div>
+        <div class="gcard g3 acc-brick" style="left:20px;right:20px;top:150px" data-tpl="t-glass"></div>
+      </div></div>
+      <div class="cap"><span class="n">G3</span>厚 · 模糊 28 dp，纸 58 %。底下只剩明暗起伏；卡内仍留 1 px 上亮下暗边兜住边界。<span class="k">28 / .58</span></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="cell dark">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button></div>
+        <div class="hr"></div>
+        <div class="padbehind" data-tpl="t-behind"></div>
+        <div class="gcard g1 acc-brick" style="left:20px;right:20px;top:150px" data-tpl="t-glass"></div>
+      </div></div>
+      <div class="cap"><span class="n">G1d</span>暗档薄 · 模糊 16 dp，纸 80 %。暗底上光晕更少，靠上亮边 20 % 立起来。<span class="k">16 / .80</span></div>
+    </div>
+
+    <div class="cell dark">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button></div>
+        <div class="hr"></div>
+        <div class="padbehind" data-tpl="t-behind"></div>
+        <div class="gcard g2 acc-brick" style="left:20px;right:20px;top:150px" data-tpl="t-glass"></div>
+      </div></div>
+      <div class="cap"><span class="n">G2d</span>暗档中 <b>建议落点</b> · 模糊 25 dp，纸 62 %。抬卡不糊字，压下去的条目仍透出三成。<span class="k">25 / .62</span></div>
+    </div>
+
+    <div class="cell dark">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="appbar"><span class="ttl">资讯</span><span class="st mono">12 未读</span>
+          <span class="spacer"></span>
+          <button class="ibtn"><span class="dot3" style="color:var(--primary)">⋯</span></button></div>
+        <div class="hr"></div>
+        <div class="padbehind" data-tpl="t-behind"></div>
+        <div class="gcard g3 acc-brick" style="left:20px;right:20px;top:150px" data-tpl="t-glass"></div>
+      </div></div>
+      <div class="cap"><span class="n">G3d</span>暗档厚 · 模糊 34 dp，纸 46 %。再薄下去正文对比度就守不住，这里是下限。<span class="k">34 / .46</span></div>
+    </div>
+  </div>
+
+  <!-- 抽屉的毛玻璃对照 -->
+  <div class="sechead" style="margin-top:40px;border-top:none;padding-top:0">
+    <span class="no">GLASS · DRAWER</span><h2>抽屉给一张玻璃对照</h2>
+    <span class="pos">同一档中厚度；抽屉面积大，玻璃只留在顶部一屏，往下随内容加深回实色</span>
+  </div>
+
+  <div class="row">
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="mapbg">
+          <div class="mapgrid"></div>
+          <div class="road h" style="top:150px"></div>
+          <div class="road h" style="top:330px"></div>
+          <div class="road h" style="top:560px"></div>
+          <div class="road v" style="left:140px"></div>
+          <div class="road v" style="left:300px"></div>
+          <div class="blot c1" style="left:60px;top:96px;width:96px;height:56px"></div>
+          <div class="blot c2" style="left:232px;top:200px;width:120px;height:64px"></div>
+          <div class="blot c3" style="left:120px;top:300px;width:88px;height:48px"></div>
+          <div class="blot" style="left:20px;top:392px;width:150px;height:112px;background:rgba(199,78,23,.62)"></div>
+          <div class="blot" style="left:230px;top:404px;width:160px;height:92px;background:rgba(52,90,102,.55)"></div>
+          <div class="blot" style="left:40px;top:596px;width:180px;height:124px;background:rgba(63,90,46,.58)"></div>
+          <div class="blot" style="left:250px;top:640px;width:140px;height:100px;background:rgba(26,22,17,.34)"></div>
+          <div class="pin pick" style="left:180px;top:230px"></div>
+          <div class="pin" style="left:96px;top:120px"></div>
+          <div class="pin" style="left:288px;top:290px"></div>
+        </div>
+        <div class="sheet glass g2" style="height:567px">
+          <div class="accent"></div>
+          <div class="grabwrap"><div class="grab"></div></div>
+          <div class="shead">
+            <div style="flex:1;min-width:0">
+              <div class="ttl">图书馆 · 主楼</div>
+              <div class="sub mono">教学楼 · 官方基线</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody" data-tpl="t-map"></div>
+          <div class="savebar" style="background:var(--card)"><div class="btnp">保存</div></div>
+          <div class="safebar"></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">GD1</span>亮档 · 抽屉整体走中档玻璃，底图色块透上来；保存条换回实色 <span class="k">card</span>，按钮不被底图干扰。</div>
+    </div>
+
+    <div class="cell dark">
+      <div class="phone"><div class="screen">
+        <div class="sbar"><span class="mono">9:41</span>
+          <span class="r"><span class="sig"><i></i><i></i><i></i><i></i></span><span class="batt"></span></span></div>
+        <div class="mapbg">
+          <div class="mapgrid"></div>
+          <div class="road h" style="top:150px"></div>
+          <div class="road h" style="top:330px"></div>
+          <div class="road h" style="top:560px"></div>
+          <div class="road v" style="left:140px"></div>
+          <div class="road v" style="left:300px"></div>
+          <div class="blot c1" style="left:60px;top:96px;width:96px;height:56px"></div>
+          <div class="blot c2" style="left:232px;top:200px;width:120px;height:64px"></div>
+          <div class="blot c3" style="left:120px;top:300px;width:88px;height:48px"></div>
+          <div class="blot" style="left:20px;top:392px;width:150px;height:112px;background:rgba(199,78,23,.62)"></div>
+          <div class="blot" style="left:230px;top:404px;width:160px;height:92px;background:rgba(52,90,102,.55)"></div>
+          <div class="blot" style="left:40px;top:596px;width:180px;height:124px;background:rgba(63,90,46,.58)"></div>
+          <div class="blot" style="left:250px;top:640px;width:140px;height:100px;background:rgba(26,22,17,.34)"></div>
+          <div class="pin pick" style="left:180px;top:230px"></div>
+          <div class="pin" style="left:96px;top:120px"></div>
+          <div class="pin" style="left:288px;top:290px"></div>
+        </div>
+        <div class="sheet glass g2" style="height:567px">
+          <div class="accent"></div>
+          <div class="grabwrap"><div class="grab"></div></div>
+          <div class="shead">
+            <div style="flex:1;min-width:0">
+              <div class="ttl">图书馆 · 主楼</div>
+              <div class="sub mono">教学楼 · 官方基线</div>
+            </div>
+            <div class="closebtn"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></div>
+          </div>
+          <div class="hr"></div>
+          <div class="sbody" data-tpl="t-map"></div>
+          <div class="savebar" style="background:var(--card)"><div class="btnp">保存</div></div>
+          <div class="safebar"></div>
+        </div>
+      </div></div>
+      <div class="cap"><span class="n">GD2</span>暗档 · 同结构。底图色块在 62 % 纸下只剩低饱和的块面，网格线不再切碎字。</div>
+    </div>
+
+    <div class="cell" style="width:600px;padding-top:4px">
+      <div style="border:1px solid #4A423A;padding:18px 20px;color:#C9BEAD;font-size:11.5px;line-height:1.9">
+        <div style="color:#EFE7DC;font-size:12.5px;font-weight:600;margin-bottom:10px">玻璃只给「看，不动手」的那一层</div>
+        <div style="display:flex;gap:26px">
+          <div style="flex:1">
+            <div style="color:#BCC79B;margin-bottom:4px">用玻璃</div>
+            资讯操作 · 地图就地编辑 · 教务工具条 · 账页 ⋯ · 用户页 ⋯
+          </div>
+          <div style="flex:1">
+            <div style="color:#E7A093;margin-bottom:4px">必须实心</div>
+            加自定义字段 · 课表校准 · 改分类 · 刷新失败详情 · 配色对比度 · 所有确认框
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 强调色 ══════════════════ -->
+<section>
+  <div class="sechead">
+    <span class="no">ACCENT</span>
+    <h2>同一张卡片 · 四色强调</h2>
+    <span class="pos">强调只落在四处：顶 2 dp 条 / 图标 / 选中项左缘 3 dp / 数值。正文恒为墨色，着色面积 ≤ 15 %</span>
+  </div>
+
+  <div class="row" style="gap:14px">
+    <div class="cell">
+      <div class="shot acc-brick">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">BC</span>砖红 <span class="k">#9B2417</span> · <b>资讯 / 账页</b>。告警、未读、失败计数用它，不动正文。</div>
+    </div>
+    <div class="cell">
+      <div class="shot acc-olive">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">OL</span>苔绿 <span class="k">#3F5A2E</span> · <b>地图</b>。地物、正常态、共建来源用绿，和底图植被同族。</div>
+    </div>
+    <div class="cell">
+      <div class="shot acc-indigo">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">IN</span>靛青 <span class="k">#345A66</span> · <b>学业</b>。课表、成绩、教务工具条 —— 冷色，和教务的行政味对上。</div>
+    </div>
+    <div class="cell">
+      <div class="shot acc-ochre">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">OC</span>赭黄 <span class="k">#8A6410</span> · <b>待办 / 提醒</b>。倒计时与截止日；不与砖红的告警抢。</div>
+    </div>
+  </div>
+
+  <div class="row" style="gap:14px">
+    <div class="cell dark">
+      <div class="shot acc-brick">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">BCd</span>砖红暗档 <span class="k">#E7A093</span>。</div>
+    </div>
+    <div class="cell dark">
+      <div class="shot acc-olive">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">OLd</span>苔绿暗档 <span class="k">#BCC79B</span>。</div>
+    </div>
+    <div class="cell dark">
+      <div class="shot acc-indigo">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">INd</span>靛青暗档 <span class="k">#8FB6C4</span>。</div>
+    </div>
+    <div class="cell dark">
+      <div class="shot acc-ochre">
+        <div class="padbehind" data-tpl="t-behind-shot" style="top:0"></div>
+        <div class="gcard g2" style="left:14px;right:14px;top:44px" data-tpl="t-glass"></div>
+        <div class="sfade" style="bottom:0;height:56px"></div>
+      </div>
+      <div class="cap" style="width:372px"><span class="n">OCd</span>赭黄暗档 <span class="k">#D8B87A</span>。</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ 现状清点 ══════════════════ -->
+<section>
+  <div class="sechead">
+    <span class="no">AUDIT</span>
+    <h2>现状清点（施工依据）</h2>
+    <span class="pos">逐处核实过的 ⋯ 入口：现在长什么样、多重、归哪一档</span>
+  </div>
+  <table class="inv">
+    <tr><th style="width:34px">#</th><th style="width:186px">入口</th><th style="width:352px">位置</th>
+        <th style="width:470px">现在的形态</th><th style="width:224px">内容量</th><th style="width:120px">归派</th></tr>
+    <tr><td>01</td><td class="k">资讯 · 页头 ⋯</td><td class="p">FeedScreen.kt:419 → HeaderMenu:1263 → SheetScaffold:1090</td>
+        <td>自写底部浮层：黑纱 30 % + 1.5 dp 边 + 5 dp 色条 + 180 ms 位移。<b>无抓手、无档位</b>；BackHandler 已于 2026-11-20 补在 SheetScaffold:1143，但关闭仍只有 ✕ 与遮罩两条路</td>
+        <td>5 动作 + 7 来源 + 新增入口 = 13 行</td><td><span class="pill heavy">重度</span></td></tr>
+    <tr><td>02</td><td class="k">资讯 · 长按卡片</td><td class="p">FeedScreen.kt:490 → FeedQuickActions:1225</td>
+        <td>同一 SheetScaffold，复用骨架</td><td>4 行</td><td><span class="pill light">轻量</span></td></tr>
+    <tr><td>03</td><td class="k">资讯 · 刷新失败详情</td><td class="p">FeedScreen.kt:516 → FailDetailSheet:1320</td>
+        <td>SheetScaffold + 列表 heightIn(max = 280.dp) 内部滚</td><td>1–6 行，动态</td><td><span class="pill heavy">重度</span></td></tr>
+    <tr><td>04</td><td class="k">资讯 · 全部标已读</td><td class="p">FeedScreen.kt:513</td>
+        <td>AlertDialog 确认</td><td>2 按钮</td><td><span class="pill keep">保留</span></td></tr>
+    <tr><td>05</td><td class="k">地图 · 编辑浮层</td><td class="p">CampusMapScreen.kt:998 MapSheet（0.30/0.62/0.92）+ PropertyPanel:1040</td>
+        <td><b>唯一已经做对的一处</b>：三档 + 抓手 + 吸附 + 嵌套滚动桥；顶角 12 dp 圆角</td>
+        <td>分类 + 字段 + 来源 + 保存</td><td><span class="pill heavy">重度 ✓</span></td></tr>
+    <tr><td>06</td><td class="k">地图 · 删除字段</td><td class="p">CampusMapScreen.kt:979</td>
+        <td>AlertDialog 确认</td><td>2 按钮</td><td><span class="pill keep">保留</span></td></tr>
+    <tr><td>07</td><td class="k">地图 · 改分类</td><td class="p">CampusMapScreen.kt:1357 KindPickerDialog</td>
+        <td>AlertDialog + 分类列表</td><td>4–6 项</td><td><span class="pill light">轻量</span></td></tr>
+    <tr><td>08</td><td class="k">地图 · 加自定义字段</td><td class="p">CampusMapScreen.kt:1429</td>
+        <td>AlertDialog + 2 个 TextField + 3 个快捷片；<b>带输入，保持实心</b></td><td>键 + 值</td><td><span class="pill heavy">保留</span></td></tr>
+    <tr><td>09</td><td class="k">账页 / 工具条 ⋯</td><td class="p">ui/ledger/LedgerKit.kt:127 LedgerHeader(onMore) · 触区 :143</td>
+        <td>LedgerKit:111–141 只画 48 dp ⋯，浮层由每个调用方自实现（<b>分叉源头</b>），且调用方均无 BackHandler</td><td>视调用方</td><td><span class="pill heavy">跟随</span></td></tr>
+    <tr><td>10</td><td class="k">用户页 · 页头 ⋯</td><td class="p">UserScreen.kt:269 → UserHeaderMenu:445</td>
+        <td>UserScreen:445–490 自写底部菜单：黑纱 + 2 行 + 取消；<b>无抓手、无 BackHandler</b></td><td>2 动作</td><td><span class="pill light">轻量</span></td></tr>
+    <tr><td>11</td><td class="k">教务工具条 ⋯</td><td class="p">AcademicSheets.kt:121 AcademicToolbar → AcademicSheet</td>
+        <td>底部浮层，含 <b>BackHandler</b>；行样式走 SheetMenuRow</td><td>3–4 行</td><td><span class="pill light">轻量</span></td></tr>
+    <tr><td>12</td><td class="k">成绩 ⋯ / 考试 ⋯</td><td class="p">ScoreScreen.kt:94 · ExamScreen.kt:183</td>
+        <td>复用 AcademicSheet</td><td>4 行</td><td><span class="pill light">轻量</span></td></tr>
+    <tr><td>13</td><td class="k">课表 · 校准</td><td class="p">TimetableScreen.kt:1288 CalibrateDialog</td>
+        <td>AlertDialog 表单</td><td>2 字段</td><td><span class="pill light">轻量</span></td></tr>
+    <tr><td>14</td><td class="k">共建 · 同意</td><td class="p">ContributeSection.kt:232 MapContributeConsentDialog</td>
+        <td>AlertDialog，义务告知</td><td>知情同意</td><td><span class="pill keep">例外</span></td></tr>
+    <tr><td>15</td><td class="k">自定义课 · 删除</td><td class="p">CustomCourseScreen.kt:154</td>
+        <td>AlertDialog 确认</td><td>2 按钮</td><td><span class="pill keep">保留</span></td></tr>
+    <tr><td>16</td><td class="k">配色 · 对比度原因</td><td class="p">ColorTunerPanel.kt:379 ContrastWhyDialog</td>
+        <td>AlertDialog + 读数表</td><td>4–8 行读数</td><td><span class="pill heavy">重度</span></td></tr>
+  </table>
+</section>
+
+<!-- 模板 -->
+<template id="t-feed">
+  <div class="filters">
+    <div class="chip on"><span class="bx"></span>收藏</div>
+    <div class="chip"><span class="bx"></span>未读</div>
+  </div>
+  <div class="mrow"><span class="idx mono">01</span><div class="body"><div class="rt">刷新</div><div class="rs mono">8 个源 · 上次 12:40</div></div></div>
+  <div class="mrow"><span class="idx mono">02</span><div class="body"><div class="rt">本频道全部已读</div><div class="rs">范围：全部频道 · 7 条未读</div></div></div>
+  <div class="mrow"><span class="idx mono">03</span><div class="body"><div class="rt">全部频道全部已读</div><div class="rs">范围：全部频道 · 12 条未读</div></div></div>
+  <div class="mrow"><span class="idx mono">04</span><div class="body"><div class="rt">密度：标准</div><div class="rs">范围：全部频道</div></div></div>
+  <div class="mrow"><span class="idx mono">05</span><div class="body"><div class="rt">刷新失败详情</div><div class="rs mono">2 个源失败</div></div><span class="chev">›</span></div>
+  <div class="seclabel">来源</div>
+  <div class="srcrow"><span class="sq"></span><span class="nm">教务处</span><span class="stt mono">2 小时前 · 正常</span></div>
+  <div class="srcrow"><span class="sq"></span><span class="nm">农大要闻</span><span class="stt mono">2 小时前 · 正常</span></div>
+  <div class="srcrow"><span class="sq bad"></span><span class="nm">创新创业</span><span class="stt bad mono">今天 09:12 · 失败 2</span></div>
+  <div class="srcrow"><span class="sq"></span><span class="nm">就业信息网</span><span class="stt mono">昨天 18:30 · 正常</span></div>
+  <div class="srcrow"><span class="sq"></span><span class="nm">研究生院</span><span class="stt mono">昨天 18:30 · 正常</span></div>
+  <div class="srcrow"><span class="sq"></span><span class="nm">图书馆</span><span class="stt mono">3 天前 · 正常</span></div>
+  <div class="srcrow"><span class="sq"></span><span class="nm">校团委</span><span class="stt mono">3 天前 · 正常</span></div>
+  <div class="addrow"><span class="plus">+</span><span class="nm">想加别的网站？</span></div>
+</template>
+
+<template id="t-map">
+  <div class="seclabel">分类</div>
+  <div class="filters" style="padding:4px 16px 12px">
+    <div class="chip on">教学楼</div><div class="chip">食堂</div><div class="chip">宿舍</div><div class="chip">其他</div>
+  </div>
+  <div class="seclabel">字段</div>
+  <div class="srcrow"><span class="nm" style="flex:0 0 88px;color:var(--inkFaint);font-size:11.5px">楼号</span><span class="mono" style="font-size:13px;color:var(--ink)">A-03</span></div>
+  <div class="srcrow"><span class="nm" style="flex:0 0 88px;color:var(--inkFaint);font-size:11.5px">层数</span><span class="mono" style="font-size:13px;color:var(--ink)">5</span></div>
+  <div class="srcrow"><span class="nm" style="flex:0 0 88px;color:var(--inkFaint);font-size:11.5px">开放</span><span class="mono" style="font-size:13px;color:var(--ink)">06:30 – 22:30</span></div>
+  <div class="srcrow"><span class="nm" style="flex:0 0 88px;color:var(--inkFaint);font-size:11.5px">备注</span><span style="font-size:12.5px;color:var(--ink)">二楼有自助借还机</span></div>
+  <div class="srcrow"><span class="nm" style="flex:0 0 88px;color:var(--inkFaint);font-size:11.5px">联系人</span><span style="font-size:12.5px;color:var(--ink)">张三</span></div>
+  <div class="addrow"><span class="plus">+</span><span class="nm">加自定义字段</span></div>
+  <div class="seclabel">来源</div>
+  <div class="srcrow" style="min-height:40px"><span class="sq"></span><span class="nm">官方基线</span><span class="stt mono">manifest v3</span></div>
+  <div class="srcrow" style="min-height:40px"><span class="sq"></span><span class="nm">共建层</span><span class="stt mono">7 人 · 23 处</span></div>
+  <div class="srcrow" style="min-height:40px"><span class="sq bad"></span><span class="nm">我的改动</span><span class="stt mono">4 处待上传</span></div>
+</template>
+
+<template id="t-panel-feed">
+  <div style="display:flex;gap:8px;padding:10px 14px;border-bottom:1px solid var(--rule)">
+    <div class="chip on" style="height:30px;font-size:12px;gap:7px"><span class="bx"></span>收藏</div>
+    <div class="chip" style="height:30px;font-size:12px;gap:7px"><span class="bx"></span>未读</div>
+  </div>
+  <div class="prow"><span class="idx mono">01</span><div><div class="rt">刷新</div><div class="rs mono">8 个源 · 上次 12:40</div></div></div>
+  <div class="prow"><span class="idx mono">02</span><div><div class="rt">本频道全部已读</div><div class="rs">7 条未读</div></div></div>
+  <div class="prow"><span class="idx mono">03</span><div><div class="rt">全部频道全部已读</div><div class="rs">12 条未读</div></div></div>
+  <div class="prow"><span class="idx mono">04</span><div><div class="rt">密度：标准</div><div class="rs">全部频道</div></div></div>
+  <div class="prow"><span class="idx mono">05</span><div><div class="rt">刷新失败详情</div><div class="rs mono">2 个源失败</div></div></div>
+  <div class="seclabel" style="padding:10px 14px 4px">来源</div>
+  <div class="psrc"><span class="sq"></span><span class="nm">教务处</span><span class="stt mono">2 小时前 · 正常</span></div>
+  <div class="psrc"><span class="sq"></span><span class="nm">农大要闻</span><span class="stt mono">2 小时前 · 正常</span></div>
+  <div class="psrc"><span class="sq bad"></span><span class="nm">创新创业</span><span class="stt bad mono">失败 2</span></div>
+  <div class="psrc"><span class="sq"></span><span class="nm">就业信息网</span><span class="stt mono">昨天 18:30</span></div>
+  <div class="psrc"><span class="sq"></span><span class="nm">研究生院</span><span class="stt mono">昨天 18:30</span></div>
+  <div class="psrc"><span class="sq"></span><span class="nm">图书馆</span><span class="stt mono">3 天前</span></div>
+  <div class="psrc"><span class="sq"></span><span class="nm">校团委</span><span class="stt mono">3 天前</span></div>
+  <div class="padd"><span class="plus">+</span><span class="nm">想加别的网站？</span></div>
+  <div class="cutrow"><div class="prow" style="border-bottom:none;border-top:1px solid var(--rule)"><span class="idx mono">06</span><div><div class="rt">本周新增 3 条</div></div></div></div>
+</template>
+
+<template id="t-behind">
+  <div class="item"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span><span class="spacer"></span><span class="mono">11-20</span></div>
+    <div class="t">2026 年辽宁省大学生智慧农业创新创业大赛</div>
+    <div class="m mono">报名 11-25 截止</div></div>
+  <div class="item"><div class="h"><span class="tag">通知</span><span class="mono">农大要闻</span><span class="spacer"></span><span class="mono">11-19</span></div>
+    <div class="t">关于 2026 年春季学期选课工作的通知</div>
+    <div class="m mono">11-19 · 未读</div></div>
+  <div class="item"><div class="h"><span class="tag">讲座</span><span class="mono">创新创业</span><span class="spacer"></span><span class="mono">11-18</span></div>
+    <div class="t">智慧农机装备前沿论坛 第三讲</div>
+    <div class="m mono">11-18 · 已读</div></div>
+  <div class="item"><div class="h"><span class="tag">招聘</span><span class="mono">就业信息网</span><span class="spacer"></span><span class="mono">11-17</span></div>
+    <div class="t">沈阳农业大学 2027 届毕业生双选会</div>
+    <div class="m mono">11-17 · 未读</div></div>
+  <div class="item"><div class="h"><span class="tag">通知</span><span class="mono">图书馆</span><span class="spacer"></span><span class="mono">11-16</span></div>
+    <div class="t">冬季开放时间调整为 06:30 – 22:00</div>
+    <div class="m mono">11-16 · 已读</div></div>
+  <div class="item" style="border-bottom:none"><div class="h"><span class="tag">讲座</span><span class="mono">研究生院</span><span class="spacer"></span><span class="mono">11-15</span></div>
+    <div class="t">农业遥感与作物长势监测学术报告</div>
+    <div class="m mono">11-15 · 已读</div></div>
+  <div class="blot c1" style="left:0;top:70px;width:150px;height:96px"></div>
+  <div class="blot c3" style="left:252px;top:120px;width:160px;height:110px"></div>
+  <div class="blot c2" style="left:0;top:236px;width:120px;height:120px"></div>
+  <div class="blot c4" style="left:262px;top:290px;width:150px;height:90px"></div>
+  <div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--rule);align-items:center">
+    <div class="blot c2" style="position:static;width:84px;height:58px;flex:0 0 84px"></div>
+    <div style="flex:1;min-width:0"><div style="font-size:12.5px;line-height:18px;color:var(--ink)">智慧农业创新大赛决赛名单公示</div>
+      <div class="mono" style="font-size:9.5px;color:var(--inkFaint);margin-top:5px">11-14 · 未读</div></div>
+  </div>
+  <div style="display:flex;gap:12px;padding:12px 16px;border-bottom:1px solid var(--rule);align-items:center">
+    <div class="blot c3" style="position:static;width:84px;height:58px;flex:0 0 84px"></div>
+    <div style="flex:1;min-width:0"><div style="font-size:12.5px;line-height:18px;color:var(--ink)">校园地图共建：本周新增 23 处标注</div>
+      <div class="mono" style="font-size:9.5px;color:var(--inkFaint);margin-top:5px">11-14 · 已读</div></div>
+  </div>
+</template>
+
+<template id="t-behind-shot">
+  <div class="item" style="padding:11px 14px 12px"><div class="h"><span class="tag">竞赛</span><span class="mono">教务处</span><span class="spacer"></span><span class="mono">11-20</span></div>
+    <div class="t" style="font-size:12.5px;line-height:18px">2026 年辽宁省大学生智慧农业创新创业大赛</div></div>
+  <div class="item" style="padding:11px 14px 12px"><div class="h"><span class="tag">通知</span><span class="mono">农大要闻</span><span class="spacer"></span><span class="mono">11-19</span></div>
+    <div class="t" style="font-size:12.5px;line-height:18px">关于 2026 年春季学期选课工作的通知</div></div>
+  <div class="item" style="padding:11px 14px 12px"><div class="h"><span class="tag">讲座</span><span class="mono">创新创业</span></div>
+    <div class="t" style="font-size:12.5px;line-height:18px">智慧农机装备前沿论坛 第三讲</div></div>
+  <div class="item" style="padding:11px 14px 12px;border-bottom:none"><div class="h"><span class="tag">招聘</span><span class="mono">就业信息网</span></div>
+    <div class="t" style="font-size:12.5px;line-height:18px">2027 届毕业生双选会</div></div>
+  <div class="blot c1" style="left:14px;top:470px;width:160px;height:36px"></div>
+  <div class="blot c2" style="left:190px;top:470px;width:176px;height:36px"></div>
+</template>
+
+<template id="t-glass">
+  <div class="accbar2"></div>
+  <div class="ghead">
+    <div style="flex:1;min-width:0">
+      <div class="gttl">资讯操作</div>
+      <div class="gsub mono">全部频道 · 12 未读</div>
+    </div>
+    <span class="gx"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 5 19 19M19 5 5 19"/></svg></span>
+  </div>
+  <div class="gbody">
+    <div class="grow sel">
+      <span class="gic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/></svg></span>
+      <div style="flex:1;min-width:0"><div class="grt">刷新</div><div class="grs mono">8 个源 · 上次 12:40</div></div>
+      <span class="gval mono">8</span>
+    </div>
+    <div class="grow">
+      <span class="gic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 6h18v12H3z"/><path d="M3 7l9 6 9-6"/></svg></span>
+      <div style="flex:1;min-width:0"><div class="grt">本频道全部已读</div><div class="grs">7 条未读</div></div>
+      <span class="gval mono">7</span>
+    </div>
+    <div class="grow">
+      <span class="gic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="M3 16l9 5 9-5"/></svg></span>
+      <div style="flex:1;min-width:0"><div class="grt">全部频道全部已读</div><div class="grs">12 条未读</div></div>
+      <span class="gval mono">12</span>
+    </div>
+    <div class="grow">
+      <span class="gic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h16M4 12h16M4 18h16"/></svg></span>
+      <div style="flex:1;min-width:0"><div class="grt">密度</div></div>
+      <span class="gval">标准</span>
+    </div>
+    <div class="grow">
+      <span class="gic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/></svg></span>
+      <div style="flex:1;min-width:0"><div class="grt">刷新失败详情</div><div class="grs mono">2 个源失败</div></div>
+      <span class="gval mono">2</span><span class="gchev">›</span>
+    </div>
+    <div class="grow">
+      <span class="gic" style="display:grid;place-items:center;font-size:13px">+</span>
+      <div style="flex:1;min-width:0"><div class="grt">想加别的网站？</div></div>
+    </div>
+  </div>
+</template>
+
+<template id="t-panel-map">
+  <div class="seclabel" style="padding:10px 14px 4px">分类</div>
+  <div style="display:flex;gap:8px;padding:6px 14px 10px;flex-wrap:wrap">
+    <div class="chip on" style="height:30px;font-size:12px">教学楼</div>
+    <div class="chip" style="height:30px;font-size:12px">食堂</div>
+    <div class="chip" style="height:30px;font-size:12px">宿舍</div>
+    <div class="chip" style="height:30px;font-size:12px">其他</div>
+  </div>
+  <div class="seclabel" style="padding:8px 14px 4px">字段</div>
+  <div class="psrc"><span class="nm" style="flex:0 0 66px;color:var(--inkFaint);font-size:11px">楼号</span><span class="mono" style="font-size:12.5px">A-03</span></div>
+  <div class="psrc"><span class="nm" style="flex:0 0 66px;color:var(--inkFaint);font-size:11px">层数</span><span class="mono" style="font-size:12.5px">5</span></div>
+  <div class="psrc"><span class="nm" style="flex:0 0 66px;color:var(--inkFaint);font-size:11px">开放</span><span class="mono" style="font-size:12.5px">06:30 – 22:30</span></div>
+  <div class="psrc"><span class="nm" style="flex:0 0 66px;color:var(--inkFaint);font-size:11px">备注</span><span style="font-size:12px">二楼有自助借还机</span></div>
+  <div class="psrc"><span class="nm" style="flex:0 0 66px;color:var(--inkFaint);font-size:11px">联系人</span><span style="font-size:12px">张三</span></div>
+  <div class="padd"><span class="plus">+</span><span class="nm">加自定义字段</span></div>
+  <div class="seclabel" style="padding:8px 14px 4px">来源</div>
+  <div class="psrc"><span class="sq"></span><span class="nm">官方基线</span><span class="stt mono">manifest v3</span></div>
+  <div class="psrc"><span class="sq"></span><span class="nm">共建层</span><span class="stt mono">7 人 · 23 处</span></div>
+  <div class="psrc"><span class="sq bad"></span><span class="nm">我的改动</span><span class="stt bad mono">4 处</span></div>
+</template>
+
+</div>
+
+<script>
+(function(){
+  // 模板注入（同一份内容在多个状态里复用，避免手抄走样）
+  document.querySelectorAll('[data-tpl]').forEach(function(el){
+    var t = document.getElementById(el.getAttribute('data-tpl'));
+    if (t) el.innerHTML = t.innerHTML;
+  });
+
+  // ── DEMO A：可拖抽屉 ────────────────────────────────
+  (function(){
+    var H = 915, DET = [0.30, 0.62, 0.92];
+    var scr = document.getElementById('dA');
+    var sheet = document.getElementById('dA-sheet');
+    var scrim = document.getElementById('dA-scrim');
+    var grab = document.getElementById('dA-grab');
+    if (!scr) return;
+    var frac = 0.62, dragging = false, startY = 0, startF = 0;
+
+    function paint(animate){
+      var h = Math.max(0, Math.round(frac * H));
+      sheet.style.transition = animate ? 'height 180ms cubic-bezier(.2,.75,.25,1)' : 'none';
+      scrim.style.transition = animate ? 'opacity 180ms' : 'none';
+      sheet.style.height = h + 'px';
+      var o = frac <= 0 ? 0 : Math.min(0.30 + (frac - 0.30) * 0.38, 0.55);
+      scrim.style.opacity = o;
+      scrim.style.pointerEvents = frac > 0.02 ? 'auto' : 'none';
+      sheet.style.pointerEvents = frac > 0.02 ? 'auto' : 'none';
+    }
+    function open(f){ frac = f; paint(true); }
+    function close(){ frac = 0; paint(true); }
+
+    grab.addEventListener('pointerdown', function(e){
+      e.preventDefault();
+      dragging = true; startY = e.clientY; startF = frac || 0.30;
+      try { grab.setPointerCapture(e.pointerId); } catch(err) {}
+      paint(false);
+    });
+    grab.addEventListener('pointermove', function(e){
+      if (!dragging) return;
+      var dy = e.clientY - startY;
+      frac = Math.min(0.96, Math.max(0.06, startF - dy / H));
+      paint(false);
+    });
+    function release(){
+      if (!dragging) return;
+      dragging = false;
+      if (frac < 0.20) { close(); return; }
+      var best = DET[0];
+      for (var i = 0; i < DET.length; i++) {
+        if (Math.abs(DET[i] - frac) < Math.abs(best - frac)) best = DET[i];
+      }
+      open(best);
+    }
+    grab.addEventListener('pointerup', release);
+    grab.addEventListener('pointercancel', release);
+
+    scrim.addEventListener('click', close);
+    document.getElementById('dA-x').addEventListener('click', close);
+    document.getElementById('dA-open').addEventListener('click', function(){ open(0.62); });
+    document.getElementById('dA-back').addEventListener('click', function(){
+      if (frac > 0.02) { close(); return; }
+      scr.classList.remove('flash');
+      void scr.offsetWidth;
+      scr.classList.add('flash');
+    });
+    document.getElementById('dA-replay').addEventListener('click', function(){
+      close();
+      setTimeout(function(){ open(0.62); }, 260);
+    });
+    paint(false);
+  })();
+
+  // ── DEMO B：面板 ────────────────────────────────────
+  (function(){
+    var scr = document.getElementById('dB');
+    if (!scr) return;
+    var scrim = document.getElementById('dB-scrim');
+    function set(on){ scr.classList.toggle('p-on', on); }
+    document.getElementById('dB-open').addEventListener('click', function(){ set(true); });
+    document.getElementById('dB-x').addEventListener('click', function(){ set(false); });
+    document.getElementById('dB-x2').addEventListener('click', function(){ set(false); });
+    scrim.addEventListener('click', function(){ set(false); });
+    document.getElementById('dB-replay').addEventListener('click', function(){
+      set(false);
+      setTimeout(function(){ set(true); }, 240);
+    });
+    setTimeout(function(){ set(true); }, 60);
+  })();
+})();
+</script>
+</body>
+</html>

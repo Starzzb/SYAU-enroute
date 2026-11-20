@@ -1,0 +1,850 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>m35 纹理底 · 设置分区 · 考试轴</title>
+<style>
+:root{
+  --paper:#F8F5F0; --paper2:#F1ECE3; --card:#FCFAF6;
+  --ink:#2C2C2C; --inkSoft:#4A4A46; --inkFaint:#686660;
+  --rule:#8C8578; --outline:#7E776A;
+  --seal:#8F4A3A; --green:#6B7B6E; --ochre:#A89279; --slate:#697A7C; --sand:#C4B9A8;
+  --tex1:rgba(140,133,120,.072); --tex2:rgba(140,133,120,.042); --texDot:rgba(126,119,106,.14);
+  --tw1:rgba(140,133,120,.055); --tw2:rgba(140,133,120,.032);
+  --stripe:rgba(140,133,120,.15);
+  --pressIn:rgba(44,44,44,.055); --pressOut:rgba(255,255,255,.85);
+  --pressEdgeA:rgba(255,255,255,.9); --pressEdgeB:rgba(44,44,44,.08);
+  --sheen:rgba(255,255,255,.34); --shade:rgba(44,44,44,.05);
+  --navShadow:0 -1px 0 rgba(140,133,120,.25);
+}
+body[data-dark="1"]{
+  --paper:#191713; --paper2:#2B2721; --card:#1F1C17;
+  --ink:#EDE7DA; --inkSoft:#C5BDAD; --inkFaint:#A39A8A;
+  --rule:#7E7668; --outline:#8C8474;
+  --tex1:rgba(237,231,218,.052); --tex2:rgba(237,231,218,.030); --texDot:rgba(237,231,218,.095);
+  --tw1:rgba(237,231,218,.040); --tw2:rgba(237,231,218,.024);
+  --stripe:rgba(237,231,218,.075);
+  --pressIn:rgba(0,0,0,.55); --pressOut:rgba(255,255,255,.045);
+  --pressEdgeA:rgba(255,255,255,.10); --pressEdgeB:rgba(0,0,0,.60);
+  --sheen:rgba(255,255,255,.05); --shade:rgba(0,0,0,.45);
+  --navShadow:0 -1px 0 rgba(237,231,218,.10);
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:#EDEAE4; color:var(--ink);
+  font-family:-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;
+  padding:0 0 60px;
+}
+body[data-dark="1"]{background:#12100D;}
+.toolbar{
+  position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:14px;
+  padding:14px 28px; background:rgba(237,234,228,.94); border-bottom:1px solid rgba(140,133,120,.35);
+  backdrop-filter:blur(8px);
+}
+body[data-dark="1"] .toolbar{background:rgba(18,16,13,.94); border-bottom-color:rgba(237,231,218,.14);}
+.toolbar h1{font-size:15px; font-weight:600; margin:0; letter-spacing:.04em;}
+.toolbar .sp{flex:1;}
+.tbtn{
+  font:inherit; font-size:12px; padding:6px 14px; border-radius:3px; cursor:pointer;
+  border:1px solid var(--outline); background:transparent; color:var(--ink);
+}
+.tbtn.on{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+.wrap{padding:30px 28px 0; max-width:1720px; margin:0 auto;}
+.row{display:flex; gap:26px; flex-wrap:wrap; align-items:flex-start;}
+.col{display:flex; flex-direction:column; gap:10px;}
+.cap{font-size:11px; color:#6E6C66; letter-spacing:.10em; padding-left:2px;}
+body[data-dark="1"] .cap{color:#A39A8A;}
+
+/* ── 手机框 ── */
+.phone{
+  width:392px; height:812px; border-radius:22px; overflow:hidden; position:relative;
+  background:var(--paper); color:var(--ink);
+  box-shadow:0 1px 2px rgba(44,44,44,.12), 0 18px 40px rgba(44,44,44,.10);
+  display:flex; flex-direction:column;
+}
+.status{height:30px; display:flex; align-items:center; justify-content:space-between;
+  padding:0 18px; font-size:10.5px; color:var(--inkFaint); letter-spacing:.06em; flex:none;}
+.body{flex:1; overflow:hidden; position:relative;}
+.body.scroll{overflow-y:auto;}
+.body.scroll::-webkit-scrollbar{width:0;}
+
+/* ── 底栏（与 InkNavBar.kt 一致） ── */
+.navwrap{
+  position:absolute; left:0; right:0; bottom:0; z-index:20;
+  background:var(--card); border-top:1px solid var(--outline);
+  border-radius:16px 16px 0 0; padding:6px 4px 8px;
+  box-shadow:var(--navShadow);
+}
+.navpill{display:flex; width:100%;}
+.navpill .nb{
+  flex:1; height:50px; border:0; background:transparent; border-radius:8px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+  color:var(--inkFaint); cursor:pointer; position:relative; padding:0;
+}
+.navpill .nb.on{background:var(--paper2); color:var(--ink);}
+.navpill .nb.on::after{
+  content:''; position:absolute; bottom:6px; width:3px; height:3px; border-radius:50%;
+  background:var(--seal);
+}
+.navpill .nb svg{width:19px; height:19px; display:block;}
+.navpill .nb span{font-size:9px; letter-spacing:.10em;}
+.navpill .badge{
+  position:absolute; top:6px; right:calc(50% - 22px);
+  background:var(--ink); color:var(--paper); font-size:8px; line-height:1;
+  padding:2px 3px; border-radius:3px; letter-spacing:0;
+}
+
+/* ── 通用文字 ── */
+.h1p{font-size:19px; font-weight:600; letter-spacing:.02em;}
+.sub{font-size:10.5px; color:var(--inkFaint); letter-spacing:.10em;}
+.pad{padding:0 18px;}
+
+/* ══ 纹理三款（纸色化，全部压到极淡） ══ */
+/* 织：斜向菱格编织（lovely-donkey-52 改写） */
+.tex-weave{
+  background-color:var(--card);
+  background-image:
+    linear-gradient(30deg, transparent 45%, var(--tw1) 45%, var(--tw1) 55%, transparent 55%),
+    linear-gradient(150deg, transparent 45%, var(--tw1) 45%, var(--tw1) 55%, transparent 55%),
+    linear-gradient(90deg, var(--tw2) 0 .6%, transparent .6% 99.4%, var(--tw2) 99.4% 100%);
+  background-size:27px 27px, 27px 27px, 100% 100%;
+}
+/* 格：方格 + 交点圆点（brown-badger-26 改写） */
+.tex-grid{
+  background-color:var(--card);
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 23px, var(--tex1) 23px 24px),
+    repeating-linear-gradient(90deg, transparent 0 23px, var(--tex1) 23px 24px),
+    radial-gradient(circle at 24px 24px, var(--texDot) 1.1px, transparent 1.1px);
+  background-size:24px 24px, 24px 24px, 24px 24px;
+}
+/* 十：方格内十字（fluffy-chipmunk-60 改写） */
+.tex-cross{
+  background-color:var(--card);
+  background-image:
+    linear-gradient(0deg, transparent 24%, var(--tex2) 25%, var(--tex2) 26%, transparent 27%,
+                    transparent 74%, var(--tex2) 75%, var(--tex2) 76%, transparent 77%),
+    linear-gradient(90deg, transparent 24%, var(--tex2) 25%, var(--tex2) 26%, transparent 27%,
+                    transparent 74%, var(--tex2) 75%, var(--tex2) 76%, transparent 77%);
+  background-size:30px 30px;
+}
+/* 三款都要的那层「纸面压印」，让纹理不像贴纸 */
+.tex-card{
+  position:relative; border:1px solid var(--outline); border-radius:4px;
+  box-shadow:inset 0 14px 14px -10px var(--pressIn), inset 0 -12px 12px -8px var(--pressOut);
+}
+.tex-card::after{
+  content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background:linear-gradient(160deg, rgba(255,255,255,.42) 0%, transparent 26%, transparent 74%, rgba(44,44,44,.05) 100%);
+}
+body[data-dark="1"] .tex-card::after{
+  background:linear-gradient(160deg, rgba(255,255,255,.05) 0%, transparent 26%, transparent 74%, rgba(0,0,0,.35) 100%);
+}
+
+/* ══ 个人卡（沿用 m34 口径 + 织纹底） ══ */
+.pcard{
+  margin:0 18px; border-radius:14px; padding:0; overflow:hidden; cursor:pointer;
+  background-color:var(--card);
+}
+.pcard .inner{padding:14px 14px 13px;}
+.idrow{display:flex; align-items:center; gap:11px;}
+.avatar{
+  width:46px; height:46px; border-radius:50%; flex:none;
+  border:1.5px solid var(--ink); display:flex; align-items:center; justify-content:center;
+  font-size:17px; font-weight:700; letter-spacing:0;
+  background:var(--card);
+}
+.idmain{flex:1; min-width:0;}
+.idname{font-size:15.5px; font-weight:700; letter-spacing:.08em;}
+.idsub{font-size:10.5px; color:var(--inkFaint); margin-top:3px; letter-spacing:.04em;}
+.idno{font-size:11px; color:var(--inkSoft); font-variant-numeric:tabular-nums; letter-spacing:.04em;}
+.statstrip{display:flex; margin-top:13px; border-top:1px solid var(--rule); padding-top:11px;}
+.statcell{flex:1; text-align:left;}
+.statcell .v{font-size:16px; font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:0;}
+.statcell .v.na{font-size:13px; font-weight:600; color:var(--inkFaint);}
+.statcell .l{font-size:9.5px; color:var(--inkFaint); letter-spacing:.12em; margin-top:3px;}
+.detaillist{margin-top:12px; border-top:1px solid var(--rule);}
+.drow{display:flex; align-items:baseline; padding:9px 0 8px; border-bottom:1px dotted rgba(140,133,120,.55);}
+.drow:last-child{border-bottom:0;}
+.drow .l{font-size:12px; color:var(--inkFaint); flex:1;}
+.drow .v{font-size:12.5px; font-weight:600; font-variant-numeric:tabular-nums;}
+.drow .v.na{color:var(--inkFaint); font-weight:500;}
+.drow .go{font-size:12px; color:var(--inkFaint); margin-left:6px;}
+.fold{
+  position:absolute; top:-1px; right:-1px; width:30px; height:30px;
+  background:var(--paper2); border-left:1px solid var(--outline); border-bottom:1px solid var(--outline);
+  clip-path:polygon(100% 0, 0 0, 100% 100%);
+}
+
+
+/* ══ 个人卡：展开 / 收起 同一套时序的镜像 ══ */
+.pcard{cursor:pointer;}
+.detaillist{
+  overflow:hidden; max-height:0; opacity:0; transform:translateY(10px);
+  transition:
+    max-height 420ms cubic-bezier(.4,0,.2,1),
+    opacity 100ms linear 0ms,
+    transform 100ms linear 0ms;
+}
+.pcard.open .detaillist{
+  max-height:220px; opacity:1; transform:translateY(0);
+  transition:
+    max-height 520ms cubic-bezier(.22,.9,.24,1),
+    opacity 300ms linear 150ms,
+    transform 420ms cubic-bezier(.22,.9,.24,1) 130ms;
+}
+.pcard .fold{opacity:1; transition:opacity 180ms linear 340ms;}
+.pcard.open .fold{opacity:0; transition:opacity 180ms linear 60ms;}
+
+/* ══ 设置页：每个功能分区一个 box ══ */
+.sect{margin:0 16px 0;}
+.sect + .sect{margin-top:0;}
+.secttitle{
+  font-size:9px; color:var(--inkFaint); letter-spacing:.20em; margin:22px 0 8px 2px;
+}
+.sbox{
+  border:1px solid var(--outline); border-radius:4px; background-color:var(--card);
+  overflow:hidden;
+  box-shadow:inset 0 12px 12px -10px var(--pressIn), inset 0 -10px 10px -8px var(--pressOut);
+}
+.srow{
+  display:flex; align-items:center; gap:10px; padding:12px 13px; cursor:pointer;
+  border-bottom:1px solid rgba(140,133,120,.30);
+}
+.srow:last-child{border-bottom:0;}
+.srow .lab{flex:1; font-size:13px;}
+.srow .val{font-size:11.5px; color:var(--inkFaint); letter-spacing:.04em;}
+.srow .chev{font-size:12px; color:var(--inkFaint);}
+/* 分段控件 */
+.seg{display:flex; border:1px solid var(--outline); border-radius:3px; overflow:hidden;}
+.seg b{
+  font-size:10.5px; font-weight:500; padding:4px 9px; letter-spacing:.06em;
+  border-right:1px solid var(--outline); cursor:pointer;
+}
+.seg b:last-child{border-right:0;}
+.seg b.on{background:var(--ink); color:var(--paper);}
+/* 色块行 */
+.swatches{display:flex; gap:7px;}
+.sw{width:22px; height:22px; border-radius:50%; border:1px solid var(--outline);}
+.sw.on{box-shadow:0 0 0 2px var(--paper), 0 0 0 3px var(--ink);}
+.hr{height:1px; background:rgba(140,133,120,.55); margin:22px 16px 0;}
+
+/* ══ 考试页 ══ */
+.toolbar2{display:flex; align-items:center; padding:10px 16px 6px; gap:10px;}
+.toolbar2 .t1{font-size:11px; color:var(--inkSoft); letter-spacing:.06em; flex:1; font-variant-numeric:tabular-nums;}
+.toolbar2 .dots{font-size:15px; color:var(--inkSoft); letter-spacing:1px;}
+
+/* 下一场 box（itchy-firefox-86 改写） */
+.nextup{
+  position:relative; margin:6px 16px 4px 30px; overflow:hidden;
+  border:1px solid var(--ink); border-radius:5px; background:var(--card);
+  padding:11px 13px; display:flex; align-items:center; gap:11px;
+  box-shadow:inset 0 10px 10px -8px var(--pressIn), inset 0 -8px 8px -6px var(--pressOut);
+}
+.nextup .wave{
+  position:absolute; left:0; top:0; bottom:0; width:58px; height:100%;
+  fill:var(--ink); opacity:.22; pointer-events:none;
+}
+body[data-dark="1"] .nextup .wave{opacity:.10;}
+.nextup .ic{
+  width:34px; height:34px; border-radius:50%; flex:none; position:relative;
+  background:var(--paper2); border:1px solid var(--outline);
+  display:flex; align-items:center; justify-content:center;
+}
+.nextup .ic svg{width:16px; height:16px;}
+.nextup .txt{flex:1; min-width:0; position:relative;}
+.nextup .m1{font-size:14.5px; font-weight:700; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.nextup .m2{font-size:11px; color:var(--inkSoft); margin-top:3px; font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.nextup .days{
+  position:relative; flex:none; text-align:right; padding-left:6px;
+  border-left:1px solid var(--rule); padding-right:2px;
+}
+.nextup .days .n{font-size:19px; font-weight:700; line-height:1; font-variant-numeric:tabular-nums;}
+.nextup .days .u{font-size:9px; color:var(--inkFaint); letter-spacing:.14em; margin-top:3px;}
+
+/* 时间轴：节点圆心的 x 恒等于 24dp、y 恒等于日期行中线 —— gap 只加顶部留白，不动横坐标 */
+.axiswrap{position:relative; margin-top:2px;}
+.axiswrap::before{
+  content:''; position:absolute; left:24px; top:32px; bottom:0; width:1px;
+  background:linear-gradient(to bottom, var(--outline) 0%, var(--outline) 78%, transparent 100%);
+  opacity:.5;
+}
+.axrow{position:relative; padding-left:52px; padding-right:16px;}
+.axrow.past{opacity:.55;}
+.axrow .axgap{height:24px;}
+.axrow .datel{
+  position:relative; height:16px; display:flex; align-items:center;
+  font-size:10.5px; color:var(--inkFaint); font-variant-numeric:tabular-nums; letter-spacing:.04em;
+}
+.axrow.next .datel{color:var(--ink); font-weight:600;}
+.axrow .node{
+  position:absolute; left:-28px; top:50%; width:9px; height:9px; border-radius:50%;
+  transform:translate(-50%,-50%);
+  background:var(--paper); border:1.5px solid var(--outline);
+}
+.axrow.next .node{
+  width:11px; height:11px; background:var(--ink); border-color:var(--ink);
+  box-shadow:0 0 0 3px var(--paper), 0 0 0 4px var(--outline);
+}
+.axrow .gap{height:8px;}
+.axrow .tail{height:12px;}
+
+/* 考试卡（rare-fox-73 改写：竖条纹 + 双层描边 + 对角光泽） */
+.excard{
+  position:relative; overflow:hidden; border-radius:4px;
+  border:1px solid var(--outline); background-color:var(--card);
+  background-image:linear-gradient(to right, var(--stripe) 0 1px, transparent 1px);
+  background-size:4px 100%;
+  box-shadow:inset 0 0 0 1px var(--pressEdgeA), inset 0 -1px 0 var(--pressEdgeB);
+  padding:10px 12px 11px;
+}
+.excard::after{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(115deg, var(--shade) 12%, transparent 27%, var(--sheen) 31%, transparent 46%, var(--shade) 62%, transparent 78%);
+  opacity:.55;
+}
+.excard.next{border-color:var(--ink); border-width:1.5px;}
+.excard .meta{display:flex; align-items:flex-start; gap:8px; position:relative;}
+.excard .tag{
+  font-size:8px; letter-spacing:.22em; color:var(--inkFaint); padding-top:2px; flex:none;
+}
+.excard .nm{font-size:14px; font-weight:700; line-height:1.35; flex:1; letter-spacing:.01em;}
+.excard .cd{font-size:11px; font-variant-numeric:tabular-nums; color:var(--inkSoft); flex:none; padding-top:2px;}
+.excard .line2{
+  font-size:11.5px; color:var(--inkSoft); margin-top:5px; font-variant-numeric:tabular-nums;
+  position:relative; letter-spacing:.02em;
+}
+.excard .line3{font-size:11px; color:var(--inkSoft); margin-top:3px; position:relative;}
+.excard .bottom{
+  display:flex; align-items:flex-end; justify-content:space-between; margin-top:8px;
+  position:relative; border-top:1px solid rgba(140,133,120,.35); padding-top:6px;
+}
+.excard .seat{font-size:10.5px; color:var(--inkFaint); font-variant-numeric:tabular-nums; letter-spacing:.06em;}
+.excard .rings{display:flex; gap:3px;}
+.excard .rings i{
+  width:13px; height:13px; border-radius:50%; border:1px solid var(--outline);
+  background:radial-gradient(circle at 35% 30%, var(--pressEdgeA), transparent 60%);
+}
+.excard .ghost{
+  position:absolute; right:10px; bottom:16px; font-size:26px; font-weight:700;
+  color:var(--ink); opacity:.045; letter-spacing:-.02em; pointer-events:none;
+}
+
+/* ══ 资讯列表：底部模糊灰度分割 ══ */
+.feeditem{position:relative; padding:14px 18px 0;}
+.feeditem .src{font-size:9.5px; color:var(--inkFaint); letter-spacing:.14em;}
+.feeditem .ttl{font-size:14.5px; font-weight:600; line-height:1.45; margin-top:6px;}
+.feeditem .abs{
+  font-size:11.5px; line-height:1.7; color:var(--inkSoft); margin-top:5px; height:40px; overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom, #000 64%, rgba(0,0,0,.34) 90%, transparent 100%);
+  mask-image:linear-gradient(to bottom, #000 64%, rgba(0,0,0,.34) 90%, transparent 100%);
+}
+.feeditem .metaline{
+  display:flex; align-items:center; gap:8px; margin-top:7px; font-size:9.5px; color:var(--inkFaint);
+  letter-spacing:.06em;
+}
+.feeditem .cut{
+  height:24px; margin-top:2px; position:relative;
+  background:linear-gradient(to bottom, rgba(248,245,240,0), var(--paper) 70%);
+}
+body[data-dark="1"] .feeditem .cut{background:linear-gradient(to bottom, rgba(25,23,19,0), var(--paper) 70%);}
+.feeditem .cut::after{
+  content:''; position:absolute; left:0; right:0; bottom:0; height:1px;
+  background:rgba(140,133,120,.85);
+}
+
+/* ══ 资讯详情：十字纹底 ══ */
+.artcard{margin:0 18px; border-radius:6px; padding:16px 15px 18px;}
+.artcard .kicker{font-size:9px; letter-spacing:.20em; color:var(--inkFaint);}
+.artcard h2{font-size:17px; line-height:1.5; margin:8px 0 0; font-weight:700; letter-spacing:.01em;}
+.artcard .byline{font-size:10px; color:var(--inkFaint); margin-top:9px; letter-spacing:.06em;}
+.artcard .divider{height:1px; background:var(--rule); opacity:.6; margin:13px 0;}
+.artcard p{font-size:12.5px; line-height:1.92; margin:0 0 12px; color:var(--inkSoft);}
+.artcard p b{color:var(--ink); font-weight:600;}
+
+/* ══ 规格区 ══ */
+.specs{margin:56px 0 0;}
+.specs h2{font-size:14px; letter-spacing:.16em; color:#4A4A46; font-weight:600; margin:0 0 14px;}
+body[data-dark="1"] .specs h2{color:#C5BDAD;}
+.grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+.panel{
+  background:#FBFAF7; border:1px solid rgba(140,133,120,.45); border-radius:4px; padding:16px 17px;
+  font-size:11.5px; line-height:1.85; color:#3C3A36;
+}
+body[data-dark="1"] .panel{background:#1F1C17; border-color:rgba(237,231,218,.18); color:#C5BDAD;}
+.panel h3{font-size:11px; letter-spacing:.18em; margin:0 0 10px; color:#2C2C2C; font-weight:700;}
+body[data-dark="1"] .panel h3{color:#EDE7DA;}
+.panel code{
+  font-family:"Cascadia Mono",Consolas,monospace; font-size:10.5px;
+  background:rgba(140,133,120,.14); padding:1px 4px; border-radius:2px;
+}
+
+/* 时序条 */
+.tl{margin-top:4px;}
+.tlrow{display:flex; align-items:center; gap:10px; margin:7px 0;}
+.tlrow .nm{width:74px; font-size:10px; letter-spacing:.10em; color:var(--inkFaint); flex:none;}
+.tlbar{position:relative; flex:1; height:16px;}
+.tlbar i{
+  position:absolute; top:4px; height:8px; border-radius:2px;
+  background:var(--ink); opacity:.72;
+}
+.tlbar i.soft{opacity:.30;}
+.tlbar .tick{position:absolute; top:0; bottom:0; width:1px; background:var(--rule);}
+.tlscale{display:flex; justify-content:space-between; font-size:9px; color:var(--inkFaint); margin-left:84px; margin-top:2px; letter-spacing:.06em;}
+.panel ul{margin:6px 0 0; padding-left:16px;}
+.panel li{margin:3px 0;}
+.panel .k{color:#8F4A3A; font-weight:600;}
+table.t{width:100%; border-collapse:collapse; font-size:11px;}
+table.t th,table.t td{text-align:left; padding:5px 6px; border-bottom:1px solid rgba(140,133,120,.3); vertical-align:top;}
+table.t th{font-weight:600; color:#6E6C66; letter-spacing:.08em; font-size:10px;}
+</style>
+</head>
+<body>
+<div class="toolbar">
+  <h1>m35 · 纹理底 / 设置分区 / 考试轴</h1>
+  <div class="sp"></div>
+  <button class="tbtn on" id="light" onclick="setLight()">宣纸</button>
+  <button class="tbtn" id="dark" onclick="setDark()">夜墨</button>
+    <button class="tbtn" id="replay" onclick="replayCard()">展开 ↕ 收起</button>
+</div>
+
+<div class="wrap">
+  <div class="cap" style="margin-bottom:12px">第一排 · 五块改动落在哪</div>
+  <div class="row">
+
+    <!-- ① 我的：个人卡用织纹底 -->
+    <div class="col">
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="body">
+          <div class="pad" style="padding-top:12px; padding-bottom:14px;">
+            <div class="h1p">我的</div>
+            <div class="sub" style="margin-top:3px">2024-2025 学年 第一学期</div>
+          </div>
+
+          <div class="pcard tex-card" id="pcard" style="position:relative">
+            <div class="fold"></div>
+            <div class="inner">
+              <div class="idrow">
+                <div class="avatar">张</div>
+                <div class="idmain">
+                  <div class="idname">张三</div>
+                  <div class="idsub">土地与环境学院 · 农业资源与环境</div>
+                </div>
+                <div class="idno">2024000000</div>
+              </div>
+              <div class="statstrip">
+                <div class="statcell"><div class="v">3.37</div><div class="l">加权绩点</div></div>
+                <div class="statcell"><div class="v">106</div><div class="l">已修学分</div></div>
+                <div class="statcell"><div class="v na">暂缺</div><div class="l">排名</div></div>
+              </div>
+              <div class="detaillist">
+                <div class="detaillist-in" style="margin-top:12px;border-top:1px solid var(--rule);padding-bottom:12px">
+                  <div class="drow"><div class="l">加权绩点</div><div class="v">3.37</div><div class="go">›</div></div>
+                  <div class="drow"><div class="l">已修学分</div><div class="v">106</div><div class="go">›</div></div>
+                  <div class="drow"><div class="l">专业排名</div><div class="v na">暂缺</div><div class="go">›</div></div>
+                  <div class="drow"><div class="l">培养方案</div><div class="v">2023 版</div><div class="go">›</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="secttitle" style="margin-left:20px">教务</div>
+          <div style="margin:0 18px">
+            <div class="sbox tex-grid tex-card" style="padding:0">
+              <div class="srow"><div class="lab">成绩查询</div><div class="val">6 个学期</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab">考试安排</div><div class="val">4 场待考</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab">培养方案</div><div class="val">2023 版</div><div class="chev">›</div></div>
+            </div>
+          </div>
+
+          <div class="secttitle" style="margin-left:20px">校园</div>
+          <div style="margin:0 18px">
+            <div class="sbox tex-cross tex-card">
+              <div class="srow"><div class="lab">校历</div><div class="val">第 11 周</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab">空闲教室</div><div class="val">—</div><div class="chev">›</div></div>
+            </div>
+          </div>
+
+          <div class="secttitle" style="margin-left:20px">收藏与历史</div>
+          <div style="margin:0 18px">
+            <div class="sbox tex-weave tex-card">
+              <div class="srow"><div class="lab">收藏的资讯</div><div class="val">12 条</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab">历史课表</div><div class="val">3 个学期</div><div class="chev">›</div></div>
+            </div>
+          </div>
+
+          <div class="navwrap">
+            <div class="navpill">
+              <button class="nb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>今日</span></button>
+              <button class="nb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>资讯</span><i class="badge">99+</i></button>
+              <button class="nb on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/></svg><span>我的</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">① 我的 · 身份卡纯净无纹，纹理只给功能盒</div>
+    </div>
+
+    <!-- ② 设置页：分区分 box -->
+    <div class="col">
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="body scroll" style="padding-bottom:20px">
+          <div class="pad" style="padding-top:12px; display:flex; align-items:center; gap:10px;">
+            <div style="font-size:16px; color:var(--inkSoft)">‹</div>
+            <div class="h1p" style="flex:1">设置</div>
+          </div>
+
+          <div class="sect">
+            <div class="secttitle">外观</div>
+            <div class="sbox">
+              <div class="srow"><div class="lab">明暗</div>
+                <div class="seg"><b class="on">跟随</b><b>浅色</b><b>深色</b></div>
+              </div>
+              <div class="srow"><div class="lab">主色</div>
+                <div class="swatches">
+                  <i class="sw on" style="background:#2C2C2C"></i>
+                  <i class="sw" style="background:#6B7B6E"></i>
+                  <i class="sw" style="background:#A89279"></i>
+                  <i class="sw" style="background:#697A7C"></i>
+                  <i class="sw" style="background:#8F4A3A"></i>
+                </div>
+              </div>
+              <div class="srow"><div class="lab">纸张纹理</div><div class="val">织 · 适中</div><div class="chev">›</div></div>
+            </div>
+          </div>
+
+          <div class="sect">
+            <div class="secttitle">提醒</div>
+            <div class="sbox">
+              <div class="srow"><div class="lab">上课提醒</div><div class="val">提前 10 分钟</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab">考试提醒</div><div class="val">提前 1 天</div><div class="chev">›</div></div>
+            </div>
+          </div>
+
+          <div class="sect">
+            <div class="secttitle">数据</div>
+            <div class="sbox">
+              <div class="srow"><div class="lab">只清空课表</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab">保持登录</div><div class="val">已开</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab">清除密码</div><div class="chev">›</div></div>
+              <div class="srow"><div class="lab" style="color:var(--seal)">清除所有数据</div><div class="chev">›</div></div>
+            </div>
+          </div>
+
+          <div class="sect">
+            <div class="secttitle">关于</div>
+            <div class="sbox">
+              <div class="srow"><div class="lab">版本</div><div class="val">0.8.3+m35</div></div>
+              <div class="srow"><div class="lab">调试</div><div class="chev">›</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">② 设置 · 一区一 box，区间 <strong>22dp + 细线</strong>，box 内行间 1 线</div>
+    </div>
+
+    <!-- ③ 考试安排 -->
+    <div class="col">
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="body">
+          <div class="toolbar2">
+            <div class="t1">12 场 · 下一场 11-22 · 4 天后</div>
+            <div class="dots">⋯</div>
+          </div>
+
+          <div class="nextup">
+            <svg class="wave" viewBox="0 0 70 200" preserveAspectRatio="none">
+              <path d="M0,0 L30,0 C42,22 16,44 28,66 C40,88 16,110 28,132 C40,154 16,176 28,198 L0,198 Z"/>
+            </svg>
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8.4"/><path d="M12 7.6v4.8l3.2 2"/></svg></div>
+            <div class="txt">
+              <div class="m1">高等数学（下）</div>
+              <div class="m2">11-22 周六 09:00-11:00 · 二教 305</div>
+            </div>
+            <div class="days"><div class="n">4</div><div class="u">天后</div></div>
+          </div>
+
+          <div class="axiswrap">
+            <div class="axrow past">
+              <div class="axgap"></div>
+              <div class="datel"><i class="node"></i><span>11-08 周五</span></div>
+              <div class="gap"></div>
+              <div class="excard">
+                <div class="nm">大学物理（上）</div>
+                <div class="line2">11-08 14:00-16:00 · 120 分钟</div>
+                <div class="line3">一教 201</div>
+                <div class="bottom"><div class="seat">已考完 · 座位 12</div></div>
+              </div>
+              <div class="tail"></div>
+            </div>
+
+            <div class="axrow next">
+              <div class="axgap"></div>
+              <div class="datel"><i class="node"></i><span>11-22 周六</span></div>
+              <div class="gap"></div>
+              <div class="excard next">
+                <div class="meta">
+                  <div class="nm">高等数学（下）</div>
+                  <div class="cd">4 天后</div>
+                </div>
+                <div class="line2">11-22 09:00-11:00 · 120 分钟</div>
+                <div class="line3">二教 305</div>
+                <div class="bottom"><div class="seat">EXAM · 座位 18</div>
+                  <div class="rings"><i></i><i></i></div>
+                </div>
+                <div class="ghost">04</div>
+              </div>
+              <div class="tail"></div>
+            </div>
+
+            <div class="axrow">
+              <div class="axgap"></div>
+              <div class="datel"><i class="node"></i><span>11-25 周二</span></div>
+              <div class="gap"></div>
+              <div class="excard">
+                <div class="meta"><div class="nm">土壤学</div><div class="cd">7 天后</div></div>
+                <div class="line2">11-25 15:00-16:40 · 100 分钟</div>
+                <div class="line3">三教 108</div>
+                <div class="bottom"><div class="seat">EXAM · 座位 04</div><div class="rings"><i></i></div></div>
+              </div>
+              <div class="tail"></div>
+            </div>
+
+            <div class="axrow">
+              <div class="axgap"></div>
+              <div class="datel" style="color:var(--inkFaint); opacity:.6"><i class="node" style="border-style:dashed"></i><span>11-30 周日</span></div>
+              <div class="gap"></div>
+              <div class="excard" style="opacity:.75">
+                <div class="meta"><div class="nm">植物营养学</div><div class="cd">12 天后</div></div>
+                <div class="line2">11-30 09:00-10:40 · 100 分钟</div>
+                <div class="line3">二教 210</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="navwrap">
+            <div class="navpill">
+              <button class="nb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>今日</span></button>
+              <button class="nb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>资讯</span></button>
+              <button class="nb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/></svg><span>我的</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">③ 考试 · 下一场波条 + 一条连续轴（已结束也不分区）</div>
+    </div>
+
+    <!-- ④ 资讯列表 -->
+    <div class="col">
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="body">
+          <div class="pad" style="padding-top:12px;">
+            <div class="h1p">资讯</div>
+          </div>
+
+          <div class="feeditem">
+            <div class="src">教务处 · 2 小时前</div>
+            <div class="ttl">关于开展 2025 版本科课程教学大纲修订工作的通知</div>
+            <div class="abs">各教学单位：为落实新一轮培养方案修订成果，学校决定开展 2025 版本科课程教学大纲修订工作。现将有关要求通知如下，请各学院按照时间节点组织课程负责人完成撰写与审定，逾期未提交的课程将纳入下一轮整改名单，并影响本年度教学工作量核算。</div>
+            <div class="metaline"><span>阅读 1284</span><span>·</span><span>通知</span></div>
+            <div class="cut"></div>
+          </div>
+
+          <div class="feeditem">
+            <div class="src">研究生院 · 昨天</div>
+            <div class="ttl">2026 年硕士研究生招生考试自命题科目参考书目调整说明</div>
+            <div class="abs">根据学科发展需要，对部分自命题科目参考书目作如下调整：农业资源与环境专业《土壤学》新增一本参考书；植物保护专业《普通昆虫学》版本更新为第三版。请考生按调整后的书目备考。</div>
+            <div class="metaline"><span>阅读 903</span><span>·</span><span>招生</span></div>
+            <div class="cut"></div>
+          </div>
+
+          <div class="feeditem">
+            <div class="src">土地与环境学院 · 3 天前</div>
+            <div class="ttl">学院举办 2025 年青年教师教学基本功大赛院级选拔</div>
+            <div class="abs">为提升青年教师教学能力，学院于 11 月 18 日在三教 305 举办院级选拔赛，共有 12 名教师参赛。比赛分为教学设计、课堂展示和教学反思三个环节，评委由学院教学指导委员会成员担任。</div>
+            <div class="metaline"><span>阅读 402</span><span>·</span><span>教学</span></div>
+            <div class="cut"></div>
+          </div>
+
+          <div class="navwrap">
+            <div class="navpill">
+              <button class="nb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>今日</span></button>
+              <button class="nb on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="1"/><path d="M8 9h8M8 13h8M8 17h5"/></svg><span>资讯</span></button>
+              <button class="nb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c0-3.6 3.4-6 7.5-6s7.5 2.4 7.5 6"/></svg><span>我的</span></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="cap">④ 资讯 · 摘要底部灰度渐隐 + 一道渐细分割线</div>
+    </div>
+
+    <!-- ⑤ 资讯详情 -->
+    <div class="col">
+      <div class="phone">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="body scroll">
+          <div style="padding:12px 18px 14px; display:flex; align-items:center; gap:10px;">
+            <div style="font-size:16px; color:var(--inkSoft)">‹</div>
+            <div class="sub" style="flex:1">教务处</div>
+            <div style="font-size:13px; color:var(--inkFaint)">☆</div>
+          </div>
+
+          <div class="artcard tex-cross tex-card">
+            <div class="kicker">通知 · 教务</div>
+            <h2>关于开展 2025 版本科课程教学大纲修订工作的通知</h2>
+            <div class="byline">2026-03-18 · 阅读 1284</div>
+            <div class="divider"></div>
+            <p>各教学单位：</p>
+            <p>为落实新一轮培养方案修订成果，学校决定开展 <b>2025 版本科课程教学大纲</b>修订工作。现将有关要求通知如下。</p>
+            <p>一、修订范围。本次修订覆盖全部本科专业的所有必修课程与限选课程，选修课程由学院根据实际情况自行确定。</p>
+            <p>二、时间安排。各学院于 4 月 15 日前完成初稿，4 月 30 日前完成学院审定并报送教务处。</p>
+            <p>三、提交方式。通过审定的教学大纲由课程负责人录入综合教务系统，正式生效并交付使用。</p>
+          </div>
+
+          <div style="height:18px"></div>
+        </div>
+      </div>
+      <div class="cap">⑤ 资讯详情 · 正文卡用<strong>十</strong>字纹底（不压字）</div>
+    </div>
+
+  </div>
+
+  <!-- 纹理样张 -->
+  <div class="cap" style="margin:36px 0 12px">第二排 · 三款纹理的放大样张（真实密度，非放大）</div>
+  <div class="row">
+    <div class="col">
+      <div style="width:392px; height:150px; border-radius:4px" class="tex-weave tex-card"></div>
+      <div class="cap">织 · 27px 菱格 · 双层斜线 + 竖向导引</div>
+    </div>
+    <div class="col">
+      <div style="width:392px; height:150px; border-radius:4px" class="tex-grid tex-card"></div>
+      <div class="cap">格 · 24px 方格 + 交点圆点</div>
+    </div>
+    <div class="col">
+      <div style="width:392px; height:150px; border-radius:4px" class="tex-cross tex-card"></div>
+      <div class="cap">十 · 30px 方格内十字（密度最低，最适合正文）</div>
+    </div>
+    <div class="col">
+      <div style="width:392px; height:150px; border-radius:4px" class="tex-grid tex-card" id="texprobe"></div>
+      <div class="cap">对照 · 文字叠在纹理上仍要 ≥4.5:1</div>
+    </div>
+  </div>
+
+  <!-- 规格 -->
+  <div class="specs">
+    <div class="grid">
+      <div class="panel">
+        <h3>三款纹理 · 从参考里取了什么</h3>
+        <ul>
+          <li><span class="k">织</span>（lovely-donkey-52）：取「斜向双层编织 + 竖向导引」的骨架，把 #282828/#2c3539 双色块**降成两道 1px 线**，密度 27px。参考里是实心六边形，实心纹在纸底上会变成一块灰色噪声。</li>
+          <li><span class="k">格</span>（brown-badger-26）：原样取 24px 方格 + 交点圆点，线宽 1px、透明度从 .08 提到 .16（纸底浅，太淡就看不见）。</li>
+          <li><span class="k">十</span>（fluffy-chipmunk-60）：取「每格 1/4 与 3/4 处画线」的十字逻辑，格子从 55px 压到 30px —— 55px 在 392dp 屏上只出现 7 个格，看不出是纹。</li>
+          <li>三款共用一层 <code>tex-card</code>：1px outline + 上暗下亮压印 + 160° 对角微光，让纹理「贴」在纸上而不是印在纸上。</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>纹理的硬约束</h3>
+        <ul>
+          <li>全部用 <code>var(--tex1/--tex2/--texDot)</code>，亮档 ink 系 9%–16%，暗档 3.5%–6.5%。<b>不超过 18%</b>，否则正文开始发灰。</li>
+          <li>纹理只出现在<b>卡片内部</b>，页面底色永远干净 —— 满屏纹理等于没有纹理。</li>
+          <li>一张卡只用一款。<b>个人身份卡不铺纹理</b>（它已经有压印 + 折角，再压纹只会脏）；教务盒=格、校园盒=十、收藏盒=织、资讯正文=十。</li>
+          <li>正文卡（资讯详情）必须用 <code>十</code>：30px 格 + 3.5% 透明度，段落行距 1.92 时纹线落在行间。</li>
+          <li>Compose 落点：新建 <code>ui/kit/PaperTexture.kt</code>，<code>enum PaperTex { WEAVE, GRID, CROSS }</code> + <code>Modifier.paperTexture(tex, dark)</code>，内部走 <code>drawBehind</code> 画线（一格 4 条 drawLine，一屏约 180 次，缓存 Path 后与纯色底同价）。</li>
+        </ul>
+      </div>
+
+
+      <div class="panel">
+        <h3>设置页分区</h3>
+        <ul>
+          <li>结构：<code>secttitle</code>(9sp / inkFaint / 字距 .20em / 上距 22dp) → <code>sbox</code>(1px outline / 4dp 圆角 / 上暗下亮压印) → 行间 1px 线。</li>
+          <li>区间隔：<b>22dp</b> 空白 + 无横线（横线在 box 内部）。原来用横线分段，是因为没有 box；现在 box 本身就是分隔。</li>
+          <li>行的右侧统一「值 + ›」两段式：值 11.5sp inkFaint，箭头 12sp。分段控件（明暗三档）直接嵌在行里，不另起一行。</li>
+          <li>危险项（清除所有数据）只改字色为 <code>--seal</code>，不加图标不加说明句。</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>考试卡 · rare-fox-73 取用</h3>
+        <table class="t">
+          <tr><th>参考元素</th><th>改成</th></tr>
+          <tr><td>竖向 4px 条纹底</td><td>保留：<code>linear-gradient(to right, rule@15% 0 1px, transparent 1px)</code> / <code>size 4px 100%</code></td></tr>
+          <tr><td>.border 115° 黑白斜带</td><td>压到 opacity .55 的 <code>shade/sheen</code> 斜带，只做光泽不做边框</td></tr>
+          <tr><td>双层描边 <code>-1px -1px 0 #ddd</code></td><td><code>inset 0 0 0 1px 白@90%</code>+<code>inset 0 -1px 0 墨@8%</code>（左上受光、右下压暗）</td></tr>
+          <tr><td>.rev 品牌名</td><td>左上 8sp <code>EXAM</code> 字距 .22em（标签位）</td></tr>
+          <tr><td>.ultra-text</td><td>右上倒计时 11sp tabular</td></tr>
+          <tr><td>.chip 芯片</td><td>不取（无处安放，且会与座位号抢位置）</td></tr>
+          <tr><td>.master 双圆</td><td>右下两个 13dp 墨环 —— <b>只作版式配重</b>，不承载数据</td></tr>
+          <tr><td>:hover 3D 倾斜</td><td>改按下 <code>scale .992</code>（触屏没有 hover）</td></tr>
+        </table>
+      </div>
+
+      <div class="panel">
+        <h3>资讯 · 底部灰度分割</h3>
+        <ul>
+          <li>摘要文字底部套 <code>mask-image: linear-gradient(to bottom, #000 46%, rgba(0,0,0,.12) 88%, transparent)</code> —— 字是被<b>吃掉</b>的，不是被盖住的，所以滚动时不会有色块跳动。</li>
+          <li>摘要下面 26dp 的 <code>.cut</code>：透明 → paper 62% 的竖直渐变。</li>
+          <li>分割线：96dp 内 1px <code>rule@55%</code>，两端各 18% 渐隐到透明 —— 线只在中段存在，像纸上的一道压痕。</li>
+          <li>Compose：<code>Modifier.drawWithContent</code> 里 <code>drawContent()</code> 后用 <code>drawRect(Brush.verticalGradient(Transparent → paper))</code>；文字遮罩用 <code>BlendMode.DstIn</code> 叠一层同向渐变。</li>
+        </ul>
+      </div>
+
+      <div class="panel">
+        <h3>考试轴 · 对齐与「不隔离」</h3>
+        <ul>
+          <li><b>一条轴走到底</b>：去掉 <code>ExamBucket.PAST</code> 的分组头与折叠，已考完的按时间正序留在原位，整卡 <code>alpha .55</code>（现在也这样）。轴不再被 Header 打断。</li>
+          <li>轴仍然按<b>行内</b>画（每行画自己那一段），因为 Lazy 行高不定；连续性靠「行顶 0 → 行底 height」无缝拼接，与现在一致。</li>
+          <li>节点圆心恒等于 <code>gap + DateLine/2</code>，与日期行中线重合；<b>gap 只影响行顶留白，不影响 x</b>，所以横向永不偏移。</li>
+          <li>「可以自由移动」：进页面时 <code>rememberLazyListState(initialFirstVisibleItemIndex = 下一场所在行)</code> —— 首屏直接停在下一场，往上滑是已经考完的，往下滑是更远的。</li>
+          <li>今天/本周/更远的 Header 也去掉：只剩一条轴 + 「现在」三角。当天的卡用 <code>1.5px</code> 墨边 + 呼吸光晕区分。</li>
+        </ul>
+      </div>
+      <div class="panel" style="grid-column:1 / -1;">
+        <h3>个人卡 · 展开与收起是一套时序的镜像</h3>
+        <table class="t">
+          <tr><th>段</th><th>展开</th><th>收起</th></tr>
+          <tr><td>卡片高度</td><td>0 → 520ms，<code>cubic-bezier(.22,.9,.24,1)</code>，末端略微过冲</td><td>100 → 520ms，<code>cubic-bezier(.4,0,.2,1)</code>，加速、无过冲</td></tr>
+          <tr><td>明细文字</td><td>150 → 450ms 淡入，同时 +10dp → 0 归位（130ms 起 420ms）</td><td>0 → 100ms 淡出并退回 +10dp，退净即离场</td></tr>
+          <tr><td>右上折角</td><td>60 → 240ms 淡出</td><td>340 → 520ms 浮现</td></tr>
+          <tr><td>总时长</td><td><b>520ms</b></td><td><b>520ms</b></td></tr>
+        </table>
+        <ul style="margin-top:12px">
+          <li><b>展开</b>：纸先长 —— <code>animateContentSize</code> 520ms、<code>cubic-bezier(.22,.9,.24,1)</code> 带一点过冲；明细延迟 <b>150ms</b> 起淡入 300ms，同时从 +10dp 上移归位（130ms 起 420ms）。折角 60ms 后 180ms 退出。</li>
+          <li><b>收起</b>：字先退 —— 明细 <b>100ms</b> 内淡出并退回 +10dp（不留残余）；纸再 420ms 收拢，曲线换成 <code>cubic-bezier(.4,0,.2,1)</code>（加速、无过冲，一口气收干净）；折角等纸收到 <b>340ms</b> 才用 180ms 浮现，不在收拢中途闪。</li>
+          <li>两侧总时长都落在 <b>520ms</b>，来回节奏一致。收起时先让字退净、再收纸，两段各管一段、互不重叠 —— 这就是「干净」的来源。</li>
+          <li>点一下卡片看：卡面高度变化全程无跳帧，收起结束时不留半行字、不留空隙。</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function setLight(){document.body.removeAttribute('data-dark');document.getElementById('light').classList.add('on');document.getElementById('dark').classList.remove('on');}
+function setDark(){document.body.setAttribute('data-dark','1');document.getElementById('dark').classList.add('on');document.getElementById('light').classList.remove('on');}
+</script>
+
+<script>
+function replayCard(){
+  var pc = document.getElementById('pcard');
+  if(!pc) return;
+  pc.classList.add('open');
+  setTimeout(function(){ pc.classList.remove('open'); }, 1500);
+}
+document.addEventListener('DOMContentLoaded', function(){
+  var pc = document.getElementById('pcard');
+  if(pc) pc.addEventListener('click', function(e){
+    if(e.target.closest('.drow')) return;
+    pc.classList.toggle('open');
+  });
+});
+</script>
+</body>
+</html>

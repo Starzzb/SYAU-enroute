@@ -32,6 +32,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import cn.dkarbon.enroute.ui.kit.AnchoredCardOverlay
+import cn.dkarbon.enroute.ui.kit.backdropBlur
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +50,7 @@ import cn.dkarbon.enroute.ui.academic.ScoreScreen
 import cn.dkarbon.enroute.ui.debug.DebugScreen
 import cn.dkarbon.enroute.ui.home.HomeFootNote
 import cn.dkarbon.enroute.ui.home.HomeModel
+import cn.dkarbon.enroute.ui.kit.PaperTex
 import cn.dkarbon.enroute.ui.ledger.LedgerHeader
 import cn.dkarbon.enroute.ui.settings.SettingsScreen
 import cn.dkarbon.enroute.ui.theme.InkTokens
@@ -95,6 +99,8 @@ fun UserScreen(
     vm: TimetableViewModel,
     openSettingsForUpdate: Boolean = false,
     onOpenSettingsForUpdateConsumed: () -> Unit = {},
+    // 考试详情交根节点渲染（m36）：这里只上报「要开哪一场」
+    onOpenExamDetail: (cn.dkarbon.enroute.data.ExamItem, Boolean) -> Unit = { _, _ -> },
 ) {
     // A6：用 rememberSaveable 保住子页栈 —— 切到资讯再回来，仍停在原页面（返回键行为不变）
     val stack = androidx.compose.runtime.saveable.rememberSaveable(
@@ -144,7 +150,7 @@ fun UserScreen(
                     onOpenAbout = { stack.add(UserPage.About) },
                     onOpenLogin = { stack.add(UserPage.Login) },
                 )
-                UserPage.Exam -> ExamScreen(ui = ui, vm = vm)
+                UserPage.Exam -> ExamScreen(ui = ui, vm = vm, onOpenDetail = onOpenExamDetail)
                 UserPage.Score -> ScoreScreen(ui = ui, vm = vm)
                 UserPage.Curriculum -> cn.dkarbon.enroute.ui.curriculum.CurriculumScreen(ui = ui, vm = vm)
                 UserPage.Syllabus -> cn.dkarbon.enroute.ui.curriculum.SyllabusSearchScreen(ui = ui, vm = vm)
@@ -232,6 +238,8 @@ private fun UserRoot(
     val cal = remember { TermCalendar(ctx.applicationContext) }
     val week = remember(ui.timetable) { cal.currentWeek() }
     var headerMenu by remember { mutableStateOf(false) }
+    // ⋯ 按钮的位置：锚定卡片据此定位（形态 C）
+    var moreAnchor by remember { mutableStateOf<Rect?>(null) }
     // 身份卡展开态（票 28）：rememberSaveable 记住 —— 切到资讯再回来，展开/收起不丢
     var identityExpanded by rememberSaveable { mutableStateOf(false) }
 
@@ -259,7 +267,7 @@ private fun UserRoot(
     val freeRoomsValue = MyPageModel.freeRoomsTile(ui.roomsSession, ui.freeRooms.roomCount)
 
     Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize()) {
+        Column(Modifier.fillMaxSize().backdropBlur(headerMenu)) {
             LedgerHeader(
                 title = "我的",
                 status = headerStatus,
@@ -267,6 +275,7 @@ private fun UserRoot(
                 onSearch = null,
                 // 原顶条的「刷新 / 设置」收进 ⋯ 菜单，入口不丢
                 onMore = { headerMenu = true },
+                onMoreAnchor = { moreAnchor = it },
             )
             // 页顶一行：这些数字是几时取的。命中缓存直读时不打网络，必须标出年龄。
             // 只用这一行——曾经页顶写「数据取自 08:50」、卡下再写「更新于 27 分钟前」，
@@ -341,6 +350,7 @@ private fun UserRoot(
                 UserGroupBox(
                     title = "教务",
                     first = false,
+                    tex = PaperTex.EDGE,
                     entries = listOf(
                         UserLedgerEntry(
                             subject = "考试安排",
@@ -389,6 +399,7 @@ private fun UserRoot(
                 UserGroupBox(
                     title = "校园",
                     first = false,
+                    tex = PaperTex.SCALLOP,
                     entries = listOf(
                         UserLedgerEntry(subject = "校园地图", chevron = true, onClick = onOpenMap),
                     ),
@@ -398,6 +409,7 @@ private fun UserRoot(
                 UserGroupBox(
                     title = "本机",
                     first = false,
+                    tex = PaperTex.WEAVE,
                     entries = listOf(
                         UserLedgerEntry(
                             subject = "自定义课程",
@@ -427,12 +439,18 @@ private fun UserRoot(
             }
         }
         if (headerMenu) {
-            UserHeaderMenu(
-                refreshEnabled = ui.sessionState == SessionState.Active && !ui.homeLoading,
-                onRefresh = { vm.refreshHome(force = true) },
-                onSettings = onOpenSettings,
+            // ⋯ 改用锚定卡片（形态 C）：返回键只关这一层，点空白也关
+            AnchoredCardOverlay(
+                anchor = moreAnchor,
+                accent = t.primary,
                 onDismiss = { headerMenu = false },
-            )
+            ) {
+                UserHeaderMenu(
+                    refreshEnabled = ui.sessionState == SessionState.Active && !ui.homeLoading,
+                    onRefresh = { vm.refreshHome(force = true); headerMenu = false },
+                    onSettings = { onOpenSettings(); headerMenu = false },
+                )
+            }
         }
     }
 }
@@ -446,47 +464,18 @@ private fun UserHeaderMenu(
     refreshEnabled: Boolean,
     onRefresh: () -> Unit,
     onSettings: () -> Unit,
-    onDismiss: () -> Unit,
 ) {
-    val t = InkTokens.current
-    Box(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.30f))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClickLabel = "关闭",
-                    onClick = onDismiss,
-                ),
-        )
-        Column(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(t.paper)
-                .border(Stroke.strong, t.outline),
-        ) {
-            UserMenuRow(
-                index = "01",
-                title = "刷新",
-                enabled = refreshEnabled,
-                onClick = { onRefresh(); onDismiss() },
-            )
-            UserMenuRow(
-                index = "02",
-                title = "设置",
-                onClick = { onSettings(); onDismiss() },
-            )
-            Box(
-                Modifier.fillMaxWidth().height(Space.minTouch).clickable(onClick = onDismiss),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("取消", fontSize = 12.5.sp, color = t.inkFaint)
-            }
-        }
-    }
+    UserMenuRow(
+        index = "01",
+        title = "刷新",
+        enabled = refreshEnabled,
+        onClick = onRefresh,
+    )
+    UserMenuRow(
+        index = "02",
+        title = "设置",
+        onClick = onSettings,
+    )
 }
 
 /** 页头菜单里的一条动作：序号 + 动作名（≥48dp 触区） */

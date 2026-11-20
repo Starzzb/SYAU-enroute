@@ -19,6 +19,12 @@ data class FeedSource(
     val category: String,
     val enabled: Boolean = true,
     /**
+     * 只能在校内网（或校园 WebVPN / mangoVPN）里访问的源。
+     * 校外时这些源不是「失败」，而是**没路** —— 刷新时直接跳过，界面说「需校园网」，
+     * 别让 9 个源的 connect timeout 把整条刷新拖成一片红（2026-11-20 实测：校外 IPv6 也进不去）。
+     */
+    val campusOnly: Boolean = false,
+    /**
      * 解析族：
      *   · `vsb` —— 博达 VSB 站群（校内各子站），认 `info/{栏目}/{文章}.htm`
      *   · `generic` —— 其他站，认「像标题的链接 + 附近日期」
@@ -115,6 +121,7 @@ data class SyncReport(
 ) {
     val totalNew: Int get() = perSource.sumOf { it.added }
     val failed: Int get() = perSource.count { it.error != null }
+    val skipped: Int get() = perSource.count { it.skipped != null }
     fun summary(): String = buildString {
         append("新增 $totalNew 条")
         if (failed > 0) append(" · $failed 个源失败")
@@ -127,6 +134,8 @@ data class SourceResult(
     val fetched: Int = 0,
     val added: Int = 0,
     val error: String? = null,
+    /** 非失败：本次没抓（如 [FeedSource.campusOnly] 在校外）。有值 = 跳过原因，不进「失败」口径 */
+    val skipped: String? = null,
 )
 
 /**
@@ -144,24 +153,28 @@ object FeedSources {
             name = "教务通知",
             listUrl = "https://jwc.syau.edu.cn/index/jwtz.htm",
             category = "教务",
+            campusOnly = true,
         ),
         FeedSource(
             key = "www",
             name = "校级通知",
             listUrl = "https://www.syau.edu.cn/index/tzgg.htm",
             category = "通知",
+            campusOnly = true,
         ),
         FeedSource(
             key = "xsc",
             name = "学生处",
             listUrl = "https://xsc.syau.edu.cn/tzgg.htm",
             category = "学工",
+            campusOnly = true,
         ),
         FeedSource(
             key = "news",
             name = "沈农新闻",
             listUrl = "https://news.syau.edu.cn/index.htm",
             category = "新闻",
+            campusOnly = true,
         ),
 
         // 就业信息网（外部 SaaS：江苏「就业宝」jysd，公网免登录）。
@@ -185,6 +198,7 @@ object FeedSources {
             name = "创新创业处",
             listUrl = "https://job.syau.edu.cn/tzgg.htm",
             category = "竞赛",
+            campusOnly = true,
         ),
         // 同一个站的「创新创业竞赛」栏目 —— 校内竞赛的成果侧（谁拿了什么奖）。
         // 实测 2026-11-11：一页 15 条，info/1040/*，VSB 结构。
@@ -206,6 +220,7 @@ object FeedSources {
             name = "竞赛平台",
             listUrl = "http://cxcy.syau.edu.cn/comp/front/comp/list",
             category = "竞赛",
+            campusOnly = true,
             kind = "cxcy",
             extraPages = listOf(
                 "http://cxcy.syau.edu.cn/comp/front/comp/list?page=2",
@@ -219,6 +234,7 @@ object FeedSources {
             name = "大创项目",
             listUrl = "http://cxcy.syau.edu.cn/dcplan/front/dcplan/list",
             category = "竞赛",
+            campusOnly = true,
             kind = "cxcy",
         ),
         // 同一平台的「成果公示」：获奖名单/获奖作品展（日期在列表左侧 day+year 块）。
@@ -229,6 +245,7 @@ object FeedSources {
             name = "竞赛成果",
             listUrl = "http://cxcy.syau.edu.cn/comp/front/comp/articlelist?cid=12",
             category = "竞赛",
+            campusOnly = true,
             kind = "cxcy",
         ),
         // 挑战杯官网「挑战杯动态」：/article/{id}/，不是 VSB，走 generic 解析。
@@ -261,6 +278,7 @@ object FeedSources {
             name = "校团委",
             listUrl = "https://tw.syau.edu.cn/channel.jsp?urltype=tree.TreeTempUrl&wbtreeid=1053",
             category = "通知",
+            campusOnly = true,
             kind = "tw",
         ),
         // 中国高等教育学会「业务公告」：全国权威口径（竞赛目录/榜单赛事的出处）。
@@ -339,7 +357,7 @@ object FeedSources {
         FeedSource(
             key = "fwwb",
             name = "服务外包大赛",
-            listUrl = "http://www.fwwb.org.cn/",
+            listUrl = "https://www.fwwb.org.cn/",
             category = "竞赛",
             kind = "generic",
             urlInclude = "/news/show/",

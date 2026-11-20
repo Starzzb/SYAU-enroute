@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>m36 详情压底 · 框与底</title>
+<style>
+:root{
+  --paper:#F8F5F0; --paper2:#F1ECE3; --card:#FCFAF6; --cardAlt:#F1ECE3;
+  --ink:#2C2C2C; --inkSoft:#4A4A46; --inkFaint:#686660;
+  --rule:#8C8578; --outline:#7E776A; --green:#6B7B6E; --ochre:#A89279;
+  --sand:#C4B9A8; --slate:#697A7C; --seal:#8F4A3A;
+  --pressIn:rgba(44,44,44,.055); --pressOut:rgba(255,255,255,.85);
+  --pressEdgeA:rgba(255,255,255,.9); --pressEdgeB:rgba(44,44,44,.08);
+  --tex1:rgba(104,102,96,.055); --tex2:rgba(104,102,96,.080); --texDot:rgba(104,102,96,.10);
+  --tw1:rgba(104,102,96,.052); --tw2:rgba(104,102,96,.034);
+}
+body[data-dark="1"]{
+  --paper:#191713; --paper2:#211D18; --card:#1F1C17; --cardAlt:#2B2721;
+  --ink:#EDE7DA; --inkSoft:#C5BDAD; --inkFaint:#A39A8A;
+  --rule:#7E7668; --outline:#8C8474; --green:#A8BAA5; --ochre:#C9B79C;
+  --sand:#8C8474; --slate:#96A8A8; --seal:#C88A78;
+  --pressIn:rgba(0,0,0,.55); --pressOut:rgba(255,255,255,.045);
+  --pressEdgeA:rgba(255,255,255,.10); --pressEdgeB:rgba(0,0,0,.60);
+  --tex1:rgba(237,231,218,.040); --tex2:rgba(237,231,218,.058); --texDot:rgba(237,231,218,.072);
+  --tw1:rgba(237,231,218,.038); --tw2:rgba(237,231,218,.025);
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{margin:0;padding:28px 30px 60px;background:var(--paper);color:var(--ink);
+  font-family:"Noto Sans SC","Source Han Sans SC","PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+.toolbar{position:sticky;top:0;z-index:9;display:flex;gap:10px;align-items:center;
+  padding:10px 12px;margin:-28px -30px 26px;background:var(--paper);border-bottom:1px solid var(--rule)}
+.toolbar b{font-size:14px;letter-spacing:.06em}
+.toolbar .grow{flex:1}
+.tb{font:inherit;font-size:12px;padding:5px 13px;border:1.5px solid var(--ink);border-radius:5px;
+  background:transparent;color:var(--ink);cursor:pointer}
+.tb:hover{background:var(--ink);color:var(--paper)}
+h1{font-size:22px;margin:0 0 6px;letter-spacing:.02em}
+.lede{font-size:13px;color:var(--inkSoft);margin:0 0 26px;line-height:1.85;max-width:1160px}
+h2{font-size:14px;letter-spacing:.18em;color:var(--inkFaint);margin:36px 0 14px;font-weight:600}
+.row{display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap}
+
+/* ── 七款纹样 ── */
+.tex-weave{background-image:
+  linear-gradient(30deg,transparent 45%,var(--tw1) 45% 55%,transparent 55%),
+  linear-gradient(150deg,transparent 45%,var(--tw1) 45% 55%,transparent 55%),
+  linear-gradient(90deg,var(--tw2) 0 .6%,transparent .6% 99.4%,var(--tw2) 99.4% 100%);
+  background-size:27px 27px,27px 27px,100% 100%}
+.tex-grid{background-image:
+  repeating-linear-gradient(0deg,transparent 0 23px,var(--tex1) 23px 24px),
+  repeating-linear-gradient(90deg,transparent 0 23px,var(--tex1) 23px 24px),
+  radial-gradient(circle at 24px 24px,var(--texDot) 1.1px,transparent 1.1px);
+  background-size:24px 24px}
+.tex-cross{background-image:
+  linear-gradient(0deg,transparent 24%,var(--tex2) 25%,var(--tex2) 26%,transparent 27%,transparent 74%,var(--tex2) 75%,var(--tex2) 76%,transparent 77%),
+  linear-gradient(90deg,transparent 24%,var(--tex2) 25%,var(--tex2) 26%,transparent 27%,transparent 74%,var(--tex2) 75%,var(--tex2) 76%,transparent 77%);
+  background-size:30px 30px}
+.tex-meander{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M0 26 H14 V8 H20 V20 H26 V26 H32' fill='none' stroke='%23686660' stroke-opacity='0.30' stroke-width='1'/></svg>");
+  background-size:32px 32px}
+body[data-dark="1"] .tex-meander{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><path d='M0 26 H14 V8 H20 V20 H26 V26 H32' fill='none' stroke='%23EDE7DA' stroke-opacity='0.16' stroke-width='1'/></svg>")}
+.tex-ripple{background-image:
+  repeating-radial-gradient(circle at 50% 118%,transparent 0 22px,var(--tex2) 22px 22.6px)}
+.tex-scallop{background-image:
+  radial-gradient(circle at 50% 0,transparent 13px,var(--tex2) 13px 13.7px,transparent 13.7px);
+  background-size:28px 17px}
+.tex-dots{background-image:radial-gradient(circle,var(--texDot) 0.9px,transparent 0.9px);
+  background-size:12px 12px;background-position:0 0}
+.tex-crack{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><g fill='none' stroke='%23686660' stroke-opacity='0.26' stroke-width='0.8'><path d='M0 34 L28 30 L46 42 L74 38 L98 52 L120 48'/><path d='M18 0 L22 26 L34 52 L30 82 L42 120'/><path d='M120 74 L86 78 L60 70 L34 80 L0 74'/><path d='M60 0 L58 22 L70 40 L66 60'/><path d='M96 0 L92 24 L104 44'/></g></svg>");
+  background-size:120px 120px}
+body[data-dark="1"] .tex-crack{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><g fill='none' stroke='%23EDE7DA' stroke-opacity='0.14' stroke-width='0.8'><path d='M0 34 L28 30 L46 42 L74 38 L98 52 L120 48'/><path d='M18 0 L22 26 L34 52 L30 82 L42 120'/><path d='M120 74 L86 78 L60 70 L34 80 L0 74'/><path d='M60 0 L58 22 L70 40 L66 60'/><path d='M96 0 L92 24 L104 44'/></g></svg>")}
+
+/* ── 手机 ── */
+.phone{width:392px;height:812px;flex:none;border:1px solid var(--outline);
+  border-radius:10px;overflow:hidden;position:relative;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.phone.short{height:574px}
+.cap{font-size:11.5px;color:var(--inkFaint);margin:8px 0 0;line-height:1.75;max-width:392px}
+.cap b{color:var(--inkSoft);font-weight:600}
+.status{height:26px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 14px;font-size:9.5px;color:var(--inkFaint);letter-spacing:.04em;position:relative;z-index:2}
+.backrow{height:44px;display:flex;align-items:center;gap:8px;padding:0 6px 0 4px;position:relative;z-index:2}
+.backrow .chev{width:34px;height:34px;display:grid;place-items:center;font-size:17px;color:var(--inkSoft)}
+.backrow .src{font-size:10.5px;color:var(--inkFaint);letter-spacing:.05em}
+.backrow .grow{flex:1}
+.backrow .act{width:34px;height:34px;display:grid;place-items:center;font-size:13px;color:var(--inkSoft)}
+/* 页面：纹在底层，铺满整页 */
+.page{position:absolute;inset:0;overflow:hidden}
+.page .scroller{position:absolute;inset:0;overflow:hidden;padding:0 14px}
+/* 框：正文的容器。纸底不透明，纹只在框外露 */
+.frame{margin-top:6px;border:1px solid var(--outline);border-radius:8px;background-color:var(--card);
+  box-shadow:inset 0 16px 16px -12px var(--pressIn), inset 0 -12px 12px -8px var(--pressOut),
+             0 1px 2px rgba(44,44,44,.05);padding:16px 16px 18px;position:relative}
+.frame.tint{background-color:transparent;box-shadow:inset 0 16px 16px -12px var(--pressIn),0 1px 2px rgba(44,44,44,.05)}
+.cat{font-size:11.5px;font-weight:600;color:var(--inkSoft)}
+.title{font-size:19px;line-height:27px;font-weight:800;margin:8px 0 0;letter-spacing:.01em}
+.meta{display:flex;align-items:baseline;gap:7px;margin-top:9px;font-size:9.5px;color:var(--inkFaint);
+  font-variant-numeric:tabular-nums}
+.meta .sp{flex:1}
+.hairline{height:1px;background:var(--ink);opacity:.9;margin:13px 0 0}
+.body{font-size:14.5px;line-height:26px;color:var(--ink);margin-top:14px}
+.body p{margin:0 0 13px}
+.kv{display:flex;gap:10px;font-size:12.5px;line-height:24px}
+.kv .k{width:68px;flex:none;color:var(--inkFaint);font-size:11.5px;letter-spacing:.08em}
+.kv .v{flex:1;color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.sect{margin-top:18px}
+.sect .st{font-size:9px;letter-spacing:.20em;color:var(--inkFaint);font-weight:600}
+.sect .sd{margin-top:7px;height:1px;background:var(--rule);opacity:.45}
+.foot{margin-top:22px;font-size:10.5px;color:var(--inkFaint);line-height:1.85}
+.pagefoot{position:absolute;left:0;right:0;bottom:0;height:64px;
+  background:linear-gradient(to bottom,transparent,var(--paper) 62%);z-index:1}
+
+/* ── 纹样板 ── */
+.swatchgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.swatch{border:1px solid var(--outline);border-radius:6px;overflow:hidden;background:var(--paper)}
+.swatch .big{height:132px}
+.swatch .txt{padding:9px 11px 11px;border-top:1px solid rgba(140,133,120,.3)}
+.swatch .nm{font-size:12px;font-weight:600}
+.swatch .en{font-size:9.5px;letter-spacing:.14em;color:var(--inkFaint);margin-top:2px}
+.swatch .pp{font-size:10.5px;color:var(--inkSoft);margin-top:6px;line-height:1.7}
+.swatch.on{border-color:var(--ink);box-shadow:0 0 0 1px var(--ink)}
+/* ── 剖面 ── */
+.cut{display:flex;gap:26px;flex-wrap:wrap}
+.cutcard{flex:1;min-width:260px;border:1px solid var(--outline);border-radius:6px;overflow:hidden;background:var(--paper)}
+.cutcard .stage{height:150px;position:relative}
+.cutcard .lab{padding:9px 12px;border-top:1px solid rgba(140,133,120,.3);font-size:11px;color:var(--inkSoft);line-height:1.75}
+.cutcard .lab b{color:var(--ink)}
+.dim{font-size:9.5px;color:var(--inkFaint);letter-spacing:.1em}
+/* ── 规格面板 ── */
+.panels{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:30px}
+.panel{border:1px solid var(--rule);border-radius:4px;background:var(--card);
+  padding:16px 18px 18px;box-shadow:inset 0 14px 14px -10px var(--pressIn), inset 0 -12px 12px -8px var(--pressOut)}
+.panel.wide{grid-column:1 / -1}
+.panel h3{margin:0 0 12px;font-size:12px;letter-spacing:.16em;color:var(--inkFaint);font-weight:600}
+.panel p,.panel li{font-size:12px;line-height:1.95;color:var(--inkSoft);margin:0 0 6px}
+.panel strong{color:var(--ink);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid rgba(140,133,120,.28);vertical-align:top}
+th{color:var(--inkFaint);font-weight:600;letter-spacing:.1em;font-size:10px}
+td code,.panel code{font-family:"JetBrains Mono",Consolas,monospace;font-size:10.5px;
+  background:var(--paper2);padding:1px 4px;border-radius:2px;color:var(--ink)}
+.veil{position:absolute;inset:0;background:rgba(0,0,0,.38)}
+.floater{position:absolute;left:24px;right:24px;top:132px;border-radius:12px;background:var(--card);
+  border:1px solid var(--outline);overflow:hidden;
+  box-shadow:0 14px 30px rgba(26,22,17,.22), inset 0 1px 0 var(--pressEdgeA)}
+.floater .bar{height:2px;background:var(--seal)}
+.floater .in{padding:14px;font-size:12px;line-height:20px;color:var(--inkSoft)}
+.floater .in b{display:block;font-size:13.5px;color:var(--ink);margin-bottom:6px}
+.tagbad{display:inline-block;font-size:9px;letter-spacing:.14em;padding:2px 6px;border:1px solid var(--seal);
+  color:var(--seal);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <b>m36 · 详情的框与底</b>
+  <span class="grow"></span>
+  <button class="tb" onclick="document.body.dataset.dark=document.body.dataset.dark==='1'?'':'1'">宣纸 / 夜墨</button>
+</div>
+
+<h1>框住正文，纹留在框外</h1>
+<p class="lede">
+  上一版把正文直接摊在纹上，读起来是散的。改成两层：<b>整页铺纸纹（底）</b>，<b>正文装在框里（面）</b> ——
+  框是一块干净的纸，一圈 1px 描边，纹只在框的四周与页边露出来，像裱在衬底上的一页稿子。
+  框不透明，纹不穿透；要更轻的一档可让框底透 4%（见第三节的两种框底）。
+  下面先给三处详情的成稿，再给八款可供挑选的纸纹（三款在用 + 五款新做）。
+</p>
+
+<!-- ══════════ 一 · 三处详情 ══════════ -->
+<h2>一 · 三处详情（框在路上，纹在框下）</h2>
+<div class="row">
+
+  <!-- ① 资讯文章 -->
+  <div>
+    <div class="phone">
+      <div class="page tex-cross">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="scroller">
+          <div class="backrow"><span class="chev">‹</span><span class="src">教务处</span>
+            <span class="grow"></span><span class="act">☆</span><span class="act">↗</span></div>
+          <div class="frame">
+            <div class="cat">通知 · 教务</div>
+            <div class="title">关于开展 2025 版本科课程教学大纲修订工作的通知</div>
+            <div class="meta"><span>2026-03-18</span><span>·</span><span>阅读 1284</span><span class="sp"></span><span>学工</span></div>
+            <div class="hairline"></div>
+            <div class="body">
+              <p>各教学单位：</p>
+              <p>为落实新一轮培养方案修订成果，学校决定开展 2025 版本科课程教学大纲修订工作。现将有关要求通知如下。</p>
+              <p>一、修订范围。本次修订覆盖全部本科专业的所有必修课程与限选课程。</p>
+              <p>二、时间安排。各学院于 4 月 15 日前完成初稿，4 月 30 日前完成学院审定并报送教务处。</p>
+              <p>三、提交方式。通过审定的教学大纲由课程负责人录入综合教务系统，正式生效并交付使用。</p>
+            </div>
+            <div class="foot">附件 · 2025 版培养方案（zip）<br>原文链接 · jwc.syau.edu.cn</div>
+          </div>
+        </div>
+        <div class="pagefoot"></div>
+      </div>
+    </div>
+    <p class="cap"><b>① 资讯文章</b>　页面纹「十」，正文框纸底不透明。框左右各留 14dp，
+      纹在这 14dp 与页脚渐隐处露出来。</p>
+  </div>
+
+  <!-- ② 考试详情 -->
+  <div>
+    <div class="phone">
+      <div class="page tex-grid">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="scroller">
+          <div class="backrow"><span class="chev">‹</span><span class="src">考试安排</span>
+            <span class="grow"></span><span class="act">↗</span></div>
+          <div class="frame">
+            <div class="cat">考试 · 第 14 教学周</div>
+            <div class="title">不动产估价</div>
+            <div class="meta"><span>12-15 周二</span><span>·</span><span>14:00–16:00</span><span class="sp"></span><span>25 天后</span></div>
+            <div class="hairline"></div>
+            <div class="sect"><div class="st">考场</div><div class="sd"></div>
+              <div class="kv"><span class="k">校区</span><span class="v">主校区</span></div>
+              <div class="kv"><span class="k">教学楼</span><span class="v">第一教学楼</span></div>
+              <div class="kv"><span class="k">教室</span><span class="v">A302</span></div>
+              <div class="kv"><span class="k">座位</span><span class="v">18</span></div>
+            </div>
+            <div class="sect"><div class="st">场次</div><div class="sd"></div>
+              <div class="kv"><span class="k">时长</span><span class="v">120 分钟</span></div>
+              <div class="kv"><span class="k">形式</span><span class="v">闭卷</span></div>
+              <div class="kv"><span class="k">类别</span><span class="v">专业必修</span></div>
+            </div>
+            <div class="sect"><div class="st">原始记录</div><div class="sd"></div>
+              <div class="kv"><span class="k">来源</span><span class="v">教务系统 · 考试安排</span></div>
+              <div class="kv"><span class="k">抓取</span><span class="v">2026-11-20 20:11</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="pagefoot"></div>
+      </div>
+    </div>
+    <p class="cap"><b>② 考试详情</b>　页面纹「格」。分节靠小标题 + 一条淡线 + 留白，
+      三节都在同一个框里，不各做一张小卡。</p>
+  </div>
+
+  <!-- ③ 大纲详情 -->
+  <div>
+    <div class="phone">
+      <div class="page tex-weave">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="scroller">
+          <div class="backrow"><span class="chev">‹</span><span class="src">课程大纲</span>
+            <span class="grow"></span><span class="act">☆</span></div>
+          <div class="frame">
+            <div class="cat">专业必修 · 3.0 学分 · 48 学时</div>
+            <div class="title">不动产估价</div>
+            <div class="meta"><span>土地与环境学院</span><span>·</span><span>2021 版</span><span class="sp"></span><span>901010416</span></div>
+            <div class="hairline"></div>
+            <div class="sect"><div class="st">课程目标</div><div class="sd"></div>
+              <div class="body" style="margin-top:9px;font-size:13.5px;line-height:24px">
+                <p>掌握不动产估价的基本理论与方法，能独立完成住宅、商业用地的估价作业，并对估价结果作出说明。</p>
+              </div>
+            </div>
+            <div class="sect"><div class="st">教学章节</div><div class="sd"></div>
+              <div class="kv"><span class="k">第六章</span><span class="v">收益法 · 12 学时</span></div>
+              <div class="kv"><span class="k">第七章</span><span class="v">市场比较法 · 10 学时</span></div>
+              <div class="kv"><span class="k">第五章</span><span class="v">成本法 · 8 学时</span></div>
+              <div class="kv"><span class="k">第二章</span><span class="v">估价原则 · 6 学时</span></div>
+            </div>
+            <div class="sect"><div class="st">考核方式</div><div class="sd"></div>
+              <div class="kv"><span class="k">平时</span><span class="v">30%</span></div>
+              <div class="kv"><span class="k">期末</span><span class="v">70%</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="pagefoot"></div>
+      </div>
+    </div>
+    <p class="cap"><b>③ 大纲详情</b>　页面纹「织」。同一套骨架，只是眉行多一行学分学时。
+      三处的返回行、框边距、字号完全一致。</p>
+  </div>
+</div>
+
+<!-- ══════════ 二 · 七款纸纹 ══════════ -->
+<h2>二 · 八款纸纹（可挑，也可再改参数）</h2>
+<div class="swatchgrid">
+  <div class="swatch on"><div class="big tex-cross"></div><div class="txt">
+    <div class="nm">十</div><div class="en">CROSS · 在用</div>
+    <div class="pp">30dp 格，交点刻 7dp 短十字。<br>适合正文页。</div></div></div>
+
+  <div class="swatch"><div class="big tex-grid"></div><div class="txt">
+    <div class="nm">格</div><div class="en">GRID · 在用</div>
+    <div class="pp">24dp 方格 + 交点圆点。<br>适合数据、表单、课表。</div></div></div>
+
+  <div class="swatch"><div class="big tex-weave"></div><div class="txt">
+    <div class="nm">织</div><div class="en">WEAVE · 在用</div>
+    <div class="pp">27dp 斜织 + 54dp 竖导引。<br>适合清单、收藏。</div></div></div>
+
+  <div class="swatch"><div class="big tex-meander"></div><div class="txt">
+    <div class="nm">回</div><div class="en">MEANDER · 新</div>
+    <div class="pp">32dp 方折回纹（雷纹），一线回环。<br>最适合「教务/公文」，最有中国味。</div></div></div>
+
+  <div class="swatch"><div class="big tex-ripple"></div><div class="txt">
+    <div class="nm">波</div><div class="en">RIPPLE · 新</div>
+    <div class="pp">同心弧，曲率中心在页脚外。<br>裁切处只有平缓弧线，安静。</div></div></div>
+
+  <div class="swatch"><div class="big tex-scallop"></div><div class="txt">
+    <div class="nm">鳞</div><div class="en">SCALLOP · 新</div>
+    <div class="pp">28×17dp 半圆叠瓦。<br>密而不乱，适合卡片密集的页。</div></div></div>
+
+  <div class="swatch"><div class="big tex-dots"></div><div class="txt">
+    <div class="nm">砂</div><div class="en">DOTS · 新</div>
+    <div class="pp">12dp 方阵细点，像纸面纤维。<br>最轻，正文页不抢字。</div></div></div>
+
+  <div class="swatch"><div class="big tex-crack"></div><div class="txt">
+    <div class="nm">冰</div><div class="en">CRACK · 新</div>
+    <div class="pp">120dp 一组的斜折裂纹，像哥窑开片。<br>唯一不规则的款，最像旧纸。</div></div></div>
+</div>
+
+<!-- ══════════ 三 · 框与底的剖面 ══════════ -->
+<h2>三 · 框与底的两种关系</h2>
+<div class="cut">
+  <div class="cutcard">
+    <div class="stage tex-cross" style="padding:16px 14px">
+      <div class="frame" style="margin:0">
+        <div style="font-size:9.5px;color:var(--inkFaint);letter-spacing:.18em">不透明框</div>
+        <div style="font-size:13px;font-weight:600;margin-top:6px;line-height:1.7">正文完全盖住底纹，读的时候只有字与纸</div>
+        <div style="font-size:11px;color:var(--inkSoft);margin-top:8px;line-height:1.9">
+          纹只在框外 14dp 边距与页脚渐隐处出现。<br>最清爽，长文首选。</div>
+      </div>
+    </div>
+    <div class="lab"><b>A · 实心框底（推荐）</b>　框 `background = t.card`，纹完全不透。</div>
+  </div>
+
+  <div class="cutcard">
+    <div class="stage tex-cross" style="padding:16px 14px">
+      <div class="frame tint" style="margin:0">
+        <div style="font-size:9.5px;color:var(--inkFaint);letter-spacing:.18em">透 4%</div>
+        <div style="font-size:13px;font-weight:600;margin-top:6px;line-height:1.7">纹透过框底，纸与框是同一张纸</div>
+        <div style="font-size:11px;color:var(--inkSoft);margin-top:8px;line-height:1.9">
+          框只剩一圈描边，纹淡到几乎看不见。<br>更整体，但长文会有一点噪。</div>
+      </div>
+    </div>
+    <div class="lab"><b>B · 半透框底</b>　框 `background = t.card.copy(alpha = .96)`。</div>
+  </div>
+
+  <div class="cutcard">
+    <div class="stage" style="padding:0">
+      <div class="tex-scallop" style="position:absolute;inset:0"></div>
+      <div style="position:absolute;left:14px;right:14px;top:18px;bottom:18px;border:1px solid var(--outline);
+                  border-radius:8px;background-color:var(--card);padding:12px">
+        <div style="font-size:9.5px;color:var(--inkFaint);letter-spacing:.18em">三层</div>
+        <div style="font-size:11px;color:var(--inkSoft);margin-top:8px;line-height:2">
+          ① 底　纸 + 纹（整页）<br>
+          ② 面　框（纸底 + 1px 描边 + 压印）<br>
+          ③ 字　标题 / 正文 / 字段
+        </div>
+      </div>
+    </div>
+    <div class="lab"><b>C · 剖面</b>　纹只在①，框是②，正文是③。框里不重复铺纹。</div>
+  </div>
+</div>
+
+<!-- ══════════ 四 · 旧形态 ══════════ -->
+<h2>四 · 旧的悬浮标签页（要退役的那套）</h2>
+<div class="row">
+  <div>
+    <div class="phone short">
+      <div class="page">
+        <div class="status"><span>9:41</span><span>沈农在途</span></div>
+        <div class="scroller" style="filter:blur(.4px);opacity:.75">
+          <div class="backrow"><span class="chev">‹</span><span class="src">教务处</span></div>
+          <div class="cat">通知 · 教务</div>
+          <div class="title">关于开展 2025 版本科课程教学大纲修订工作的通知</div>
+          <div class="meta"><span>2026-03-18</span><span class="sp"></span><span>学工</span></div>
+          <div class="hairline"></div>
+          <div class="body" style="font-size:13px;line-height:24px"><p>各教学单位：</p><p>为落实新一轮培养方案修订成果……</p></div>
+        </div>
+        <div class="veil"></div>
+        <div class="floater">
+          <div class="bar"></div>
+          <div class="in">
+            <span class="tagbad">旧</span>
+            <b style="margin-top:8px">教务处 · 通知</b>
+            304dp 锚定卡、圆角 12、遮罩 38%、卡内再滚一层，正文被压到 276dp 宽、一行 12 字。
+            这是「挑一项就关」的形态，读长文就成了在弹窗里看文章。
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap"><b>`AnchoredCardOverlay`</b>（`ui/kit/AnchoredCard.kt:132`）—— 三处详情处处引用它，本轮全部迁走。</p>
+  </div>
+  <div style="flex:1;min-width:320px">
+    <div class="panel">
+      <h3>判据：浮层还是整页</h3>
+      <table>
+        <tr><th>场合</th><th>形态</th><th>理由</th></tr>
+        <tr><td>挑一项 / 点两下就关</td><td>浮层</td><td>不打断、不换页</td></tr>
+        <tr><td><b>要读超过 3 行</b></td><td><b>整页 + 框</b></td><td>行宽要 20 字以上，滚动只能有一层</td></tr>
+        <tr><td>带表单 / 要确认</td><td>浮层（实心档）</td><td>有明确起止</td></tr>
+        <tr><td>有层级的下钻</td><td>整页 + 框</td><td>返回键 = 往回一层，位置可恢复</td></tr>
+      </table>
+      <p style="margin-top:10px">改：资讯文章、考试详情、大纲详情。留：收藏长按菜单、来源筛选、导入面板、清空确认。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ 五 · 规格 ══════════ -->
+<h2>五 · 规格</h2>
+<div class="panels">
+
+  <div class="panel">
+    <h3>5.1 框</h3>
+    <table>
+      <tr><th>项</th><th>值</th></tr>
+      <tr><td>圆角</td><td>8dp</td></tr>
+      <tr><td>描边</td><td>1dp <code>t.outline</code>（#7E776A）</td></tr>
+      <tr><td>框底</td><td><code>t.card</code>（#FCFAF6），A 档不透明 / B 档 α .96</td></tr>
+      <tr><td>压印</td><td>上 <code>pressIn</code> 16dp、下 <code>pressOut</code> 12dp，内缩 12dp</td></tr>
+      <tr><td>投影</td><td><code>0 1px 2px rgba(44,44,44,.05)</code>，只一层</td></tr>
+      <tr><td>内距</td><td>左右 16dp；上 16dp；下 18dp</td></tr>
+      <tr><td>框外留白</td><td>页面左右各 14dp（这里露纹）</td></tr>
+      <tr><td>框间距</td><td>返回行下 6dp；多框之间 12dp（一篇文章通常只有一框）</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3>5.2 八款纹样参数</h3>
+    <table>
+      <tr><th>名</th><th>步距</th><th>线宽 / 半径</th><th>α 亮 / 暗</th><th>画法</th></tr>
+      <tr><td>十 CROSS</td><td>30dp</td><td>1dp，长 7dp</td><td>.080 / .058</td><td>drawLine ×2</td></tr>
+      <tr><td>格 GRID</td><td>24dp</td><td>1dp ＋ 1.1dp 圆</td><td>.055 / .10</td><td>drawLine ＋ drawCircle</td></tr>
+      <tr><td>织 WEAVE</td><td>27dp / 54dp</td><td>1dp</td><td>.052 / .038</td><td>drawLine ±30°</td></tr>
+      <tr><td>回 MEANDER</td><td>32dp</td><td>1dp 折线</td><td>.30 / .16</td><td>drawPath（8 段折线）</td></tr>
+      <tr><td>波 RIPPLE</td><td>22dp 环距</td><td>0.6dp</td><td>.080 / .058</td><td>drawArc 同心</td></tr>
+      <tr><td>鳞 SCALLOP</td><td>28×17dp</td><td>0.7dp 弧</td><td>.080 / .058</td><td>drawArc 半圆</td></tr>
+      <tr><td>砂 DOTS</td><td>12dp</td><td>0.9dp</td><td>.10 / .072</td><td>drawCircle 阵</td></tr>
+      <tr><td>冰 CRACK</td><td>120dp</td><td>0.8dp 折线</td><td>.26 / .14</td><td>drawPath（固定点表）</td></tr>
+    </table>
+    <p style="margin-top:8px">七款是规则几何、一款（冰）是固定点表的折线，全部 `drawBehind` 里逐笔画，不用 Bitmap、不用 Shader。</p>
+  </div>
+
+  <div class="panel">
+    <h3>5.3 详情骨架（三处一致）</h3>
+    <table>
+      <tr><th>层</th><th>参数</th></tr>
+      <tr><td>返回行</td><td>44dp；‹ 34dp 触区；来由 10.5sp inkFaint 字距 .05em；右动作 34dp</td></tr>
+      <tr><td>眉行</td><td>分类 11.5sp 600 inkSoft；右侧（N 天后 / 学分）9.5sp 等宽</td></tr>
+      <tr><td>标题</td><td>19sp / 行高 27 / 800</td></tr>
+      <tr><td>元信息</td><td>9.5sp inkFaint 等宽，`·` 分隔，末尾靠右</td></tr>
+      <tr><td>通栏线</td><td>1px ink，元信息下 13dp</td></tr>
+      <tr><td>正文</td><td>14.5sp / 行高 26；段间 13dp</td></tr>
+      <tr><td>分节</td><td>9sp 字距 .20em → 7dp → 1px rule@.45 → 字段行 24dp</td></tr>
+      <tr><td>字段行</td><td>左 11.5sp inkFaint 宽 68dp；右 12.5sp 600 等宽</td></tr>
+      <tr><td>页脚渐隐</td><td>底 64dp，`transparent → paper 62%`</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3>5.4 进出动效</h3>
+    <p><strong>进</strong>：页从被点条目矩形放大 —— 缩放 .94→1、位移 12dp→0、透明 0→1，220ms，`CubicBezierEasing(.22,.9,.24,1)`；框内内容再延迟 60ms 淡入 180ms。</p>
+    <p><strong>出</strong>：反向 180ms，`(.4,0,.2,1)`，无过冲；返回键与返回箭头同一路径。</p>
+    <p><strong>滚动</strong>：列表位置 `rememberSaveable`，详情内滚动重进归零。</p>
+    <p><strong>减少动画</strong>开时只做 120ms 交叉淡入。</p>
+  </div>
+
+  <div class="panel">
+    <h3>5.5 Kotlin 落点</h3>
+    <table>
+      <tr><th>文件</th><th>动作</th></tr>
+      <tr><td><code>ui/kit/PaperTexture.kt</code></td><td>枚举从 4 值扩到 9 值：NONE / CROSS / GRID / WEAVE / MEANDER / RIPPLE / SCALLOP / DOTS / CRACK</td></tr>
+      <tr><td><code>ui/kit/DetailScaffold.kt</code></td><td>新建。`DetailScaffold(createdFrom: Rect?, tex: PaperTex, backLabel, actions, content)` = 纹底 + 返回行 + 框 + 动效 + BackHandler</td></tr>
+      <tr><td><code>ui/feed/FeedScreen.kt:1466</code></td><td>`FeedDetailView` 改用 `DetailScaffold(tex = CROSS)`，正文进框</td></tr>
+      <tr><td><code>ui/academic/AcademicSheets.kt:189</code></td><td>`ExamDetailSheet` 由浮层改整页 `DetailScaffold(tex = GRID)`</td></tr>
+      <tr><td><code>ui/curriculum/SyllabusSheet.kt</code></td><td>改 `DetailScaffold(tex = WEAVE)`</td></tr>
+      <tr><td><code>ui/kit/AnchoredCard.kt</code></td><td>保留不动（长按菜单、筛选、导入面板仍在用）</td></tr>
+    </table>
+  </div>
+
+  <div class="panel wide">
+    <h3>5.6 项目里的盒子与纸纹映射</h3>
+    <p>全仓 <code>background(t.card)</code> / <code>background(t.cardAlt)</code> / <code>Card(</code> / <code>Surface(</code> 共 <strong>28 个文件 · 96 处</strong>。按「这盒子装什么」分四类：</p>
+    <table>
+      <tr><th>类</th><th>文件（处数）</th><th>建议</th></tr>
+      <tr><td><strong>功能盒</strong>（多行、有标题、常驻）</td>
+        <td><code>UserScreen.kt</code>(1) 三个功能盒、<code>UserLedger.kt:254</code> <code>UserGroupBox</code>、<code>UserTiles.kt</code>(6)、<code>SettingsScreen.kt</code> 四分区、<code>HomeCards.kt</code>(12)、<code>HistoryTimetableScreen.kt</code>(1)</td>
+        <td><b>框 + 底纹</b>：教务=回、校园=鳞、收藏/本机=织、课表=格</td></tr>
+      <tr><td><strong>数据卡</strong>（一屏很多、平行）</td>
+        <td><code>ScoreScreen.kt</code>(2)、<code>CurriculumScreen.kt</code>(11)、<code>RoomsScreen.kt</code>(3)、<code>TeacherDetailScreen.kt</code>(2)、<code>CustomCourseScreen.kt</code>(4)</td>
+        <td>框 + 更淡的纹（×.6）：砂 / 波 / 冰</td></tr>
+      <tr><td><strong>阅读面</strong></td>
+        <td><code>FeedScreen.kt:1466</code>、<code>AcademicSheets.kt:189</code>、<code>SyllabusSheet.kt</code>、<code>CourseDetail.kt</code>(1)</td>
+        <td>整页 + 一框：十 / 格 / 织</td></tr>
+      <tr><td><strong>不接纹</strong></td>
+        <td><code>UserIdentityCard.kt</code>(5) 身份卡、<code>ErodedCard.kt</code>、<code>InkNavBar.kt</code>、<code>CampusMapScreen.kt</code>(8)、<code>DebugScreen.kt</code>、<code>AboutScreen.kt</code>、<code>KeepLoginPrompt.kt</code></td>
+        <td>身份卡保持纯净（上一轮定）；浮标压照片上纹会脏</td></tr>
+    </table>
+  </div>
+
+  <div class="panel">
+    <h3>5.7 先做哪几件</h3>
+    <p>1. `PaperTexture` 扩到 9 值（新四款）</p>
+    <p>2. `DetailScaffold` 新建 + 资讯文章改用它</p>
+    <p>3. 考试详情、大纲详情从浮层迁整页</p>
+    <p>4. 功能盒补纹：收藏与历史（织）、课表三卡（格）、教务盒（回）</p>
+    <p style="margin-top:10px;color:var(--inkFaint)">每步单独编译；装包走 release 签名，`install -r` 保数据。</p>
+  </div>
+
+  <div class="panel">
+    <h3>5.8 验收</h3>
+    <p>1. 三处详情都有框、框内干净、纹只在框外与页脚</p>
+    <p>2. 返回行位置/字号/间距三处一致（截图可叠合）</p>
+    <p>3. 框描边与页面纹不打架（框上看不出纹）</p>
+    <p>4. 暗档纹不脏、正文对框底 ≥ 4.5</p>
+    <p>5. 单测绿；`AnchoredCardOverlay` 少 3 处引用、不新增</p>
+  </div>
+</div>
+
+</body>
+</html>

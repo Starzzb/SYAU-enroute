@@ -28,13 +28,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.curriculum.Syllabus
 import cn.dkarbon.enroute.data.curriculum.SyllabusIndexEntry
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.TimetableViewModel
-import cn.dkarbon.enroute.ui.academic.AcademicSheet
 import cn.dkarbon.enroute.ui.theme.InkTokens
+import cn.dkarbon.enroute.ui.kit.DetailFieldRow
+import cn.dkarbon.enroute.ui.kit.DetailScaffold
+import cn.dkarbon.enroute.ui.kit.DetailSection
+import cn.dkarbon.enroute.ui.kit.InkTinyLoader
+import cn.dkarbon.enroute.ui.kit.PaperTex
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
@@ -53,40 +58,68 @@ import cn.dkarbon.enroute.ui.theme.Stroke
 @Composable
 fun SyllabusSheet(ui: AppState, vm: TimetableViewModel) {
     val t = InkTokens.current
+    // 整页详情：没打开就不占位（原来靠浮层的 animated 显隐兜着）
+    if (ui.syllabusOpenId == null) return
+
     val s = ui.syllabusDetail
     val entry = ui.syllabusIndex.firstOrNull { it.id == ui.syllabusOpenId }
+    val headName = s?.name ?: entry?.name ?: "课程大纲"
+    val meta = listOfNotNull(
+        (s?.code ?: entry?.code)?.takeIf { it.isNotBlank() },
+        (s?.credit ?: entry?.credit)?.takeIf { it.isNotBlank() }?.let { "$it 学分" },
+        (s?.type ?: entry?.type)?.takeIf { it.isNotBlank() },
+    ).joinToString(" · ")
 
-    AcademicSheet(
-        t = t,
-        title = s?.name ?: entry?.name ?: "课程大纲",
-        subtitle = listOfNotNull(
-            (s?.code ?: entry?.code)?.takeIf { it.isNotBlank() },
-            (s?.credit ?: entry?.credit)?.takeIf { it.isNotBlank() }?.let { "$it 学分" },
-            (s?.type ?: entry?.type)?.takeIf { it.isNotBlank() },
-        ).joinToString(" · "),
-        onDismiss = { vm.closeSyllabus() },
+    DetailScaffold(
+        backLabel = "课程大纲",
+        tex = PaperTex.WEAVE,
+        onBack = { vm.closeSyllabus() },
     ) {
-        when {
-            ui.syllabusDetailLoading -> Text(
-                "正在读大纲…",
-                fontSize = 11.5.sp,
-                color = t.inkSoft,
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("课程大纲", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = t.inkSoft)
+            Spacer(Modifier.weight(1f))
+            Text("2021 版", fontSize = 9.5.sp, fontFamily = NumericFont, color = t.inkFaint)
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(headName, fontSize = 19.sp, lineHeight = 27.sp, fontWeight = FontWeight.ExtraBold, color = t.ink)
+        if (meta.isNotBlank()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                meta,
+                fontSize = 9.5.sp,
+                letterSpacing = 0.04.em,
+                fontFamily = NumericFont,
+                color = t.inkFaint,
             )
+        }
+        Spacer(Modifier.height(13.dp))
+        Box(Modifier.fillMaxWidth().height(1.dp).background(t.ink))
+
+        when {
+            ui.syllabusDetailLoading -> Row(
+                Modifier.fillMaxWidth().padding(top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                InkTinyLoader()
+                Spacer(Modifier.width(8.dp))
+                Text("正在读大纲…", fontSize = 11.5.sp, color = t.inkSoft)
+            }
 
             s == null -> {
                 if (ui.syllabusDetailMsg.isNotBlank()) {
-                    Box(
-                        Modifier.fillMaxWidth().background(t.cardAlt)
-                            .border(Stroke.hairline, t.outline)
-                            .padding(horizontal = Space.s, vertical = 9.dp),
-                    ) {
-                        Text(ui.syllabusDetailMsg, fontSize = 11.sp, lineHeight = 17.sp, color = t.inkSoft)
-                    }
+                    Text(
+                        ui.syllabusDetailMsg,
+                        fontSize = 11.5.sp,
+                        lineHeight = 18.sp,
+                        color = t.inkSoft,
+                        modifier = Modifier.padding(top = 14.dp),
+                    )
                 }
                 if (ui.syllabusCandidates.isNotEmpty()) {
-                    Spacer(Modifier.height(Space.s))
-                    ui.syllabusCandidates.forEach { c ->
-                        CandidateRow(c) { vm.openSyllabusById(c.id) }
+                    DetailSection("这本册子里的同名课程") {
+                        ui.syllabusCandidates.forEach { c ->
+                            CandidateRow(c) { vm.openSyllabusById(c.id) }
+                        }
                     }
                 }
             }
@@ -96,25 +129,25 @@ fun SyllabusSheet(ui: AppState, vm: TimetableViewModel) {
     }
 }
 
+/** 候选行：框里不再套小卡，只用一条行线与右箭「›」表达可选 */
 @Composable
 private fun CandidateRow(entry: SyllabusIndexEntry, onClick: () -> Unit) {
     val t = InkTokens.current
     Row(
         Modifier
             .fillMaxWidth()
-            .padding(vertical = 3.dp)
-            .background(t.card)
-            .border(Stroke.hairline, t.outline)
             .clickable(onClick = onClick)
-            .padding(horizontal = Space.s, vertical = 8.dp),
+            .padding(vertical = 9.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(Modifier.weight(1f)) {
             Text(entry.name, fontSize = 12.sp, color = t.ink, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.height(2.dp))
             Text(
                 listOf(entry.code, entry.type, entry.creditHoursLabel)
                     .filter { it.isNotBlank() }.joinToString(" · "),
                 fontSize = 9.5.sp,
+                fontFamily = NumericFont,
                 color = t.inkFaint,
             )
         }
@@ -129,11 +162,16 @@ private fun SyllabusBody(s: Syllabus, msg: String) {
     var openBasic by remember(s.code) { mutableStateOf(false) }
 
     if (msg.isNotBlank()) {
-        Text(msg, fontSize = 11.sp, lineHeight = 17.sp, color = t.inkSoft)
-        Spacer(Modifier.height(Space.s))
+        Text(
+            msg,
+            fontSize = 11.sp,
+            lineHeight = 17.sp,
+            color = t.inkSoft,
+            modifier = Modifier.padding(top = 12.dp),
+        )
     }
 
-    // 顶部事实行
+    // 顶部事实：8 条挤成两列会读错行，改成一行一条（框里有的是纵向空间）
     val facts = listOf(
         "课程类型" to s.type,
         "学分" to s.credit,
@@ -145,145 +183,141 @@ private fun SyllabusBody(s: Syllabus, msg: String) {
         "制定时间" to s.madeAt,
     ).filter { it.second.isNotBlank() }
     if (facts.isNotEmpty()) {
-        Column(
-            Modifier.fillMaxWidth().background(t.card)
-                .border(Stroke.hairline, t.outline)
-                .padding(horizontal = Space.s, vertical = Space.s),
-            verticalArrangement = Arrangement.spacedBy(3.dp),
-        ) {
-            facts.chunked(2).forEach { pair ->
-                Row(Modifier.fillMaxWidth()) {
-                    pair.forEach { (k, v) ->
-                        Row(Modifier.weight(1f), verticalAlignment = Alignment.Top) {
-                            Text(k, fontSize = 9.5.sp, color = t.inkFaint, modifier = Modifier.width(52.dp))
-                            Text(
-                                v,
-                                fontSize = 10.5.sp,
-                                color = t.inkSoft,
-                                fontFamily = if (k.contains("学")) NumericFont else null,
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                    }
-                    if (pair.size == 1) Spacer(Modifier.weight(1f))
-                }
+        DetailSection("课程信息") {
+            facts.forEach { (k, v) ->
+                DetailFieldRow(k, v, valueMono = k.contains("学时") || k.contains("学分") || k.contains("时间"))
             }
         }
-        Spacer(Modifier.height(Space.s))
     }
 
-    // 课程目标
     if (s.goals.isNotEmpty()) {
-        Text("课程目标", fontSize = 11.5.sp, color = t.ink, fontWeight = FontWeight.Bold)
-        Spacer(Modifier.height(3.dp))
-        s.goals.forEach { g ->
-            Row(Modifier.fillMaxWidth().padding(vertical = 1.dp), verticalAlignment = Alignment.Top) {
-                Text(
-                    if (g.no.isNotBlank()) "${g.no}." else "·",
-                    fontSize = 10.sp,
-                    color = t.inkFaint,
-                    fontFamily = NumericFont,
-                    modifier = Modifier.width(18.dp),
-                )
-                Text(g.content, fontSize = 10.5.sp, lineHeight = 16.sp, color = t.inkSoft, modifier = Modifier.weight(1f))
+        DetailSection("课程目标") {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                s.goals.forEach { g ->
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
+                        Text(
+                            if (g.no.isNotBlank()) "${g.no}." else "·",
+                            fontSize = 10.sp,
+                            color = t.inkFaint,
+                            fontFamily = NumericFont,
+                            modifier = Modifier.width(20.dp),
+                        )
+                        Text(
+                            g.content,
+                            fontSize = 12.5.sp,
+                            lineHeight = 20.sp,
+                            color = t.inkSoft,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
             }
         }
-        Spacer(Modifier.height(Space.s))
     }
 
-    // 章节（一、二、三… 按原文顺序，可折叠）
-    s.sections.forEachIndexed { i, sec ->
-        val open = i in expanded
-        Column(
-            Modifier.fillMaxWidth().padding(bottom = 3.dp).background(t.card)
-                .border(Stroke.hairline, t.outline)
-                .clickable {
-                    expanded = if (open) expanded - i else expanded + i
+    if (s.sections.isNotEmpty()) {
+        DetailSection("内容章节") {
+            s.sections.forEachIndexed { i, sec ->
+                val open = i in expanded
+                Column(
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { expanded = if (open) expanded - i else expanded + i }
+                        .padding(vertical = 8.dp),
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            sec.title,
+                            fontSize = 12.sp,
+                            color = t.ink,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.weight(1f),
+                        )
+                        Text(if (open) "▾" else "▸", fontSize = 11.sp, color = t.inkFaint)
+                    }
+                    if (open) {
+                        Spacer(Modifier.height(5.dp))
+                        Text(
+                            prettySectionText(sec.text).ifBlank { "原文这一节为空" },
+                            fontSize = 12.sp,
+                            lineHeight = 20.sp,
+                            color = if (sec.text.isBlank()) t.inkFaint else t.inkSoft,
+                        )
+                    } else if (sec.text.isNotBlank()) {
+                        Spacer(Modifier.height(3.dp))
+                        Text(
+                            sec.text.take(48) + "…",
+                            fontSize = 10.sp,
+                            lineHeight = 15.sp,
+                            color = t.inkFaint,
+                            maxLines = 1,
+                        )
+                    }
                 }
-                .padding(horizontal = Space.s, vertical = Space.s),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            }
+        }
+    }
+
+    if (s.chapters.isNotEmpty()) {
+        DetailSection("教学章节") {
+            MiniTable(
+                title = "",
+                headers = listOf("单位", "条目", "说明"),
+                rows = s.chapters.map { listOf(it.unit, it.title, it.note) },
+            )
+        }
+    }
+    if (s.hoursTable.isNotEmpty()) {
+        DetailSection("教学内容学时一览表") {
+            MiniTable(
+                title = "",
+                headers = listOf("教学内容", "线上", "线下", "实验", "合计"),
+                rows = s.hoursTable.map { listOf(it.content, it.online, it.offline, it.lab, it.total) },
+                footer = s.hoursTotal?.let { "合计 $it 学时（原表有空白行时不显示合计）" } ?: "暂缺",
+            )
+        }
+    }
+
+    if (s.basicInfo.isNotEmpty()) {
+        DetailSection("课程基本信息") {
+            Row(
+                Modifier.fillMaxWidth().clickable { openBasic = !openBasic }.padding(vertical = 2.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 Text(
-                    sec.title,
-                    fontSize = 11.5.sp,
+                    "教材 / 参考书",
+                    fontSize = 12.sp,
                     color = t.ink,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.weight(1f),
                 )
-                Text(if (open) "▾" else "▸", fontSize = 11.sp, color = t.inkFaint)
-            }
-            if (open) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    sec.text.ifBlank { "原文这一节为空" },
-                    fontSize = 10.5.sp,
-                    lineHeight = 17.sp,
-                    color = if (sec.text.isBlank()) t.inkFaint else t.inkSoft,
-                )
-            } else if (sec.text.isNotBlank()) {
-                Text(
-                    sec.text.take(48) + "…",
-                    fontSize = 9.5.sp,
-                    lineHeight = 14.sp,
-                    color = t.inkFaint,
-                    maxLines = 1,
-                )
-            }
-        }
-    }
-
-    // 教学章节 / 学时一览表：原表渲染
-    if (s.chapters.isNotEmpty()) {
-        Spacer(Modifier.height(Space.s))
-        MiniTable(
-            title = "教学章节",
-            headers = listOf("单位", "条目", "说明"),
-            rows = s.chapters.map { listOf(it.unit, it.title, it.note) },
-        )
-    }
-    if (s.hoursTable.isNotEmpty()) {
-        Spacer(Modifier.height(Space.s))
-        val rows = s.hoursTable.map {
-            listOf(it.content, it.online, it.offline, it.lab, it.total)
-        }
-        MiniTable(
-            title = "教学内容学时一览表",
-            headers = listOf("教学内容", "线上", "线下", "实验", "合计"),
-            rows = rows,
-            footer = s.hoursTotal?.let { "合计 $it 学时（原表有空白行时不显示合计）" }
-                ?: "暂缺",
-        )
-    }
-
-    if (s.basicInfo.isNotEmpty()) {
-        Spacer(Modifier.height(Space.s))
-        Column(
-            Modifier.fillMaxWidth().background(t.card).border(Stroke.hairline, t.outline)
-                .clickable { openBasic = !openBasic }
-                .padding(horizontal = Space.s, vertical = Space.s),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("课程基本信息（教材/参考书）", fontSize = 11.5.sp, color = t.ink, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
                 Text(if (openBasic) "▾" else "▸", fontSize = 11.sp, color = t.inkFaint)
             }
             if (openBasic) {
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(6.dp))
                 s.basicInfo.forEach { (k, v) ->
-                    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.Top) {
-                        Text(k, fontSize = 9.5.sp, color = t.inkFaint, modifier = Modifier.width(74.dp))
-                        Text(v, fontSize = 10.sp, lineHeight = 15.sp, color = t.inkSoft, modifier = Modifier.weight(1f))
+                    Row(Modifier.fillMaxWidth().padding(vertical = 3.dp), verticalAlignment = Alignment.Top) {
+                        Text(k, fontSize = 10.sp, color = t.inkFaint, modifier = Modifier.width(78.dp))
+                        Text(
+                            v,
+                            fontSize = 11.5.sp,
+                            lineHeight = 18.sp,
+                            color = t.inkSoft,
+                            modifier = Modifier.weight(1f),
+                        )
                     }
                 }
             }
         }
     }
 
-    Spacer(Modifier.height(Space.s))
+    Spacer(Modifier.height(18.dp))
     Text(
-        "大纲来源：14 个学院《本科课程大纲（2021 版）》· 内置资产",
+        "大纲来源：14 个学院《本科课程教学大纲（2021 版）》· 内置资产",
         fontSize = 9.sp,
         color = t.inkFaint,
     )
+    Spacer(Modifier.height(6.dp))
 }
 
 /** 小表格：按原表列渲染，横向可滚 */
@@ -295,8 +329,10 @@ private fun MiniTable(
     footer: String = "",
 ) {
     val t = InkTokens.current
-    Text(title, fontSize = 11.5.sp, color = t.ink, fontWeight = FontWeight.Bold)
-    Spacer(Modifier.height(3.dp))
+    if (title.isNotBlank()) {
+        Text(title, fontSize = 11.5.sp, color = t.ink, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(3.dp))
+    }
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
         Column {
             Row {
@@ -341,23 +377,6 @@ private fun MiniTable(
     }
 }
 
-/** 一个「查看大纲」按钮（课表详情 & 其它入口复用） */
-@Composable
-fun SyllabusEntryButton(label: String, onClick: () -> Unit) {
-    val t = InkTokens.current
-    Box(
-        Modifier
-            .clip(RectangleShape)
-            .border(Stroke.hairline, t.outline)
-            .background(t.card)
-            .clickable(onClick = onClick)
-            .padding(horizontal = Space.m, vertical = 8.dp),
-    ) {
-        Text(label, fontSize = 11.5.sp, color = t.primary, fontWeight = FontWeight.Medium)
-    }
-}
-
-/** 一行的说明文字（搜索页脚注用） */
 @Composable
 fun SyllabusNote(text: String) {
     val t = InkTokens.current
@@ -371,4 +390,23 @@ fun SyllabusNote(text: String) {
             .border(Stroke.hairline, t.outline)
             .padding(horizontal = Space.s, vertical = 8.dp),
     )
+}
+
+// 大纲原文里「一、课程基本信息」这类小节是从 PDF 直接抽的 key-value 长串：
+// 「课程代码901130103开课教研室电工电子教研室课程名称…」，中间一个分隔都没有。
+// 数据一个字不动，只在**显示**层按键名断行 —— 这是排版，不是改数据。
+private val SECTION_KEYS = Regex(
+    "(课程\\s*代码|开课\\s*教研室|课程\\s*名称|课程\\s*英文名称|英文\\s*名称|理论\\s*学时|" +
+        "实验\\s*学时|总\\s*学时|学\\s*时|学\\s*分|课程\\s*类别|课程\\s*性质|选用\\s*教材|" +
+        "实验\\s*教材|主要\\s*参考书|参考\\s*书|教材|执笔人|制定\\s*时间|审核人|讨论\\s*参加人|" +
+        "参加人|开课\\s*单位|面向\\s*专业|适用\\s*专业)",
+)
+
+private fun prettySectionText(raw: String): String {
+    if (raw.length < 80) return raw
+    if (raw.count { it == '\n' } > 1) return raw
+    // 一个键都没命中就别动，免得把普通叙述切碎（前半句、图表说明等）
+    if (SECTION_KEYS.findAll(raw).count() < 3) return raw
+    // 注意：trim() 会把行首的全角空格一起吃掉，首行就少一级缩进 —— 只去开头那个换行
+    return SECTION_KEYS.replace(raw) { "\n\u3000" + it.value + " " }.removePrefix("\n")
 }

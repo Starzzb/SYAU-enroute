@@ -44,6 +44,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.AcademicApi
 import cn.dkarbon.enroute.data.ExamItem
@@ -177,67 +178,31 @@ fun AcademicSheet(
     title: String,
     subtitle: String = "",
     onDismiss: () -> Unit,
+    /**
+     * 触发按钮在根坐标里的矩形。给了就把卡片摆到它下面、折角指回去；
+     * 没给（例如从列表行点进来）退回右上角，不硬造一个假锚点。
+     */
+    anchor: androidx.compose.ui.geometry.Rect? = null,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    var entered by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) { entered = true }
-    val slide = animateDpAsState(
-        targetValue = if (entered) 0.dp else 360.dp,
-        animationSpec = tween(Motion.base),
-        label = "academicSheet",
-    )
-    BackHandler(enabled = true, onBack = onDismiss)
-
-    Box(Modifier.fillMaxSize()) {
-        Box(
-            Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.32f))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = null,
-                    onClickLabel = "关闭",
-                    onClick = onDismiss,
-                ),
-        )
-        Column(
-            Modifier
-                .align(Alignment.BottomCenter)
-                .offset { IntOffset(0, slide.value.roundToPx()) }
-                .fillMaxWidth()
-                .background(t.paper)
-                .border(Stroke.strong, t.outline)
-                .padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding())
-                .heightIn(max = 560.dp),
-        ) {
-            Row(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 10.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Column(Modifier.weight(1f)) {
-                    Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.ink)
-                    if (subtitle.isNotBlank()) {
-                        Spacer(Modifier.height(2.dp))
-                        Text(subtitle, fontSize = 10.5.sp, lineHeight = 15.sp, color = t.inkFaint)
-                    }
-                }
-                Box(
-                    Modifier.clip(RectangleShape).clickable(onClick = onDismiss).size(48.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("✕", fontSize = 15.sp, color = t.inkSoft)
-                }
+    // 全 App 三点/浮层统一成「锚定卡片」一套语言（主人 2026-11-20）：
+    // 从触发处下方长出、点空白或返回键关。要精确读数的档位走实心，不上玻璃。
+    cn.dkarbon.enroute.ui.kit.AnchoredCardOverlay(
+        anchor = anchor,
+        accent = t.accent,
+        onDismiss = onDismiss,
+        maxHeight = 560.dp,
+        solid = true,
+    ) {
+        Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp)) {
+            Text(title, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.ink)
+            if (subtitle.isNotBlank()) {
+                Spacer(Modifier.height(2.dp))
+                Text(subtitle, fontSize = 10.5.sp, lineHeight = 15.sp, color = t.inkFaint)
             }
-            Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.rule))
-            Column(
-                Modifier
-                    .fillMaxWidth()
-                    .weight(1f, fill = false)
-                    .verticalScroll(rememberScrollState())
-                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp),
-                content = content,
-            )
         }
+        Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.rule))
+        content()
     }
 }
 
@@ -333,54 +298,89 @@ fun RawJsonBlock(t: InkTokenSet, raw: String, fields: Map<String, String>) {
     }
 }
 
-// ── 考试详情 / 原始 ────────────────────────────────────────
+// ── 考试详情（整页） ──────────────────────────────────────
 
 /**
- * 考试详情浮层：主信息 → 次信息 → 原始，三层从上到下。
+ * 考试详情页：整页纸纹当底、正文装进一个框（见 docs/设计-m36-详情压底.md）。
  *
- * @param showRawFirst 长按进来时直接顶到原始区（用户意图是「看原文」，不是「看详情」）
+ * 为什么从浮层改成整页：浮层是「点一下就关」的辅读，只装得下三五行；这里要放
+ * 时间地点 + 原始 JSON + 全部接口字段，是**越读越长**的正文，塞进 304dp 宽的
+ * 浮层只会缩成一团（主人 2026-11-20 指出的「畸形」）。
+ *
+ * @param showRawFirst 长按进来时直接停在原文区（用户意图是「看原文」，不是「看详情」）
  */
 @Composable
-fun ExamDetailSheet(
+fun ExamDetailPage(
     t: InkTokenSet,
     exam: ExamItem,
     showRawFirst: Boolean,
-    onDismiss: () -> Unit,
+    onBack: () -> Unit,
 ) {
-    AcademicSheet(
-        t = t,
-        title = exam.name.ifBlank { "（未命名考试）" },
-        subtitle = buildString {
-            append(ExamRows.dayLabel(exam))
-            append(" ")
-            append(ExamRows.weekdayLabel(exam))
-            val range = ExamRows.timeRangeLabel(exam)
-            if (range.isNotBlank()) append(" · ").append(range)
-        },
-        onDismiss = onDismiss,
-    ) {
-        // 第一层：主信息
-        SheetField(t, "日期", exam.date.ifBlank { "" }, mono = true, emphasize = true)
-        SheetField(t, "时间", ExamRows.timeRangeLabel(exam), mono = true, emphasize = true)
-        SheetField(t, "考场", ExamRows.placeLabel(exam), emphasize = true)
-        Spacer(Modifier.height(8.dp))
-        Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.rule))
-        Spacer(Modifier.height(8.dp))
-        // 第二层：次信息
-        SheetField(t, "校区", exam.campus)
-        SheetField(t, "教学楼", exam.building)
-        SheetField(t, "教室", exam.room)
-        SheetField(t, "座位", exam.seat)
-        SheetField(t, "时长", ExamRows.durationLabel(exam), mono = true)
-        SheetField(t, "类别", exam.type)
-        if (exam.extraLines.isNotEmpty()) {
-            SheetField(t, "其他行", exam.extraLines.joinToString(" / "))
-        }
-        Spacer(Modifier.height(8.dp))
-        Box(Modifier.fillMaxWidth().height(0.75.dp).background(t.rule))
-        // 第三层：原始
-        RawJsonBlock(t, exam.raw, exam.fields)
+    val sub = buildString {
+        append(ExamRows.dayLabel(exam))
+        append(" ")
+        append(ExamRows.weekdayLabel(exam))
+        val range = ExamRows.timeRangeLabel(exam)
+        if (range.isNotBlank()) append(" · ").append(range)
+    }
 
+    cn.dkarbon.enroute.ui.kit.DetailScaffold(
+        backLabel = "考试安排",
+        tex = cn.dkarbon.enroute.ui.kit.PaperTex.GRID,
+        onBack = onBack,
+        initialScrollToEnd = showRawFirst,
+    ) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("考试", fontSize = 11.5.sp, fontWeight = FontWeight.Bold, color = t.inkSoft)
+            Spacer(Modifier.weight(1f))
+            Text(
+                ExamRows.countdownLabel(ExamRows.daysAhead(exam, java.time.LocalDate.now())) ?: "",
+                fontSize = 9.5.sp,
+                fontFamily = NumericFont,
+                color = t.inkFaint,
+            )
+        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            exam.name.ifBlank { "（未命名考试）" },
+            fontSize = 19.sp,
+            lineHeight = 27.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = t.ink,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            sub,
+            fontSize = 9.5.sp,
+            letterSpacing = 0.04.em,
+            fontFamily = NumericFont,
+            color = t.inkFaint,
+        )
+        Spacer(Modifier.height(13.dp))
+        // 通栏墨线：标题区与正文的分界，比普通分割线重一档
+        Box(Modifier.fillMaxWidth().height(1.dp).background(t.ink))
+
+        cn.dkarbon.enroute.ui.kit.DetailSection("时间与地点") {
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("日期", exam.date.ifBlank { "暂缺" })
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("时间", ExamRows.timeRangeLabel(exam).ifBlank { "暂缺" })
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("考场", ExamRows.placeLabel(exam).ifBlank { "暂缺" })
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("座位", exam.seat.ifBlank { "暂缺" })
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("时长", ExamRows.durationLabel(exam).ifBlank { "暂缺" })
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("类别", exam.type.ifBlank { "暂缺" }, valueMono = false)
+        }
+
+        cn.dkarbon.enroute.ui.kit.DetailSection("校区与教室") {
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("校区", exam.campus.ifBlank { "暂缺" }, valueMono = false)
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("教学楼", exam.building.ifBlank { "暂缺" })
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("教室", exam.room.ifBlank { "暂缺" })
+            if (exam.extraLines.isNotEmpty()) {
+                cn.dkarbon.enroute.ui.kit.DetailFieldRow("其他行", exam.extraLines.joinToString(" / "), valueMono = false)
+            }
+        }
+
+        cn.dkarbon.enroute.ui.kit.DetailSection("原始") {
+            RawJsonBlock(t, exam.raw, exam.fields)
+        }
     }
 }
 

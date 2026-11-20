@@ -132,31 +132,12 @@ internal fun UpdateSection() {
     }
 
     // 「立即更新」跳转（文档 §1.4 / §3.4 方案 A）：弹窗点「立即更新」→ 请求自动下载，
-    // 跳到设置页时这里消费请求，用户不必再点一次「下载」。未确认前不下载的契约不变
-    // —— 点「立即更新」本身就是确认。
-    val downloadRequest by UpdateCenter.downloadRequest.collectAsStateWithLifecycle()
 
+    // m37：下载交给 UpdateCenter 的进程级状态机，设置页只负责发起 ——
+    // 进度、失败、校验、安装都在根节点的阻塞浮层里，页面切走也不丢。
     fun beginDownload(info: UpdateInfo) {
-        state = Ui.Downloading(0L, info.size)
-        job = scope.launch {
-            when (val r = center.download(info) { done, total ->
-                state = Ui.Downloading(done, total)
-            }) {
-                is UpdateCenter.DownloadResult.Ready ->
-                    state = Ui.Ready(r.apk, info)
-                UpdateCenter.DownloadResult.Cancelled ->
-                    state = Ui.Available(info, UpdateVersions.isMandatory(info, BuildConfig.VERSION_CODE.toLong()))
-                is UpdateCenter.DownloadResult.Failed -> state = Ui.Error(r.message, info.url, helpTextFor(info, r.message))
-            }
-        }
-    }
-
-    LaunchedEffect(downloadRequest) {
-        val info = downloadRequest ?: return@LaunchedEffect
-        if (state is Ui.Idle || state is Ui.Hint) {
-            beginDownload(info)
-        }
-        UpdateCenter.consumeDownloadRequest()
+        state = Ui.Hint("正在下载 " + info.versionName)
+        center.startDownload(info)
     }
 
     // 下载完先要权限：没有「安装未知应用」就自己把人送到那一页，回来自动接着装
@@ -257,29 +238,7 @@ internal fun UpdateSection() {
             }
             is Ui.Downloading -> {
                 Spacer(Modifier.height(6.dp))
-                val frac = if (s.total > 0) (s.done.toFloat() / s.total).coerceIn(0f, 1f) else 0f
-                if (s.total > 0) {
-                    LinearProgressIndicator(
-                        progress = { frac },
-                        modifier = Modifier.fillMaxWidth().height(3.dp).clip(Form.current.shapes.pill),
-                        color = t.ink,
-                        trackColor = t.rule,
-                    )
-                    Spacer(Modifier.height(3.dp))
-                    Text(
-                        "下载中 ${(frac * 100).toInt()}% · ${fmt(s.done)} / ${fmt(s.total)}",
-                        fontSize = 10.5.sp,
-                        color = t.inkFaint,
-                    )
-                } else {
-                    LinearProgressIndicator(
-                        modifier = Modifier.fillMaxWidth().height(3.dp),
-                        color = t.ink,
-                        trackColor = t.rule,
-                    )
-                    Spacer(Modifier.height(3.dp))
-                    Text("下载中 ${fmt(s.done)}（服务器没给总大小）", fontSize = 10.5.sp, color = t.inkFaint)
-                }
+                StatusLine("下载中 " + fmt(s.done) + " / " + fmt(s.total), t.inkFaint)
             }
             is Ui.Ready -> {
                 Spacer(Modifier.height(6.dp))

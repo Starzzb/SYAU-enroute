@@ -177,38 +177,22 @@ object ExamRows {
         exams: List<ExamItem>,
         today: LocalDate,
         now: LocalDateTime,
-        collapsed: Set<ExamBucket>,
+        @Suppress("UNUSED_PARAMETER") collapsed: Set<ExamBucket> = emptySet(),
     ): List<ExamRow> {
+        // m35：一条时间流。以前按「今天/本周/更远/已结束」四桶切段，桶头是硬隔断，
+        // 轴被切断、已结束的被单独关起来折叠。现在全部按开考时间正序排成一条轴 ——
+        // 过去在上、未来在下，节点自己说清位置，不需要桶。
         if (exams.isEmpty()) return emptyList()
         val next = nextUpcoming(exams, today, now)
-        val byBucket = exams.groupBy { bucket(it, today) }
-        val rows = ArrayList<ExamRow>(exams.size + 4)
-
-        for (b in ORDER) {
-            val group = byBucket[b] ?: continue
-            // 已结束组倒序：最近考完的排最前，别让人先翻到去年
-            val sorted = if (b == ExamBucket.PAST) {
-                group.sortedWith(compareByDescending<ExamItem> { startOf(it) ?: LocalDateTime.MIN })
-            } else {
-                group.sortedWith(compareBy<ExamItem> { startOf(it) ?: LocalDateTime.MAX })
-            }
-            val isCollapsed = b in collapsed
-            rows += ExamRow.Header(
-                bucket = b,
-                count = sorted.size,
-                collapsible = b == ExamBucket.LATER || b == ExamBucket.PAST,
-                collapsed = isCollapsed,
-            )
-            if (isCollapsed) continue
-            for (e in sorted) {
-                rows += ExamRow.Card(
+        return exams
+            .sortedWith(compareBy<ExamItem> { startOf(it) ?: LocalDateTime.MAX })
+            .map { e ->
+                ExamRow.Card(
                     exam = e,
                     daysAhead = daysAhead(e, today),
                     isNext = next != null && e === next,
                 )
             }
-        }
-        return rows
     }
 
     fun stats(exams: List<ExamItem>, today: LocalDate, now: LocalDateTime): ExamStats {

@@ -156,58 +156,6 @@ fun DrawScope.drawTesseract(
     }
 }
 
-/**
- * 画出当前选择的底纹，**并且跟着课表一起动**。
- *
- * @param turns 这个画面「转过多少圈」的连续量。
- *   现在由「一天中的进度 + 第几周」拼出来：
- *   一天转一整圈（每小时 15°，一节课能看出它在转）、换一周再叠 40°。
- *   所以它不是一张死图 —— 你上完一节课回来再看，形状已经变了；
- *   翻到下一周，是另一个姿态。
- */
-@Composable
-fun MathBackdrop(modifier: Modifier, color: Color, alpha: Float, turns: Float) {
-    when (CurrentBackdrop) {
-        Backdrop.NONE -> Unit
-        Backdrop.TESSERACT -> Canvas(modifier) {
-            drawTesseract(
-                color = color,
-                centerX = size.width / 2f,
-                centerY = size.height * 0.56f,
-                radius = size.height * 0.40f,
-                // 四维里两个平面一起转，投影才不会退化成一张平面图
-                angleA = 0.42f + turns * 2f * PI.toFloat(),
-                angleB = 0.78f + turns * 4f * PI.toFloat(),
-                alpha = alpha,
-                strokeWidth = kotlin.math.ceil(1f * density),
-            )
-        }
-    }
-}
-
-
-// ═══════════════════════════════════════════════════════════
-// 四维「转换」动效（票 29）
-//
-// 主人原话：「背景的超立方体可以有转换的效果」。
-// 静态那张图已经能看出是个四维体，但"四维"这件事只有**动起来**才成立：
-// 内外两层立方体交换的那一下，就是第四维在转身。
-//
-// 三条硬约束（与静态版同源）：
-//   ① 是四维旋转，不是三维自转 —— 3D 相机角固定，只让 6 个 4D 平面转；
-//   ② 是背景不是主角 —— 1.4 物理像素线宽、alpha 0.085–0.17（2026-11-15 起：
-//      分层到最底层后线宽与强度各提一档，仍远低于卡片/正文的实度）；
-//   ③ 省电 —— 只在可见时跑、用 withFrameNanos 推进、每帧零对象分配、
-//      系统开「移除动画」时完全静止。
-// ═══════════════════════════════════════════════════════════
-
-/**
- * 背景线框的默认强度（按主题分档）。**仅「关于」页等没有遮挡层的页面使用。**
- *
- * 课表页（TimetableScreen）**不要用这个口径**：那里底纹分层到了最底层，
- * 上面压着交错行带（zebra）、今日列 wash 与不透明课卡，需要 0.17/0.11 才能被看见，
- * 见 TimetableScreen 固定背景层的注释与 docs/_probe/课表底纹-可见性.md。
- */
 fun tesseractAlpha(editorial: Boolean, isDark: Boolean): Float = when {
     editorial -> if (isDark) 0.115f else 0.085f
     isDark -> 0.14f

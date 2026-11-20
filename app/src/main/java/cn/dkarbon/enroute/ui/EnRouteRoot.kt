@@ -83,12 +83,18 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
 
     val feedVm: FeedViewModel = viewModel()
     val feedUi by feedVm.ui.collectAsStateWithLifecycle()
+    // 资讯详情同样是整页新页（m36）：底栏让位，阅读面到底
+    val feedDetail by feedVm.detail.collectAsStateWithLifecycle()
 
     // 更新提醒（文档 §3.3）：检查在 Application，展示在这里。只在启动默认的课表 tab、
     // 且没有其它弹层时弹 —— 已知限制：若用户恰好在资讯/地图浮层上启动，可能叠层（文档 §3.3）。
     val ctx = LocalContext.current
     val updateCenter = remember { UpdateCenter(ctx.applicationContext) }
     val available by UpdateCenter.available.collectAsStateWithLifecycle()
+    // 阻塞式下载（m37）：状态在 UpdateCenter 的 companion 里，UI 只是订阅者 ——
+    // 浮层被回收、切 tab、转屏都不影响下载本身。
+    val downloadState by UpdateCenter.downloadState.collectAsStateWithLifecycle()
+    val installPendingApk = cn.dkarbon.enroute.ui.update.rememberInstallWithPermission(updateCenter)
     var dialogInfo by remember { mutableStateOf<UpdateInfo?>(null) }
     var openSettingsForUpdate by remember { mutableStateOf(false) }
 
@@ -105,6 +111,13 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
     // 票 26：按 tab 存 saveable 状态（滚动位置等），同级切换可原地恢复
     val routeStates = rememberSaveableStateHolder()
 
+    // 考试详情同样是整页新页（m36）：挂根节点、与 tab 内容互斥。
+    // 详情开着时列表不参与组合 —— 上层 SubHeader 与底栏一起让位，
+    // 界面上只剩详情头部那一个返回箭头（2026-11-20 修两层箭头）。
+    var examDetail by remember {
+        mutableStateOf<Pair<cn.dkarbon.enroute.data.ExamItem, Boolean>?>(null)
+    }
+
     // 回到前台：资讯距上次成功刷新 >30 分钟 → 静默刷新；顺带跨天重算日期基准
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     androidx.compose.runtime.DisposableEffect(lifecycleOwner) {
@@ -117,45 +130,17 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
 
     Scaffold(
         containerColor = t.paper,
+        // 墨洗底栏（m34，2026-11-20）：贴底、上部 16dp 圆角、三栏等距、朱点指示当前项。
         bottomBar = {
-            Column(Modifier.background(t.card)) {
-                // 用 LocalConfiguration 的屏宽算指示条位置，避免 BoxWithConstraints 的子组合开销
-                val screenW = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
-                val tabWidth = screenW / 3
-                Box(Modifier.fillMaxWidth().height(Stroke.accentBar)) {
-                    val x by animateDpAsState(
-                        targetValue = tabWidth * tab,
-                        animationSpec = tween(Motion.base),
-                        label = "tabIndicator",
-                    )
-                    // 轨道底色（未选中区域）
-                    Box(Modifier.fillMaxWidth().fillMaxHeight().background(t.rule))
-                    // 滑动指示条
-                    Box(
-                        Modifier
-                            .offset(x = x)
-                            .width(tabWidth)
-                            .fillMaxHeight()
-                            .background(t.primary),
-                    )
-                }
-                Row(
-                    Modifier
-                        .fillMaxWidth()
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .height(56.dp),
-                ) {
-                    HardTab("课表", Icons.Default.DateRange, tab == 0, 0) { tab = 0 }
-                    HardTab(
-                        label = "资讯",
-                        icon = AppIcons.Article,
-                        selected = tab == 1,
-                        index = 1,
-                        // 正在看资讯时不挂徽标（未读数页头已承载）；切走恢复
-                        badge = if (tab == 1) 0 else feedUi.unread,
-                    ) { tab = 1 }
-                    HardTab("我的", Icons.Default.Person, tab == 2, 2) { tab = 2 }
-                }
+            // 大纲详情是整页新页（m36）：底栏让位，不再和详情同屏
+            if (ui.syllabusOpenId.isBlank() && examDetail == null &&
+                feedDetail.item == null
+            ) {
+                cn.dkarbon.enroute.ui.kit.InkNavBar(
+                    selected = tab,
+                    unread = if (tab == 1) 0 else feedUi.unread,
+                    onSelect = { tab = it },
+                )
             }
         },
     ) { inner ->
@@ -167,23 +152,33 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
         ) {
             // 票 26：三个 tab 是同级路由 —— 切走再回来要停在原处（资讯滚到第 30 条 → 去课表 → 回资讯），
             // 所以每个 tab 的 saveable 状态按 tab 名存一份。只存 Bundle，杀进程不恢复。
-            routeStates.SaveableStateProvider("tab:$tab") {
-                when (tab) {
-                    0 -> TimetableScreen(ui = ui, vm = vm)
-                    1 -> FeedScreen(ui = feedUi, vm = feedVm)
-                    else -> UserScreen(
-                        ui = ui,
-                        vm = vm,
-                        openSettingsForUpdate = openSettingsForUpdate,
-                        onOpenSettingsForUpdateConsumed = { openSettingsForUpdate = false },
-                    )
-                }
-            }
-
-            // 课程大纲浮层（票 10）：课表详情 / 培养方案课程行 / 大纲搜索页三处入口共用，
-            // 统一挂在根节点上渲染一次 —— 各入口只调 vm.openSyllabus(...)，不必各页各写一套。
+            // 课程大纲详情（票 10 / m36）：课表详情、培养方案课程行、大纲搜索页三处入口共用，
+            // 统一挂在根节点渲染一次。打开时**替换** tab 内容 —— 整页详情是新页，
+            // 下层列表不参与组合，底下的返回按钮也就不存在可点的可能（2026-11-20 修）。
+            val shownExam = examDetail
             if (ui.syllabusOpenId.isNotBlank()) {
                 cn.dkarbon.enroute.ui.curriculum.SyllabusSheet(ui = ui, vm = vm)
+            } else if (shownExam != null) {
+                cn.dkarbon.enroute.ui.academic.ExamDetailPage(
+                    t = t,
+                    exam = shownExam.first,
+                    showRawFirst = shownExam.second,
+                    onBack = { examDetail = null },
+                )
+            } else {
+                routeStates.SaveableStateProvider("tab:$tab") {
+                    when (tab) {
+                        0 -> TimetableScreen(ui = ui, vm = vm)
+                        1 -> FeedScreen(ui = feedUi, vm = feedVm)
+                        else -> UserScreen(
+                            ui = ui,
+                            vm = vm,
+                            openSettingsForUpdate = openSettingsForUpdate,
+                            onOpenSettingsForUpdateConsumed = { openSettingsForUpdate = false },
+                            onOpenExamDetail = { exam, raw -> examDetail = exam to raw },
+                        )
+                    }
+                }
             }
 
             // 「保持登录」一次性说明卡（票 14）：首次登录成功后弹一次，挂在根节点免得漏掉
@@ -198,11 +193,10 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
                     fromCode = BuildConfig.VERSION_CODE.toLong(),
                     mandatory = UpdateVersions.isMandatory(info, BuildConfig.VERSION_CODE.toLong()),
                     onUpdateNow = {
-                        // 跳「我的」tab → 设置页，并自动开始下载（文档 §1.4）
-                        UpdateCenter.requestDownload(info)
+                        // m37：点「更新」就地进入阻塞下载 —— 不再跳设置页（那是一次多余的换页），
+                        // 下载状态在 UpdateCenter，浮层挂在根节点，切页也不会丢。
                         dialogInfo = null
-                        openSettingsForUpdate = true
-                        tab = 2
+                        updateCenter.startDownload(info)
                     },
                     onGotIt = { dialogInfo = null },
                     onDismissVersion = {
@@ -211,57 +205,21 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
                     },
                 )
             }
+
+            // 阻塞式下载浮层（m37）：四态同屏互斥 —— 下载中无出口，失败给「重试 / 稍后」
+            if (downloadState !is UpdateCenter.DownloadState.Idle) {
+                cn.dkarbon.enroute.ui.update.BlockingDownloadSheet(
+                    state = downloadState,
+                    onInstall = { apk -> installPendingApk(apk) },
+                    onRetry = {
+                        (downloadState as? UpdateCenter.DownloadState.Failed)?.let {
+                            updateCenter.startDownload(it.info)
+                        }
+                    },
+                    onLater = { updateCenter.resetDownload() },
+                )
+            }
         }
     }
 }
 
-@Composable
-private fun androidx.compose.foundation.layout.RowScope.HardTab(
-    label: String,
-    icon: ImageVector,
-    selected: Boolean,
-    index: Int,
-    badge: Int = 0,
-    onClick: () -> Unit,
-) {
-    val t = InkTokens.current
-    Column(
-        Modifier
-            .weight(1f)
-            .fillMaxHeight()
-            .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
-    ) {
-        if (badge > 0) {
-            // 未读不是错误：徽标用主色（农械橘），不用 M3 默认 error 红。
-            // 暗色底是浅橙 → 文字用深土色保证对比。
-            BadgedBox(
-                badge = {
-                    Badge(
-                        containerColor = t.primary,
-                        contentColor = if (t.isDark) androidx.compose.ui.graphics.Color(0xFF100E0B) else androidx.compose.ui.graphics.Color.White,
-                    ) {
-                        Text(
-                            if (badge > 99) "99+" else "$badge",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            fontFamily = cn.dkarbon.enroute.ui.theme.NumericFont,
-                        )
-                    }
-                },
-            ) {
-                Icon(icon, contentDescription = label, modifier = Modifier.size(20.dp))
-            }
-        } else {
-            Icon(icon, contentDescription = label, modifier = Modifier.size(20.dp))
-        }
-        Spacer(Modifier.height(3.dp))
-        Text(
-            label,
-            fontSize = 10.sp,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-            color = if (selected) t.primary else t.inkFaint,
-        )
-    }
-}

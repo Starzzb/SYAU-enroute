@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,6 +38,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.Reminders
 import cn.dkarbon.enroute.data.SessionState
@@ -44,6 +46,8 @@ import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.SessionText
 import cn.dkarbon.enroute.ui.TimetableViewModel
 import cn.dkarbon.enroute.ui.academic.ProbePanel
+import cn.dkarbon.enroute.ui.kit.PaperTex
+import cn.dkarbon.enroute.ui.kit.paperTexture
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
@@ -78,7 +82,7 @@ fun SettingsScreen(
             .padding(horizontal = 16.dp),
     ) {
         // ── 外观 ──
-        SectionTitle("外观")
+        SettingsSection("外观", PaperTex.GRID) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(0 to "跟随系统", 1 to "浅色", 2 to "深色").forEach { (mode, label) ->
                 val on = ui.themeMode == mode
@@ -99,30 +103,8 @@ fun SettingsScreen(
             }
         }
 
-        // 风格：管语汇（硬朗农业 / 笺），与上面的明暗正交
-        // 学院纸本已于 2026-11-14 按主人要求下线（token 代码留着，UI 不再露出）
-        Spacer(Modifier.height(10.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            cn.dkarbon.enroute.ui.theme.StyleSet.SELECTABLE.map { style ->
-                style to cn.dkarbon.enroute.ui.theme.StyleSet.name(style)
-            }.forEach { (style, label) ->
-                val on = ui.styleSet == style
-                Box(
-                    Modifier
-                        .clip(RectangleShape)
-                        .background(if (on) t.cardAlt else t.card)
-                        .clickable { vm.setStyleSet(style) }
-                        .padding(horizontal = 12.dp, vertical = 6.dp),
-                ) {
-                    Text(
-                        label,
-                        fontSize = 11.5.sp,
-                        color = if (on) t.ink else t.inkFaint,
-                        fontWeight = if (on) FontWeight.Medium else FontWeight.Normal,
-                    )
-                }
-            }
-        }
+        // 主题风格切换已下线（2026-11-20，m34 墨洗改版）：只保留一套 INK，明暗正交。
+        // 明暗由上面的三档控制；SCHOLAR / EDITORIAL 的 token 代码保留，UI 不再露出。
 
         // ── 取色（票 25：固定 / 壁纸 / 自定义）──
         // AGENTS.md 界面文案约定：按钮上只放名字，解释进点开后的面板/弹窗。
@@ -189,7 +171,9 @@ fun SettingsScreen(
             )
         }
         // ── 上课提醒 ──
-        SectionTitle("上课提醒")
+        }
+
+        SettingsSection("上课提醒", PaperTex.CROSS) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("课前提醒", fontSize = 13.sp, color = t.ink)
@@ -215,7 +199,9 @@ fun SettingsScreen(
         }
 
         // ── 数据 ──
-        SectionTitle("数据")
+        }
+
+        SettingsSection("数据", PaperTex.WEAVE) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("已载入 ${ui.timetable?.courses?.size ?: 0} 门课", fontSize = 13.sp, color = t.ink)
@@ -329,6 +315,8 @@ fun SettingsScreen(
         }
 
         // ── 调试 ──
+        }
+
         SectionTitle("调试")
         Row(
             Modifier
@@ -457,6 +445,31 @@ private fun ConfirmRow(text: String, onCancel: () -> Unit, onConfirm: () -> Unit
         TextButton(onClick = onCancel) { Text("取消", fontSize = 12.sp) }
         TextButton(onClick = onConfirm) { Text("确定", fontSize = 12.sp, color = t.brick) }
     }
+}
+
+@Composable
+private fun SettingsSection(
+    title: String,
+    tex: PaperTex,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val t = InkTokens.current
+    Spacer(Modifier.height(22.dp))
+    Text(
+        title,
+        fontSize = 9.sp,
+        letterSpacing = 0.2.em,
+        color = t.inkFaint,
+        modifier = Modifier.padding(start = 2.dp, bottom = 8.dp),
+    )
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .paperTexture(tex = tex, t = t, radius = 4.dp)
+            .border(1.dp, t.outline, RoundedCornerShape(4.dp))
+            .padding(horizontal = 13.dp, vertical = 10.dp),
+        content = content,
+    )
 }
 
 @Composable

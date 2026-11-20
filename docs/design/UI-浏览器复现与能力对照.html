@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UI 浏览器复现 · 渲染能力对照</title>
+<style>
+:root{
+  --paper:#F5F2EC; --card:#FAF8F4; --cardAlt:#EDE8DF;
+  --ink:#1A1611; --inkSoft:#443E36; --inkFaint:#5F574C;
+  --rule:#8F7E61; --outline:#7E7468;
+  --primary:#C74E17; --primaryInk:#A83D11; --accent:#DE6A2E;
+  --brick:#9B2417; --slate:#345A66; --olive:#3F5A2E; --amber:#8F6713;
+  --hard:#1A1611;
+  --page:#E8E3DA; --panel:#F1EDE6; --preInk:#2A251F;
+  --gBlur:20px; --gAlpha:.72; --veil:.24; --radius:14px;
+  --toolbar:#2A251F; --toolbarInk:#F5F2EC;
+  --gShadow:rgba(26,22,17,.20); --gEdge:rgba(26,22,17,.62);
+  --gHi:rgba(255,255,255,.75); --gLo:rgba(26,22,17,.16);
+}
+body[data-dark="1"]{
+  --paper:#100E0B; --card:#1A1611; --cardAlt:#2B2621;
+  --ink:#EDE8DF; --inkSoft:#A1978A; --inkFaint:#988D82;
+  --rule:#7F6F5A; --outline:#827767;
+  --primary:#EA8F5E; --primaryInk:#F3B994; --accent:#DE6A2E;
+  --brick:#E7A093; --slate:#A0B6BB; --olive:#BCC79B; --amber:#DDB84D;
+  --hard:#000000;
+  --page:#0A0907; --panel:#171410; --preInk:#EDE8DF;
+  --gAlpha:.72; --veil:.46;
+  --toolbar:#2A251F; --toolbarInk:#F5F2EC;
+  --gShadow:rgba(0,0,0,.62); --gEdge:rgba(237,232,223,.28);
+  --gHi:rgba(255,255,255,.10); --gLo:rgba(0,0,0,.45);
+}
+/* API 29 降级：没有系统级背景模糊，只能靠厚纸 + 纸纹 + 更重遮罩分层 */
+body[data-mode="api29"]{ --gBlur:0px; --gAlpha:.97; --veil:.38; --radius:14px; }
+body[data-dark="1"][data-mode="api29"]{ --gAlpha:.975; --veil:.46; }
+/* HARD 原始口径：0 圆角 / 1dp 实线 / 2dp 硬投影 / 零渐变零纹理 */
+body[data-mode="hard"]{ --gBlur:0px; --gAlpha:1; --veil:.16; --radius:0px; --gEdge:var(--outline); }
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--ink);
+  font-family:"Microsoft YaHei","PingFang SC","Noto Sans CJK SC",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased}
+.mono{font-family:ui-monospace,Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums}
+
+/* ── 工程工具条（不是产品 UI） ── */
+.toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 22px;background:var(--toolbar);color:var(--toolbarInk);border-bottom:3px solid var(--primary)}
+.toolbar h1{margin:0;font-size:14px;font-weight:700;letter-spacing:.04em;color:var(--toolbarInk)}
+.toolbar .sp{flex:1}
+.toolbar .lab{font-size:10.5px;opacity:.7;margin-right:2px;letter-spacing:.06em;color:var(--toolbarInk)}
+.seg{display:flex;border:1px solid rgba(245,242,236,.35);color:var(--toolbarInk)}
+.seg button{background:transparent;color:var(--toolbarInk);border:0;border-right:1px solid rgba(245,242,236,.22);
+  padding:7px 12px;font-size:11.5px;cursor:pointer;font-family:inherit;white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--primary);font-weight:700;color:#F5F2EC}
+.seg button:hover:not(.on){background:rgba(245,242,236,.12)}
+
+.wrap{display:grid;grid-template-columns:460px 1fr;gap:22px;padding:22px;align-items:start}
+.colL{display:flex;flex-direction:column;align-items:center;gap:10px}
+.cap{font-size:10.5px;color:var(--inkFaint);letter-spacing:.06em}
+
+/* ── 手机：1:1 复现当前 App 资讯页 ── */
+.phone{position:relative;width:412px;height:915px;background:var(--paper);
+  border:1px solid var(--outline);overflow:hidden}
+body[data-mode="hard"] .phone{border-radius:0}
+.status{height:30px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;font-size:10.5px;color:var(--inkSoft);border-bottom:1px solid var(--rule)}
+.status .bars{display:flex;gap:2px;align-items:flex-end;height:10px}
+.status .bars i{width:2px;background:var(--inkSoft);display:block}
+.status .bat{width:16px;height:8px;border:1px solid var(--inkSoft);position:relative}
+.status .bat::after{content:"";position:absolute;left:1px;top:1px;bottom:1px;width:9px;background:var(--inkSoft)}
+
+/* 页眉：FeedTitleRowHeight = 44dp */
+.fhead{height:44px;display:flex;align-items:center;padding:0 6px 0 16px;gap:8px;
+  border-bottom:1px solid var(--rule);position:relative;z-index:2}
+.fhead .ttl{font-size:15px;font-weight:700;letter-spacing:.01em}
+.fhead .st{font-size:11.5px;color:var(--inkFaint);flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.ibtn{width:48px;height:48px;display:grid;place-items:center;color:var(--inkSoft);flex:0 0 48px;
+  background:transparent;border:0;cursor:pointer;font-family:inherit}
+.ibtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ibtn.more{font-size:16px;letter-spacing:1px;line-height:1;color:var(--primary);font-weight:700}
+.ibtn.more.on{background:var(--cardAlt)}
+
+.chips{display:flex;gap:20px;padding:12px 16px 0;font-size:12.5px;color:var(--inkSoft);
+  border-bottom:1px solid var(--rule);position:relative;z-index:1}
+.chips span{padding-bottom:10px;position:relative;white-space:nowrap}
+.chips span.on{color:var(--primaryInk);font-weight:700}
+.chips span.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--primary)}
+.chips .num{font-size:9.5px;color:var(--inkFaint);margin-left:3px}
+
+/* 列表（卡片背后要有内容可糊，这正是原型与真机的分水岭） */
+.list{position:absolute;left:0;right:0;top:130px;bottom:64px;overflow:hidden;padding:6px 0}
+.frow{padding:13px 16px 14px;border-bottom:1px solid var(--rule);position:relative}
+.frow .h{display:flex;align-items:center;gap:8px;font-size:9.5px;color:var(--inkFaint)}
+.frow .tag{border:1px solid var(--outline);padding:1px 4px;font-size:9px;color:var(--inkSoft)}
+.frow .t{font-size:13.5px;line-height:20px;color:var(--ink);margin-top:6px;font-weight:500}
+.frow .m{font-size:9.5px;color:var(--inkFaint);margin-top:5px}
+.frow .dot{width:6px;height:6px;border-radius:50%;background:var(--primary);margin-left:auto}
+.frow.read .t{color:var(--inkSoft)}
+.frow.read .dot{background:transparent;border:1px solid var(--outline)}
+
+.navb{position:absolute;left:0;right:0;bottom:0;height:64px;background:var(--paper);
+  border-top:1px solid var(--rule);display:flex;align-items:center;padding:0 8px 10px;z-index:1}
+.navb .ni{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+  font-size:9px;color:var(--inkFaint)}
+.navb .ni svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.navb .ni.on{color:var(--primary)}
+
+/* 遮罩 */
+.veil{position:absolute;inset:0;background:#000;opacity:var(--veil);z-index:8}
+
+/* 锚定卡片：从 ⋯ 下方长出，折角指回按钮 */
+.gcard{position:absolute;z-index:9;right:12px;top:82px;width:304px;max-height:560px;
+  display:flex;flex-direction:column;overflow:visible;
+  border-radius:var(--radius);border:1px solid var(--gEdge);
+  background:var(--card);
+  box-shadow:0 26px 52px var(--gShadow);
+  transform-origin:top right}
+.gcard::before{content:"";position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;
+  background:var(--paper);
+  opacity:var(--gAlpha);
+  z-index:-2}
+body[data-mode="full"] .gcard::before{opacity:var(--gAlpha)}
+/* 真背景模糊：浏览器独有能力 */
+.gcard .blur{position:absolute;inset:0;border-radius:var(--radius);z-index:-3;pointer-events:none;
+  -webkit-backdrop-filter:blur(var(--gBlur)) saturate(1.10);
+  backdrop-filter:blur(var(--gBlur)) saturate(1.10)}
+body[data-mode="api29"] .gcard .blur,
+body[data-mode="hard"] .gcard .blur{display:none}
+/* 纸纹：App 里是 ShaderBrush(ImageShader(48×48 噪点)) */
+.gcard .grain{position:absolute;inset:0;border-radius:var(--radius);z-index:-1;pointer-events:none;
+  opacity:.06;mix-blend-mode:multiply;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/></filter><rect width='48' height='48' filter='url(%23n)' opacity='.28'/></svg>")}
+body[data-mode="hard"] .gcard .grain{display:none}
+/* 顶 1dp 高光 + 底 1dp 阴影 */
+.gcard .edge{position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;z-index:3;
+  box-shadow:inset 0 1px 0 var(--gHi), inset 0 -1px 0 var(--gLo)}
+body[data-mode="hard"] .gcard .edge{display:none}
+/* 折角：14dp 方块旋转 45° */
+.fold{position:absolute;top:-7px;right:18px;width:14px;height:14px;
+  background:var(--card);border-left:1px solid var(--gEdge);border-top:1px solid var(--gEdge);
+  transform:rotate(45deg);z-index:4}
+body[data-mode="api29"] .fold,body[data-mode="hard"] .fold{background:var(--paper)}
+.accbar{height:2px;flex:0 0 2px;background:var(--brick);border-radius:var(--radius) var(--radius) 0 0}
+body[data-mode="hard"] .accbar{border-radius:0}
+.ghead{padding:16px 16px 12px;border-bottom:1px solid var(--rule);position:relative}
+.ghead .gttl{font-size:15px;font-weight:700;line-height:1.15}
+.ghead .gsub{font-size:9.5px;color:var(--inkFaint);margin-top:3px}
+.gscroll{overflow-y:auto;position:relative;flex:1}
+.filters{display:flex;gap:8px;padding:12px 16px}
+.filters .fc{flex:1;height:48px;display:flex;align-items:center;gap:8px;padding:0 10px;
+  border:1px solid var(--rule);border-radius:3px;font-size:12.5px;color:var(--inkSoft);position:relative}
+.filters .fc.sel{background:rgba(199,78,23,.10);border-color:rgba(199,78,23,.55);color:var(--ink);font-weight:700}
+.filters .fc.sel::before{content:"";position:absolute;left:0;top:15px;bottom:15px;width:3px;background:var(--primary)}
+.filters .fc .n{margin-left:auto;font-size:12px;font-weight:700;color:var(--primaryInk)}
+.gsec{font-size:9.5px;color:var(--inkFaint);letter-spacing:.10em;padding:12px 16px 6px;
+  border-top:1px solid var(--rule)}
+.grow{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;
+  border-bottom:1px solid var(--rule);min-height:52px}
+.grow .idx{font-size:9px;color:var(--inkFaint);width:14px;flex:0 0 14px;padding-top:3px}
+.grow .rt{font-size:13.5px;font-weight:500;line-height:1.25}
+.grow .rs{font-size:9.5px;color:var(--inkFaint);margin-top:3px;line-height:13px}
+.grow .st{margin-left:auto;font-size:9.5px;color:var(--inkFaint);white-space:nowrap;padding-top:3px}
+.grow .sq{width:6px;height:6px;flex:0 0 6px;background:var(--olive);margin-top:5px}
+.grow.add .rt{color:var(--primaryInk)}
+.gfoot{padding:10px 16px 12px;border-top:1px solid var(--rule);font-size:9px;color:var(--inkFaint)}
+
+/* ── 右栏：工程对照（文档，不是产品 UI） ── */
+.panel{background:var(--panel);border:1px solid var(--outline);padding:18px 20px;margin-bottom:16px}
+.panel h2{margin:0 0 4px;font-size:15px;font-weight:700}
+.panel .sub{font-size:10.5px;color:var(--inkFaint);margin-bottom:14px}
+table{width:100%;border-collapse:collapse;font-size:11.5px;line-height:1.5}
+th,td{text-align:left;padding:8px 9px;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-size:10px;letter-spacing:.06em;color:var(--inkFaint);font-weight:700;background:var(--cardAlt)}
+td.k{font-weight:700;white-space:nowrap;width:17%}
+td.a{width:26%}td.b{width:29%}td.c{width:28%}
+.ok{color:var(--olive);font-weight:700}
+.warn{color:var(--brick);font-weight:700}
+.tag2{display:inline-block;border:1px solid var(--outline);padding:0 5px;font-size:9.5px;color:var(--inkSoft);margin-right:4px}
+pre{margin:0;padding:14px 16px;background:var(--paper);border:1px solid var(--rule);
+  font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:11px;line-height:1.65;
+  color:var(--preInk);overflow-x:auto;white-space:pre}
+.grid4{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.tier{border:1px solid var(--outline);background:var(--paper);padding:12px 14px}
+.tier .h{font-size:12px;font-weight:700;margin-bottom:6px}
+.tier .h em{font-style:normal;color:var(--primaryInk);margin-right:6px}
+.tier p{margin:0;font-size:11px;line-height:1.6;color:var(--inkSoft)}
+.route{border-left:3px solid var(--primary);padding:8px 12px;margin-top:10px;background:var(--cardAlt);font-size:11.5px;line-height:1.6}
+.route b{color:var(--primaryInk)}
+.legend{font-size:10.5px;color:var(--inkFaint);line-height:1.7;margin-top:10px}
+</style>
+</head>
+<body data-mode="full" data-dark="0">
+
+<div class="toolbar">
+  <h1>UI 浏览器复现 · 渲染能力对照</h1>
+  <span class="lab">渲染档位</span>
+  <div class="seg" id="modeSeg">
+    <button data-m="full" class="on">① 浏览器全能力</button>
+    <button data-m="api29">② 真机 API 29 降级</button>
+    <button data-m="hard">③ HARD 原始口径</button>
+  </div>
+  <span class="lab">明暗</span>
+  <div class="seg" id="darkSeg">
+    <button data-d="0" class="on">亮</button>
+    <button data-d="1">暗</button>
+  </div>
+  <span class="sp"></span>
+  <span class="lab">412 × 915 · 与 Kotlin 同名 token</span>
+</div>
+
+<div class="wrap">
+  <div class="colL">
+    <div class="phone">
+      <div class="status">
+        <span class="mono">14:50</span>
+        <span style="display:flex;gap:6px;align-items:center">
+          <span class="bars"><i style="height:3px"></i><i style="height:5px"></i><i style="height:7px"></i><i style="height:10px"></i></span>
+          <span>校园网</span><span class="bat"></span>
+        </span>
+      </div>
+
+      <div class="fhead">
+        <span class="ttl">资讯</span>
+        <span class="st mono">389 未读 · 391 条 · 14:50 更新</span>
+        <button class="ibtn" aria-label="搜索">
+          <svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 21 21"/></svg>
+        </button>
+        <button class="ibtn more on" aria-label="更多">⋯</button>
+      </div>
+
+      <div class="chips">
+        <span class="on">全部<span class="num mono">391</span></span>
+        <span>教务<span class="num mono">26</span></span>
+        <span>竞赛<span class="num mono">88</span></span>
+        <span>通知<span class="num mono">142</span></span>
+      </div>
+
+      <div class="list">
+        <div class="frow"><div class="h"><span class="tag">教务通知</span><span>11-20</span><span class="dot"></span></div>
+          <div class="t">智慧农业创新大赛决赛名单公示</div><div class="m">教务处 · 今天 09:12 · 未读</div></div>
+        <div class="frow"><div class="h"><span class="tag">校级通知</span><span>11-20</span><span class="dot"></span></div>
+          <div class="t">校园地图共建：本周新增 23 处标注</div><div class="m">校团委 · 今天 08:40 · 未读</div></div>
+        <div class="frow read"><div class="h"><span class="tag">竞赛成果</span><span>11-19</span><span class="dot"></span></div>
+          <div class="t">关于 2026 年春季教材征订的通知</div><div class="m">教务处 · 昨天 16:05 · 已读</div></div>
+        <div class="frow"><div class="h"><span class="tag">挑战杯</span><span>11-19</span><span class="dot"></span></div>
+          <div class="t">图书馆研讨间预约系统上线试运行</div><div class="m">图书馆 · 昨天 14:22 · 未读</div></div>
+        <div class="frow read"><div class="h"><span class="tag">辽宁省教育厅</span><span>11-18</span><span class="dot"></span></div>
+          <div class="t">第十二周教学检查情况通报</div><div class="m">教务处 · 11-18 10:31 · 已读</div></div>
+        <div class="frow"><div class="h"><span class="tag">计算机等级考试</span><span>11-18</span><span class="dot"></span></div>
+          <div class="t">2026 年上半年全国计算机等级考试报名</div><div class="m">考试院 · 11-18 09:00 · 未读</div></div>
+        <div class="frow read"><div class="h"><span class="tag">校团委</span><span>11-17</span><span class="dot"></span></div>
+          <div class="t">志愿服务时长认定补充要求</div><div class="m">校团委 · 11-17 15:48 · 已读</div></div>
+        <div class="frow"><div class="h"><span class="tag">服务外包大赛</span><span>11-17</span><span class="dot"></span></div>
+          <div class="t">第十五届服务外包创新创业大赛校赛通知</div><div class="m">创新创业学院 · 11-17 11:20 · 未读</div></div>
+      </div>
+
+      <div class="veil"></div>
+
+      <div class="gcard">
+        <div class="blur"></div><div class="grain"></div><div class="edge"></div>
+        <div class="fold"></div>
+        <div class="accbar"></div>
+        <div class="ghead">
+          <div class="gttl">资讯操作</div>
+          <div class="gsub mono">全部 · 389 未读</div>
+        </div>
+        <div class="gscroll">
+          <div class="filters">
+            <div class="fc">收藏<span class="n mono">12</span></div>
+            <div class="fc sel">未读<span class="n mono">389</span></div>
+          </div>
+          <div class="grow"><span class="idx mono">01</span><div><div class="rt">刷新</div><div class="rs">重新抓取全部频道，旧数据可见</div></div></div>
+          <div class="grow"><span class="idx mono">02</span><div><div class="rt">本频道全部已读</div><div class="rs">将「全部」的 389 条未读标为已读</div></div></div>
+          <div class="grow"><span class="idx mono">03</span><div><div class="rt">全部频道全部已读</div><div class="rs">共 389 条未读，收藏不受影响</div></div></div>
+          <div class="grow"><span class="idx mono">04</span><div><div class="rt">密度：标准</div><div class="rs">只影响「全部」</div></div></div>
+          <div class="gsec">来源</div>
+          <div class="grow"><span class="sq"></span><div class="rt">教务通知</div><span class="st mono">刚刚 · 15 条</span></div>
+          <div class="grow"><span class="sq"></span><div class="rt">校级通知</div><span class="st mono">刚刚 · 11 条</span></div>
+          <div class="grow"><span class="sq"></span><div class="rt">竞赛成果</div><span class="st mono">3 分钟前 · 8 条</span></div>
+          <div class="grow"><span class="sq"></span><div class="rt">挑战杯</div><span class="st mono">3 分钟前 · 6 条</span></div>
+          <div class="grow"><span class="sq"></span><div class="rt">辽宁省教育厅</div><span class="st mono">3 分钟前 · 22 条</span></div>
+          <div class="grow"><span class="sq"></span><div class="rt">校团委</div><span class="st mono">3 分钟前 · 9 条</span></div>
+          <div class="grow"><span class="sq"></span><div class="rt">计算机等级考试</div><span class="st mono">3 分钟前 · 4 条</span></div>
+          <div class="grow"><span class="sq"></span><div class="rt">服务外包大赛</div><span class="st mono">3 分钟前 · 3 条</span></div>
+          <div class="grow add"><span class="idx mono">＋</span><div class="rt">想加别的网站？</div></div>
+        </div>
+        <div class="gfoot mono">21 个源 · 本次无失败</div>
+      </div>
+
+      <div class="navb">
+        <div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>今日</div>
+        <div class="ni on"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM8 9h8M8 13h8M8 17h5"/></svg>资讯</div>
+        <div class="ni"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17"/><path d="M3 9h18M9 9v12"/></svg>课表</div>
+        <div class="ni"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.5-6 8-6s8 2 8 6"/></svg>我的</div>
+      </div>
+    </div>
+    <div class="cap">左侧为产品复现区（无说明文字）· 点上方档位按钮切换渲染口径</div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>① 同一套 token，两个渲染器</h2>
+      <div class="sub">左半边不是「照着画」，是把 Kotlin 的 <span class="mono">InkTokenSet</span> 逐字段搬成 CSS 变量；字号、线宽、圆角、动效曲线也是 1:1。</div>
+      <table>
+        <tr><th>效果</th><th>浏览器 HTML</th><th>Kotlin / Compose</th><th>真机 API 29 实况</th></tr>
+        <tr><td class="k">色板 / 字阶 / 1dp 线 / 等宽数字</td><td class="a"><span class="tag2">CSS var</span><span class="tag2">tabular-nums</span></td><td class="b"><span class="mono">InkTokens.current</span> + <span class="mono">NumericFont</span></td><td class="c"><span class="ok">像素级一致</span></td></tr>
+        <tr><td class="k">圆角 / 硬投影 / 折角</td><td class="a"><span class="mono">border-radius</span> · <span class="mono">box-shadow</span> · <span class="mono">rotate(45deg)</span></td><td class="b"><span class="mono">RoundedCornerShape(14.dp)</span> · <span class="mono">Modifier.shadow(26.dp)</span> · 14dp 方块 <span class="mono">rotationZ=45°</span></td><td class="c"><span class="ok">一致</span>；柔影在浅纸底几乎看不见</td></tr>
+        <tr><td class="k">开口动画 220ms</td><td class="a"><span class="mono">transform + transition</span></td><td class="b"><span class="mono">Animatable</span> + <span class="mono">tween(220, FastOutSlowInEasing)</span> + <span class="mono">graphicsLayer</span></td><td class="c"><span class="ok">一致</span>（同一条缓动曲线）</td></tr>
+        <tr><td class="k">纸纹噪点平铺</td><td class="a">SVG <span class="mono">feTurbulence</span></td><td class="b"><span class="mono">ShaderBrush(ImageShader(grainTile))</span>，48×48 ARGB_8888</td><td class="c"><span class="ok">一致</span>，已落地</td></tr>
+        <tr><td class="k">页眉上滑收纳 / 松手吸附 / 嵌套滚动</td><td class="a">scroll 事件手工模拟</td><td class="b"><span class="mono">NestedScrollConnection</span> + <span class="mono">snapshotFlow</span> + <span class="mono">derivedStateOf</span> + <span class="mono">animate</span></td><td class="c"><span class="ok">Compose 更强</span>：原生手势分发，无布局抖动</td></tr>
+        <tr><td class="k">卡片背后真模糊</td><td class="a"><span class="mono">backdrop-filter: blur(20px) saturate(1.10)</span></td><td class="b">API 31+ <span class="mono">RenderEffect.createBlurEffect</span>；API ≤30 系统栈没有</td><td class="c"><span class="warn">当前差距</span>：走 0.97 厚纸 + 纸纹 + 38% 遮罩，背后字形仍留约 1.2% 幽灵</td></tr>
+        <tr><td class="k">系统返回键只关浮层</td><td class="a">无（浏览器无系统返回，只能 History API 模拟）</td><td class="b"><span class="mono">BackHandler(enabled = true)</span></td><td class="c"><span class="ok">App 独有</span>，已修</td></tr>
+        <tr><td class="k">壁纸取色 / 通知 / 小组件 / 加密凭据 / 后台任务</td><td class="a">无</td><td class="b"><span class="mono">EnRouteTheme(colorSource)</span> · Glance · WorkManager · AndroidKeyStore</td><td class="c"><span class="ok">App 独有</span>，浏览器没有对应物</td></tr>
+        <tr><td class="k">Canvas 级：4D 超立方体 / 考试轴 LED / 地图 173 面</td><td class="a">Canvas 2D / SVG</td><td class="b"><span class="mono">Compose Canvas</span> + <span class="mono">withFrameMillis</span></td><td class="c"><span class="ok">算法相同</span>，只是 API 名不同</td></tr>
+      </table>
+      <div class="legend">切到「② 真机 API 29 降级」看当前实装效果：没有真模糊，只能靠厚纸和遮罩分层；切到「③ HARD 原始口径」看 Theme.kt 里 <span class="mono">FormSpec.Hard</span> 的零圆角、零渐变、2dp 硬投影。</div>
+    </div>
+
+    <div class="panel">
+      <h2>② 项目底层：一张树看完</h2>
+      <div class="sub">单 Activity、无 NavHost、无第三方 UI 组件库；主题与状态各自只有一个源头。</div>
+      <pre>MainActivity  ·  setContent { … }
+└── EnRouteTheme(themeMode, styleSet, colorSource, customPalette)
+    ├── LocalInkTokens / LocalPrimaryInk / LocalForm   ← 设计主题的全部来源
+    │   └── MaterialTheme(colorScheme, typography, shapes)
+    └── EnRouteRoot(ui, vm)
+        └── when (tab) { 今日 / 资讯 / 课表 / 我的 }   ← 切页靠 when，不靠路由
+
+TimetableViewModel (AndroidViewModel)
+└── MutableStateFlow&lt;AppState&gt;   ← 一个大数据类装全屏状态，reset() 归零
+
+数据层 · 无 Room / 无 DataStore / 无 Retrofit / 无 UI 组件库
+├── SharedPreferences        → 偏好 / 凭据开关 / 更新 / 共建
+├── filesDir + kotlinx.serialization → 课表 / 资讯 / 成绩 / 标注 JSON
+├── HttpURLConnection        → 教务 URP / 21 个资讯源 / 更新清单
+├── assets + BrotliInputStream → 2066 门大纲 + 168 份方案（4.64 MB 离线）
+├── AndroidKeyStore AES/GCM  → 凭据加密
+└── WorkManager              → 上课提醒 / 桌面小组件</pre>
+      <div class="legend">设计主题：<b>黑土 + 农机漆 + 田垄网格</b>。HARD 档 = 全 0 圆角、1dp 实线 <span class="mono">#8F7E61</span>、农械橘 <span class="mono">#C74E17</span> 只占小面积、纸白 <span class="mono">#F5F2EC</span>、系统黑体 + 等宽数字、零纹理零渐变。HARD / SCHOLAR / EDITORIAL 三套 FormSpec 与明暗正交；自定义配色只覆盖 primary / accent 两槽，砖红等语义色固定（数据诚实红线）。</div>
+    </div>
+
+    <div class="panel">
+      <h2>③ Kotlin 到底能做到什么程度</h2>
+      <div class="sub">按「效果能否 1:1」分四档，落点只谈渲染，不谈业务。</div>
+      <div class="grid4">
+        <div class="tier"><div class="h"><em>A</em>像素级一致</div><p>布局、色板、字阶、线、圆角、投影、折角、缓动曲线、手势、滚动、Canvas 绘制。dp / sp / tween / spring 都能一对一映射到 CSS，本质是同一套数学。</p></div>
+        <div class="tier"><div class="h"><em>B</em>换实现但效果能到</div><p>真背景模糊：API 31+ 走 RenderEffect；API ≤30 用「快照 → CPU stack-blur → Bitmap 叠遮罩」，约 10ms，可做到全版本一致。噪点已用 ShaderBrush 做到。</p></div>
+        <div class="tier"><div class="h"><em>C</em>App 才有、浏览器没有</div><p>系统返回键、壁纸取色、通知、Glance 小组件、加密凭据、后台任务、离线 brotli 资产、硬件传感器。这些不是「做得差」，是对面根本没有。</p></div>
+        <div class="tier"><div class="h"><em>D</em>受系统版本约束的只有一条</div><p>在 API ≤30 上让系统合成器实时模糊「别的窗口/背后内容」。这属于 Android 图形栈的版本边界，绕路走 B 档的快照模糊。</p></div>
+      </div>
+      <div class="route"><b>结论：</b>「HTML 好看、真机不像」与组件库无关，也与 Kotlin 绘制能力无关 —— 只差 <b>一层模糊的内容来源</b>。原型背后铺的是照片与文字，App 背后是纯纸色列表；即使把 RenderEffect 全打开，糊出来的也只是文字灰雾，与照片雾不同。要根治，两条路：<b>A 快照模糊</b>（把列表渲成 Bitmap 再 CPU 模糊，API 26+ 全版本一致）＋ <b>B 卡片背后铺低饱和校园影像</b>（与模糊解耦也有雾感）。这两条都是纯 Compose 实现，无需引入任何库。</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function bind(segId, key, attr){
+  var seg=document.getElementById(segId);
+  seg.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    [].forEach.call(seg.querySelectorAll('button'),function(x){x.classList.remove('on')});
+    b.classList.add('on');
+    document.body.dataset[key]=b.getAttribute(attr);
+  });
+}
+bind('modeSeg','mode','data-m');
+bind('darkSeg','dark','data-d');
+</script>
+</body>
+</html>

@@ -30,8 +30,8 @@ android {
         applicationId = "cn.dkarbon.enroute"
         minSdk = 26
         targetSdk = 35
-        versionCode = 400
-        versionName = "0.8.0+m32"
+        versionCode = 450
+        versionName = "0.9.0+m37"
 
         // 「关于」页要显示构建来源：commit 短哈希 + 构建日期。
         // 开源软件的 About 页惯例是把「这一版到底是哪份代码」写清楚，方便反馈问题时对照。

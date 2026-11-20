@@ -47,5 +47,10 @@
         <domain includeSubdomains="true">spdt.syau.edu.cn</domain>
         <domain includeSubdomains="true">xm.syau.edu.cn</domain>
         <domain includeSubdomains="true">syyp.syau.edu.cn</domain>
+
+        <!-- 中国人事考试网（证书类资讯源）：2026-11-20 实测它的 443 直接
+             SSLV3_ALERT_HANDSHAKE_FAILURE，只有 http 能读 —— 全站唯一非 https 的公网源，
+             所以按**单个主机名**开口子，不放整域 -->
+        <domain includeSubdomains="false">www.cpta.com.cn</domain>
     </domain-config>
 </network-security-config>

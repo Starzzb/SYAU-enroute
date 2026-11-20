@@ -103,36 +103,36 @@ data class InkTokenSet(
 ) {
     companion object {
         val Light = InkTokenSet(
-            paper = Ink.Paper, card = Ink.Card, cardAlt = Ink.CardAlt,
-            ink = Ink.Ink, inkSoft = Ink.InkSoft, inkFaint = Ink.InkFaint,
-            rule = Ink.Rule, brick = Ink.Brick, slate = Ink.Slate,
-            olive = Ink.Olive, amber = Ink.Amber, rust = Ink.Rust,
+            // ink-wash 墨洗色板（2026-11-20，m34）：宣纸底 + 焦墨字 + 苔赭青灰点缀。
+            // 语义色不再用农机漆高饱和色，改「墨分五色」的灰调；朱砂只做小面积点缀。
+            paper = Color(0xFFF8F5F0), card = Color(0xFFFCFAF6), cardAlt = Color(0xFFF1ECE3),
+            ink = Color(0xFF2C2C2C), inkSoft = Color(0xFF4A4A46), inkFaint = Color(0xFF686660),
+            rule = Color(0xFF8C8578), brick = Color(0xFF8F4A3A), slate = Color(0xFF697A7C),
+            olive = Color(0xFF6B7B6E), amber = Color(0xFFA89279), rust = Color(0xFF8F4A3A),
             isDark = false,
-            primary = Machine.n500,
-            accent = Machine.n400,
-            // 卡片描边（1dp）：原 n300 #BEB5A6 对卡Alt 仅 1.66:1，加深到 n500 #7E7468（纸 4.10 / 卡 4.32 / 卡Alt 3.75）
-            outline = Soil.n500,
-            outlineStrong = Soil.n900,
-            hardShadow = Soil.n900,
-            info = Steel.n500,
-            infoBg = Steel.n50,
+            primary = Color(0xFF2C2C2C),
+            accent = Color(0xFF6B7B6E),
+            outline = Color(0xFF7E776A),
+            outlineStrong = Color(0xFF2C2C2C),
+            hardShadow = Color(0x142C2C2C),
+            info = Color(0xFF697A7C),
+            infoBg = Color(0xFFECEAE3),
         )
 
         val Dark = InkTokenSet(
-            paper = Ink.PaperDark, card = Ink.CardDark, cardAlt = Ink.CardAltDark,
-            ink = Ink.InkDark, inkSoft = Ink.InkSoftDark, inkFaint = Ink.InkFaintDark,
-            // 原 #3E362C 对纸底仅 1.62:1，提亮到同色相 #7F6F5A（纸 3.97 / 卡 3.71 / 卡Alt 3.08，≥3:1）
-            rule = Color(0xFF7F6F5A), brick = Ink.BrickDark, slate = Ink.SlateDark,
-            olive = Ink.OliveDark, amber = Ink.AmberDark, rust = Ink.RustDark,
+            // 夜墨档：宣纸转焦墨底，字取淡墨；语义色提亮到能在深底上分辨的灰调。
+            paper = Color(0xFF191713), card = Color(0xFF1F1C17), cardAlt = Color(0xFF2B2721),
+            ink = Color(0xFFEDE7DA), inkSoft = Color(0xFFC5BDAD), inkFaint = Color(0xFFA39A8A),
+            rule = Color(0xFF7E7668), brick = Color(0xFFC88A78), slate = Color(0xFF96A8A8),
+            olive = Color(0xFFA8BAA5), amber = Color(0xFFC9B79C), rust = Color(0xFFC88A78),
             isDark = true,
-            primary = Machine.n300,
-            accent = Machine.n400,
-            // 原 n700 #443E36 对卡Alt 仅 1.42:1，提亮到同色相 #827767（纸 4.39 / 卡 4.10 / 卡Alt 3.41）
-            outline = Color(0xFF827767),
-            outlineStrong = Soil.n400,
-            hardShadow = Color(0xFF000000),
-            info = Steel.n200,
-            infoBg = Steel.n700,
+            primary = Color(0xFFEDE7DA),
+            accent = Color(0xFFA89279),
+            outline = Color(0xFF8C8474),
+            outlineStrong = Color(0xFFEDE7DA),
+            hardShadow = Color(0x14000000),
+            info = Color(0xFF96A8A8),
+            infoBg = Color(0xFF2B2721),
         )
     }
 }

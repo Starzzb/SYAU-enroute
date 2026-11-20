@@ -98,7 +98,10 @@ import cn.dkarbon.enroute.ui.theme.primaryInk
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.util.Calendar
+import cn.dkarbon.enroute.ui.auth.InkLoginField
+import cn.dkarbon.enroute.ui.auth.InkOutlineButton
 import cn.dkarbon.enroute.ui.icons.AppIcons
+import cn.dkarbon.enroute.ui.kit.InkTinyLoader
 
 // ── 底纹手势驱动（滑动才转）────────────────────────────────
 // drive 单位 = 「圈」（1.0 = 超立方体一个完整四维周期，与 MathBackdropMotion 的 phase 同单位）。
@@ -1356,46 +1359,35 @@ private fun ImportPanel(ui: AppState, vm: TimetableViewModel) {
                         color = t.inkFaint,
                     )
                     Spacer(Modifier.height(12.dp))
-                    OutlinedTextField(
+                    InkLoginField(
                         value = user,
                         onValueChange = { user = it },
-                        label = { Text("学号", fontSize = 12.sp) },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Next,
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RectangleShape,
+                        label = "学号",
+                        keyboardType = KeyboardType.Number,
+                        imeAction = ImeAction.Next,
                     )
-                    Spacer(Modifier.height(8.dp))
-                    OutlinedTextField(
+                    Spacer(Modifier.height(18.dp))
+                    InkLoginField(
                         value = pass,
                         onValueChange = { pass = it },
-                        label = { Text("密码", fontSize = 12.sp) },
-                        singleLine = true,
-                        visualTransformation = PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done,
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RectangleShape,
+                        label = "密码",
+                        password = true,
+                        keyboardType = KeyboardType.Password,
+                        imeAction = ImeAction.Done,
                     )
-                    Spacer(Modifier.height(14.dp))
+                    Spacer(Modifier.height(18.dp))
                     if (ui.timetableLoading) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(Modifier.size(18.dp), strokeWidth = 2.dp)
+                            InkTinyLoader()
                             Spacer(Modifier.width(10.dp))
                             Text(ui.timetableMsg.ifBlank { "登录中…" }, fontSize = 12.5.sp, color = t.inkSoft)
                         }
                     } else {
-                        Button(
-                            onClick = { vm.login(user.trim(), pass) },
+                        InkOutlineButton(
+                            text = "登录并抓取",
                             enabled = user.isNotBlank() && pass.isNotBlank(),
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RectangleShape,
-                        ) { Text("登录并抓取", fontSize = 13.5.sp) }
+                            onClick = { vm.login(user.trim(), pass) },
+                        )
                     }
                     if (ui.timetableMsg.isNotBlank() && !ui.timetableLoading) {
                         Spacer(Modifier.height(8.dp))

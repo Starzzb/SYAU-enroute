@@ -8,6 +8,7 @@ import androidx.core.content.FileProvider
 import cn.dkarbon.enroute.BuildConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -36,6 +37,20 @@ import java.security.MessageDigest
  * 失败字符串是**直接给用户看的**，所以是「连不上服务器（可能没网）」而不是异常类名。
  */
 class UpdateCenter(private val ctx: Context) {
+
+    /**
+     * 阻塞式下载的状态（m37）。
+     *
+     * 放进程级（companion 持有 StateFlow）：UI 只是订阅者 —— 浮层被回收、切 tab、转屏，
+     * 下载都照跑；回来时读 [downloadState] 就接上了。
+     */
+    sealed interface DownloadState {
+        data object Idle : DownloadState
+        data class Downloading(val done: Long, val total: Long, val info: UpdateInfo) : DownloadState
+        data class Ready(val apk: File, val info: UpdateInfo) : DownloadState
+        data class Failed(val message: String, val info: UpdateInfo) : DownloadState
+    }
+
 
     private val prefs = ctx.getSharedPreferences("update", Context.MODE_PRIVATE)
     private val dir = File(ctx.applicationContext.filesDir, "updates")
@@ -204,7 +219,7 @@ class UpdateCenter(private val ctx: Context) {
                     requestMethod = "GET"
                     instanceFollowRedirects = false
                     connectTimeout = 15_000
-                    readTimeout = 60_000
+                    readTimeout = 20_000
                     setRequestProperty("User-Agent", UA)
                     setRequestProperty("Accept", "application/vnd.android.package-archive,*/*")
                 }
@@ -232,6 +247,11 @@ class UpdateCenter(private val ctx: Context) {
 
                 val total = conn.contentLengthLong
                 var done = 0L
+                // 三个确定判据（m37）：首包 20 秒、连续 30 秒平均 < 10 KB/s、总耗时 15 分钟。
+                // 判死就返回 Failed —— 阻塞浮层必须能给出一句人话，而不是一直转圈。
+                val startedAt = System.currentTimeMillis()
+                var winAt = startedAt
+                var winBytes = 0L
                 FileOutputStream(part).use { out ->
                     conn.inputStream.use { input ->
                         val buf = ByteArray(64 * 1024)
@@ -242,6 +262,30 @@ class UpdateCenter(private val ctx: Context) {
                             out.write(buf, 0, n)
                             done += n
                             onProgress(done, total)
+
+                            val nowMs = System.currentTimeMillis()
+                            if (done == 0L && nowMs - startedAt >= FIRST_BYTE_MS) {
+                                part.delete()
+                                return@withContext DownloadResult.Failed(
+                                    "连上了但 20 秒没有一个字节过来，已中断。换个网络再试。",
+                                )
+                            }
+                            if (nowMs - winAt >= SPEED_WINDOW_MS) {
+                                val gained = done - winBytes
+                                if (gained < MIN_WINDOW_BYTES) {
+                                    part.delete()
+                                    val kbps = (gained / 1024.0 / ((nowMs - winAt) / 1000.0)).toInt()
+                                    return@withContext DownloadResult.Failed(
+                                        "连续 ${SPEED_WINDOW_MS / 1000} 秒速度只有 ${kbps} KB/s（低于 10 KB/s），已中断。换到 Wi-Fi 或校园网再试。",
+                                    )
+                                }
+                                winAt = nowMs
+                                winBytes = done
+                            }
+                            if (nowMs - startedAt > TOTAL_TIMEOUT_MS) {
+                                part.delete()
+                                return@withContext DownloadResult.Failed("下载超过 15 分钟还没完成，已中断。请重试。")
+                            }
                         }
                     }
                 }
@@ -280,6 +324,51 @@ class UpdateCenter(private val ctx: Context) {
             DownloadResult.Failed(describeNetError(e))
         } finally {
             runCatching { conn?.disconnect() }
+        }
+    }
+
+    // ── 阻塞式下载（m37） ─────────────────────────────────
+
+    /**
+     * 开始下载并广播进度。幂等：正在下就忽略，已下好同一个包也忽略。
+     *
+     * 失败一律落到 [DownloadState.Failed]，由浮层给「重试 / 稍后」两个出口。
+     */
+    fun startDownload(info: UpdateInfo) {
+        val current = _downloadState.value
+        if (current is DownloadState.Downloading) return
+        if (current is DownloadState.Ready && current.info.versionCode == info.versionCode) return
+
+        dlJob?.cancel()
+        _downloadState.value = DownloadState.Downloading(0L, info.size.coerceAtLeast(0L), info)
+        dlJob = dlScope.launch {
+            val result = runCatching {
+                download(info) { done, total ->
+                    _downloadState.value = DownloadState.Downloading(
+                        done = done,
+                        total = if (total > 0) total else info.size.coerceAtLeast(0L),
+                        info = info,
+                    )
+                }
+            }
+            _downloadState.value = when (val r = result.getOrNull()) {
+                is DownloadResult.Ready -> DownloadState.Ready(r.apk, info)
+                is DownloadResult.Failed -> DownloadState.Failed(r.message, info)
+                is DownloadResult.Cancelled -> DownloadState.Idle
+                null -> DownloadState.Failed(
+                    describeNetError(result.exceptionOrNull()),
+                    info,
+                )
+            }
+        }
+    }
+
+    /** 只允许从失败态回到 Idle（「稍后」用） */
+    fun resetDownload() {
+        if (_downloadState.value is DownloadState.Failed) {
+            dlJob?.cancel()
+            dlJob = null
+            _downloadState.value = DownloadState.Idle
         }
     }
 
@@ -356,16 +445,21 @@ class UpdateCenter(private val ctx: Context) {
          * [cn.dkarbon.enroute.ui.settings.UpdateSection] 读到后自动开始下载（文档 §1.4 / §3.4 方案 A）。
          * 消费后由 UpdateSection 置空，避免重进设置页时重复下载。
          */
-        private val _downloadRequest = MutableStateFlow<UpdateInfo?>(null)
-        val downloadRequest: StateFlow<UpdateInfo?> = _downloadRequest.asStateFlow()
+        /**
+         * 阻塞式下载的状态（m37）。
+         *
+         * 放 companion 而不是实例里：UI 只是订阅者 —— 浮层被回收、切 tab、转屏，
+         * 下载都照跑；回来时读 [downloadState] 就接上了。
+         */
+        private val _downloadState = MutableStateFlow<DownloadState>(DownloadState.Idle)
+        val downloadState: StateFlow<DownloadState> = _downloadState.asStateFlow()
 
-        fun requestDownload(info: UpdateInfo) {
-            _downloadRequest.value = info
-        }
+        /** 进程级下载作用域：与 Activity/Composable 生命周期无关 */
+        private val dlScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+        private var dlJob: Job? = null
 
-        fun consumeDownloadRequest() {
-            _downloadRequest.value = null
-        }
+        /** 供 UI 直接读当前值（不进 composition 时用） */
+        fun downloadSnapshot(): DownloadState = _downloadState.value
 
         /** [UpdateInfo] → latest.json 同构 JSON（落盘用，反序列化直接复用 [UpdateParse.latest]） */
         private fun serializeInfo(info: UpdateInfo): String =
@@ -423,6 +517,17 @@ class UpdateCenter(private val ctx: Context) {
         )
 
         /** 单条源的超时；通的那条约 500ms，6s 已足够且不让用户干等 */
+        /** 首包判定：连上后 20 秒零字节就判死 */
+        private const val FIRST_BYTE_MS = 20_000L
+
+        /** 低速窗口：每 30 秒看一次增量 */
+        private const val SPEED_WINDOW_MS = 30_000L
+
+        /** 30 秒内至少要有 300 KB，等价于平均 10 KB/s */
+        private const val MIN_WINDOW_BYTES = 300_000L
+
+        /** 整包总超时 */
+        private const val TOTAL_TIMEOUT_MS = 15 * 60 * 1000L
         private const val MANIFEST_TIMEOUT_MS = 5_000
 
 

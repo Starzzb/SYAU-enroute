@@ -166,49 +166,6 @@ internal fun LedgerCourseCell(
     }
 }
 
-/**
- * 已上完的课：便签褪成**半透明空纸**（保留课名，不画咬痕）。
- * 与 HARD 的「砖红短划 + 灰烬」是两套语言：这里是账页上被划掉的一行。
- */
-@Composable
-internal fun LedgerResidue(course: Course?) {
-    val t = InkTokens.current
-    val f = Form.current
-    val name = course?.name.orEmpty()
-    val shape = f.shapes.courseCard
-    Box(
-        Modifier
-            .fillMaxSize()
-            .clip(shape)
-            .background(t.cardAlt.copy(alpha = if (t.isDark) 0.55f else 0.62f))
-            .border(f.ruleWidth, t.outline.copy(alpha = 0.20f), shape)
-            .padding(start = 3.5.dp, top = 3.dp, end = 2.5.dp),
-    ) {
-        Column {
-            Box(Modifier.fillMaxWidth().height(1.dp).background(t.outline.copy(alpha = 0.35f)))
-            if (name.isNotBlank()) {
-                Spacer(Modifier.height(3.dp))
-                Text(
-                    name,
-                    fontSize = 8.5.sp,
-                    lineHeight = 11.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    fontFamily = f.displayFamily,
-                    color = t.inkFaint.copy(alpha = 0.55f),
-                )
-            }
-        }
-    }
-}
-
-/**
- * 左轴一行：**节次圆牌 + 衬线时间**（右对齐）。
- *
- * 与 HARD 的差别：HARD 是「1-2 / 08:00」两行小字贴顶；这里是**竖直居中**的一枚圆牌
- * （`1-2`）加下方的衬线时间 —— 读起来像账本的「行号」。
- * 轴不参与点击，所以不受 48dp 触区约束。
- */
 @Composable
 internal fun LedgerAxisRow(sections: String, startTime: String) {
     val t = InkTokens.current

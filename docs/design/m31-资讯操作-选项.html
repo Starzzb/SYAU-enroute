@@ -1,0 +1,957 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>沈农在途 · m31 资讯操作 · 三方案（底部抽屉 / 全屏页 / 锚定卡片）</title>
+<style>
+/* ════════════════════════════════════════════════════════════════
+   色值全部取真实 token，一个不新造：
+   ui/theme/Theme.kt  InkTokenSet.Light / .Dark
+     paper #F5F2EC/#100E0B · card #FAF8F4/#1A1611 · cardAlt #EDE8DF/#2B2621
+     ink #1A1611/#EDE8DF · inkSoft #443E36/#A1978A · inkFaint #5F574C/#988D82
+     rule #8F7E61/#7F6F5A · outline #7E7468/#827767
+     primary #C74E17/#EA8F5E · accent #DE6A2E · hardShadow #1A1611/#000000
+     brick #9B2417/#E7A093 · olive #3F5A2E/#BCC79B · slate #345A66/#A0B6BB
+     amber #8F6713/#DDB84D
+   ════════════════════════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:#241F1A;}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+     -webkit-font-smoothing:antialiased;user-select:none;}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,monospace;
+      font-variant-numeric:tabular-nums;}
+.wrap{width:1460px;padding:22px 22px 30px;}
+
+/* ── 文档外壳（不属于 App 界面） ── */
+.doc-head{color:#EFE7DC;display:flex;align-items:flex-end;gap:20px;padding-bottom:12px;
+          border-bottom:1px solid #4A423A;}
+.doc-head h1{font-size:19px;font-weight:700;letter-spacing:.02em;}
+.doc-head .meta{margin-top:6px;font-size:11.5px;color:#C9BEAD;line-height:1.7;}
+.doc-head .meta b{color:#EFE7DC;font-weight:600;}
+.doc-head .sws{margin-left:auto;display:flex;gap:0;align-items:center;font-size:10px;color:#9E9284;}
+.sw{width:12px;height:12px;display:inline-block;border:1px solid rgba(255,255,255,.2);
+    vertical-align:-2px;margin-right:4px;}
+
+.sec{margin-top:16px;}
+.sec-h{display:flex;align-items:baseline;gap:12px;color:#EFE7DC;margin-bottom:10px;}
+.sec-h .tag{font-size:11px;font-weight:700;letter-spacing:.14em;color:#DE6A2E;}
+.sec-h h2{font-size:14px;font-weight:700;}
+.sec-h .hnote{font-size:11px;color:#A99D8E;}
+
+.row{display:flex;gap:14px;align-items:flex-start;}
+.cell{display:flex;flex-direction:column;gap:7px;}
+.cap{font-size:10.5px;line-height:1.5;color:#B3A795;width:100%;}
+.cap b{color:#EFE7DC;font-weight:600;}
+.cap .n{color:#DE6A2E;font-weight:700;margin-right:4px;}
+
+/* ── 手机画布 ── */
+.slot{position:relative;width:calc(412px * var(--k));height:calc(915px * var(--k));flex:0 0 auto;}
+.screen{
+  position:absolute;top:0;left:0;width:412px;height:915px;
+  transform:scale(var(--k));transform-origin:top left;
+  overflow:hidden;background:var(--paper);border:1px solid var(--outline);
+  /* 亮色 token */
+  --paper:#F5F2EC; --card:#FAF8F4; --cardAlt:#EDE8DF;
+  --ink:#1A1611; --inkSoft:#443E36; --inkFaint:#5F574C;
+  --rule:#8F7E61; --outline:#7E7468; --primary:#C74E17; --primaryInk:#A83D11;
+  --accent:#DE6A2E; --hard:#1A1611;
+  --brick:#9B2417; --olive:#3F5A2E; --steel:#345A66; --amber:#8F6713;
+  --scrim:rgba(26,22,17,.30);
+}
+.screen.dark{
+  --paper:#100E0B; --card:#1A1611; --cardAlt:#2B2621;
+  --ink:#EDE8DF; --inkSoft:#A1978A; --inkFaint:#988D82;
+  --rule:#7F6F5A; --outline:#827767; --primary:#EA8F5E; --primaryInk:#F3B994;
+  --accent:#DE6A2E; --hard:#000000;
+  --brick:#E7A093; --olive:#BCC79B; --steel:#A0B6BB; --amber:#DDB84D;
+  --scrim:rgba(0,0,0,.58);
+}
+.app{position:absolute;left:0;right:0;top:0;bottom:30px;overflow:hidden;background:var(--paper);}
+.navbar{position:absolute;left:0;right:0;bottom:0;height:30px;background:var(--paper);
+        border-top:1px solid var(--rule);display:flex;align-items:center;justify-content:flex-end;
+        gap:26px;padding-right:22px;color:var(--inkSoft);}
+.navbar svg{display:block;}
+.navbar .bk{border:1px solid transparent;padding:2px 4px;line-height:0;}
+.navbar .bk.hot{border-color:var(--primary);color:var(--primary);}
+
+/* ── 状态栏 ── */
+.sb{height:24px;display:flex;align-items:center;padding:0 14px;color:var(--inkSoft);
+    font-size:10px;letter-spacing:.02em;}
+.sb .grow{flex:1;}
+.sb .bars{display:flex;align-items:flex-end;gap:2px;margin-left:6px;}
+.sb .bars i{display:block;width:2px;background:var(--inkSoft);}
+.sb .bars i:nth-child(1){height:4px}.sb .bars i:nth-child(2){height:6px}
+.sb .bars i:nth-child(3){height:8px}.sb .bars i:nth-child(4){height:10px}
+.sb .bat{width:16px;height:8px;border:1px solid var(--inkSoft);margin-left:7px;position:relative;}
+.sb .bat::after{content:"";position:absolute;left:1px;top:1px;bottom:1px;width:9px;background:var(--inkSoft);}
+
+/* ── 资讯页头 ── */
+.fhead{height:46px;display:flex;align-items:center;gap:6px;padding:0 12px 0 16px;}
+.fhead .ft{font-size:18px;font-weight:700;color:var(--ink);letter-spacing:.02em;}
+.fhead .fm{font-size:9.5px;color:var(--inkFaint);margin-left:8px;letter-spacing:.02em;}
+.fhead .grow{flex:1;}
+.fbtn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+      background:transparent;border:1px solid transparent;color:var(--inkSoft);cursor:pointer;}
+.fbtn.more{font-size:15px;letter-spacing:.5px;line-height:1;color:var(--inkSoft);}
+.fbtn.more.on{background:var(--cardAlt);border-color:var(--outline);color:var(--ink);}
+.fbtn:active{background:var(--cardAlt);}
+
+/* 频道 chips */
+.chips{height:38px;display:flex;align-items:center;gap:18px;padding:0 16px;
+       border-bottom:1px solid var(--rule);}
+.chip-c{font-size:12.5px;color:var(--inkSoft);position:relative;padding:0 0 11px 0;letter-spacing:.01em;}
+.chip-c .num{font-size:9.5px;color:var(--inkFaint);margin-left:3px;}
+.chip-c.on{color:var(--primaryInk);font-weight:700;}
+.chip-c.on::after{content:"";position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--primary);}
+
+/* 列表行 */
+.frows{position:absolute;left:0;right:0;top:108px;bottom:0;overflow:hidden;}
+.frow{display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-bottom:1px solid var(--rule);
+      transition:opacity .16s ease, max-height .2s ease;max-height:90px;}
+.frow.hid{opacity:0;max-height:0;padding-top:0;padding-bottom:0;border-bottom-color:transparent;overflow:hidden;}
+.frow .fr{flex:1;min-width:0;}
+.frow .t{font-size:13px;line-height:1.4;color:var(--ink);font-weight:500;
+         display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.frow .s{font-size:9.5px;color:var(--inkFaint);margin-top:4px;letter-spacing:.01em;}
+.frow .tail{display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:3px;}
+.frow .dot{width:6px;height:6px;border-radius:50%;background:var(--primary);}
+.frow.read .dot{background:transparent;}
+.frow .star{color:var(--primary);line-height:0;}
+.frow .star.off{color:var(--outline);opacity:.45;}
+
+/* ── 遮罩 ── */
+.scrim{position:absolute;left:0;right:0;top:0;bottom:0;background:var(--scrim);
+       opacity:0;pointer-events:none;transition:opacity .18s ease;z-index:10;}
+.scrim.on{opacity:1;pointer-events:auto;}
+.scrim.faint{opacity:.34;pointer-events:auto;}
+
+/* ── A：底部抽屉 ── */
+.sheet{position:absolute;left:0;right:0;bottom:0;height:0;background:var(--card);
+       border-top:1px solid var(--outline);border-radius:12px 12px 0 0;z-index:20;
+       display:flex;flex-direction:column;overflow:hidden;
+       transition:height 240ms cubic-bezier(.2,.75,.2,1);}
+.grip{height:22px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+      cursor:grab;touch-action:none;}
+.grip i{display:block;width:28px;height:3px;background:var(--outline);opacity:.55;}
+.phead{flex:0 0 auto;display:flex;align-items:baseline;gap:8px;padding:0 14px 8px 16px;}
+.phead .pt{font-size:14.5px;font-weight:700;color:var(--ink);}
+.phead .ps{font-size:9.5px;color:var(--inkFaint);}
+.phead .grow{flex:1;}
+.phead .pcl{line-height:0;color:var(--inkFaint);border:1px solid transparent;padding:4px;cursor:pointer;}
+.hair{height:1px;background:var(--rule);flex:0 0 auto;}
+.pbody{flex:1 1 auto;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;padding-bottom:14px;}
+.plabel{font-size:9.5px;color:var(--inkFaint);letter-spacing:.06em;padding:12px 16px 6px;}
+
+/* 筛选 chips */
+.fchips{display:flex;gap:8px;padding:0 16px 2px;}
+.chip{display:flex;align-items:center;gap:7px;height:38px;padding:0 12px;
+      background:transparent;border:1px solid var(--outline);color:var(--inkSoft);
+      font-family:inherit;font-size:12.5px;cursor:pointer;}
+.chip .cn{font-size:10px;color:var(--inkFaint);}
+.chip.on{background:var(--cardAlt);border-color:var(--primaryInk);color:var(--primaryInk);font-weight:700;}
+.chip.on .cn{color:var(--primaryInk);opacity:.75;}
+.chip:active{border-color:var(--primary);}
+.clearf{display:flex;align-items:center;gap:7px;margin:8px 16px 0;height:30px;padding:0 10px 0 0;
+        background:transparent;border:none;color:var(--inkFaint);font-family:inherit;
+        font-size:11.5px;cursor:pointer;}
+.clearf.hide{display:none;}
+
+/* 动作行 */
+.acts{display:flex;flex-direction:column;padding-top:4px;}
+.mrow{display:flex;align-items:center;gap:12px;min-height:52px;padding:8px 16px;
+      background:transparent;border:none;border-top:1px solid var(--rule);
+      text-align:left;font-family:inherit;cursor:pointer;color:var(--ink);}
+.mrow:first-child{border-top:none;}
+.mrow:active{background:var(--cardAlt);}
+.mrow .mi{font-size:9px;color:var(--inkFaint);width:14px;flex:0 0 auto;}
+.mrow .mm{display:flex;flex-direction:column;gap:3px;flex:1;min-width:0;}
+.mrow .mt{font-size:13.5px;font-weight:500;color:var(--ink);}
+.mrow .msub{font-size:9.5px;color:var(--inkFaint);}
+.mrow .msub.warn{color:var(--brick);}
+.mrow .mgo{line-height:0;color:var(--inkFaint);opacity:.7;}
+
+/* 来源行 */
+.srow{display:flex;align-items:center;gap:9px;min-height:42px;padding:8px 16px;
+      background:transparent;border:none;border-top:1px solid var(--rule);
+      font-family:inherit;cursor:pointer;text-align:left;}
+.srow:first-of-type{border-top:none;}
+.srow:active{background:var(--cardAlt);}
+.sdot{width:6px;height:6px;border-radius:50%;flex:0 0 auto;}
+.sdot.ok{background:var(--olive);}
+.sdot.fail{background:var(--brick);}
+.srow .sn{font-size:12.5px;color:var(--ink);}
+.srow .grow{flex:1;}
+.srow .ss{font-size:9.5px;color:var(--inkFaint);}
+.srow .ss.warn{color:var(--brick);}
+.srow .sgo{line-height:0;color:var(--inkFaint);opacity:.6;}
+.srow.add{border-top:1px dashed var(--rule);color:var(--inkSoft);}
+.srow.add .sn{color:var(--inkSoft);}
+.srow.add .plus{line-height:0;color:var(--inkFaint);}
+
+/* ── B：全屏操作页 ── */
+.bpage{position:absolute;left:0;right:0;top:0;bottom:0;background:var(--paper);z-index:20;
+       display:flex;flex-direction:column;
+       transform:translateX(100%);transition:transform 260ms cubic-bezier(.2,.75,.2,1);
+       box-shadow:-12px 0 0 rgba(0,0,0,0), -8px 0 22px rgba(0,0,0,.22);}
+.bpage.open{transform:translateX(0);}
+.bhead{height:54px;flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:0 12px 0 8px;}
+.bhead .bclose{width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+               color:var(--ink);border:1px solid transparent;cursor:pointer;}
+.bhead .bclose:active{background:var(--cardAlt);border-color:var(--outline);}
+.bhead .bt{font-size:15px;font-weight:700;color:var(--ink);}
+.bhead .bs{font-size:9.5px;color:var(--inkFaint);margin-left:2px;}
+.bhead .grow{flex:1;}
+.bbody{flex:1 1 auto;overflow-y:auto;padding-bottom:24px;}
+
+/* 全屏页的行比面板更松：一屏刚好铺满，不靠滚动够到末项 */
+.bpage .plabel{font-size:10px;padding:22px 20px 10px;}
+.bpage .fchips{padding:0 20px 4px;gap:10px;}
+.bpage .chip{height:46px;padding:0 14px;font-size:13px;}
+.bpage .chip .cn{font-size:10.5px;}
+.bpage .clearf{margin:10px 20px 0;height:34px;font-size:12px;}
+.bpage .acts{padding-top:6px;}
+.bpage .mrow{min-height:68px;padding:11px 20px;}
+.bpage .mrow .mt{font-size:14px;}
+.bpage .mrow .msub{font-size:10px;}
+.bpage .srow{min-height:58px;padding:11px 20px;}
+.bpage .srow .sn{font-size:13px;}
+.bpage .srow .ss{font-size:10px;}
+
+/* ── C：锚定浮层卡片 ── */
+.tapout{position:absolute;left:0;right:0;top:0;bottom:0;background:var(--scrim);
+        opacity:0;pointer-events:none;transition:opacity .16s ease;z-index:10;}
+.tapout.on{opacity:1;pointer-events:auto;}
+.ccard{position:absolute;right:14px;top:74px;width:370px;max-height:600px;
+       background:var(--card);border:1px solid var(--outline);
+       box-shadow:2px 2px 0 var(--hard);z-index:22;display:none;flex-direction:column;
+       transform-origin:top right;}
+.ccard.on{display:flex;animation:pop 140ms cubic-bezier(.2,.8,.2,1);}
+@keyframes pop{from{transform:scale(.96) translateY(-4px);opacity:0}to{transform:none;opacity:1}}
+.ccard .caret{position:absolute;top:-6px;right:15px;width:10px;height:10px;
+              background:var(--card);border-left:1px solid var(--outline);border-top:1px solid var(--outline);
+              transform:rotate(45deg);}
+.ccard .pbody{max-height:none;}
+
+/* 卡片背后的纸色薄纱：压掉底层列表的对比，玻璃才「干净」而不糊 */
+.gveil{position:absolute;left:0;right:0;top:0;bottom:0;background:var(--paper);
+  opacity:.38;z-index:15;pointer-events:none;}
+
+/* ── C′：毛玻璃锚定卡片 ── */
+.gcard{position:absolute;right:14px;top:74px;width:370px;max-height:648px;
+  border-radius:12px;overflow:hidden;z-index:22;display:flex;flex-direction:column;
+  background-color:var(--gbg);border:1px solid;
+  border-color:var(--gt) var(--gm) var(--gb) var(--gm);
+  box-shadow:var(--gsh);transform-origin:top right;
+  backdrop-filter:blur(var(--gbl)) saturate(var(--gsat));
+  -webkit-backdrop-filter:blur(var(--gbl)) saturate(var(--gsat));
+  animation:pop 160ms cubic-bezier(.2,.8,.2,1);}
+.gcard.g1{--gbl:12px;--gsat:1.02;--gbg:rgba(245,242,236,.96);
+  --gt:rgba(255,255,255,.85);--gm:rgba(26,22,17,.10);--gb:rgba(26,22,17,.24);
+  --gsh:0 6px 16px rgba(26,22,17,.06);}
+.gcard.g2{--gbl:20px;--gsat:1.06;--gbg:rgba(245,242,236,.93);
+  --gt:rgba(255,255,255,.92);--gm:rgba(26,22,17,.10);--gb:rgba(26,22,17,.26);
+  --gsh:inset 0 1px 0 rgba(255,255,255,.9), 0 18px 36px rgba(26,22,17,.08);}
+.gcard.g3{--gbl:28px;--gsat:1.10;--gbg:rgba(245,242,236,.88);
+  --gt:rgba(255,255,255,.95);--gm:rgba(26,22,17,.10);--gb:rgba(26,22,17,.28);
+  --gsh:inset 0 1px 0 rgba(255,255,255,.95), 0 22px 44px rgba(26,22,17,.10);
+  background-image:radial-gradient(rgba(26,22,17,.085) .5px, transparent .9px);
+  background-size:3px 3px;}
+.gcard.dk.g1{--gbl:22px;--gsat:.98;--gbg:rgba(16,14,11,.975);
+  --gt:rgba(237,232,223,.14);--gm:rgba(0,0,0,.50);--gb:rgba(0,0,0,.80);
+  --gsh:0 6px 18px rgba(0,0,0,.42);}
+.gcard.dk.g2{--gbl:30px;--gsat:1.04;--gbg:rgba(16,14,11,.945);
+  --gt:rgba(237,232,223,.18);--gm:rgba(0,0,0,.55);--gb:rgba(0,0,0,.85);
+  --gsh:inset 0 1px 0 rgba(237,232,223,.10), 0 18px 40px rgba(0,0,0,.50);}
+.gcard.dk.g3{--gbl:40px;--gsat:1.08;--gbg:rgba(16,14,11,.90);
+  --gt:rgba(237,232,223,.20);--gm:rgba(0,0,0,.55);--gb:rgba(0,0,0,.88);
+  --gsh:inset 0 1px 0 rgba(237,232,223,.12), 0 24px 48px rgba(0,0,0,.55);
+  background-image:radial-gradient(rgba(237,232,223,.07) .5px, transparent .9px);
+  background-size:3px 3px;}
+.gcard .gbar{height:3px;flex:0 0 auto;background:var(--ac);}.gcard .phead{padding:12px 14px 9px 16px;}
+.gcard .gcount{font-size:9.5px;color:var(--ac);font-weight:700;}
+.gcard .pbody{padding:8px 8px 10px;}
+.gcard .plabel{padding:10px 8px 6px;letter-spacing:.08em;}
+.gcard .fchips{gap:8px;padding:0 0 2px;}
+.gcard .chip{height:42px;padding:0 13px;border:none;border-radius:9px;
+  background:rgba(26,22,17,.045);position:relative;overflow:hidden;color:var(--inkSoft);}
+.gcard .chip svg{color:var(--inkFaint);}
+.gcard .chip .cn{color:var(--inkFaint);font-weight:400;}
+.gcard .chip.on{background:var(--acw);color:var(--ink);font-weight:600;}
+.gcard .chip.on::before{content:"";position:absolute;left:0;top:9px;bottom:9px;width:3px;
+  background:var(--ac);border-radius:0 2px 2px 0;}
+.gcard .chip.on svg{color:var(--ac);}
+.gcard .chip.on .cn{color:var(--ac);font-weight:700;}
+.gcard .clearf{margin:8px 0 0 8px;height:28px;}
+.gcard .hair{display:none;}
+.gcard .acts{padding-top:4px;}
+.gcard .mrow{min-height:52px;padding:9px 10px;border:none;border-radius:9px;
+  margin:2px 0;background:rgba(26,22,17,.035);}
+.gcard .mrow+.mrow{margin-top:4px;}
+.gcard .mrow .mgo{opacity:.55;}
+.gcard .srow{min-height:44px;padding:8px 10px;border:none;border-radius:9px;margin:2px 0;}
+.gcard .srow.add{background:rgba(26,22,17,.02);border:1px dashed var(--gm);}
+.gcard.dk .chip:not(.on),.gcard.dk .mrow{background:rgba(237,232,223,.055);}
+.gcard.dk .srow.add{background:rgba(237,232,223,.03);}
+
+/* ── 分镜专用标记（返回键层次，SVG 直接画在 screen 层） ── */
+
+/* 演示区小控件（文档壳，不在手机里） */
+.demo-bar{display:flex;align-items:center;gap:8px;margin-top:2px;}
+.tsw{display:flex;border:1px solid #4A423A;}
+.tsw button{width:22px;height:16px;border:none;background:#2C2620;color:#9E9284;
+            font-size:9px;cursor:pointer;font-family:inherit;line-height:1;}
+.tsw button.on{background:#DE6A2E;color:#1A1611;}
+
+.foot{margin-top:22px;border-top:1px solid #4A423A;padding-top:12px;
+      color:#8C7F71;font-size:10.5px;line-height:1.8;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="doc-head">
+    <div>
+      <h1>资讯操作 · 三方案 ＋ C′</h1>
+      <div class="meta">
+        <b>m31</b> · 412×915dp · 亮/暗双档取自 <b>InkTokens</b> · 假数据 张三 / 2024000000<br>
+        现状：页头「⋯」浮层只有遮罩与底部「取消」，系统返回键直退 App；筛选（收藏 / 未读）无入口。<br>
+        C′ 是 C 的玻璃化：三档模糊厚度 × 四个强调色，圆角 12dp、双色边、微填充按钮。
+      </div>
+    </div>
+    <div class="sws">
+      <span class="sw" style="background:#F5F2EC"></span>
+      <span class="sw" style="background:#1A1611"></span>
+      <span class="sw" style="background:#C74E17"></span>
+      <span class="sw" style="background:#8F7E61"></span>
+      <span class="sw" style="background:#EDE8DF"></span>
+      <span class="sw" style="background:#2B2621"></span>
+    </div>
+  </div>
+
+  <!-- ══════════ A ══════════ -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="tag">A</span>
+      <h2>底部抽屉 · 沿用地图编辑页语言</h2>
+      <span class="hnote">30% / 62% / 92% 三档 · 28×3dp 抓手 · 松手吸最近档 · 下滑到底关闭 · 遮罩点按关闭 · 返回键先收面板</span>
+    </div>
+    <div class="row">
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"A","open":1,"detent":0.30,"k":0.775,"scroll":0}'></div>
+        <div class="cap"><span class="n">A1</span><b>30% 档</b> 抓手露在首行；筛选行完整、动作行被裁一条边 — 露边即「还有」</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"A","open":1,"detent":0.92,"dark":1,"k":0.775,"fs":1,"fu":1,"scroll":0}'></div>
+        <div class="cap"><span class="n">A2</span><b>92% 档 · 暗</b> 筛选双开 → 清除筛选行出现；四条动作 + 四条来源 + 末项全部在内</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"A","open":1,"detent":0.62,"k":0.775,"closing":1,"scroll":120}'></div>
+        <div class="cap"><span class="n">A3</span><b>返回键关闭中</b> 面板下滑、遮罩变淡；底部返回键高亮 — 一次返回只收面板</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:1" data-cfg='{"scheme":"A","open":1,"detent":0.30,"k":1,"demo":1,"scroll":0}'></div>
+        <div class="cap"><span class="n">▶</span><b>可交互</b> 抓手上下拖（含内容滚到顶/底后接力）· 点遮罩 · Esc＝返回键</div>
+        <div class="demo-bar">
+          <span style="font-size:10px;color:#8C7F71">亮 / 暗</span>
+          <span class="tsw" data-for="1"><button data-th="light" class="on">亮</button><button data-th="dark">暗</button></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ B ══════════ -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="tag">B</span>
+      <h2>全屏操作页 · 右侧推入</h2>
+      <span class="hnote">左上角关闭 · 内容纵向滚到底 · 返回键退出整页 · 无遮罩、无高度档位</span>
+    </div>
+    <div class="row">
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"B","open":1,"push":0.16,"k":0.775}'></div>
+        <div class="cap"><span class="n">B1</span><b>推入中 16%</b> 列表留在原处不动，整页从右压过来 — 空间关系自明</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"B","open":1,"push":0,"k":0.775,"fs":1,"fu":1}'></div>
+        <div class="cap"><span class="n">B2</span><b>满屏 · 顶部</b> 关闭贴在左上拇指区；筛选双开、动作四行不用滚就到</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"B","open":1,"push":0.13,"dark":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">B3</span><b>关闭中 13% · 暗</b> 关闭条常驻左上不随内容走；返回键与左上关闭同一语义，一次退整页</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:1" data-cfg='{"scheme":"B","open":1,"push":0,"k":1,"demo":1}'></div>
+        <div class="cap"><span class="n">▶</span><b>可交互</b> 左上关闭 · 内容滚动 · Esc＝返回键；关闭后点「⋯」再开</div>
+        <div class="demo-bar">
+          <span style="font-size:10px;color:#8C7F71">亮 / 暗</span>
+          <span class="tsw" data-for="2"><button data-th="light" class="on">亮</button><button data-th="dark">暗</button></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ C ══════════ -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="tag">C</span>
+      <h2>锚定浮层卡片 · 从「⋯」下方展开</h2>
+      <span class="hnote">箭头指回按钮 · 2dp 硬投影 · 点外部关闭 · 卡内滚动（底边渐隐）· 返回键只收卡片</span>
+    </div>
+    <div class="row">
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"C","open":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">C1</span><b>展开 · 未筛选</b> 卡片上沿箭头对准「⋯」；动作四行一屏收完，来源三行露头</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"C","open":1,"k":0.775,"fs":1,"fu":1,"scroll":150}'></div>
+        <div class="cap"><span class="n">C2</span><b>筛选双开 · 卡内滚动</b> 清除筛选行插在筛选下；底边渐隐吞掉下一行，滚动有界</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"C","open":1,"dark":1,"k":0.775,"scroll":40}'></div>
+        <div class="cap"><span class="n">C3</span><b>展开 · 暗</b> 硬投影在暗档退成纯黑 2dp；遮罩 58% 仍能认出后面的列表</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:1" data-cfg='{"scheme":"C","open":1,"k":1,"demo":1}'></div>
+        <div class="cap"><span class="n">▶</span><b>可交互</b> 点卡片外任意处关闭 · 卡内滚动 · 筛选即时过滤后面列表 · Esc</div>
+        <div class="demo-bar">
+          <span style="font-size:10px;color:#8C7F71">亮 / 暗</span>
+          <span class="tsw" data-for="3"><button data-th="light" class="on">亮</button><button data-th="dark">暗</button></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ C′ ══════════ -->
+  <div class="sec">
+    <div class="sec-h">
+      <span class="tag">C′</span>
+      <h2>毛玻璃锚定卡片 · 三档厚度 + 四强调色</h2>
+      <span class="hnote">同一张卡片：模糊 12 / 20 / 28dp × 纸色 .96 / .93 / .88（暗档 22/30/40dp × .975 / .945 / .90） · 上亮下暗双色边 · 12dp 圆角 · 微填充按钮 · 选中＝左缘竖条＋4% 底</span>
+    </div>
+
+    <div class="row">
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"G","glass":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">T1</span><b>轻 · 12dp / .96</b> 只读得出「有一层」，背后标题只剩一条淡影</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"G","glass":2,"fs":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">T2</span><b>中 · 20dp / .93</b> 顶光 1px ＋ 18dp 8% 投影；底下列表化成色块</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"G","glass":3,"fs":1,"fu":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">T3</span><b>厚 · 28dp / .88</b> 极轻噪点；双筛选左缘出竖条，数字转强调色</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"G","glass":1,"dark":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">T1 暗</span><b>轻 · 22dp / .975</b> 暗档加厚 10dp、纸色抬到 .975，避免糊成一团</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"G","glass":2,"dark":1,"fs":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">T2 暗</span><b>中 · 30dp / .945</b> 顶光换成 10% 米白，投影走纯黑</div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.775" data-cfg='{"scheme":"G","glass":3,"dark":1,"fs":1,"fu":1,"k":0.775}'></div>
+        <div class="cap"><span class="n">T3 暗</span><b>厚 · 40dp / .90</b> 噪点转米白 7%；底下正文透成灰带</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h">
+      <span class="tag">C′·色</span>
+      <h2>强调色落位 · 四色并排</h2>
+      <span class="hnote">只落四处：顶部 2px 条 / 图标 tint / 选中左缘 3px 竖条 / 数值高亮；正文与分隔仍是墨色，面积 ≤ 15%</span>
+    </div>
+    <div class="row">
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"brick","k":0.70}'></div>
+        <div class="cap"><span class="n">砖红</span><b>#9B2417 · 资讯</b></div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"olive","k":0.70}'></div>
+        <div class="cap"><span class="n">苔绿</span><b>#3F5A2E · 正常态</b></div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"slate","k":0.70}'></div>
+        <div class="cap"><span class="n">靛青</span><b>#345A66 · 学业</b></div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"amber","k":0.70}'></div>
+        <div class="cap"><span class="n">赭黄</span><b>#8F6713 · 待办</b></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px">
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"brick","dark":1,"k":0.70}'></div>
+        <div class="cap"><span class="n">砖红 暗</span><b>#E7A093</b></div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"olive","dark":1,"k":0.70}'></div>
+        <div class="cap"><span class="n">苔绿 暗</span><b>#BCC79B</b></div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"slate","dark":1,"k":0.70}'></div>
+        <div class="cap"><span class="n">靛青 暗</span><b>#A0B6BB</b></div>
+      </div>
+      <div class="cell">
+        <div class="slot" style="--k:.70" data-cfg='{"scheme":"G","glass":2,"fs":1,"accent":"amber","dark":1,"k":0.70}'></div>
+        <div class="cap"><span class="n">赭黄 暗</span><b>#DDB84D</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    docs/design/m31-资讯操作-选项.html · 单文件自包含 · 无外链字体 · 图标为内联 SVG ·
+    色值逐字取自 ui/theme/Theme.kt 的 InkTokenSet.Light / Dark 与 HardTokens.kt 色板
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ── 图标（24 画布，stroke=currentColor） ── */
+  var I = {
+    search:'<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="10.4" cy="10.4" r="6.1"/><path d="M15 15l5 5" stroke-linecap="square"/></svg>',
+    close:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 5l14 14M19 5L5 19" stroke-linecap="square"/></svg>',
+    bookmark:function(f){return '<svg viewBox="0 0 24 24" width="15" height="15" fill="'+(f?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.7"><path d="M6.5 3.5h11v17L12 16.6 6.5 20.5z"/></svg>';},
+    mail:function(f){return '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="6" width="18" height="13"/><path d="M3 6.8l9 6.6 9-6.6"/>'+(f?'<circle cx="18.4" cy="6" r="2.7" fill="currentColor" stroke="none"/>':'')+'</svg>';},
+    chev:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5l7 7-7 7" stroke-linecap="square"/></svg>',
+    out:'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 16L16 8M9 8h7v7" stroke-linecap="square"/></svg>',
+    plus:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14" stroke-linecap="square"/></svg>',
+    back:'<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 5L8 12l7 7" stroke-linecap="square"/></svg>',
+    home:'<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 12l8-8 8 8" stroke-linecap="square"/></svg>',
+    sq:'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="5" width="14" height="14"/></svg>'
+  };
+
+  /* ── 列表假数据 ── */
+  var FEED = [
+    {t:'2025-2026 学年第二学期选课工作安排', s:'教务通知 · 2 天前', u:1, st:1},
+    {t:'本科生学籍信息核对结果（2024000000 张三）', s:'教务处 · 3 天前', u:0, st:1},
+    {t:'第十九届“挑战杯”校内选拔赛报名开始', s:'校内竞赛 · 4 天前', u:1, st:0},
+    {t:'校园网核心设备维护（11 月 22 日 02:00–05:00）', s:'校级通知 · 5 天前', u:0, st:0},
+    {t:'2026 届毕业生就业双选会 · 沈阳专场', s:'就业信息网 · 6 天前', u:1, st:0},
+    {t:'全国计算机等级考试报名通知', s:'计算机等级考试 · 7 天前', u:0, st:1},
+    {t:'关于开展冬季校园安全大检查的通知', s:'校级通知 · 8 天前', u:1, st:0},
+    {t:'图书馆 12 月开放时间调整', s:'校级通知 · 9 天前', u:0, st:0},
+    {t:'2026 届毕业生就业协议书领取说明', s:'就业信息网 · 10 天前', u:1, st:1}
+  ];
+
+  var SRC = [
+    {n:'教务通知', st:'12 分钟前 · 失败', bad:1},
+    {n:'校级通知', st:'3 分钟前 · 正常', bad:0},
+    {n:'校内竞赛', st:'3 分钟前 · 正常', bad:0},
+    {n:'沈农新闻', st:'12 分钟前 · 失败', bad:1}
+  ];
+
+  /* 强调色（亮/暗逐字取自 InkTokenSet：brick / olive=Crop.n600 / slate / amber） */
+  var ACC = {
+    brick:{l:'#9B2417', d:'#E7A093', wL:'rgba(155,36,23,.24)', wD:'rgba(231,160,147,.26)'},
+    olive:{l:'#3F5A2E', d:'#BCC79B', wL:'rgba(63,90,46,.24)',  wD:'rgba(188,199,155,.26)'},
+    slate:{l:'#345A66', d:'#A0B6BB', wL:'rgba(52,90,102,.24)', wD:'rgba(160,182,187,.26)'},
+    amber:{l:'#8F6713', d:'#DDB84D', wL:'rgba(143,103,19,.24)',wD:'rgba(221,184,77,.26)'}
+  };
+
+  function feedHTML(){
+    var out = '<div class="sb"><span class="mono">13:04</span><span class="grow"></span>'+
+      '<span class="bars"><i></i><i></i><i></i><i></i></span><span class="bat"></span></div>';
+    out += '<div class="fhead"><span class="ft">资讯</span>'+
+           '<span class="fm mono">24 未读 · 12 分钟前</span><span class="grow"></span>'+
+           '<button class="fbtn" data-act="search">'+I.search+'</button>'+
+           '<button class="fbtn more" data-act="more">⋯</button></div>';
+    out += '<div class="chips">'+
+      '<span class="chip-c on">全部<span class="num mono">24</span></span>'+
+      '<span class="chip-c">教务<span class="num mono">6</span></span>'+
+      '<span class="chip-c">通知<span class="num mono">9</span></span>'+
+      '<span class="chip-c">竞赛<span class="num mono">9</span></span></div>';
+    out += '<div class="frows">';
+    FEED.forEach(function(r){
+      out += '<div class="frow'+(r.u?'':' read')+'" data-star="'+r.st+'" data-unread="'+r.u+'">'+
+        '<div class="fr"><div class="t">'+r.t+'</div><div class="s mono">'+r.s+'</div></div>'+
+        '<div class="tail">'+(r.u?'<span class="dot"></span>':'<span class="dot"></span>')+
+        '<span class="star'+(r.st?'':' off')+'">'+I.bookmark(!!r.st)+'</span></div></div>';
+    });
+    out += '</div>';
+    return out;
+  }
+
+  function filterBlock(cfg){
+    var fs = !!cfg.fs, fu = !!cfg.fu;
+    var h = '<div class="plabel">筛选</div><div class="fchips">';
+    h += '<button class="chip'+(fs?' on':'')+'" data-k="fs">'+I.bookmark(fs)+'<span>收藏</span><span class="cn mono">7</span></button>';
+    h += '<button class="chip'+(fu?' on':'')+'" data-k="fu">'+I.mail(fu)+'<span>未读</span><span class="cn mono">23</span></button>';
+    h += '</div>';
+    h += '<button class="clearf'+(fs||fu?'':' hide')+'" data-k="clear">'+I.close+'<span>清除筛选</span></button>';
+    h += '<div class="hair"></div>';
+    return h;
+  }
+
+  function actionBlock(){
+    return '<div class="acts">'+
+      '<button class="mrow" data-act="refresh"><i class="mi mono">01</i><span class="mm"><span class="mt">刷新</span>'+
+        '<span class="msub mono">12 分钟前</span></span><span class="mgo">'+I.chev+'</span></button>'+
+      '<button class="mrow" data-act="chread"><i class="mi mono">02</i><span class="mm"><span class="mt">本频道全部已读</span>'+
+        '<span class="msub mono">「全部」24 条未读</span></span><span class="mgo">'+I.chev+'</span></button>'+
+      '<button class="mrow" data-act="allread"><i class="mi mono">03</i><span class="mm"><span class="mt">全部频道全部已读</span>'+
+        '<span class="msub mono">24 条未读</span></span><span class="mgo">'+I.chev+'</span></button>'+
+      '<button class="mrow" data-act="fail"><i class="mi mono">04</i><span class="mm"><span class="mt">刷新失败详情</span>'+
+        '<span class="msub warn mono">3 个源失败</span></span><span class="mgo">'+I.chev+'</span></button>'+
+      '</div>';
+  }
+
+  function sourceBlock(){
+    var h = '<div class="plabel">来源</div>';
+    SRC.forEach(function(s){
+      h += '<button class="srow" data-src="1"><i class="sdot '+(s.bad?'fail':'ok')+'"></i>'+
+           '<span class="sn">'+s.n+'</span><span class="grow"></span>'+
+           '<span class="ss'+(s.bad?' warn':'')+' mono">'+s.st+'</span>'+
+           '<span class="sgo">'+I.out+'</span></button>';
+    });
+    h += '<button class="srow add" data-src="new"><span class="plus">'+I.plus+'</span>'+
+         '<span class="sn">想加别的网站？</span></button>';
+    return h;
+  }
+
+  function panelBody(cfg){
+    return filterBlock(cfg)+actionBlock()+sourceBlock();
+  }
+
+  function navHTML(){
+    return '<div class="navbar">'+
+      '<span class="bk">'+I.back+'</span><span class="bk">'+I.home+'</span><span class="bk">'+I.sq+'</span>'+
+      '</div>';
+  }
+
+  /* ── 组装 ── */
+  function mount(slot, idx){
+    var cfg = JSON.parse(slot.getAttribute('data-cfg'));
+    var k = cfg.k || 0.775;
+    var dark = !!cfg.dark;
+    var scr = document.createElement('div');
+    scr.className = 'screen'+(dark?' dark':'');
+    var app = document.createElement('div');
+    app.className = 'app';
+    app.innerHTML = feedHTML();
+
+    var scrim = document.createElement('div');
+    scrim.className = 'scrim' + (cfg.open ? ' on' : '');
+
+    if(cfg.scheme === 'A'){
+      var sheet = document.createElement('div');
+      sheet.className = 'sheet';
+      sheet.innerHTML = '<div class="grip"><i></i></div>'+
+        '<div class="phead"><span class="pt">资讯操作</span><span class="ps mono">全部 · 24 未读</span>'+
+        '<span class="grow"></span><span class="pcl" data-act="close">'+I.close+'</span></div>'+
+        '<div class="hair"></div><div class="pbody"></div>';
+      sheet.querySelector('.pbody').innerHTML = panelBody(cfg);
+      app.appendChild(scrim);
+      app.appendChild(sheet);
+      if(cfg.open){
+        var hh = (cfg.detent || .30) * 885;
+        sheet.style.height = Math.round(hh)+'px';
+      }
+      if(cfg.closing){
+        sheet.style.transition = 'none';
+        sheet.style.height = Math.round(0.62*885)+'px';
+        sheet.style.transform = 'translateY(46%)';
+        scrim.className = 'scrim faint';
+      }
+      var nav = navHTML();
+      scr.innerHTML = '';
+      scr.appendChild(app);
+      scr.insertAdjacentHTML('beforeend', nav);
+      if(cfg.closing){
+        var bkEl = scr.querySelectorAll('.navbar .bk')[0];
+        bkEl.className = 'bk hot';
+        var rb = bkEl.getBoundingClientRect(), rs = scr.getBoundingClientRect();
+        var cx = (rb.left + rb.width/2 - rs.left)/k, cy = (rb.top + rb.height/2 - rs.top)/k;
+        var cue = document.createElement('div');
+        cue.style.cssText = 'position:absolute;left:0;top:0;width:412px;height:915px;z-index:40;pointer-events:none;';
+        var topL = Math.round(885 - 549 + 549*0.46);
+        cue.innerHTML = '<svg width="412" height="915" viewBox="0 0 412 915" fill="none">'+
+          '<rect x="4" y="'+(topL+2)+'" width="404" height="'+(881-topL)+'" rx="12" stroke="#C74E17" stroke-opacity=".45" stroke-width="1.4" stroke-dasharray="6 5"/>'+
+          '<path d="M240 '+(topL+12)+' l7 7 7 -7" stroke="#C74E17" stroke-width="1.6" stroke-linecap="square"/>'+
+          '<path d="M240 '+(topL+23)+' l7 7 7 -7" stroke="#C74E17" stroke-opacity=".45" stroke-width="1.6" stroke-linecap="square"/>'+
+          '<circle cx="'+cx+'" cy="'+cy+'" r="13" stroke="#C74E17" stroke-width="1.6"/>'+
+          '<circle cx="'+cx+'" cy="'+cy+'" r="19.5" stroke="#C74E17" stroke-opacity=".32" stroke-width="1"/>'+
+          '</svg>';
+        scr.appendChild(cue);
+      }
+    }
+
+    if(cfg.scheme === 'B'){
+      var page = document.createElement('div');
+      page.className = 'bpage';
+      page.innerHTML =
+        '<div class="bhead"><span class="bclose" data-act="close">'+I.close+'</span>'+
+        '<span class="bt">资讯操作</span><span class="bs mono">全部 · 24 未读</span><span class="grow"></span></div>'+
+        '<div class="hair"></div><div class="bbody"></div>';
+      page.querySelector('.bbody').innerHTML = panelBody(cfg);
+      if(cfg.open){
+        var push = (cfg.push === undefined ? 0 : cfg.push);
+        page.style.transition = push ? 'none' : 'transform 260ms cubic-bezier(.2,.75,.2,1)';
+        page.style.transform = 'translateX('+(push*100)+'%)';
+        if(push) page.style.boxShadow = '-6px 0 22px rgba(0,0,0,.22)';
+      }
+      app.appendChild(scrim);
+      app.appendChild(page);
+      if(cfg.bottom){
+        // 初始滚到底：等插入 DOM 后再设
+        page.dataset.bottom = '1';
+      }
+      scr.appendChild(app);
+      scr.insertAdjacentHTML('beforeend', navHTML());
+    }
+
+    if(cfg.scheme === 'C'){
+      var tap = document.createElement('div');
+      tap.className = 'tapout' + (cfg.open ? ' on' : '');
+      var card = document.createElement('div');
+      card.className = 'ccard' + (cfg.open ? ' on' : '');
+      card.innerHTML = '<span class="caret"></span>'+
+        '<div class="phead" style="padding:12px 14px 8px 16px"><span class="pt">资讯操作</span>'+
+        '<span class="ps mono">全部 · 24 未读</span><span class="grow"></span>'+
+        '<span class="pcl" data-act="close">'+I.close+'</span></div>'+
+        '<div class="hair"></div><div class="pbody"></div>';
+      card.querySelector('.pbody').innerHTML = panelBody(cfg);
+      app.appendChild(tap);
+      app.appendChild(card);
+      scr.appendChild(app);
+      scr.insertAdjacentHTML('beforeend', navHTML());
+    }
+
+    if(cfg.scheme === 'G'){
+      var g = document.createElement('div');
+      g.className = 'gcard g'+(cfg.glass||2)+(dark?' dk':'');
+      g.style.setProperty('--ac', ACC[cfg.accent||'brick'][dark?'d':'l']);
+      g.style.setProperty('--acw', ACC[cfg.accent||'brick'][dark?'wD':'wL']);
+      g.innerHTML = '<div class="gbar"></div>'+
+        '<div class="phead"><span class="pt">资讯操作</span>'+
+        '<span class="ps mono">全部 · <b class="gcount">24</b> 未读</span>'+
+        '<span class="grow"></span><span class="pcl" data-act="close">'+I.close+'</span></div>'+
+        '<div class="hair"></div><div class="pbody"></div>';
+      g.querySelector('.pbody').innerHTML = panelBody(cfg);
+      var veil = document.createElement('div');
+      veil.className = 'gveil';
+      app.appendChild(veil);
+      app.appendChild(g);
+      scr.appendChild(app);
+      scr.insertAdjacentHTML('beforeend', navHTML());
+    }
+
+    slot.innerHTML = '';
+    slot.appendChild(scr);
+
+    // 初始滚动
+    var body = scr.querySelector('.pbody');
+    if(body && cfg.scroll) body.scrollTop = cfg.scroll;
+    if(cfg.bottom){
+      var bp = scr.querySelector('.bbody');
+      if(bp) bp.scrollTop = bp.scrollHeight;
+    }
+    if(body && cfg.scheme === 'C'){ /* 卡片内滚动边界渐隐 */
+      body.style.webkitMaskImage = 'linear-gradient(to bottom, #000 0, #000 calc(100% - 26px), transparent 100%)';
+      body.style.maskImage = 'linear-gradient(to bottom, #000 0, #000 calc(100% - 26px), transparent 100%)';
+    }
+
+    if(cfg.demo) wire(scr, cfg, idx);
+    return scr;
+  }
+
+  var slots = document.querySelectorAll('.slot');
+  var screens = [];
+  for(var i=0;i<slots.length;i++){
+    screens.push(mount(slots[i], i));
+  }
+
+  /* ── 交互 ── */
+  function wire(scr, cfg, idx){
+    var app   = scr.querySelector('.app');
+    var more  = scr.querySelector('[data-act="more"]');
+    var scrim = scr.querySelector('.scrim');
+
+    if(cfg.scheme === 'A'){
+      var sheet = scr.querySelector('.sheet');
+      var body  = scr.querySelector('.pbody');
+      var grip  = scr.querySelector('.grip');
+      var phead = scr.querySelector('.phead');
+      var H = 885, D = [0.30, 0.62, 0.92];
+      var frac = 0.30, dragging = false, startY = 0, base = 0, claimed = '';
+      var isOpen = false;
+
+      function paint(f, animate){
+        sheet.style.transition = animate ? 'height 240ms cubic-bezier(.2,.75,.2,1)' : 'height 0s';
+        sheet.style.height = Math.round(f*H)+'px';
+      }
+      function open(){
+        isOpen = true;
+        scrim.className = 'scrim on';
+        more.classList.add('on');
+        frac = 0.30;
+        sheet.style.transform = 'none';
+        sheet.style.height = '0px';
+        void sheet.offsetHeight;
+        paint(frac, true);
+      }
+      function close(){
+        isOpen = false;
+        sheet.style.transition = 'height 200ms cubic-bezier(.4,0,.6,1)';
+        sheet.style.height = '0px';
+        scrim.className = 'scrim';
+        more.classList.remove('on');
+      }
+      if(cfg.open){
+        isOpen = true;
+        more.classList.add('on');
+        frac = 0.30;
+        paint(frac, false);
+      } else {
+        paint(0, false);
+      }
+
+      function down(e, fromBody){
+        if(e.button !== undefined && e.button !== 0) return;
+        startY = e.clientY; base = frac; dragging = true;
+        claimed = fromBody ? '' : 'sheet';
+        sheet.style.transition = 'height 0s';
+        if(!fromBody && e.preventDefault) e.preventDefault();
+      }
+      function move(e){
+        if(!dragging) return;
+        var dy = startY - e.clientY;          // 上推为正
+        if(claimed === ''){
+          var atTop = body.scrollTop <= 0;
+          var atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 2;
+          if((dy > 4 && atBottom) || (dy < -4 && atTop)){ claimed = 'sheet'; body.style.overflowY = 'hidden'; }
+          else claimed = 'scroll';
+        }
+        if(claimed !== 'sheet') return;
+        if(e.cancelable) e.preventDefault();
+        var f = base + dy/H;
+        f = Math.max(0.10, Math.min(1.0, f));
+        frac = f; paint(f, false);
+      }
+      function up(){
+        if(!dragging) return;
+        dragging = false;
+        body.style.overflowY = '';
+        if(claimed !== 'sheet') return;
+        if(frac < 0.23){ close(); return; }
+        var best = D[0], bd = 9;
+        D.forEach(function(d){ if(Math.abs(d-frac) < bd){ bd = Math.abs(d-frac); best = d; } });
+        frac = best; paint(frac, true);
+      }
+      grip.addEventListener('pointerdown', function(e){ down(e,false); });
+      phead.addEventListener('pointerdown', function(e){
+        if(e.target.closest('[data-act="close"]')) return;
+        down(e,false);
+      });
+      body.addEventListener('pointerdown', function(e){ down(e,true); });
+      window.addEventListener('pointermove', move, {passive:false});
+      window.addEventListener('pointerup', up);
+      window.addEventListener('pointercancel', up);
+
+      more.addEventListener('click', open);
+      scrim.addEventListener('click', close);
+      sheet.addEventListener('click', function(e){
+        if(e.target.closest('[data-act="close"]')) close();
+      });
+      scr._close = close;
+    }
+
+    if(cfg.scheme === 'B'){
+      var page = scr.querySelector('.bpage');
+      var bbody = scr.querySelector('.bbody');
+      var bo = false;
+      function bopen(){ bo = true; page.classList.add('open'); page.style.transform='translateX(0)'; more.classList.add('on'); }
+      function bclose(){ bo = false; page.classList.remove('open'); page.style.transform='translateX(100%)'; more.classList.remove('on'); }
+      if(cfg.open){ page.classList.add('open'); page.style.transform='translateX(0)'; more.classList.add('on'); }
+      else { page.classList.remove('open'); page.style.transform='translateX(100%)'; }
+      more.addEventListener('click', bopen);
+      page.addEventListener('click', function(e){
+        if(e.target.closest('[data-act="close"]')) bclose();
+      });
+      scr._close = bclose;
+    }
+
+    if(cfg.scheme === 'C'){
+      var tapout = scr.querySelector('.tapout');
+      var card = scr.querySelector('.ccard');
+      function copen(){ card.classList.add('on'); tapout.classList.add('on'); more.classList.add('on'); }
+      function cclose(){ card.classList.remove('on'); tapout.classList.remove('on'); more.classList.remove('on'); }
+      more.addEventListener('click', function(){ if(card.classList.contains('on')) cclose(); else copen(); });
+      tapout.addEventListener('click', cclose);
+      card.addEventListener('click', function(e){ if(e.target.closest('[data-act="close"]')) cclose(); });
+      scr._close = cclose;
+    }
+
+    /* 筛选：三方案共用 */
+    scr.addEventListener('click', function(e){
+      var k = e.target.closest('[data-k]');
+      if(k){
+        var key = k.getAttribute('data-k');
+        if(key === 'clear'){
+          scr.querySelectorAll('.chip[data-k]').forEach(function(c){ c.classList.remove('on'); });
+          applyFilter(scr, false, false);
+        } else {
+          k.classList.toggle('on');
+          applyFilter(scr,
+            scr.querySelector('.chip[data-k="fs"]').classList.contains('on'),
+            scr.querySelector('.chip[data-k="fu"]').classList.contains('on'));
+        }
+        var cl = scr.querySelector('.clearf');
+        var any = scr.querySelector('.chip[data-k="fs"]').classList.contains('on') ||
+                  scr.querySelector('.chip[data-k="fu"]').classList.contains('on');
+        cl.classList.toggle('hide', !any);
+        // 图标随状态换实心
+        var fsOn = scr.querySelector('.chip[data-k="fs"]').classList.contains('on');
+        var fuOn = scr.querySelector('.chip[data-k="fu"]').classList.contains('on');
+        scr.querySelector('.chip[data-k="fs"]').firstElementChild.outerHTML = I.bookmark(fsOn);
+        scr.querySelector('.chip[data-k="fu"]').firstElementChild.outerHTML = I.mail(fuOn);
+      }
+    });
+
+    /* Esc ＝ 系统返回键 */
+    window.addEventListener('keydown', function(e){
+      if(e.key === 'Escape'){ if(scr._close) scr._close(); }
+    });
+  }
+
+  function applyFilter(scr, fs, fu){
+    scr.querySelectorAll('.frow').forEach(function(r){
+      var okS = !fs || r.dataset.star === '1';
+      var okU = !fu || r.dataset.unread === '1';
+      r.classList.toggle('hid', !(okS && okU));
+    });
+  }
+
+  /* 亮/暗切换（演示机） */
+  document.querySelectorAll('.tsw').forEach(function(sw){
+    var n = parseInt(sw.getAttribute('data-for'), 10);
+    var target = screens.filter(function(s){ return s._close; })[n-1];
+    if(!target) return;
+    sw.querySelectorAll('button').forEach(function(b){
+      b.addEventListener('click', function(){
+        sw.querySelectorAll('button').forEach(function(x){ x.classList.remove('on'); });
+        b.classList.add('on');
+        target.classList.toggle('dark', b.getAttribute('data-th') === 'dark');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+

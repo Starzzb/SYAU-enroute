@@ -116,36 +116,3 @@ fun ErodedCard(
         content()
     }
 }
-
-/**
- * 被完全吃掉后留下的痕迹：不是空白，是一道褪色的短划 + 淡淡的残影。
- */
-@Composable
-fun EatenResidue(modifier: Modifier = Modifier) {
-    val dark = cn.dkarbon.enroute.ui.theme.InkTokens.current.isDark
-    val spine = if (dark) Color(0xFFD9796A) else Color(0xFFA63D2F)
-    val ash = if (dark) Color(0xFF4A453C) else Color(0xFFB9B2A6)
-
-    Box(modifier.fillMaxSize()) {
-        Canvas(Modifier.fillMaxSize()) {
-            // 一道砖红短划（表示"这里有过一节课"）
-            drawLine(
-                color = spine.copy(alpha = 0.28f),
-                start = Offset(size.width * 0.18f, size.height * 0.30f),
-                end = Offset(size.width * 0.52f, size.height * 0.30f),
-                strokeWidth = 1.6.dp.toPx(),
-            )
-            // 几粒灰烬
-            repeat(3) { i ->
-                drawCircle(
-                    color = ash.copy(alpha = 0.35f),
-                    radius = 0.9.dp.toPx(),
-                    center = Offset(
-                        size.width * (0.24f + i * 0.10f),
-                        size.height * (0.46f + i * 0.06f),
-                    ),
-                )
-            }
-        }
-    }
-}

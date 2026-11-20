@@ -23,6 +23,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -117,6 +122,11 @@ fun LedgerHeader(
     onSearch: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     onMore: (() -> Unit)? = null,
+    /**
+     * 把「⋯」按钮在根坐标里的矩形交出去。锚定浮层（`AnchoredCardOverlay`）靠它把卡片
+     * 摆在按钮正下方、折角指回按钮 —— 浮层从哪来、点哪里回去，靠形态而不是文字。
+     */
+    onMoreAnchor: ((androidx.compose.ui.geometry.Rect) -> Unit)? = null,
 ) {
     val t = InkTokens.current
     Column(modifier.fillMaxWidth()) {
@@ -138,7 +148,16 @@ fun LedgerHeader(
             )
             if (onMore != null) {
                 Box(
-                    Modifier.size(48.dp).clickable(onClickLabel = "更多操作", onClick = onMore),
+                    Modifier
+                        .size(48.dp)
+                        .then(
+                            if (onMoreAnchor != null) {
+                                Modifier.onGloballyPositioned { onMoreAnchor(it.boundsInRoot()) }
+                            } else {
+                                Modifier
+                            },
+                        )
+                        .clickable(onClickLabel = "更多操作", onClick = onMore),
                     contentAlignment = Alignment.Center,
                 ) { Text("⋯", fontSize = 14.sp, color = t.inkSoft) }
             }
@@ -238,8 +257,11 @@ fun LedgerRow(
     val summary = item.summary.replace("id=\"vsb_content\">", "").trim()
     val dl = if (item.category == "竞赛") FeedRows.deadlineLabel(item, today) else null
 
+    // 行体与分隔线分开两层：线要按「整行宽」算，画在内容 Column 里就会缩到正文栏里
+    // （真机上看就是一条只到一半的短线）。
+    Column(modifier.fillMaxWidth()) {
     Row(
-        modifier
+        Modifier
             .fillMaxWidth()
             .ledgerPress(
                 ink = t.ink,
@@ -316,14 +338,32 @@ fun LedgerRow(
                     Text("藏", fontSize = 11.5.sp, lineHeight = 16.sp, fontWeight = FontWeight.Medium, color = t.amber)
                 }
             }
-            if (!lastInGroup) {
-                Spacer(Modifier.height(9.dp))
-                // 修正 B：相邻条目间的边界 —— 1px、inkFaint 且 alpha 再降到 0.5，
-                // 缩进到正文左沿（本 Column 就是正文栏，天然不延伸到页边槽）
-                Box(Modifier.fillMaxWidth().height(1.dp).background(t.inkFaint.copy(alpha = 0.5f)))
-                Spacer(Modifier.height(9.dp))
-            }
         }
+    }
+    if (!lastInGroup) {
+        Spacer(Modifier.height(11.dp))
+        // 条目边界（m35）：一条实线 + 线下一段灰晕。只画线不管「模糊」，条目之间看着
+        // 还是一排字；灰晕把上一则收进纸里，下一则才干净地开始。缩进到正文左沿。
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = LedgerGutter + LedgerGutterGap)
+                .height(1.dp)
+                .background(t.outline),
+        )
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = LedgerGutter + LedgerGutterGap)
+                .height(8.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(t.outline.copy(alpha = 0.10f), Color.Transparent),
+                    ),
+                ),
+        )
+        Spacer(Modifier.height(9.dp))
+    }
     }
 }
 
@@ -335,38 +375,3 @@ data class LedgerNavEntry(val label: String, val selected: Boolean, val onClick:
  * 资讯页本批不挂它 —— 底部导航在 EnRouteRoot（ui/ 包，不在本批允许改动范围），
  * 这里先把件备好，等壳换骨架时直接用。
  */
-@Composable
-fun LedgerFooter(
-    entries: List<LedgerNavEntry>,
-    folio: String?,
-    modifier: Modifier = Modifier,
-) {
-    val t = InkTokens.current
-    Column(modifier.fillMaxWidth().background(t.paper)) {
-        Box(Modifier.fillMaxWidth().height(1.dp).background(t.inkFaint))
-        Row(Modifier.fillMaxWidth().padding(horizontal = Space.l)) {
-            entries.forEach { e ->
-                Box(
-                    Modifier
-                        .weight(1f)
-                        .height(48.dp)
-                        .clickable(onClickLabel = e.label, onClick = e.onClick),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        e.label,
-                        fontSize = 12.sp,
-                        fontWeight = if (e.selected) FontWeight.SemiBold else FontWeight.Normal,
-                        color = if (e.selected) t.ink else t.inkSoft,
-                    )
-                }
-            }
-        }
-        if (folio != null) {
-            Row(Modifier.fillMaxWidth().padding(start = Space.l, end = Space.l, bottom = 6.dp)) {
-                Spacer(Modifier.weight(1f))
-                Text(folio, fontSize = 11.5.sp, lineHeight = 16.sp, color = t.inkFaint, style = LedgerTnum)
-            }
-        }
-    }
-}

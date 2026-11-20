@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>我们的移动端设计到底怎么做 · 组件路线说明</title>
+<style>
+:root{
+  --paper:#F8F5F0; --paper2:#F1ECE3; --card:#FCFAF6;
+  --ink:#2C2C2C; --inkSoft:#4A4A46; --inkFaint:#686660;
+  --rule:#8C8578; --outline:#7E776A;
+  --olive:#6B7B6E; --amber:#A89279; --slate:#697A7C; --brick:#8F4A3A;
+  --stage:#EBE6DC; --code:#2A251F; --codeInk:#F8F5F0;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--stage);color:var(--ink);
+ font-family:"Songti SC","Source Han Serif SC","Noto Serif CJK SC","Microsoft YaHei",system-ui,serif;
+ -webkit-font-smoothing:antialiased;line-height:1.7}
+.mono{font-family:ui-monospace,Consolas,"Courier New",monospace;font-variant-numeric:tabular-nums}
+.sans{font-family:"Microsoft YaHei","PingFang SC",system-ui,sans-serif}
+
+.hero{background:var(--code);color:var(--codeInk);padding:30px 26px 26px;border-bottom:3px solid var(--amber)}
+.hero h1{margin:0 0 8px;font-size:24px;letter-spacing:.06em;font-weight:700}
+.hero p{margin:0;font-size:13px;opacity:.82;max-width:880px}
+.hero .tag{display:inline-block;border:1px solid rgba(248,245,240,.35);padding:3px 10px;font-size:10.5px;letter-spacing:.14em;margin-bottom:14px}
+
+.wrap{max-width:1280px;margin:0 auto;padding:24px 22px 48px;display:flex;flex-direction:column;gap:18px}
+.panel{background:var(--card);border:1px solid var(--outline);padding:20px 24px;border-radius:4px}
+.panel h2{margin:0 0 4px;font-size:17px;letter-spacing:.06em}
+.panel .sub{margin:0 0 16px;font-size:11.5px;color:var(--inkFaint);letter-spacing:.04em}
+.lead{font-size:13.5px;color:var(--inkSoft);max-width:920px;margin:0 0 14px}
+.lead b{color:var(--ink)}
+
+/* 三路线 */
+.routes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.route{border:1px solid var(--outline);background:var(--paper);padding:16px 16px 14px;position:relative}
+.route.us{border-color:var(--olive);border-width:2px;background:#F2F4EF}
+.route .no{font-size:10px;letter-spacing:.16em;color:var(--inkFaint)}
+.route h3{margin:4px 0 8px;font-size:14.5px}
+.route .ana{font-size:11px;color:var(--inkFaint);margin-bottom:10px;font-style:italic}
+.route ul{margin:0;padding-left:16px;font-size:11.5px;line-height:1.85;color:var(--inkSoft)}
+.route .verdict{margin-top:12px;padding-top:10px;border-top:1px dotted var(--rule);font-size:11.5px;font-weight:700;color:var(--olive)}
+.route.us .verdict{color:var(--brick)}
+
+/* 通用两栏 */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+.box{border:1px solid var(--rule);background:var(--paper);padding:14px 16px}
+.box h3{margin:0 0 8px;font-size:13px;letter-spacing:.04em}
+.box p,.box li{font-size:11.5px;color:var(--inkSoft);line-height:1.8}
+.box ul{margin:6px 0 0;padding-left:17px}
+.box cite{display:block;margin-top:8px;font-size:10px;color:var(--inkFaint);font-style:normal}
+
+pre{margin:0;padding:14px 16px;background:var(--code);color:var(--codeInk);border:1px solid var(--code);
+ font-family:ui-monospace,Consolas,"Courier New",monospace;font-size:11px;line-height:1.75;overflow-x:auto;white-space:pre}
+
+table{width:100%;border-collapse:collapse;font-size:11.5px;line-height:1.65}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px dotted var(--rule);vertical-align:top}
+th{font-size:10px;letter-spacing:.08em;color:var(--inkFaint);background:var(--paper2);font-weight:700}
+td.k{font-weight:700;white-space:nowrap;width:22%}
+td.m{font-family:ui-monospace,Consolas,monospace;font-size:10.5px;color:var(--inkSoft)}
+
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.chip{border:1px solid var(--rule);padding:9px 11px;background:var(--paper);font-size:11.5px;line-height:1.65}
+.chip b{display:block;font-size:12px;margin-bottom:3px}
+.chip .en{font-family:ui-monospace,Consolas,monospace;font-size:10px;color:var(--brick)}
+
+/* 手机示意 */
+.demo{display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:6px}
+.phone{width:230px;height:470px;border:1px solid var(--outline);background:var(--paper);position:relative;overflow:hidden;border-radius:14px}
+.status{height:24px;border-bottom:1px solid var(--rule);display:flex;align-items:center;justify-content:space-between;padding:0 11px;font-size:9px;color:var(--inkFaint)}
+.appbar{height:38px;display:flex;align-items:center;padding:0 12px;font-size:13px;font-weight:700;border-bottom:1px solid var(--rule)}
+.list{padding:8px 12px}
+.frow{border-bottom:1px solid var(--rule);padding:9px 0}
+.frow .t{font-size:11px;font-weight:600}.frow .m{font-size:8.5px;color:var(--inkFaint);margin-top:3px}
+.cardx{margin:10px 12px;border:1px solid var(--outline);background:var(--card);padding:11px;border-radius:4px}
+.cardx .top{display:flex;align-items:center;gap:9px}
+.av{width:34px;height:34px;border:1px solid var(--ink);border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700}
+.cardx .nm{font-size:12px;font-weight:700}.cardx .sub{font-size:8px;color:var(--inkFaint)}
+.stats{display:flex;gap:8px;margin-top:10px}
+.stats i{flex:1;border:1px solid var(--outline);padding:8px 4px;text-align:center;font-style:normal}
+.stats i b{display:block;font-size:12px}.stats i s{display:block;font-size:8px;color:var(--inkFaint);text-decoration:none}
+.nav{position:absolute;left:0;right:0;bottom:0;height:56px;background:var(--card);border-top:1px solid var(--outline);
+ border-radius:14px 14px 0 0;display:flex;padding:7px 4px}
+.nav div{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;font-size:9px;color:var(--inkFaint)}
+.nav div.on{background:var(--paper2);color:var(--ink);border-radius:6px}
+.nav div.on::after{content:"";width:3px;height:3px;border-radius:50%;background:var(--brick)}
+.cap{text-align:center;font-size:10px;color:var(--inkFaint);margin-top:6px;letter-spacing:.08em}
+
+.note{border-left:3px solid var(--amber);background:var(--paper2);padding:10px 14px;font-size:11.5px;color:var(--inkSoft);line-height:1.75;margin-top:12px}
+.note b{color:var(--ink)}
+.warn{border-left-color:var(--brick)}
+@media(max-width:860px){.routes,.cols,.grid2{grid-template-columns:1fr}.wrap{padding:16px 12px 36px}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <span class="tag">给非移动端开发者的解释</span>
+  <h1>别人先「选对组件」再写，我们项目到底是什么情况？</h1>
+  <p>一句话：StyleKit 那页讲的是「挑现成组件」的路线；我们这个项目走的是另一条——只用 Compose 的基础零件，业务组件全部自己画。两条路都能做出好界面，区别在「零件从哪来」，不在「做得好不好」。</p>
+</div>
+
+<div class="wrap">
+
+<div class="panel">
+  <h2>一、你看到的那个页面在讲什么</h2>
+  <p class="sub">截图是 StyleKit 的「移动端设计」：从一块小屏幕开始，试试常见交互，找到合适的开源组件，再把设计要求带进项目。</p>
+  <p class="lead">它描述的是一条很主流的路线：<b>先去组件库挑一个长得对的组件 → 复制代码 → 改配色和字号 → 装进自己的 App</b>。这条路线在 Web 前端特别常见（Tailwind 组件、Ant Design、Vant 之类），因为浏览器里一套 HTML + CSS 到处都能跑。</p>
+  <div class="cols">
+    <div class="box">
+      <h3>这条路线好在哪</h3>
+      <ul>
+        <li>快：不用从零画按钮、弹窗、日期选择器</li>
+        <li>一致：库里组件的间距、状态、无障碍都调好了</li>
+        <li>团队容易对齐：大家说「用库里那个 Dialog」就完事</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>它的前提是什么</h3>
+      <ul>
+        <li>你的界面需求落在库覆盖的范围内</li>
+        <li>你接受库长什么样，只在那范围内微调</li>
+        <li>技术栈匹配：Web 组件进不了 Android，反之亦然</li>
+      </ul>
+      <cite>我们项目卡在第三条：uiverse / StyleKit 的组件是 HTML + CSS，Android App 用的是 Kotlin + Compose，两套语言，代码没法直接搬。</cite>
+    </div>
+  </div>
+  <div class="note">所以那些页面对我们的真实价值是<b>设计参考</b>：看形态、配色、动效节奏，然后翻译成 Compose 代码。我们已经这么做了——底部导航、加载动画、登录卡、个人卡都是从 uiverse 取形态，自己写实现。</div>
+</div>
+
+<div class="panel">
+  <h2>二、移动端开发的三条路线</h2>
+  <p class="sub">用买家具打比方，一眼看懂差别</p>
+  <div class="routes">
+    <div class="route">
+      <div class="no">ROUTE 01</div>
+      <h3>组件库路线</h3>
+      <div class="ana">像去宜家买成套家具</div>
+      <ul>
+        <li>代表：Material 3 官方组件、Ant Design Mobile、Vant</li>
+        <li>做法：import 进来，改主题色，直接用</li>
+        <li>代价：界面长相似曾相识，特殊需求要跟库较劲</li>
+      </ul>
+      <div class="verdict">我们用了一半：基础件用 Material 3</div>
+    </div>
+    <div class="route">
+      <div class="no">ROUTE 02</div>
+      <h3>设计系统路线</h3>
+      <div class="ana">像先定色卡和尺寸表，再找木匠</div>
+      <ul>
+        <li>代表：StyleKit 这种 token 体系</li>
+        <li>做法：先定颜色 / 字号 / 间距的变量，组件按变量拼</li>
+        <li>代价：前期要先把规范想清楚</li>
+      </ul>
+      <div class="verdict">我们也在用：InkTokenSet 就是这套变量</div>
+    </div>
+    <div class="route us">
+      <div class="no">ROUTE 03 · 我们走这条</div>
+      <h3>自绘组件路线</h3>
+      <div class="ana">像自己画图纸，自己动手打</div>
+      <ul>
+        <li>底层零件用 Compose 基础件（Box / Column / Canvas）</li>
+        <li>业务组件自己写成 Composable 函数</li>
+        <li>图标不够就自己画进 AppIcons.kt</li>
+      </ul>
+      <div class="verdict">主体在这条：底栏 / 卡片 / 加载 / 登录都自绘</div>
+    </div>
+  </div>
+  <div class="note warn">三条路线不是非此即彼。我们实际是 <b>02 + 03 为主，01 打底</b>：Material 3 提供 Scaffold、Text、Switch 这些基础件；设计变量自己定义；看得见的特色组件自己画。</div>
+</div>
+
+<div class="panel">
+  <h2>三、我们项目真实的样子</h2>
+  <p class="sub">代码结构 + 组件清单，全部来自当前仓库</p>
+  <div class="cols">
+    <div>
+      <p class="lead" style="margin-bottom:8px"><b>底层</b>：单 Activity、Jetpack Compose、无 NavHost、无第三方 UI 组件库、无 Room / Retrofit。</p>
+      <pre>app/src/main/java/cn/dkarbon/enroute/
+├── MainActivity.kt              单入口
+├── ui/EnRouteRoot.kt            when(tab) 切三页
+├── ui/theme/
+│   ├── Theme.kt                 InkTokenSet（设计变量）
+│   ├── EditorialTokens.kt       FormSpec（形态数值）
+│   ├── HardTokens.kt            色阶 / 字阶 / 线宽
+│   └── ...                      （旧主题管道保留）
+├── ui/kit/                      自绘通用件
+│   ├── InkNavBar.kt             底部导航
+│   ├── InkLoader.kt             五片翻页加载
+│   ├── AnchoredCard.kt          锚定浮层
+│   └── ...
+├── ui/auth/LoginCard.kt         墨线登录输入
+├── ui/user/UserIdentityCard.kt  可展开身份卡
+├── ui/icons/AppIcons.kt         自绘图标
+└── data/                        偏好 / 缓存 / 教务接口
+    （无数据库框架，手写 JSON + HttpURLConnection）</pre>
+    </div>
+    <div>
+      <p class="lead" style="margin-bottom:8px"><b>「组件」在我们这指的是</b>：一个画界面的 Kotlin 函数（Composable）。下面是正在用的几个。</p>
+      <table>
+        <tr><th>你看到的</th><th>代码里的东西</th><th>从哪来</th></tr>
+        <tr><td class="k">底部三个按钮</td><td class="m">InkNavBar.kt</td><td>自绘，参考 uiverse 形态</td></tr>
+        <tr><td class="k">卡片展开</td><td class="m">UserIdentityCard.kt</td><td>自绘，改动画方案</td></tr>
+        <tr><td class="k">转圈等待</td><td class="m">InkLoader.kt</td><td>自绘，五片翻页</td></tr>
+        <tr><td class="k">登录框</td><td class="m">LoginCard.kt</td><td>自绘，墨线 + 标签上浮</td></tr>
+        <tr><td class="k">长按弹出的卡片</td><td class="m">AnchoredCard.kt</td><td>自绘，带折角锚点</td></tr>
+        <tr><td class="k">开关 / 文字 / 页面骨架</td><td class="m">Material 3</td><td>官方基础件</td></tr>
+        <tr><td class="k">颜色 / 字号 / 间距</td><td class="m">InkTokenSet</td><td>自己定义的变量表</td></tr>
+      </table>
+      <div class="note">项目的硬规矩写在 <b>AGENTS.md</b>：图标依赖只用 <span class="mono">material-icons-core</span>（extended 版有 34 MB），缺的图标自己画；任何看得见的效果先出 HTML 原型确认，再写进 Kotlin。这也是为什么你会看到 <span class="mono">docs/design/</span> 下有一堆 HTML 原型。</div>
+    </div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>四、为什么我们没直接套组件库</h2>
+  <p class="sub">四条真实原因，按影响从大到小</p>
+  <div class="grid2">
+    <div class="chip"><b>1 · 需求形状特殊</b>课表是 7 列 × 12 节的网格，单元格要显示「侵蚀进度」「当前时间线」「实验课标记」。通用组件库里没有这种东西，只能自己画。</div>
+    <div class="chip"><b>2 · 视觉方向几经推翻</b>从硬朗农业改到水墨，差的不只是颜色，还有圆角、线宽、阴影、留白整套语言。通用组件的默认样式反而成了要对抗的东西。</div>
+    <div class="chip"><b>3 · 包体积敏感</b>应用内嵌了 2066 门大纲 + 168 份方案（brotli 压过 4.64 MB）。material-icons-extended 的 34 MB 不能进来，图标缺一个就自己画一个。</div>
+    <div class="chip"><b>4 · 数据诚实红线</b>解析不出来显示「暂缺」，不填 0、不猜日期。这类约束属于业务规则，任何组件库都帮不上，得写进组件自己的逻辑里。</div>
+  </div>
+  <div class="note">结果就是：<b>我们有的不是「选哪个组件」，而是「这个组件长什么样、怎么动、数据缺失时说什么」</b>。这些决定比选库更花时间，也正是你在原型阶段反复调的东西。</div>
+</div>
+
+<div class="panel">
+  <h2>五、现在长什么样（真机截图对应的结构）</h2>
+  <p class="sub">当前 ink-wash 主题下的首页与「我的」页示意</p>
+  <div class="demo">
+    <div>
+      <div class="phone">
+        <div class="status"><span>14:50</span><span>校园网 ▰</span></div>
+        <div class="appbar">第 13 周 <span style="font-size:10px;font-weight:400;color:var(--inkFaint)">本周</span></div>
+        <div class="list">
+          <div class="frow"><div class="t">不动产估价 · 二606</div><div class="m">周三 3-4 节 · 董秀茹</div></div>
+          <div class="frow"><div class="t">地球表层系统概论 · 二610</div><div class="m">周三 3-4 节 · 孙仲秀</div></div>
+          <div class="frow"><div class="t">国土空间规划 · 二408</div><div class="m">周二 5-6 节 · 吴佳倩</div></div>
+          <div class="frow"><div class="t" style="color:var(--inkSoft)">暂缺</div><div class="m">未排课的日子留白，不填假数据</div></div>
+        </div>
+        <div class="nav"><div>课表</div><div>资讯</div><div>我的</div></div>
+      </div>
+      <div class="cap">课表 · 贴底圆角栏 + 当前项朱点</div>
+    </div>
+    <div>
+      <div class="phone">
+        <div class="status"><span>14:50</span><span>校园网 ▰</span></div>
+        <div class="appbar">我的 <span style="margin-left:auto;font-size:9px;font-weight:400">已登录</span></div>
+        <div class="cardx">
+          <div class="top"><div class="av">张</div><div><div class="nm">张三</div><div class="sub mono">2024000000 · 本科生</div></div></div>
+          <div class="stats"><i><b>3.37</b><s>加权绩点</s></i><i><b>106</b><s>已修学分</s></i><i><b>暂缺</b><s>排名</s></i></div>
+        </div>
+        <div class="list">
+          <div class="frow"><div class="t">考试安排</div><div class="m">4 场</div></div>
+          <div class="frow"><div class="t">成绩查询</div><div class="m">55 条</div></div>
+          <div class="frow"><div class="t">课程大纲</div><div class="m">2066 门内置</div></div>
+        </div>
+        <div class="nav"><div>课表</div><div>资讯</div><div class="on">我的</div></div>
+      </div>
+      <div class="cap">我的 · 头像姓名栏 + 数据格 + 下拉展开</div>
+    </div>
+  </div>
+  <div class="note">假数据一律用张三 / 2024000000，这是项目规矩。排名没有算法就显示「暂缺」——这条在主页、成绩页、身份卡里口径一致。</div>
+</div>
+
+<div class="panel">
+  <h2>六、术语小抄（看懂对话用）</h2>
+  <p class="sub">遇到这些词时，对应的意思</p>
+  <div class="grid2">
+    <div class="chip"><span class="en">Compose</span>Android 的新一代界面写法：用 Kotlin 描述「界面应该长什么样」，不是拖控件。</div>
+    <div class="chip"><span class="en">Composable</span>一个画界面的函数。我们说「写一个 InkNavBar」，意思就是写这么一个函数。</div>
+    <div class="chip"><span class="en">Modifier</span>贴在组件上的装饰：内边距、背景、圆角、点击、渐变。压印阴影也靠它实现。</div>
+    <div class="chip"><span class="en">token</span>设计变量：把「墨色 #2C2C2C」起名叫 ink，全项目引用这个名字，改一处全改。</div>
+    <div class="chip"><span class="en">Scaffold</span>Material 3 的页面骨架，帮我们摆好顶部栏、底部栏和内容区。</div>
+    <div class="chip"><span class="en">dp / sp</span>dp 是尺寸单位，sp 是字号单位（跟随系统字体大小设置）。</div>
+    <div class="chip"><span class="en">原型先行</span>我们的工作法：先在 HTML 里把效果调对，确认后再写 Kotlin，因为编译一次十几分钟。</div>
+    <div class="chip"><span class="en">压印阴影</span>卡片边缘的渐变明暗，让纸片看起来是「压」在纸上而不是贴上去。CSS 用 inset box-shadow；Compose 用 drawBehind + 渐变画出来。</div>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>七、当前进度与正在调整的事</h2>
+  <p class="sub">2026-11-20 · m34 水墨改版落地状态</p>
+  <table>
+    <tr><th>事项</th><th>状态</th><th>说明</th></tr>
+    <tr><td class="k">主题收敛</td><td>已完成</td><td>视觉上只呈现 INK 一套 + 明暗两档；设置里已无「主题风格」入口。旧主题的代码管道保留，供测试与取色功能使用。</td></tr>
+    <tr><td class="k">底部导航</td><td>已完成</td><td>贴底、上部 16dp 圆角、三格等距、当前项朱点，已装机验证。</td></tr>
+    <tr><td class="k">加载动画</td><td>已完成</td><td>五片翻页，16 / 30 / 44dp 三档，接在资讯抓正文、大纲读取、登录中。</td></tr>
+    <tr><td class="k">登录卡</td><td>已完成</td><td>左下墨线 + 标签上浮 + 按钮反白。</td></tr>
+    <tr><td class="k">个人卡动画</td><td>调整中</td><td>刚做完的 3D 下翻效果观感不理想，准备改回简单的「下拉撑开」，并恢复头像姓名栏与渐变灰度压印质感。</td></tr>
+  </table>
+  <div class="note">全量单测通过（BUILD SUCCESSFUL + EXIT=0），release 包 8.52 MB 已装到测试机。真机是 Android 10，没有系统的实时背景模糊能力，所以玻璃质感走的是「厚纸 + 压印 + 细线」路线——这也是组件选择受平台限制的一个具体例子。</div>
+</div>
+
+</div>
+</body>
+</html>
