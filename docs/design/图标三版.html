@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>图标三版 · 预览（m31）</title>
+<style>
+  :root{
+    --paper:#F7F4ED; --card:#FFFDF8; --ink:#1B1A17; --inkSoft:#5C5850; --inkFaint:#8C8778;
+    --rule:#DAD4C6; --primary:#2F5D46; --amber:#B4762A; --brick:#8C3B2E;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;padding:40px 44px 64px;background:var(--paper);color:var(--ink);
+       font:400 13px/1.6 -apple-system,"Segoe UI","Noto Sans SC",sans-serif}
+  h1{font:600 22px/1.3 inherit;margin:0 0 6px}
+  .sub{color:var(--inkSoft);margin:0 0 28px}
+  h2{font:600 15px/1.4 inherit;margin:34px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--rule)}
+  table{border-collapse:collapse;width:100%;background:var(--card);
+        box-shadow:0 1px 0 var(--rule),0 8px 24px -18px rgba(0,0,0,.35)}
+  th,td{padding:10px 12px;text-align:left;vertical-align:middle;border-bottom:1px solid var(--rule)}
+  th{font:600 11px/1.5 inherit;color:var(--inkFaint);letter-spacing:.06em;text-transform:uppercase}
+  td.name{font-weight:600;width:180px}
+  td.desc{color:var(--inkSoft);font-size:12px;width:220px}
+  .cell{display:flex;align-items:center;gap:14px}
+  .box{display:grid;place-items:center;background:#fff;border:1px solid var(--rule);border-radius:6px}
+  .b48{width:64px;height:64px}
+  .b24{width:32px;height:32px}
+  svg{display:block}
+  .tint-ink path{fill:var(--ink);stroke:var(--ink)}
+  .tint-primary path{fill:var(--primary);stroke:var(--primary)}
+  .tint-faint path{fill:var(--inkFaint);stroke:var(--inkFaint)}
+  .legend{display:flex;gap:22px;flex-wrap:wrap;margin:14px 0 0;color:var(--inkSoft);font-size:12px}
+  .legend b{color:var(--ink)}
+  .dark{background:#17150F;color:#EFEAE0;padding:18px 20px;border-radius:8px;margin-top:12px}
+  .dark .box{background:#211E18;border-color:#3A362E}
+  .dark .tint-ink path{fill:#EFEAE0;stroke:#EFEAE0}
+  .dark .tint-primary path{fill:#8FBFA3;stroke:#8FBFA3}
+  .note{color:var(--inkFaint);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<h1>图标三版 · 预览</h1>
+<p class="sub">每个符号三套几何：<b>V1 折角几何</b>（默认）／<b>V2 圆润双线</b>／<b>V3 块面切割</b>。画布 24×24，颜色交给 tint。<br>
+本页与 <code>AppIcons.kt</code> 里的 path 数据逐条对应，可直接对照。</p>
+
+<div class="legend">
+  <span><b>V1</b> 直角、2px 实心笔画、方收口 —— 贴账页硬朗版式，默认用这套</span>
+  <span><b>V2</b> 1.8px 描边、圆端帽 —— 弹层与空态，亲和</span>
+  <span><b>V3</b> 整块实心、负形切细节 —— 大尺寸与徽章</span>
+</div>
+
+<h2>书签（收藏）· 两态</h2>
+<table>
+<thead><tr><th>符号</th><th>V1 折角几何</th><th>V2 圆润双线</th><th>V3 块面切割</th><th>说明</th></tr></thead>
+<tbody>
+  <tr>
+    <td class="name">BookmarkOutline</td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M5 2H19V22L12 17.2 5 22ZM7 4.7H17V18.2L12 14.5 7 18.2Z"/></svg></div><div class="box b24"><svg width="20" height="20" viewBox="0 0 24 24" class="tint-faint"><path fill-rule="evenodd" d="M5 2H19V22L12 17.2 5 22ZM7 4.7H17V18.2L12 14.5 7 18.2Z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6.9 3.5h10.2a2 2 0 0 1 2 2v15.2l-7.1-5-7.1 5V5.5a2 2 0 0 1 2-2z"/></svg></div><div class="box b24"><svg width="20" height="20" viewBox="0 0 24 24" class="tint-faint"><path fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6.9 3.5h10.2a2 2 0 0 1 2 2v15.2l-7.1-5-7.1 5V5.5a2 2 0 0 1 2-2z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M4.5 2H19.5V22.5L12 17.1 4.5 22.5ZM6.9 5H17.1V18.2L12 14.7 6.9 18.2Z"/></svg></div><div class="box b24"><svg width="20" height="20" viewBox="0 0 24 24" class="tint-faint"><path fill-rule="evenodd" d="M4.5 2H19.5V22.5L12 17.1 4.5 22.5ZM6.9 5H17.1V18.2L12 14.7 6.9 18.2Z"/></svg></div></div></td>
+    <td class="desc">未收藏态。24dp 时内部空隙仍清楚，不会糊成一团。</td>
+  </tr>
+  <tr>
+    <td class="name">BookmarkFilled</td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-primary"><path d="M5 2H19V22L12 17.2 5 22Z"/></svg></div><div class="box b24"><svg width="20" height="20" viewBox="0 0 24 24" class="tint-primary"><path d="M5 2H19V22L12 17.2 5 22Z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-primary"><path d="M6.9 2.8h10.2a2.7 2.7 0 0 1 2.7 2.7v15.9L12 16.2l-7.8 5.2V5.5a2.7 2.7 0 0 1 2.7-2.7z"/></svg></div><div class="box b24"><svg width="20" height="20" viewBox="0 0 24 24" class="tint-primary"><path d="M6.9 2.8h10.2a2.7 2.7 0 0 1 2.7 2.7v15.9L12 16.2l-7.8 5.2V5.5a2.7 2.7 0 0 1 2.7-2.7z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-primary"><path fill-rule="evenodd" d="M4.5 2H19.5V22.5L12 17.1 4.5 22.5ZM11.1 5.2h1.8v6.2h-1.8z"/></svg></div><div class="box b24"><svg width="20" height="20" viewBox="0 0 24 24" class="tint-primary"><path fill-rule="evenodd" d="M4.5 2H19.5V22.5L12 17.1 4.5 22.5ZM11.1 5.2h1.8v6.2h-1.8z"/></svg></div></div></td>
+    <td class="desc">已收藏态。V3 中间那道缝是负形，缩到 20px 会把书签读成「两片」——所以大尺寸才用 V3。</td>
+  </tr>
+</tbody>
+</table>
+
+<h2>其余五个符号</h2>
+<table>
+<thead><tr><th>符号</th><th>V1 折角几何</th><th>V2 圆润双线</th><th>V3 块面切割</th><th>用在哪</th></tr></thead>
+<tbody>
+  <tr>
+    <td class="name">OpenInNew</td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M3.5 3.5H20.5V20.5H3.5ZM5.5 5.5V18.5H18.5V5.5Z"/><path d="M13.6 3.5H20.5V10.4H18.5V6.9L14.2 11.2 12.8 9.8 17.1 5.5H13.6Z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4.2h5.8V10"/><path d="M19.4 4.6 11.2 12.8"/><path d="M17.8 13.6v4.2a2 2 0 0 1-2 2H6.4a2 2 0 0 1-2-2V7.4a2 2 0 0 1 2-2h4.2"/></g></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M4.2 4.2H20V20H4.2ZM6.4 6.4V17.8H17.8V6.4Z"/><path d="M13 3.2H20.8V11H18.4V7.4L14.4 11.4 12.6 9.6 16.6 5.6H13Z"/></svg></div></div></td>
+    <td class="desc">资讯「来源」组打开原站、文章详情「查看原文」</td>
+  </tr>
+  <tr>
+    <td class="name">Feedback</td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M3 4H21V16.5H9.4L3 22ZM5 6V14.5H18.6L19 14.1V6Z"/><path d="M7.4 8.4H16.6V10.4H7.4Z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M6.2 4.2h11.6a2 2 0 0 1 2 2v7.4a2 2 0 0 1-2 2h-7.4L5.6 20v-3.4a2 2 0 0 1-1.4-2V6.2a2 2 0 0 1 2-2z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M2.6 3.6H21.4V16.2H9.6L2.6 22.4Z M7.4 9.6h9.2v2.2H7.4Z"/></svg></div></div></td>
+    <td class="desc">⋯ 菜单「想加别的网站？」、设置页反馈</td>
+  </tr>
+  <tr>
+    <td class="name">Download</td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path d="M11 3H13V11.2L16.2 8 17.6 9.4 12 15 6.4 9.4 7.8 8 11 11.2Z"/><path d="M4 15H6V19H18V15H20V21H4Z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6v9.8"/><path d="M8.2 9.8 12 13.6l3.8-3.8"/><path d="M5 16.6v1.6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-1.6"/></g></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path d="M9.6 3.2H14.4V10.6H18.4L12 17.6 5.6 10.6H9.6Z"/><path d="M3.4 19.2H20.6V21.6H3.4Z"/></svg></div></div></td>
+    <td class="desc">地图编辑页「导出」（常驻次按钮）</td>
+  </tr>
+  <tr>
+    <td class="name">Save</td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M4 3H20V21H4ZM6.4 5.4H13.6V10H6.4ZM6.4 13H17.6V18.6H6.4Z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.4 4.2h9.6l4 4V19a1.4 1.4 0 0 1-1.4 1.4H6.8A1.4 1.4 0 0 1 5.4 19Z"/><path d="M9 4.4v4.6h6"/><path d="M8.6 13.4h6.8"/></g></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M3.6 3.6H20.4V20.4H3.6ZM6.2 6.2H12.6V9.8H6.2ZM6.2 12.6H17.4V17.8H6.2Z"/></svg></div></div></td>
+    <td class="desc">地图编辑页「保存」（常驻主按钮）</td>
+  </tr>
+  <tr>
+    <td class="name">NetworkOff</td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path d="M4 16H6.4V20H4Z M10.8 12H13.2V20H10.8Z M17.6 8H20V20H17.6Z M4.6 3.8 20.2 19.4 18.8 20.8 3.2 5.2Z"/></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5.2 16.6v2.8"/><path d="M12 12.2v7.2"/><path d="M18.8 7.6v11.8"/><path d="M4.4 4.2 19.6 19.4"/></g></svg></div></div></td>
+    <td><div class="cell"><div class="box b48"><svg width="40" height="40" viewBox="0 0 24 24" class="tint-ink"><path d="M3.4 15.4H6.6V20.4H3.4ZM10.4 11.4H13.6V20.4H10.4ZM17.4 7.4H20.6V20.4H17.4Z"/><path d="M3.8 3.4 20.6 20.2 19 21.8 2.2 5Z"/></svg></div></div></td>
+    <td class="desc">「需要校园网内网或 mangoVPN」提示行左侧</td>
+  </tr>
+</tbody>
+</table>
+
+<h2>深色档（同一套 path，只换 tint）</h2>
+<div class="dark">
+  <div class="cell">
+    <div class="box b48"><svg width="38" height="38" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M5 2H19V22L12 17.2 5 22ZM7 4.7H17V18.2L12 14.5 7 18.2Z"/></svg></div>
+    <div class="box b48"><svg width="38" height="38" viewBox="0 0 24 24" class="tint-primary"><path d="M5 2H19V22L12 17.2 5 22Z"/></svg></div>
+    <div class="box b48"><svg width="38" height="38" viewBox="0 0 24 24" class="tint-ink"><path d="M11 3H13V11.2L16.2 8 17.6 9.4 12 15 6.4 9.4 7.8 8 11 11.2Z"/><path d="M4 15H6V19H18V15H20V21H4Z"/></svg></div>
+    <div class="box b48"><svg width="38" height="38" viewBox="0 0 24 24" class="tint-ink"><path fill-rule="evenodd" d="M4 3H20V21H4ZM6.4 5.4H13.6V10H6.4ZM6.4 13H17.6V18.6H6.4Z"/></svg></div>
+    <div class="box b48"><svg width="38" height="38" viewBox="0 0 24 24" class="tint-ink"><path d="M4 16H6.4V20H4Z M10.8 12H13.2V20H10.8Z M17.6 8H20V20H17.6Z M4.6 3.8 20.2 19.4 18.8 20.8 3.2 5.2Z"/></svg></div>
+  </div>
+</div>
+<p class="note">暗色档里选中态用浅绿（#8FBFA3）而不是亮档的主色，这是现有主题的做法，图标本身不写死颜色。</p>
+
+</body>
+</html>

@@ -204,7 +204,7 @@ object HomeModel {
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.NOTHING_FREE ->
                 "${who}这一节没有空闲教室"
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.NO_SESSION ->
-                "没拿到数据（不是「没有空教室」）。教务登录态可能已失效，或当前不在校园网"
+                "没拿到数据（不是「没有空教室」）。教务登录态可能已失效，或没连校园网 / mangoVPN"
             cn.dkarbon.enroute.data.UrpHomeApi.FreeRoomsIssue.PICK_LOST ->
                 "服务器返回的不是你选的那栋楼（「先选楼再查」这步没生效）。刷新后再试一次"
         }
@@ -345,7 +345,10 @@ object HomeModel {
             cn.dkarbon.enroute.data.faculty.FacultyFail.Ambiguous ->
                 "官网上同名老师有 ${res.candidates.size} 位，不替你猜"
             cn.dkarbon.enroute.data.faculty.FacultyFail.Network ->
-                "没连上学院官网（校园网/网络不通都可能这样），联网后刷新"
+                // 统一口径（2026-11-20）：全 App 的网络失败只说这一句，见 CampusNetworkHint.kt
+                cn.dkarbon.enroute.ui.common.campusNetworkLine(
+                    cn.dkarbon.enroute.ui.common.NetFailure.Unreachable
+                )
         } + cachedNote
     }
 

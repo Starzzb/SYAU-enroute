@@ -64,6 +64,8 @@ data class FeedUiState(
     val urgentCompetitions: List<FeedItem> = emptyList(),
     /** 截止提醒条可见性：VM 算好（含「当日+key集合」关闭语义），UI 不读 Prefs */
     val deadlineBarVisible: Boolean = false,
+    /** 最近一次刷新每个源的结果（⋯ 菜单「来源」组显示抓取状态）；空 = 本次还没刷过 */
+    val sourceResults: List<SourceResult> = emptyList(),
 ) {
     /** 关键词匹配（保留旧 API，单测在用；与 FeedRows.matchQuery 同规则） */
     fun matchQuery(item: FeedItem): Boolean = FeedRows.matchQuery(item, query)
@@ -291,6 +293,7 @@ class FeedViewModel(app: Application) : AndroidViewModel(app) {
                 lastSyncAt = if (ok) report.at else _ui.value.lastSyncAt,
                 banner = banner,
                 today = LocalDate.now(),
+                sourceResults = report.perSource,
             )
             publish()
         }

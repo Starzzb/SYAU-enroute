@@ -218,7 +218,9 @@ class FacultyParseTest {
         assertTrue(noSource, noSource.contains("没有师资栏目"))
         assertTrue(notFound, notFound.contains("没找到"))
         assertTrue(notParsed, notParsed.contains("解析不到"))
-        assertTrue(network, network.contains("没连上"))
+        // 2026-11-20 统一口径：网络失败一律说「需要校园网内网或 mangoVPN 才能加载」
+        // （文案出处 ui/common/CampusNetworkHint.kt，全 App 只此一句）
+        assertTrue(network, network.contains("校园网内网或 mangoVPN"))
         assertEquals(4, setOf(noSource, notFound, notParsed, network).size)
         // 有新鲜数据就不该有提示
         val fresh = FacultyResult(

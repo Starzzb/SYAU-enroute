@@ -445,7 +445,7 @@ fun AcademicProblem(
         Text(
             if (!loggedIn) {
                 "考试/成绩接口在学校内网（${AcademicApi.URP_HOST}），登录态也只存在这一次运行里。\n" +
-                    "现在读不到数据，通常是因为「还没登录」或「手机不在校园网」。"
+                    "现在读不到数据，通常是因为「还没登录」，或没连校园网 / mangoVPN。"
             } else {
                 reason.ifBlank { "接口这次返回了空，可能是这学期还没排考，也可能学校改了版。" }
             },

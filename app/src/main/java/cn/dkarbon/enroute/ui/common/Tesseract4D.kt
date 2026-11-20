@@ -206,5 +206,82 @@ object Tesseract4D {
     fun depthNormalize(k2: Float): Float =
         ((k2 - 0.30f) / (0.65f - 0.30f)).coerceIn(0f, 1f)
 
+    // ═══════════════════════════════════════════════════════════
+    // 自驱速度（m31 轨道 E：关于页「速度不固定」）
+    //
+    // 以前的相位是 `elapsed / period` 的匀速直线 —— 看起来像电机在转。
+    // 现在把相位当**积分量**：速度本身随两个低频正弦摆动，
+    //     speed(t) = base · (1 + 0.55·sin(0.17 t) + 0.25·sin(0.53 t + 1.1))
+    //     phase   += speed(t) · dt
+    // 于是同一个 4D 姿态出现的时间间隔不再相等：加速一阵、松下来一阵，
+    // 像有人用手拨了一下转盘。
+    //
+    // 三条口径（页面 / 原型 / 单测都要对得上，所以参数只写在这里）：
+    //   · base = 1/26 圈每秒（平均 26 秒一圈，落在「一轮 20–30 秒」中段）；
+    //   · 两个正弦的角频率 0.17 / 0.53 rad/s（周期 37.0 s / 11.9 s），
+    //     慢的是主节拍、快的是加速段里的余韵，两者不同步 → 不会出现机械重复的两拍；
+    //   · 初相 1.1 rad 让 t=0 时不是全速，避免进页面就冲。
+    //
+    // 实测（按 0.002 s 步长积 400 s、200 个起点取样）：倍数 0.20–1.80，
+    // 一圈用时 18.7–30.3 s、均值 25.4 s，84% 的圈落在 20–30 s 内；
+    // 「倍数 ≥1.6」持续 3.6–4.5 s（最快速那一段），「≤0.4」持续 3.5–4.5 s（最慢那一段）——
+    // 快到能被看出来，又不会一闪而过。
+    // ═══════════════════════════════════════════════════════════
+
+    /** 基准角速度：**圈/秒**。1/26 ≈ 0.0385 → 平均 26 秒一个四维周期。 */
+    const val BASE_TURNS_PER_SECOND = 1f / 26f
+
+    /** 慢摆幅度（主节拍） */
+    const val SPEED_AMP_SLOW = 0.55f
+
+    /** 慢摆角频率 rad/s（≈37 秒一轮） */
+    const val SPEED_FREQ_SLOW = 0.17f
+
+    /** 快摆幅度（加速段里的余韵） */
+    const val SPEED_AMP_FAST = 0.25f
+
+    /** 快摆角频率 rad/s（≈11.9 秒一轮） */
+    const val SPEED_FREQ_FAST = 0.53f
+
+    /** 快摆初相 rad：错开两个正弦的峰，别让 t=0 正好全速 */
+    const val SPEED_PHASE_FAST = 1.1f
+
+    /**
+     * 速度倍数：`1 + 0.55·sin(0.17 t) + 0.25·sin(0.53 t + 1.1)`，取值 0.20–1.80、均值 1。
+     *
+     * @param seconds 从动画起算的连续秒数（不是相位，也不是帧号）
+     */
+    fun speedFactor(seconds: Float): Float =
+        1f +
+            SPEED_AMP_SLOW * sin(seconds * SPEED_FREQ_SLOW) +
+            SPEED_AMP_FAST * sin(seconds * SPEED_FREQ_FAST + SPEED_PHASE_FAST)
+
+    /** 瞬时角速度（圈/秒）= 基准 × [speedFactor] */
+    fun speedAt(seconds: Float): Float = BASE_TURNS_PER_SECOND * speedFactor(seconds)
+
+    /**
+     * 推进相位：`phase += speed · dt`，结果折回 `[0,1)`。
+     *
+     * @param seconds 从动画起算的连续秒数。**不能**用相位反推时间：速度是时间的函数、
+     *   相位是它的积分，反过来推会在变速时段算错。
+     * @param dt 距上一帧的秒数；上限由调用方夹（掉帧或从后台回来时别一口吃掉 2 秒）。
+     */
+    fun advancePhase(phase: Float, seconds: Float, dt: Float): Float =
+        normalizePhase(phase + speedAt(seconds) * dt)
+
+    // ═══════════════════════════════════════════════════════════
+    // 透出档（UI 档位，与四维数学无关；放在这里是为了「只有一个出处」）
+    // ═══════════════════════════════════════════════════════════
+
+    /**
+     * 「关于」页卡片的不透明度：亮色 0.62 / 暗色 0.58。
+     *
+     * 与 `ui/timetable/MathBackdrop.kt` 的 `tesseractAlpha(...)` 是同一族档位：
+     * **线框强度与卡片透出程度必须成对调** —— 卡片再透一点，inkFaint 就掉到 4.5:1 以下；
+     * 线框再淡一点，透过卡片就什么都看不见了。取值依据（四套主题的合成色对比度）
+     * 写在 `ui/about/AboutScreen.kt` 的 AboutCard 注释里。
+     */
+    fun tesseractCardAlpha(isDark: Boolean): Float = if (isDark) 0.58f else 0.62f
+
     private const val TWO_PI = 6.2831855f
 }

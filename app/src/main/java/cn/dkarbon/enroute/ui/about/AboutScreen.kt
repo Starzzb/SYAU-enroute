@@ -1,16 +1,16 @@
 package cn.dkarbon.enroute.ui.about
 
-import androidx.compose.foundation.border
-import androidx.compose.ui.draw.clip
-import androidx.compose.foundation.layout.ColumnScope
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,8 +23,18 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
@@ -32,8 +42,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import cn.dkarbon.enroute.BuildConfig
 import cn.dkarbon.enroute.R
+import cn.dkarbon.enroute.ui.common.Tesseract4D
 import cn.dkarbon.enroute.ui.home.CardGap
 import cn.dkarbon.enroute.ui.home.SectionLabel
 import cn.dkarbon.enroute.ui.settings.UpdateSection
@@ -42,7 +56,9 @@ import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
-import cn.dkarbon.enroute.ui.timetable.MathBackdropMotion
+import cn.dkarbon.enroute.ui.theme.cardFloat
+import cn.dkarbon.enroute.ui.timetable.TesseractBuffers
+import cn.dkarbon.enroute.ui.timetable.drawTesseract4D
 import cn.dkarbon.enroute.ui.timetable.tesseractAlpha
 
 /**
@@ -71,15 +87,22 @@ fun AboutScreen() {
 
     Box(Modifier.fillMaxSize()) {
     /*
-     * 背景：四维超立方体（票 29）。1 物理像素线宽 + 0.075~0.13 不透明度，
+     * 背景：四维超立方体（票 29 / m31 轨道 E）。1.4 物理像素线宽 + 0.085~0.14 不透明度，
      * 只当纸纹 —— 它一旦和正文抢注意力就说明画重了。
      *
      * 为什么挂在「关于」页：这一页没有数据、常驻可达、留白最多；
      * 「我的」「设置」内容铺满，背景图几乎全被不透明卡片盖住，等于白做。
      *
-     * 动画的省电约定（可见才跑 / 每帧零分配 / 关动画就静止）在 MathBackdropMotion 里。
+     * 为什么卡片要半透明（m31 新增）：全不透明的卡把线框压得一条不剩，
+     * 背景等于付了电费没交货。改成 0.62 / 0.58 之后，线框从卡片底下**隐约**透出来 ——
+     * 看得见层次、看不见「装饰」。透出档来自 tesseractCardAlpha()，与 tesseractAlpha()
+     * 是同一族数（线框强度与卡片透出程度必须成对调），对比度算式见 AboutCard。
+     *
+     * 速度不固定（m31）：相位不再按固定周期匀速长，而是 `phase += speed(t)·dt`，
+     * 见 Tesseract4D.speedFactor —— 一圈 18.7–30.3 秒地摆，有「加速后又慢下来」的手感。
+     * 省电约定（可见才跑 / 关动画就静止 / 每帧零分配）见 TesseractBackdrop。
      */
-    MathBackdropMotion(
+    TesseractBackdrop(
         modifier = Modifier.fillMaxSize(),
         color = t.ink,
         alpha = tesseractAlpha(Form.current.editorial, t.isDark),
@@ -258,6 +281,111 @@ fun AboutScreen() {
     }   // ← 背景 Box（票 29）：上面的 `}` 闭合 Column，这一行闭合 Box
 }
 
+// ═══════════════════════════════════════════════════════════
+// 背景层：自驱变速的四维超立方体（m31 轨道 E）
+// ═══════════════════════════════════════════════════════════
+
+/** 静态姿态（关动画 / 首帧）用的相位：0.31 是三条棱都不与视线重合的角度，最不「扁」 */
+private const val ABOUT_INITIAL_PHASE = 0.31f
+
+/**
+ * 单帧步长上限（秒）。
+ *
+ * 掉帧、从后台回来、调试器断点之后，`now - last` 可能是几百毫秒；不夹的话
+ * `phase += speed·dt` 会一步跨掉大半个姿态，视觉上就是「瞬移」而不是「转过去」。
+ * 50ms = 20fps，比这更长的间隔一律当成 20fps 处理（慢一点，但不跳）。
+ */
+private const val ABOUT_MAX_FRAME_SECONDS = 0.05f
+
+/**
+ * 「关于」页背景：逐帧推进相位的四维超立方体。
+ *
+ * ## 为什么不直接用 MathBackdropMotion
+ * 那个封装只有两种模式：匀速自转、手势驱动。这一版要的是**速度自己变**
+ * （加速一阵、再松下来），相位循环只能另起；而且它所在的 `ui/timetable` 不归本轨改。
+ * 绘制仍然复用同一个 `drawTesseract4D` —— 线宽、近实远虚、外接半径全是同一套数，
+ * 换掉的只是「相位怎么长出来」，所以两页的线看起来是同一支笔画的。
+ *
+ * ## 参考的公开实现
+ * 投影链路照 Jonathan Doolittle 的 4D hypercube 演示翻的：4D 里 6 个旋转平面 →
+ * 逐平面正交旋转 → 透视除法 `k = 1/(W_DISTANCE - w)` → 再叠相机俯仰/偏航。
+ * 数学部分早就落在 Tesseract4D 里（那边不 import 任何 Compose/Android 类，可跑 JVM 单测），
+ * 这里只管时间。
+ *
+ * ## 时间轴
+ * `clock` 是「动画真正跑着的秒数」，不是墙上时间 —— 退到后台不累加。速度是 clock 的函数、
+ * 相位是它的积分，所以中断恢复时速度接得上（不会突然从最快速冲起来），相位也不会跳。
+ *
+ * ## 省电（四条，代码里都能看出来）
+ * 1. **不可见就不跑**：[LaunchedEffect] 的 key 里有 [visible]，不到 STARTED 直接不进循环。
+ * 2. **关动画就静止**：`ANIMATOR_DURATION_SCALE == 0`（开发者选项"移除动画" / 无障碍
+ *    "减少动态效果"）时不进循环，停在 [ABOUT_INITIAL_PHASE] 的姿态 —— 是一张静止的图，
+ *    不是空白，也不是继续空转烧电。
+ * 3. **每帧零分配**：顶点/棱/角度在 [TesseractBuffers] 里复用；`withFrameMillis { it }` 的
+ *    lambda 不捕获任何变量，Kotlin 把它编成单例（写成捕获块的形式，60fps 下每秒 60 个短命闭包）。
+ * 4. **不逐帧重组**：相位存在 `mutableFloatStateOf` 里，**只在 Canvas 的绘制 lambda 里读**，
+ *    Compose 会把它算成"绘制阶段依赖"，只重绘、不重组。
+ */
+@Composable
+private fun TesseractBackdrop(modifier: Modifier, color: Color, alpha: Float) {
+    val ctx = LocalContext.current
+    // 只读一次：这个系统值在会话中不会变，不值得为它挂监听
+    val animScaleOff = remember(ctx) {
+        runCatching {
+            android.provider.Settings.Global.getFloat(
+                ctx.contentResolver,
+                android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+                1f,
+            )
+        }.getOrDefault(1f) == 0f
+    }
+
+    val phase = remember { mutableFloatStateOf(Tesseract4D.normalizePhase(ABOUT_INITIAL_PHASE)) }
+    val lifecycle = LocalLifecycleOwner.current.lifecycle
+    var visible by remember { mutableStateOf(lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) }
+
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_START, Lifecycle.Event.ON_RESUME -> visible = true
+                Lifecycle.Event.ON_STOP, Lifecycle.Event.ON_PAUSE -> visible = false
+                else -> Unit
+            }
+        }
+        lifecycle.addObserver(observer)
+        onDispose { lifecycle.removeObserver(observer) }
+    }
+
+    LaunchedEffect(visible, animScaleOff) {
+        // 离开组合（换页 / 退出）时 Compose 直接取消这个协程 —— 不需要额外的 onDispose 收尾
+        if (!visible || animScaleOff) return@LaunchedEffect
+
+        var clock = 0f
+        var lastFrame = withFrameMillis { it }
+        while (true) {
+            val now = withFrameMillis { it }
+            val dt = ((now - lastFrame) / 1000f).coerceIn(0f, ABOUT_MAX_FRAME_SECONDS)
+            lastFrame = now
+            clock += dt
+            // 速度不固定：基准 1/26 圈每秒 × (1 + 0.55·sin0.17t + 0.25·sin(0.53t+1.1))
+            phase.floatValue = Tesseract4D.advancePhase(phase.floatValue, clock, dt)
+        }
+    }
+
+    val buffers = remember { TesseractBuffers() }
+    Canvas(modifier) {
+        drawTesseract4D(
+            color = color,
+            phase = phase.floatValue,   // ← 只在绘制阶段读：只触发重绘
+            alpha = alpha,
+            // 1.4 物理像素，不乘 density：要的是"纸上一根细线"，不是 1dp 的 UI 元素
+            // （与课表页同一档，见 MathBackdrop.drawTesseract4D 的调用点注释）
+            strokeWidth = 1.4f,
+            buffers = buffers,
+        )
+    }
+}
+
 @Composable
 private fun KvRow(k: String, v: String) {
     val t = InkTokens.current
@@ -286,17 +414,49 @@ private fun Line() {
 }
 
 
-/** 本页卡片：与首页 HomeCard 同款外观（方角 + card 底 + 1dp outline），
- *  但 HomeCard 是 private，跨文件复用得先把它提成 internal —— 那属于首页模块的改动，
- *  这里自带一份更稳妥，也不影响别人。 */
+/**
+ * 本页卡片：方角 + **半透明** card 底 + 1dp outline + 减一档的浮影。
+ * （HomeCard 是 private，跨文件复用得先把它提成 internal —— 那属于首页模块的改动，
+ *  这里自带一份更稳妥，也不影响别人。）
+ *
+ * ## 为什么是半透明（m31 轨道 E）
+ * 背景那张四维线框如果被全不透明卡片盖死，等于画了个看不见的东西。
+ * 档位取自 `tesseractCardAlpha()`：亮色 0.62 / 暗色 0.58 —— 线框能隐约透出来，
+ * 但正文仍是「底色上写字」而不是「画上写字」。
+ *
+ * ## 对比度自检（实算，不是估的）
+ * 合成顺序是**先画线、后叠卡**，所以最深的那一像素是：
+ * ```
+ * bg = a·card + (1-a)·line ，  line = α·ink + (1-α)·paper   （α = tesseractAlpha 的档位）
+ * ```
+ * 拿 HARD 亮色做一遍：line = 0.12·(26,22,17) + 0.88·(245,242,236) = (218.7,215.6,209.7)；
+ * bg = 0.62·(250,248,244) + 0.38·(218.7,215.6,209.7) = (238.1,235.7,231.0)，相对亮度 L=0.8378。
+ * 其余三套同法（`(L+0.05)/(L2+0.05)`，WCAG 2.x）：
+ *
+ * | 主题 | 卡片 α | 合成面 L | ink | inkFaint | 结论 |
+ * |---|---|---|---|---|---|
+ * | HARD 亮 | 0.62 | 0.8378 | 15.9:1 | **6.01:1** | ✅ |
+ * | HARD 暗 | 0.58 | 0.01440 | 13.6:1 | **5.02:1** | ✅ 全表最低，仍过线 |
+ * | 账页 亮 | 0.62 | 0.9130 | 15.3:1 | **5.25:1** | ✅ |
+ * | 账页 暗 | 0.58 | 0.02126 | 12.1:1 | **5.84:1** | ✅ |
+ *
+ * 最低的 inkFaint 档也有 5.02:1（要求 4.5:1），正文 ink 全部 ≥12:1 —— 所以 0.62/0.58
+ * 是「线框透得出来」与「小字仍然读得清」的交点，不是随手取的好看数。
+ * 顺带记一笔错法：若按「卡先叠纸、线再压上去」算（把顺序弄反），暗色会算出 4.33:1 的假失败。
+ *
+ * 描边保持不透明（outline 全 alpha）：半透明底 + 实线边，卡片的边界才不会被背后的线吃掉。
+ */
 @Composable
 private fun AboutCard(content: @Composable ColumnScope.() -> Unit) {
     val t = InkTokens.current
+    val spec = Form.current
     Column(
         Modifier
             .fillMaxWidth()
+            // 浮影减一档：账页主题的纸片投影 alpha 减半（HARD 本来就不投影，这一行空转）
+            .cardFloat(spec.copy(shadowAlpha = spec.shadowAlpha * 0.5f), t.hardShadow)
             .clip(RectangleShape)
-            .background(t.card)
+            .background(t.card.copy(alpha = Tesseract4D.tesseractCardAlpha(t.isDark)))
             .border(Stroke.hairline, t.outline)
             .padding(horizontal = Space.cardPad, vertical = Space.m),
         content = content,

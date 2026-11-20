@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>m31 · 关于页：卡片透出 + 自驱变速超立方体（轨道 E 原型）</title>
+<style>
+  /* ══ 配色全部取自真实 token ══════════════════════════════════════
+     HARD   亮：paper #F5F2EC  card #FAF8F4  ink #1A1611  inkSoft #443E36  inkFaint #5F574C  outline #7E7468  rule #8F7E61  accent #DE6A2E
+     HARD   暗：paper #100E0B  card #1A1611  ink #EDE8DF  inkSoft #A1978A  inkFaint #988D82  outline #827767
+     账页   亮：paper #FAF7F1  card #FFFFFF  ink #16211B  inkSoft #3C4A42  inkFaint #5A6A60  outline #7B897F
+     卡片不透明度 tesseractCardAlpha：亮 0.62 / 暗 0.58
+     线框强度     tesseractAlpha：HARD 亮 .12 / HARD 暗 .14 / 账页 亮 .085 / 账页 暗 .115 */
+  :root{ --doc-bg:#E9E7E1; --doc-ink:#1A1611; --doc-mute:#5F574C; --doc-line:#CFCAC0; }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--doc-bg); color:var(--doc-ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:1200px; margin:0 auto; padding:30px 24px 46px}
+  h1{font-size:23px; margin:0 0 6px; letter-spacing:-.2px}
+  .sub{font-size:13px; color:var(--doc-mute); margin:0 0 5px}
+  .sub b{font-weight:600; color:var(--doc-ink)}
+  .kbd{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace; font-size:12px; background:#fff;
+       border:1px solid var(--doc-line); padding:1px 5px}
+  h2{font-size:15px; margin:32px 0 4px; letter-spacing:.2px}
+  h2 .no{color:var(--doc-mute); font-weight:600; margin-right:8px}
+  .note{font-size:12px; color:var(--doc-mute); margin:0 0 14px; line-height:1.65}
+  .note b{color:var(--doc-ink)}
+  .note code{font-family:ui-monospace,monospace; font-size:11.5px; color:#7A5A28}
+
+  /* ── 手机帧 ── */
+  .frames{display:flex; gap:26px; align-items:flex-start}
+  .frame{width:340px; margin:0}
+  .phone{
+    position:relative; width:340px; height:736px; overflow:hidden;
+    background:var(--paper); border:1px solid #BFB9AE;
+    box-shadow:0 10px 22px -14px rgba(30,24,16,.45);
+  }
+  .phone canvas.tess{position:absolute; inset:0; width:340px; height:736px; display:block}
+  .page{position:absolute; inset:0; padding:22px 16px 0}
+  /* 页面可滚：底边留一道渐隐，暗示还有内容（不写字） */
+  .phone::after{content:''; position:absolute; left:0; right:0; bottom:0; height:34px; pointer-events:none;
+              background:linear-gradient(to top, var(--paper), rgba(245,242,236,0))}
+  .mast{font-size:22.6px; font-weight:700; line-height:1.15; color:var(--ink)}
+  .latin{font-size:10.4px; letter-spacing:1.1px; color:var(--ink-faint); margin-top:2px}
+  .verline{margin-top:9px; font-family:ui-monospace,monospace; font-size:9.6px; color:var(--ink-faint)}
+  .verline b{color:var(--ink); font-size:11.3px; font-weight:700; margin-right:5px}
+  .sect{font-size:9.6px; font-weight:500; color:var(--ink-faint); padding:13px 0 3.5px}
+
+  /* 半透明卡：底色 = card + α，描边保持不透明 */
+  .card{background:var(--card-a); border:1px solid var(--outline); padding:10.5px 16px}
+  .kv{display:flex; align-items:center; justify-content:space-between; min-height:42px}
+  .kv .k{font-size:10.9px; color:var(--ink-soft)}
+  .kv .v{font-size:10.4px; color:var(--ink); font-family:ui-monospace,monospace}
+  .rule{height:1px; background:var(--rule)}
+  .repo{display:flex; align-items:center; min-height:42px; gap:10.5px; color:var(--ink)}
+  .gh{width:19px; height:19px; flex:0 0 19px}
+  .repo .t1{font-size:11.3px}
+  .repo .t2{font-size:9.6px; color:var(--ink-faint); font-family:ui-monospace,monospace; margin-top:1px}
+  .open{margin-left:auto; font-size:10.4px; color:var(--accent)}
+  .dep{font-size:10px; color:var(--ink-soft); padding:6.5px 0}
+  .para{font-size:9.6px; line-height:15px; color:var(--ink-soft); padding:7px 0}
+
+  /* 主题变量 */
+  .t-hard {--paper:#F5F2EC; --card-a:rgba(250,248,244,.62); --ink:#1A1611; --ink-soft:#443E36;
+           --ink-faint:#5F574C; --outline:#7E7468; --rule:#8F7E61; --accent:#DE6A2E; --tess:26,22,17; --tess-a:.12}
+  .t-hard-d{--paper:#100E0B; --card-a:rgba(26,22,17,.58); --ink:#EDE8DF; --ink-soft:#A1978A;
+           --ink-faint:#988D82; --outline:#827767; --rule:#3A342C; --accent:#DE6A2E; --tess:237,232,223; --tess-a:.14}
+  .t-led   {--paper:#FAF7F1; --card-a:rgba(255,255,255,.62); --ink:#16211B; --ink-soft:#3C4A42;
+           --ink-faint:#5A6A60; --outline:#7B897F; --rule:#CFD6D0; --accent:#A83D11; --tess:22,33,27; --tess-a:.085}
+  .t-before{--paper:#F5F2EC; --card-a:#FAF8F4;              --ink:#1A1611; --ink-soft:#443E36;
+           --ink-faint:#5F574C; --outline:#7E7468; --rule:#8F7E61; --accent:#DE6A2E; --tess:26,22,17; --tess-a:.12}
+  /* 账页有 cardFloat 阴影（shadowAlpha 0.07），减一档后 0.035：这里照实画出来 */
+  .t-led .card{box-shadow:0 2px 6px -1px rgba(60,74,66,.035)}
+  .cap{font-size:11.5px; color:var(--doc-mute); margin-top:8px; line-height:1.55}
+  .cap b{color:var(--doc-ink); font-weight:600}
+
+  /* ── 细节放大 ── */
+  .zooms{display:flex; gap:26px; margin-top:16px}
+  .tile{border:1px solid #BFB9AE; position:relative; overflow:hidden; width:340px; height:220px; background:var(--paper)}
+  .tile canvas{display:block; width:340px; height:220px}
+  .tile .tag{position:absolute; right:8px; bottom:6px; font-size:9.5px; font-family:ui-monospace,monospace;
+             color:var(--ink-faint)}
+  .zooms .cap{width:340px; margin-top:6px}
+
+  /* ── 色块对照：卡下「有线」vs「无纸」 ── */
+  .swatches{display:flex; gap:26px; margin-top:18px; align-items:flex-start}
+  .swatch{width:340px}
+  .swatch .pair{display:flex; gap:0; border:1px solid #BFB9AE}
+  .swatch .b{width:170px; height:76px; display:flex; flex-direction:column; justify-content:flex-end;
+         padding:5px 7px; font:9.5px/1.45 ui-monospace,monospace}
+  .swatch .b i{font-style:normal; opacity:.72}
+  .swatch .h{font-size:11.5px; color:var(--doc-mute); margin:0 0 6px}
+  .swatch .h b{color:var(--doc-ink)}
+
+  /* ── 图表 ── */
+  .charts{display:flex; gap:24px}
+  .chart{flex:1; background:#F7F5F0; border:1px solid var(--doc-line); padding:10px 12px 6px}
+  .chart .h{font-size:11.5px; color:var(--doc-mute); margin:0 0 2px; display:flex; justify-content:space-between}
+  .chart .h b{color:var(--doc-ink); font-weight:600}
+  canvas.plot{display:block; width:100%; height:230px}
+
+  /* ── 演示 ── */
+  .demo{display:flex; gap:26px; align-items:flex-start}
+  .stagebox{border:1px solid #BFB9AE; background:#F5F2EC; padding:10px}
+  canvas#stage{display:block; width:360px; height:360px}
+  .panel{flex:1; background:#F7F5F0; border:1px solid var(--doc-line); padding:16px 18px}
+  .panel .row{display:flex; gap:12px; align-items:center; margin-bottom:14px}
+  button{font:inherit; font-size:12.5px; padding:7px 16px; cursor:pointer;
+         background:#FAF8F4; color:#1A1611; border:1px solid #7E7468}
+  button:hover{background:#fff}
+  button:active{transform:translateY(1px)}
+  label.sw{font-size:12px; color:var(--doc-mute); display:flex; gap:6px; align-items:center; cursor:pointer}
+  .read{font-family:ui-monospace,"Cascadia Mono",Consolas,monospace; font-size:12px; color:#1A1611; line-height:2.05}
+  .read span{color:#5F574C}
+  .read b{font-weight:700}
+  .bar{height:8px; background:#E4DFD6; position:relative; margin-top:12px}
+  .bar i{position:absolute; left:0; top:0; bottom:0; background:#DE6A2E; width:0}
+  footer{margin-top:30px; font-size:11.5px; color:var(--doc-mute); line-height:1.85; border-top:1px solid var(--doc-line); padding-top:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>m31 · 关于页（轨道 E）：卡片透出 + 自驱变速的四维超立方体</h1>
+  <p class="sub">预览账号 <b>张三 / 2024000000</b>（假数据，原型专用）· 真实 token 配色 · 第三块可重播 · 底部可勾「停在固定姿态」</p>
+  <p class="sub">
+    相位 <span class="kbd">speed = base·(1 + 0.55·sin(0.17t) + 0.25·sin(0.53t + 1.1))</span>
+    <span class="kbd">phase += speed·dt</span>
+    <span class="kbd">base = 1/26 圈/秒</span>
+  </p>
+
+  <!-- ═══════════ ① 静态三帧 ═══════════ -->
+  <h2><span class="no">①</span>卡片半透明叠在线框上 · 静态三帧</h2>
+  <p class="note">同一页面三个相位。卡片底 = 真实 card 色 + α（亮 <b>0.62</b>），描边保持不透明 —— 线框从卡片底下<b>隐约</b>透出来，正文仍是「底色上写字」而不是「画上写字」。线框本身的强度不变（<code>tesseractAlpha</code> 原档），变的只是卡片的遮挡程度。</p>
+
+  <div class="frames">
+    <figure class="frame">
+      <div class="phone t-hard">
+        <canvas class="tess" data-phase="0.31"></canvas>
+        <div class="page"></div>
+      </div>
+      <figcaption class="cap"><b>帧 1</b> · 相位 0.31（关动画时停的姿态）· 亮色 · 卡片 α 0.62</figcaption>
+    </figure>
+    <figure class="frame">
+      <div class="phone t-hard">
+        <canvas class="tess" data-phase="0.62"></canvas>
+        <div class="page"></div>
+      </div>
+      <figcaption class="cap"><b>帧 2</b> · 相位 0.62 · 亮色（内立方体涨出来的姿态）</figcaption>
+    </figure>
+    <figure class="frame">
+      <div class="phone t-hard">
+        <canvas class="tess" data-phase="0.88"></canvas>
+        <div class="page"></div>
+      </div>
+      <figcaption class="cap"><b>帧 3</b> · 相位 0.88 · 亮色</figcaption>
+    </figure>
+  </div>
+
+  <!-- ═══════════ 细节放大 ═══════════ -->
+  <h2 id="zoom"><span class="no">①″</span>细节放大 ×1.9：线到底透出多少</h2>
+  <p class="note">把同一块线框放大后再看卡片底（左中两格是本次改版值，右格是改造前）。区别就在这一点灰：<b>0.62</b> 时能看出「底下还有东西」，<b>1.0</b> 时是纯色纸。觉得看不出差距是正常的 —— 真实强度就是这么淡，<b>隐约</b>才对；下面那排色块把差距换算成数字。</p>
+  <div class="zooms">
+    <div>
+      <div class="tile t-hard"><canvas class="zoom" data-phase="0.44" data-card="rgba(250,248,244,.62)"></canvas><span class="tag">亮 α 0.62</span></div>
+      <p class="cap">亮色档 0.62 · inkFaint 6.01:1</p>
+    </div>
+    <div>
+      <div class="tile t-hard-d"><canvas class="zoom" data-phase="0.44" data-card="rgba(26,22,17,.58)"></canvas><span class="tag">暗 α 0.58</span></div>
+      <p class="cap">暗色档 0.58 · inkFaint 5.02:1（四套里最低，仍过 4.5:1）</p>
+    </div>
+    <div>
+      <div class="tile t-before"><canvas class="zoom" data-phase="0.44" data-card="#FAF8F4"></canvas><span class="tag">改造前 α 1.0</span></div>
+      <p class="cap">改造前 1.0 · 一条线都透不出来</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ 色块对照 ═══════════ -->
+  <h2 id="swatch"><span class="no">①‴</span>把「隐约」换算成数字：卡下有线 vs 卡下是纸</h2>
+  <p class="note">合成顺序是 <b>先画线、再压卡</b>：<code>bg = a·card + (1−a)·line</code>，其中 <code>line = α·ink + (1−α)·paper</code>。左右两块并排放，左块底下压着一条线，右块底下是纸。差值就是透出的强度，也是边上那两块色块里正文对比度的分母。</p>
+  <div class="swatches">
+    <div class="swatch">
+      <p class="h">HARD 亮 · 卡 α <b>0.62</b> · 线 0.12</p>
+      <div class="pair">
+        <div class="b" style="background:#EEECE7;color:#1A1611"><b>卡下有线</b><i>#EEECE7 · L 0.839</i></div>
+        <div class="b" style="background:#F8F6F1;color:#1A1611"><b>卡下是纸</b><i>#F8F6F1 · L 0.922</i></div>
+      </div>
+    </div>
+    <div class="swatch">
+      <p class="h">HARD 暗 · 卡 α <b>0.58</b> · 线 0.14</p>
+      <div class="pair">
+        <div class="b" style="background:#23201B;color:#EDE8DF"><b>卡下有线</b><i>#23201B · L 0.0147</i></div>
+        <div class="b" style="background:#16130F;color:#EDE8DF"><b>卡下是纸</b><i>#16130F · L 0.0067</i></div>
+      </div>
+    </div>
+    <div class="swatch">
+      <p class="h">账页亮 · 卡 α <b>0.62</b> · 线 0.085</p>
+      <div class="pair">
+        <div class="b" style="background:#F6F5F3;color:#16211B"><b>卡下有线</b><i>#F6F5F3 · L 0.914</i></div>
+        <div class="b" style="background:#FDFCFA;color:#16211B"><b>卡下是纸</b><i>#FDFCFA · L 0.974</i></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ 暗色 / 账页 / 改造前 ═══════════ -->
+  <h2 id="themes"><span class="no">①'</span>另外两套主题，以及整页的「改造前」对照</h2>
+  <p class="note">暗色档 α <b>0.58</b>：暗底上「卡下有线 / 卡下是纸」的绝对明度差只有 0.008，但相对差距比亮色大（L 0.0147 vs 0.0067），所以暗色的「隐约」反而比亮色更看得出结构 —— 这是暗底天然的方向差，不是档位写错。第三帧是<b>改造前</b>（α = 1.0）—— 卡片范围内的线全被盖死，只剩卡片之间那几道缝能看见。</p>
+
+  <div class="frames">
+    <figure class="frame">
+      <div class="phone t-hard-d">
+        <canvas class="tess" data-phase="0.31"></canvas>
+        <div class="page"></div>
+      </div>
+      <figcaption class="cap"><b>暗色</b> · 相位 0.31 · 卡片 α 0.58 · 线框 0.14</figcaption>
+    </figure>
+    <figure class="frame">
+      <div class="phone t-led">
+        <canvas class="tess" data-phase="0.55"></canvas>
+        <div class="page"></div>
+      </div>
+      <figcaption class="cap"><b>账页主题</b> · 相位 0.55 · 卡片 α 0.62（白卡透出更干净，线框 0.085）· 阴影 0.07→0.035</figcaption>
+    </figure>
+    <figure class="frame">
+      <div class="phone t-before">
+        <canvas class="tess" data-phase="0.31"></canvas>
+        <div class="page"></div>
+      </div>
+      <figcaption class="cap"><b>改造前对照</b> · 卡片 α 1.0 · 本次要消灭的观感</figcaption>
+    </figure>
+  </div>
+
+  <!-- ═══════════ ② 速度曲线 ═══════════ -->
+  <h2 id="charts"><span class="no">②</span>速度曲线：加速一阵，再松下来</h2>
+  <p class="note">左图是瞬时速度倍数 <code>f(t)</code>（基准线 = 1×）；右图是它的积分 —— 累计相位。<b>右图斜率的陡缓就是左图的高矮</b>；竖虚线是每轮结束的时刻，间隔 18.7–30.3 秒地摆，所以「一轮 20–30 秒」不是固定节拍。</p>
+
+  <div class="charts">
+    <div class="chart">
+      <p class="h"><span><b>f(t)</b> = 1 + 0.55·sin(0.17t) + 0.25·sin(0.53t + 1.1)</span><span>0–130 s</span></p>
+      <canvas class="plot" id="speed"></canvas>
+    </div>
+    <div class="chart">
+      <p class="h"><span>累计相位（圈）· 竖虚线 = 一轮结束</span><span>同区间</span></p>
+      <canvas class="plot" id="integral"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══════════ ③ 可重播演示 ═══════════ -->
+  <h2 id="demo"><span class="no">③</span>可重播演示（同一套数学、同一套变速）</h2>
+  <p class="note">与 App 内 <code>Tesseract4D</code> 逐行同源：16 顶点 → 6 平面旋转 → <code>1/(2.6−w)</code> 透视 → 固定相机（pitch 0.52 / yaw 0.36）→ <code>1.9/(4.2−z)</code>。勾「停在固定姿态」＝ 系统关闭动画时的样子：不是空白，是不动的一张图。</p>
+
+  <div class="demo">
+    <div class="stagebox"><canvas id="stage" width="360" height="360"></canvas></div>
+    <div class="panel">
+      <div class="row">
+        <button id="replay">重播</button>
+        <label class="sw"><input type="checkbox" id="still"> 停在固定姿态（关动画）</label>
+      </div>
+      <div class="read">
+        <div><span>t =</span> <b id="rt">0.00</b> <span>s　（动画自己的时钟，隐藏时不走）</span></div>
+        <div><span>瞬时速度 =</span> <b id="rf">1.00</b> <span>×　基准 1/26 圈每秒</span></div>
+        <div><span>本轮已转 =</span> <b id="rp">0.0</b> <span>%　上一轮用时</span> <b id="rl">–</b> <span>s</span></div>
+      </div>
+      <div class="bar"><i id="rb"></i></div>
+      <p class="note" style="margin:10px 0 0">实测：倍数 0.20–1.80、均值 1；一圈 18.7–30.3 s、均值 25.4 s，200 个起点里 84% 落在 20–30 s；「≥1.6×」连续 3.6–4.5 s，「≤0.4×」连续 3.5–4.5 s —— 快到看得出来，又不至于一闪而过。</p>
+    </div>
+  </div>
+
+  <footer>
+    轨道 E 原型 · m31 交互改版 · 透出档 <span class="kbd">tesseractCardAlpha() = 亮 0.62 / 暗 0.58</span>　
+    变速 <span class="kbd">Tesseract4D.speedFactor / speedAt / advancePhase</span>　
+    对比度四套实测最坏 5.02:1（HARD 暗 · inkFaint），全部 ≥ 4.5:1。<br>
+    更新区（<code>UpdateSection</code>）为设置页复用组件、本轨未改其外观，故未画。假数据：张三 / 2024000000。
+  </footer>
+</div>
+
+<!-- 页面骨架模板：五帧共用，按主题变量着色 -->
+<template id="pageTpl">
+  <div class="mast">沈农在途</div>
+  <div class="latin">SYAU EN ROUTE</div>
+  <div class="verline"><b>0.7.4+m31</b> build 320 · 9f3c1aa · 2026-11-20</div>
+
+  <div class="sect">版本</div>
+  <div class="card">
+    <div class="kv"><span class="k">版本号</span><span class="v">0.7.4+m31</span></div>
+    <div class="rule"></div>
+    <div class="kv"><span class="k">构建号</span><span class="v">320</span></div>
+    <div class="rule"></div>
+    <div class="kv"><span class="k">commit</span><span class="v">9f3c1aa</span></div>
+    <div class="rule"></div>
+    <div class="kv"><span class="k">构建日期</span><span class="v">2026-11-20</span></div>
+  </div>
+
+  <div class="sect">源代码</div>
+  <div class="card">
+    <div class="repo">
+      <svg class="gh" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 .9a7.1 7.1 0 0 0-2.24 13.84c.35.06.48-.15.48-.34v-1.2c-1.97.43-2.39-.95-2.39-.95-.32-.82-.79-1.04-.79-1.04-.64-.44.05-.43.05-.43.71.05 1.09.73 1.09.73.63 1.08 1.65.77 2.05.59.06-.46.25-.77.45-.95-1.57-.18-3.23-.79-3.23-3.5 0-.77.28-1.4.73-1.9-.07-.18-.32-.9.07-1.87 0 0 .6-.19 1.96.73a6.8 6.8 0 0 1 3.57 0c1.36-.92 1.96-.73 1.96-.73.39.97.14 1.69.07 1.87.45.5.73 1.13.73 1.9 0 2.72-1.66 3.32-3.24 3.5.26.22.49.66.49 1.32v1.96c0 .19.13.41.49.34A7.1 7.1 0 0 0 8 .9"/></svg>
+      <div><div class="t1">Starzzb / SYAU-enroute</div><div class="t2">github.com/Starzzb/SYAU-enroute</div></div>
+      <span class="open">打开 ›</span>
+    </div>
+  </div>
+
+  <div class="sect">许可证</div>
+  <div class="card">
+    <div class="kv"><span class="k">项目许可</span><span class="v">MIT License</span></div>
+    <div class="rule"></div>
+    <div class="kv"><span class="k">怎么用都行</span><span class="v">保留版权声明即可</span></div>
+    <div class="rule"></div>
+    <div class="kv"><span class="k">不提供担保</span><span class="v">作者不担后果</span></div>
+  </div>
+
+  <div class="sect">开源依赖</div>
+  <div class="card">
+    <div class="dep">Kotlin · JetBrains · Apache-2.0</div>
+    <div class="rule"></div>
+    <div class="dep">Jetpack Compose · Google · Apache-2.0</div>
+    <div class="rule"></div>
+    <div class="dep">kotlinx.serialization · JetBrains · Apache-2.0</div>
+    <div class="rule"></div>
+    <div class="dep">IBM Plex Mono · IBM · OFL-1.1</div>
+  </div>
+
+  <div class="sect">数据来源</div>
+  <div class="card">
+    <div class="para">课表 / 考试 / 成绩 / 空闲教室 / 教师：沈阳农业大学本科教务系统（URP，校内网 10.2.0.47）。<br>
+      培养方案：教务处《2023 级 / 2024 级 / 2025 级本科人才培养方案》PDF。<br>
+      课程大纲：14 个学院《本科课程大纲（2021 版）》PDF。</div>
+  </div>
+</template>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   Tesseract4D.kt 的 JS 移植（顶点 / 6 平面 / 4D 透视 / 固定相机 / 近实远虚）
+   ══════════════════════════════════════════════════════════════ */
+const TURNS = [1.00, 0.58, 0.46, 0.50, 0.70, 1.04];
+const OFFS  = [0.18, 0.44, 0.71, 0.29, 0.86, 0.05];
+const W_DISTANCE = 2.6, CAM_PITCH = 0.52, CAM_YAW = 0.36, Z_DISTANCE = 4.2, Z_SCALE = 1.9;
+const TWO_PI = Math.PI * 2;
+
+const EDGES = [];
+for (let a = 0; a < 16; a++) for (let bit = 0; bit < 4; bit++) {
+  const b = a ^ (1 << bit);
+  if (a < b) EDGES.push(a, b);
+}
+
+const normalizePhase = t => { if (!isFinite(t)) return 0; const m = t % 1; return m < 0 ? m + 1 : m; };
+
+function projectInto(phase, cx, cy, radius) {
+  const p = normalizePhase(phase);
+  const ang = TURNS.map((tn, i) => (OFFS[i] + tn * p) * TWO_PI);
+  const cp = Math.cos(CAM_PITCH), sp = Math.sin(CAM_PITCH);
+  const cyaw = Math.cos(CAM_YAW), syaw = Math.sin(CAM_YAW);
+  const xs = new Array(16), ys = new Array(16), depth = new Array(16);
+  for (let i = 0; i < 16; i++) {
+    let x = (i & 1) ? 1 : -1, y = (i & 2) ? 1 : -1, z = (i & 4) ? 1 : -1, w = (i & 8) ? 1 : -1;
+    let c, s, t;
+    c = Math.cos(ang[0]); s = Math.sin(ang[0]); t = x * c - y * s; y = x * s + y * c; x = t;
+    c = Math.cos(ang[1]); s = Math.sin(ang[1]); t = x * c - z * s; z = x * s + z * c; x = t;
+    c = Math.cos(ang[2]); s = Math.sin(ang[2]); t = x * c - w * s; w = x * s + w * c; x = t;
+    c = Math.cos(ang[3]); s = Math.sin(ang[3]); t = y * c - z * s; z = y * s + z * c; y = t;
+    c = Math.cos(ang[4]); s = Math.sin(ang[4]); t = y * c - w * s; w = y * s + w * c; y = t;
+    c = Math.cos(ang[5]); s = Math.sin(ang[5]); t = z * c - w * s; w = z * s + w * c; z = t;
+
+    const k4 = 1 / (W_DISTANCE - w);
+    const x3 = x * k4, y3 = y * k4, z3 = z * k4;
+    const xa = x3 * cyaw + z3 * syaw, za = -x3 * syaw + z3 * cyaw;
+    const ya = y3 * cp - za * sp, zb = y3 * sp + za * cp;
+    const k2 = Z_SCALE / (Z_DISTANCE - zb);
+    xs[i] = cx + xa * k2 * radius; ys[i] = cy + ya * k2 * radius; depth[i] = k2;
+  }
+  return { xs, ys, depth };
+}
+
+const depthNormalize = k2 => Math.min(1, Math.max(0, (k2 - 0.30) / (0.65 - 0.30)));
+
+/* 底层：给定圆心与半径画一帧（radius 为「短边 × 0.55」时的尺码） */
+function drawTessAt(g, phase, cx, cy, radius, rgb, alpha) {
+  const { xs, ys, depth } = projectInto(phase, cx, cy, radius);
+  g.lineWidth = 1.4; g.lineCap = 'round';
+  for (let i = 0; i < EDGES.length; i += 2) {
+    const a = EDGES[i], b = EDGES[i + 1];
+    const near = (depthNormalize(depth[a]) + depthNormalize(depth[b])) / 2;
+    g.strokeStyle = 'rgba(' + rgb + ',' + (alpha * (0.55 + 0.45 * near)).toFixed(4) + ')';
+    g.beginPath(); g.moveTo(xs[a], ys[a]); g.lineTo(xs[b], ys[b]); g.stroke();
+  }
+}
+
+/* 与 drawTesseract4D 一致：cx=w/2, cy=h*0.52, radius=min(w,h)*0.55 */
+function drawTessFrame(g, phase, w, h, rgb, alpha) {
+  drawTessAt(g, phase, w / 2, h * 0.52, Math.min(w, h) * 0.55, rgb, alpha);
+}
+
+const BASE = 1 / 26;
+const speedFactor = t => 1 + 0.55 * Math.sin(t * 0.17) + 0.25 * Math.sin(t * 0.53 + 1.1);
+const speedAt = t => BASE * speedFactor(t);
+
+/* ── 页面骨架注入 ── */
+const tpl = document.getElementById('pageTpl');
+document.querySelectorAll('.phone > .page').forEach(p => p.appendChild(tpl.content.cloneNode(true)));
+
+/* ── ① 五个静态帧 ── */
+document.querySelectorAll('canvas.tess').forEach(cv => {
+  const dpr = window.devicePixelRatio || 1;
+  const w = 340, h = 736;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr);
+  const css = getComputedStyle(cv.parentElement);
+  drawTessFrame(g, parseFloat(cv.dataset.phase), w, h,
+    css.getPropertyValue('--tess').trim(), parseFloat(css.getPropertyValue('--tess-a')));
+});
+
+/* ── ①″ 放大 ×2.5 细节 ── */
+document.querySelectorAll('canvas.zoom').forEach(cv => {
+  const dpr = window.devicePixelRatio || 1;
+  const w = 340, h = 220;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr);
+  const css = getComputedStyle(cv.parentElement);
+  const rgb = css.getPropertyValue('--tess').trim();
+  const alpha = parseFloat(css.getPropertyValue('--tess-a'));
+  // 纸底
+  g.fillStyle = css.getPropertyValue('--paper').trim();
+  g.fillRect(0, 0, w, h);
+  // 2.5 倍观感：半径放大、圆心偏到左下，让线斜穿整格
+  drawTessAt(g, parseFloat(cv.dataset.phase), w * 0.5, h * 0.56, Math.min(w, h) * 0.55 * 1.9, rgb, alpha);
+  // 卡片底压上来（真实的合成顺序：先线后卡）
+  g.fillStyle = cv.dataset.card;
+  g.fillRect(0, 0, w, h);
+});
+
+/* ── ② 图表 ── */
+function prep(cv) {
+  const dpr = window.devicePixelRatio || 1;
+  const w = cv.clientWidth, h = cv.clientHeight;
+  cv.width = w * dpr; cv.height = h * dpr;
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr);
+  return { g, w, h };
+}
+
+const T_END = 130, INK = '#1A1611', FAINT = '#8A8377', ACC = '#DE6A2E', LINE = '#DED9CF';
+
+(function speedChart() {
+  const { g, w, h } = prep(document.getElementById('speed'));
+  const L = 44, R = 14, T = 14, B = 26;
+  const x0 = L, x1 = w - R, y0 = T, y1 = h - B;
+  const X = t => x0 + (t / T_END) * (x1 - x0);
+  const Y = v => y1 - (v / 2) * (y1 - y0);
+
+  g.font = '10px ui-monospace, monospace';
+  g.textAlign = 'right'; g.textBaseline = 'middle';
+  [0, 0.5, 1, 1.5, 2].forEach(v => {
+    g.strokeStyle = LINE; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x0, Y(v)); g.lineTo(x1, Y(v)); g.stroke();
+    g.fillStyle = FAINT; g.fillText(v.toFixed(1) + '×', x0 - 6, Y(v));
+  });
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  [0, 26, 52, 78, 104, 130].forEach(t => { g.fillStyle = FAINT; g.fillText(t + 's', X(t), y1 + 7); });
+
+  // 曲线与基准线之间铺一层淡色（偏离 1× 的量＝快/慢）
+  g.beginPath(); g.moveTo(X(0), Y(1));
+  for (let t = 0; t <= T_END; t += 0.25) g.lineTo(X(t), Y(speedFactor(t)));
+  g.lineTo(X(T_END), Y(1)); g.closePath();
+  g.fillStyle = 'rgba(222,106,46,.10)'; g.fill();
+
+  g.setLineDash([4, 4]); g.strokeStyle = '#B9B2A5'; g.lineWidth = 1;
+  g.beginPath(); g.moveTo(x0, Y(1)); g.lineTo(x1, Y(1)); g.stroke(); g.setLineDash([]);
+
+  g.beginPath();
+  for (let t = 0; t <= T_END; t += 0.25) {
+    const px = X(t), py = Y(speedFactor(t));
+    t === 0 ? g.moveTo(px, py) : g.lineTo(px, py);
+  }
+  g.strokeStyle = ACC; g.lineWidth = 2; g.stroke();
+
+  g.font = '10px ui-monospace, monospace';
+  [[101.65, 0.200, '最慢 0.20×'], [119.55, 1.797, '最快 1.80×']].forEach(([t, v, s]) => {
+    g.fillStyle = INK;
+    g.beginPath(); g.arc(X(t), Y(v), 2.6, 0, TWO_PI); g.fill();
+    g.textAlign = t > 100 ? 'right' : 'left'; g.textBaseline = v > 1 ? 'bottom' : 'top';
+    g.fillText(s, X(t) + (t > 100 ? -6 : 6), Y(v) + (v > 1 ? -5 : 5));
+  });
+})();
+
+(function integralChart() {
+  const { g, w, h } = prep(document.getElementById('integral'));
+  const L = 40, R = 14, T = 14, B = 26;
+  const x0 = L, x1 = w - R, y0 = T, y1 = h - B;
+
+  const dtv = 0.02;
+  let acc = 0, t = 0, prevT = 0;
+  const pts = [[0, 0]], crossings = [];
+  while (t < T_END) {
+    const prevFloor = Math.floor(acc);
+    acc += speedAt(t) * dtv;
+    t += dtv;
+    if (Math.floor(acc) > prevFloor) { crossings.push({ t, cycles: Math.floor(acc) }); }
+    pts.push([t, acc]);
+  }
+  const maxC = Math.ceil(acc);
+  const X = tt => x0 + (tt / T_END) * (x1 - x0);
+  const Y = c => y1 - (c / maxC) * (y1 - y0);
+
+  g.font = '10px ui-monospace, monospace';
+  for (let c = 0; c <= maxC; c++) {
+    g.strokeStyle = c === 0 ? '#C9C3B7' : LINE; g.lineWidth = 1;
+    g.beginPath(); g.moveTo(x0, Y(c)); g.lineTo(x1, Y(c)); g.stroke();
+    g.fillStyle = FAINT; g.textAlign = 'right'; g.textBaseline = 'middle';
+    g.fillText(String(c), x0 - 6, Y(c));
+  }
+  g.textAlign = 'center'; g.textBaseline = 'top';
+  [0, 26, 52, 78, 104, 130].forEach(tt => { g.fillStyle = FAINT; g.fillText(tt + 's', X(tt), y1 + 7); });
+
+  g.beginPath();
+  pts.forEach(([tt, c], i) => i === 0 ? g.moveTo(X(tt), Y(c)) : g.lineTo(X(tt), Y(c)));
+  g.strokeStyle = INK; g.lineWidth = 2; g.stroke();
+
+  g.font = '10px ui-monospace, monospace';
+  crossings.forEach(cr => {
+    const dur = cr.t - prevT;
+    g.strokeStyle = ACC; g.lineWidth = 1; g.setLineDash([3, 3]);
+    g.beginPath(); g.moveTo(X(cr.t), y0); g.lineTo(X(cr.t), y1); g.stroke();
+    g.setLineDash([]);
+    g.fillStyle = '#A83D11'; g.textAlign = 'right'; g.textBaseline = 'top';
+    g.fillText(dur.toFixed(1) + 's', X(cr.t) - 4, y0 + 2 + (cr.cycles % 2) * 12);
+    prevT = cr.t;
+  });
+})();
+
+/* ── ③ 演示 ── */
+(function demo() {
+  const cv = document.getElementById('stage');
+  const dpr = window.devicePixelRatio || 1;
+  const W = 360, H = 360;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  const g = cv.getContext('2d');
+  g.scale(dpr, dpr);
+
+  const rt = document.getElementById('rt'), rf = document.getElementById('rf');
+  const rp = document.getElementById('rp'), rl = document.getElementById('rl');
+  const rb = document.getElementById('rb'), still = document.getElementById('still');
+
+  let clock = 0, phase = 0, prevPhase = 0, last = null, cycleStart = 0;
+
+  function paint() {
+    g.fillStyle = '#F5F2EC'; g.fillRect(0, 0, W, H);
+    drawTessFrame(g, still.checked ? 0.31 : phase, W, H, '26,22,17', 0.12);
+    if (still.checked) {
+      g.fillStyle = '#8A8377'; g.font = '11px ui-monospace, monospace';
+      g.textAlign = 'center'; g.textBaseline = 'bottom';
+      g.fillText('ANIMATOR_DURATION_SCALE = 0 → 停在 0.31', W / 2, H - 10);
+    }
+  }
+
+  document.getElementById('replay').addEventListener('click', () => {
+    clock = 0; phase = 0; prevPhase = 0; last = null; cycleStart = 0;
+    rl.textContent = '–'; paint();
+  });
+
+  function frame(ts) {
+    if (last === null) last = ts;
+    const dt = still.checked ? 0 : Math.min((ts - last) / 1000, 0.05);
+    last = ts;
+    clock += dt;
+    phase = normalizePhase(phase + speedAt(clock) * dt);
+
+    if (phase < prevPhase) {                     // 折回＝转完一轮
+      rl.textContent = (clock - cycleStart).toFixed(1);
+      cycleStart = clock;
+    }
+    prevPhase = phase;
+
+    paint();
+    rt.textContent = clock.toFixed(2);
+    rf.textContent = speedFactor(clock).toFixed(2);
+    rp.textContent = (phase * 100).toFixed(1);
+    rb.style.width = (phase * 100).toFixed(1) + '%';
+    requestAnimationFrame(frame);
+  }
+
+  paint();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

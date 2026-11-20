@@ -14,7 +14,7 @@ import java.math.RoundingMode
  *
  * 主人原话：「支持用户点击添加字段图层所属的属性和添加字段」。
  * 于是：
- * - 固定字段：`名称`（文本）、`类别`（从 `manifest.kindLabels` 里选）；
+ * - 固定字段：`名称`（文本）、`分类`（从 `manifest.kindLabels` 里选，改的是官方 `kind`）；
  * - 动态字段：用户自己加（`层数` / `所属单位` / …），**字段名全局共享** ——
  *   一个要素加了「层数」，所有要素都有这一列（别的要素值为空）；
  * - 落盘 `filesDir/map/edits.json`，**绝不改 assets**；
@@ -228,6 +228,141 @@ object MapEditsOps {
     // 属性面板的取值与来源判定**只有一处**：[MapDataset.rows]（待上传 / 共建 / 内置）。
     // 2026-11-14 删掉了这里原来的「按 official 布尔判定」那套旧口径：UI 早已改用上面那个，
     // 留着就是两套语义并存 —— 旧的那份还带着「官方」这个词，下一个人会以为它是权威，照着写就会打架。
+}
+
+/**
+ * **同名覆盖**（m31 F2 第二层）：自己填的值优先，官方（asset `props`）的值让位；
+ * 撤销覆盖（把这一格清空）就回落到官方值 —— 不是把官方值也抹掉。
+ *
+ * 面板上的取值与来源判定仍然**只有一处**（[MapDataset.rows]）；本对象只做三件事：
+ * 1. 加自定义字段的弹层要判断「这个键会盖住官方值」，并把官方现值显示出来（义务告知）；
+ * 2. 给「覆盖 / 回落」这条规则一个可测的入口（`MapEditsTest`）；
+ * 3. 将来导出时若要按「覆盖优先」取单键值，从这里取，不另立口径。
+ */
+object MapFieldOverride {
+
+    /** 这个键是不是官方基线自带的（`manifest.customFields`） */
+    fun overridesOfficial(officialFields: List<String>, field: String): Boolean {
+        val f = field.trim()
+        return f.isNotEmpty() && officialFields.any { it.trim() == f }
+    }
+
+    /**
+     * 折算后的现值：**edits 里的值优先**，没有（或只有空白）就回落官方 `props`。
+     * 「撤销覆盖」＝把该键的值置空（见 [MapEditsOps.setField]，空串即删值），此处自然回落。
+     */
+    fun valueOf(feature: MapFeature, edits: MapEdits, field: String): String {
+        val f = field.trim()
+        if (f.isEmpty()) return ""
+        val mine = edits.features[feature.id]?.fields?.get(f).orEmpty().trim()
+        return mine.ifBlank { feature.props[f].orEmpty().trim() }
+    }
+
+    /** 现在是不是「覆盖中」：是官方字段，且自己确实填了非空值 */
+    fun isOverriding(
+        feature: MapFeature,
+        edits: MapEdits,
+        officialFields: List<String>,
+        field: String,
+    ): Boolean {
+        val f = field.trim()
+        if (!overridesOfficial(officialFields, f)) return false
+        return edits.features[feature.id]?.fields?.get(f).orEmpty().isNotBlank()
+    }
+}
+
+/**
+ * 导入标注（m32）：把导出过的 `campus_annotated_*.geojson` 读回来。
+ *
+ * 为什么必须反向走一遍：2026-11-20 换了发布签名（私钥被误删），旧版只能卸载重装，
+ * `filesDir/map/edits.json` 会被系统清掉 —— 用户手里唯一还能带走的东西，就是导出过的那个 GeoJSON。
+ * 只有「能导出不能导入」，等于换个签名就把人家的标注全废了。
+ *
+ * 口径（不制造假数据）：
+ * - 只认 `id`：官方图层里找不到的 id 计入 [Result.skipped]，不硬塞进任何相邻要素；
+ * - `name` / `kind` 只在**与官方值不同**时才写成标注 —— 否则等于把官方值冻进 edits，将来换图会打架；
+ * - 其它键（不在 [MapEdits.RESERVED] 里）当自定义字段，值空的不写；
+ * - 与已有标注合并：同 id 以导入为准，其它要素保留；字段表取并集（已有顺序在前）。
+ */
+object MapAnnotationImport {
+
+    data class Result(
+        val edits: MapEdits = MapEdits(),
+        val features: Int = 0,
+        val fields: Int = 0,
+        val skipped: Int = 0,
+        val error: String = "",
+    )
+
+    private val json = Json { ignoreUnknownKeys = true; isLenient = true }
+
+    fun parse(
+        text: String,
+        official: List<MapFeature>,
+        existing: MapEdits = MapEdits(),
+        mapVersion: String = "",
+    ): Result {
+        val root = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
+            ?: return Result(error = "不是 JSON 对象")
+        val arr = root["features"] as? JsonArray ?: return Result(error = "没有 features 数组")
+        val byId = official.associateBy { it.id }
+        val fieldOrder = existing.fieldOrder.toMutableList()
+        val merged = LinkedHashMap(existing.features)
+        var written = 0
+        var skipped = 0
+        var learned = 0
+
+        arr.forEach { el ->
+            val f = el as? JsonObject ?: return@forEach
+            val props = f["properties"] as? JsonObject ?: JsonObject(emptyMap())
+            val id = (f["id"] as? JsonPrimitive)?.content
+                ?: (props["id"] as? JsonPrimitive)?.content
+            val key = id.orEmpty().trim()
+            if (key.isBlank()) return@forEach
+            val off = byId[key]
+            if (off == null) {
+                skipped++
+                return@forEach
+            }
+            val prev = merged[key] ?: MapEdit()
+            var name = prev.name
+            var kind = prev.kind
+            val fields = LinkedHashMap(prev.fields)
+            (props["name"] as? JsonPrimitive)?.content?.trim()?.let { v ->
+                if (v.isNotBlank() && v != off.name) name = v
+            }
+            (props["kind"] as? JsonPrimitive)?.content?.trim()?.let { v ->
+                if (v.isNotBlank() && v != off.kind) kind = v
+            }
+            props.forEach { (k, v) ->
+                if (k in MapEdits.RESERVED) return@forEach
+                val s = (v as? JsonPrimitive)?.content?.trim().orEmpty()
+                if (s.isBlank()) return@forEach
+                if (k !in fieldOrder) {
+                    fieldOrder += k
+                    learned++
+                }
+                fields[k] = s
+            }
+            val next = MapEdit(name = name, kind = kind, fields = fields)
+            if (!next.isEmpty) {
+                merged[key] = next
+                written++
+            }
+        }
+
+        return Result(
+            edits = MapEdits(
+                schema = MapEdits.SCHEMA,
+                mapVersion = mapVersion.ifBlank { existing.mapVersion },
+                fieldOrder = fieldOrder,
+                features = merged,
+            ),
+            features = written,
+            fields = learned,
+            skipped = skipped,
+        )
+    }
 }
 
 /**

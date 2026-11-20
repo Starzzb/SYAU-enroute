@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>沈农在途 · m31 轨道 F · 校园地图共建编辑页（静态分镜）</title>
+<style>
+/* ════════════════════════════════════════════════════════════════
+   配色全部取真实 token（ui/theme/Theme.kt InkTokenSet + HardTokens.kt 色板），
+   一个不新造：paper #F5F2EC · card #FAF8F4 · cardAlt #EDE8DF · ink #1A1611
+              inkSoft #443E36 · inkFaint #5F574C · rule #8F7E61 · outline #7E7468
+              primary #C74E17（Machine.n500）· accent #DE6A2E（Machine.n400）
+   小字主色若需更暗一档用 Machine.n600 #A83D11（见 EditorialTokens.primaryInk）
+   ════════════════════════════════════════════════════════════════ */
+:root{
+  --paper:#F5F2EC; --card:#FAF8F4; --cardAlt:#EDE8DF;
+  --ink:#1A1611; --inkSoft:#443E36; --inkFaint:#5F574C;
+  --rule:#8F7E61; --outline:#7E7468;
+  --primary:#C74E17; --accent:#DE6A2E; --primaryInk:#A83D11;
+  --onPrimary:#FFFFFF;
+  --crop:#93A46B; --cropDim:#BCC79B; --steel:#6E8D94; --wheat:#DDB84D;
+  --page:#241F1A;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{background:var(--page);}
+body{
+  font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink); -webkit-font-smoothing:antialiased;
+}
+.mono{font-family:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Consolas,monospace;}
+.wrap{padding:26px 28px 34px; min-width:1500px;}
+
+.doc-head{color:#EFE7DC;}
+.doc-head h1{font-size:19px; font-weight:700; letter-spacing:.02em;}
+.doc-head .meta{margin-top:7px; font-size:12px; color:#C9BEAD; line-height:1.85;}
+.doc-head .meta b{color:#EFE7DC; font-weight:600;}
+.sw{width:11px;height:11px;border-radius:2px;display:inline-block;border:1px solid rgba(255,255,255,.22);vertical-align:-1px;margin:0 3px 0 9px;}
+
+.row{display:flex; gap:26px; align-items:flex-start; margin-top:20px;}
+.cell{display:flex; flex-direction:column; gap:9px;}
+.cap{color:#C9BEAD; font-size:11.5px; line-height:1.6; max-width:360px;}
+.cap b{color:#EFE7DC; font-weight:600;}
+.cap .n{color:var(--accent); font-weight:700; margin-right:5px;}
+
+/* ── 手机：严格 360 × 720 ── */
+.phone{width:360px; flex:0 0 360px;}
+.screen{
+  position:relative; width:360px; height:720px; overflow:hidden;
+  background:var(--paper); border:1px solid var(--outline);
+}
+
+/* 顶栏 */
+.topbar{position:absolute; top:0; left:0; right:0; height:44px; display:flex; align-items:center; gap:8px; padding:0 16px; background:var(--paper);}
+.topbar .title{font-size:14px; font-weight:700; color:var(--ink);}
+.topbar .tag{font-size:9.5px; color:var(--inkFaint);}
+.topbar .sp{flex:1;}
+.mini{border:1px solid var(--outline); background:var(--card); color:var(--inkSoft); font-size:10.5px; padding:5px 9px; white-space:nowrap;}
+.credit{position:absolute; top:44px; left:0; right:0; height:16px; padding:0 16px; font-size:9px; color:var(--inkFaint); line-height:16px;}
+.ruleline{position:absolute; top:60px; left:0; right:0; height:1px; background:var(--rule);}
+
+/* 地图 */
+.map{position:absolute; top:61px; left:0; right:0; bottom:0; overflow:hidden; background:var(--paper);}
+.map svg{position:absolute; top:0; left:0; width:100%; height:100%;}
+.map .legend{position:absolute; left:16px; bottom:8px; right:16px; font-size:9px; color:var(--inkSoft);}
+.map .legend i{display:inline-block; width:9px; height:9px; border:1px solid var(--outline); margin-right:4px; vertical-align:-1px;}
+
+/* ── 编辑浮层 ── */
+.sheet{
+  position:absolute; left:0; right:0; bottom:56px;
+  background:var(--card); border:1px solid var(--outline); border-bottom:none;
+  border-radius:12px 12px 0 0; overflow:hidden;
+  display:flex; flex-direction:column;
+}
+.grip{height:18px; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+.grip i{display:block; width:28px; height:3px; background:rgba(126,116,104,.55);}
+.shead{display:flex; align-items:baseline; gap:8px; padding:2px 12px 6px 12px; flex:0 0 auto;}
+.shead .n{font-size:13px; font-weight:700; color:var(--ink);}
+.shead .id{font-size:9px; color:var(--inkFaint);}
+.shead .sp{flex:1;}
+.shead .x{font-size:12px; color:var(--inkFaint);}
+.sbody{padding:2px 12px 12px 12px; display:flex; flex-direction:column; gap:6px; overflow:hidden;}
+.lbl{font-size:9.5px; color:var(--inkFaint); display:flex; align-items:center; gap:5px;}
+.badge{font-size:7.5px; color:var(--inkFaint); border:1px solid rgba(126,116,104,.7); padding:.5px 4px; font-style:normal;}
+.input{border:1px solid var(--outline); background:var(--paper); font-size:12px; color:var(--ink); padding:7px 8px;}
+.input.ph{color:var(--inkFaint);}
+.ro{border:1px solid rgba(126,116,104,.5); background:var(--cardAlt); font-size:12px; color:var(--inkSoft); padding:7px 8px;}
+.kindrow{display:flex; align-items:center; gap:8px;}
+.kindrow .kval{font-size:11.5px; color:var(--ink);}
+.kindrow .sp{flex:1;}
+.mini.wide{align-self:flex-start;}
+
+/* ── 底部操作区（常驻）── */
+.bar{
+  position:absolute; left:0; right:0; bottom:0; height:56px;
+  background:var(--paper); border-top:1px solid var(--rule);
+  display:flex; align-items:center; gap:8px; padding:0 12px;
+}
+.bar .count{font-size:9px; color:var(--inkFaint);}
+.bar .sync{font-size:9px; color:var(--inkSoft); padding:6px;}
+.bar .sp{flex:1;}
+.btn2{border:1px solid var(--outline); background:var(--card); color:var(--inkSoft); font-size:11px; padding:9px 14px; white-space:nowrap;}
+.btn1{border:1px solid var(--primary); background:var(--primary); color:var(--onPrimary); font-size:11px; font-weight:600; padding:9px 16px; white-space:nowrap;}
+.btn1.done{background:var(--card); border:1.5px solid var(--primary); color:var(--primaryInk); font-weight:600;}
+
+/* 感谢浮行 */
+.toast{
+  position:absolute; left:16px; right:16px; bottom:70px;
+  background:var(--card); border:1px solid var(--outline); border-left:3px solid var(--primary);
+  padding:9px 11px; font-size:10.5px; color:var(--ink); display:flex; align-items:center; gap:7px;
+}
+.toast .dot{width:3px;height:14px;background:var(--primary);flex:0 0 auto; display:none;}
+
+/* ── 弹层 ── */
+.backdrop{
+  width:720px; background:rgba(36,31,26,.86); border:1px solid #4A423A;
+  padding:22px; display:flex; gap:18px; align-items:flex-start;
+}
+.dlg{width:330px; background:var(--card); border:1px solid var(--outline); padding:0;}
+.dlg h3{font-size:14px; font-weight:700; color:var(--ink); padding:16px 18px 8px;}
+.dlg .bd{padding:0 18px 8px; display:flex; flex-direction:column; gap:8px;}
+.dlg .ft{display:flex; justify-content:flex-end; gap:6px; padding:6px 12px 12px;}
+.dlg .ft span{font-size:12px; color:var(--primaryInk); padding:8px 10px;}
+.dlg .ft span.gray{color:var(--inkFaint);}
+.chip{border:1px solid var(--outline); background:var(--paper); font-size:10.5px; color:var(--inkSoft); padding:6px 0; text-align:center;}
+.chip.on{border:1.5px solid var(--primary); background:var(--cardAlt); color:var(--ink); font-weight:600;}
+.chiprow{display:flex; gap:6px;}
+.chiprow .chip{flex:1;}
+.chiprow .pad{flex:1;}
+.quick{border:1px solid var(--outline); background:var(--card); color:var(--inkSoft); font-size:10.5px; padding:5px 10px;}
+.quick.on{border-color:var(--primary); color:var(--primaryInk); background:var(--cardAlt);}
+.warn{font-size:9.5px; color:var(--primaryInk);}
+.dlg .hint{font-size:9.5px; color:var(--inkFaint);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="doc-head">
+    <h1>沈农在途 · m31 轨道 F · 校园地图共建编辑页</h1>
+    <div class="meta">
+      静态分镜（并排看六个状态），尺寸按 360×720 逻辑像素排。假数据：<b>张三 · 2024000000</b>。选中的要素是「三教」（id f19）。<br>
+      配色全部是真实 token：
+      <span class="sw" style="background:#F5F2EC"></span>paper
+      <span class="sw" style="background:#FAF8F4"></span>card
+      <span class="sw" style="background:#EDE8DF"></span>cardAlt
+      <span class="sw" style="background:#C74E17"></span>primary
+      <span class="sw" style="background:#7E7468"></span>outline
+      <span class="sw" style="background:#8F7E61"></span>rule
+    </div>
+  </div>
+
+  <!-- ══════════ 第一排：三档高度 ══════════ -->
+  <div class="row">
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="title">校园地图</span><span class="tag">底图+热区</span><span class="sp"></span><span class="mini">收起图例</span><span class="mini">用矢量</span></div>
+        <div class="credit mono">张三 · 2024000000 · campus 2026.11.14-1 · 12 个面</div>
+        <div class="ruleline"></div>
+        <div class="map" data-cam="0"><div class="legend"><i style="background:#93A46B"></i>教学 8 <i style="background:#6E8D94;margin-left:10px"></i>宿舍 4</div></div>
+
+        <div class="sheet" style="height:216px">
+          <div class="grip"><i></i></div>
+          <div class="shead"><span class="n">三教</span><span class="id mono">id f19</span><span class="sp"></span><span class="x">✕</span></div>
+          <div class="sbody">
+            <div class="lbl">名称</div><div class="input">三教</div>
+            <div class="kindrow"><span class="lbl">分类</span><span class="kval">教学楼</span><span class="sp"></span><span class="mini">改分类</span></div>
+            <div class="lbl">楼号 <i class="badge">内置</i></div><div class="ro">3</div>
+          </div>
+        </div>
+
+        <div class="bar"><span class="count">已标注 3 个面</span><span class="sync">同步</span><span class="sp"></span><span class="btn2">导出</span><span class="btn1">保存</span></div>
+      </div></div>
+      <div class="cap"><span class="n">①</span><b>30% · 图为主</b><br>只露名称、分类、楼号三行；下面被裁掉的那条边就是「还有内容」的形态，不写字。</div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="title">校园地图</span><span class="tag">底图+热区</span><span class="sp"></span><span class="mini">收起图例</span><span class="mini">用矢量</span></div>
+        <div class="credit mono">张三 · 2024000000 · campus 2026.11.14-1 · 12 个面</div>
+        <div class="ruleline"></div>
+        <div class="map" data-cam="1"><div class="legend"><i style="background:#93A46B"></i>教学 8 <i style="background:#6E8D94;margin-left:10px"></i>宿舍 4</div></div>
+
+        <div class="sheet" style="height:446px">
+          <div class="grip"><i></i></div>
+          <div class="shead"><span class="n">三教</span><span class="id mono">id f19</span><span class="sp"></span><span class="x">✕</span></div>
+          <div class="sbody">
+            <div class="lbl">名称</div><div class="input">三教</div>
+            <div class="kindrow"><span class="lbl">分类</span><span class="kval">教学楼</span><span class="sp"></span><span class="mini">改分类</span></div>
+            <div class="lbl">楼号 <i class="badge">内置</i></div><div class="ro">3</div>
+            <div class="lbl">层数 <i class="badge">待上传</i></div><div class="input">5</div>
+            <div class="lbl">所属单位 <i class="badge">内置</i></div><div class="ro">后勤处</div>
+            <div class="lbl">备注 <i class="badge">待上传</i></div><div class="input ph">—</div>
+            <div class="mini wide">加自定义字段</div>
+          </div>
+        </div>
+
+        <div class="bar"><span class="count">已标注 3 个面</span><span class="sync">同步</span><span class="sp"></span><span class="btn2">导出</span><span class="btn1">保存</span></div>
+      </div></div>
+      <div class="cap"><span class="n">②</span><b>62% · 字段铺开</b><br>四行字段一次看全；地图相机把「三教」抬到还没被盖住的那条带上，被选中的地物始终看得见。</div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="title">校园地图</span><span class="tag">底图+热区</span><span class="sp"></span><span class="mini">收起图例</span><span class="mini">用矢量</span></div>
+        <div class="credit mono">张三 · 2024000000 · campus 2026.11.14-1 · 12 个面</div>
+        <div class="ruleline"></div>
+        <div class="map" data-cam="2"></div>
+
+        <div class="sheet" style="height:600px">
+          <div class="grip"><i></i></div>
+          <div class="shead"><span class="n">三教</span><span class="id mono">id f19</span><span class="sp"></span><span class="x">✕</span></div>
+          <div class="sbody">
+            <div class="lbl">名称</div><div class="input">三教</div>
+            <div class="kindrow"><span class="lbl">分类</span><span class="kval">教学楼</span><span class="sp"></span><span class="mini">改分类</span></div>
+            <div class="lbl">楼号 <i class="badge">内置</i></div><div class="ro">3</div>
+            <div class="lbl">层数 <i class="badge">待上传</i></div><div class="input">5</div>
+            <div class="lbl">所属单位 <i class="badge">内置</i></div><div class="ro">后勤处</div>
+            <div class="lbl">备注 <i class="badge">待上传</i></div><div class="input ph">—</div>
+            <div class="lbl">楼号（我填） <i class="badge">待上传</i></div><div class="input">3 号楼 · 东门旁</div>
+            <div class="mini wide">加自定义字段</div>
+          </div>
+        </div>
+
+        <div class="bar"><span class="count">已标注 3 个面</span><span class="sync">同步</span><span class="sp"></span><span class="btn2">导出</span><span class="btn1">保存</span></div>
+      </div></div>
+      <div class="cap"><span class="n">③</span><b>92% · 全屏改</b><br>这一档地图基本让位，只剩顶栏下面的一条缝；抓手一直钉在浮层顶，拖动即时跟手，松手吸最近一档。</div>
+    </div>
+  </div>
+
+  <!-- ══════════ 第二排：保存 / 导出 / 两个面板 ══════════ -->
+  <div class="row">
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="title">校园地图</span><span class="tag">底图+热区</span><span class="sp"></span><span class="mini">收起图例</span><span class="mini">用矢量</span></div>
+        <div class="credit mono">张三 · 2024000000 · campus 2026.11.14-1 · 12 个面</div>
+        <div class="ruleline"></div>
+        <div class="map" data-cam="1"></div>
+
+        <div class="sheet" style="height:446px">
+          <div class="grip"><i></i></div>
+          <div class="shead"><span class="n">三教</span><span class="id mono">id f19</span><span class="sp"></span><span class="x">✕</span></div>
+          <div class="sbody">
+            <div class="lbl">名称</div><div class="input">三教</div>
+            <div class="kindrow"><span class="lbl">分类</span><span class="kval">教学楼</span><span class="sp"></span><span class="mini">改分类</span></div>
+            <div class="lbl">楼号 <i class="badge">内置</i></div><div class="ro">3</div>
+            <div class="lbl">层数 <i class="badge">待上传</i></div><div class="input">5</div>
+            <div class="lbl">所属单位 <i class="badge">内置</i></div><div class="ro">后勤处</div>
+          </div>
+        </div>
+
+        <div class="bar"><span class="count">已标注 3 个面</span><span class="sync">同步</span><span class="sp"></span><span class="btn2">导出</span><span class="btn1 done">已保存 · 21:40</span></div>
+      </div></div>
+      <div class="cap"><span class="n">④</span><b>保存成功那一刻</b><br>按钮就地换成「已保存 · 21:40」：主色描边、底色褪回卡面，一眼看出「刚落盘」；5 秒后自己回到主色「保存」。</div>
+    </div>
+
+    <div class="cell">
+      <div class="phone"><div class="screen">
+        <div class="topbar"><span class="title">校园地图</span><span class="tag">底图+热区</span><span class="sp"></span><span class="mini">收起图例</span><span class="mini">用矢量</span></div>
+        <div class="credit mono">张三 · 2024000000 · campus 2026.11.14-1 · 12 个面</div>
+        <div class="ruleline"></div>
+        <div class="map" data-cam="0"></div>
+
+        <div class="sheet" style="height:216px">
+          <div class="grip"><i></i></div>
+          <div class="shead"><span class="n">三教</span><span class="id mono">id f19</span><span class="sp"></span><span class="x">✕</span></div>
+          <div class="sbody">
+            <div class="lbl">名称</div><div class="input">三教</div>
+            <div class="kindrow"><span class="lbl">分类</span><span class="kval">教学楼</span><span class="sp"></span><span class="mini">改分类</span></div>
+          </div>
+        </div>
+
+        <!-- 浮层之上、底栏之上：不挡正在改的字段，也不挡按钮 -->
+        <div class="toast" style="bottom:284px">谢谢，这份标注会帮到后来的人</div>
+
+        <div class="bar"><span class="count">已标注 3 个面</span><span class="sync">同步</span><span class="sp"></span><span class="btn2">导出</span><span class="btn1">保存</span></div>
+      </div></div>
+      <div class="cap"><span class="n">⑤</span><b>导出之后</b><br>浮一行字，2.5 秒淡出；不弹窗、不挡按钮、不打断正在改的字段。左侧 3dp 主色竖条是「刚发生了一件事」的唯一重音。</div>
+    </div>
+
+    <div class="cell">
+      <div class="backdrop">
+        <!-- 分类面板 -->
+        <div class="dlg">
+          <h3>分类</h3>
+          <div class="bd">
+            <div class="chiprow"><span class="chip on">教学楼</span><span class="chip">实验楼</span><span class="chip">办公楼</span></div>
+            <div class="chiprow"><span class="chip">图书馆</span><span class="chip">宿舍</span><span class="chip">食堂</span></div>
+            <div class="chiprow"><span class="chip">体育场</span><span class="chip">场馆</span><span class="chip">校门</span></div>
+            <div class="chiprow"><span class="chip">道路</span><span class="chip">绿地</span><span class="chip">水体</span></div>
+            <div class="chiprow"><span class="chip">停车</span><span class="chip">工地</span><span class="chip">其他</span></div>
+            <div class="hint mono">全部来自 manifest.kindLabels</div>
+          </div>
+          <div class="ft"><span class="gray">清除</span><span class="gray">取消</span></div>
+        </div>
+        <!-- 自定义字段面板 -->
+        <div class="dlg">
+          <h3>加自定义字段</h3>
+          <div class="bd">
+            <div class="input ph">字段名</div>
+            <div class="chiprow"><span class="quick">楼号</span><span class="quick on">层数</span><span class="quick">备注</span><span class="pad"></span></div>
+            <div class="input ph">现为「3」</div>
+            <div class="warn">会覆盖官方值</div>
+          </div>
+          <div class="ft"><span class="gray">取消</span><span>添加</span></div>
+        </div>
+      </div>
+      <div class="cap"><span class="n">⑥</span><b>两个入口，两个面板</b><br>左边「改分类」只动官方 <span class="mono">kind</span>；右边「加自定义字段」只往 <span class="mono">edits.json</span> 写键值对。同名时那句「会覆盖官方值」是义务告知，不是说明书写法。</div>
+    </div>
+  </div>
+</div>
+
+<!-- 一份校园平面图，六格复用；data-cam 只挪视野，模拟「相机随浮层让位」 -->
+<template id="campus">
+  <svg viewBox="0 0 360 400" preserveAspectRatio="xMidYMid slice">
+    <rect x="0" y="0" width="360" height="400" fill="#F5F2EC"/>
+    <!-- 绿地 -->
+    <path d="M18 232 L118 218 L132 300 L26 316 Z" fill="#DCE2C6" stroke="#7E7468" stroke-width="0.8"/>
+    <path d="M232 236 L340 224 L346 306 L238 314 Z" fill="#DCE2C6" stroke="#7E7468" stroke-width="0.8"/>
+    <!-- 宿舍楼群 -->
+    <rect x="248" y="128" width="44" height="58" fill="#A0B6BB" stroke="#7E7468" stroke-width="0.8"/>
+    <rect x="298" y="132" width="40" height="52" fill="#A0B6BB" stroke="#7E7468" stroke-width="0.8"/>
+    <rect x="250" y="196" width="86" height="30" fill="#A0B6BB" stroke="#7E7468" stroke-width="0.8"/>
+    <!-- 道路 -->
+    <path d="M0 118 H360" stroke="#D7D0C4" stroke-width="10"/>
+    <path d="M186 0 V400" stroke="#D7D0C4" stroke-width="9"/>
+    <!-- 教学区 -->
+    <rect x="30" y="132" width="58" height="40" fill="#BCC79B" stroke="#7E7468" stroke-width="0.8"/>
+    <rect x="100" y="132" width="66" height="34" fill="#BCC79B" stroke="#7E7468" stroke-width="0.8"/>
+    <rect x="30" y="184" width="58" height="26" fill="#BCC79B" stroke="#7E7468" stroke-width="0.8"/>
+    <!-- 选中：三教（外发光三层 + 实描边，主色） -->
+    <rect x="98" y="176" width="70" height="34" fill="#F3B994" fill-opacity="0.55" stroke="none"/>
+    <rect x="98" y="176" width="70" height="34" fill="none" stroke="#C74E17" stroke-opacity="0.15" stroke-width="7"/>
+    <rect x="98" y="176" width="70" height="34" fill="none" stroke="#C74E17" stroke-opacity="0.35" stroke-width="4"/>
+    <rect x="98" y="176" width="70" height="34" fill="none" stroke="#C74E17" stroke-width="2"/>
+    <text x="133" y="198" font-size="10" fill="#1A1611" text-anchor="middle" font-family="-apple-system,PingFang SC">三教</text>
+    <!-- 操场 -->
+    <ellipse cx="128" cy="342" rx="72" ry="34" fill="#EDE8DF" stroke="#7E7468" stroke-width="0.8"/>
+    <ellipse cx="128" cy="342" rx="52" ry="20" fill="none" stroke="#7E7468" stroke-width="0.6"/>
+  </svg>
+</template>
+
+<script>
+  document.querySelectorAll('.map').forEach(function (m) {
+    m.appendChild(document.getElementById('campus').content.cloneNode(true));
+    var cam = m.getAttribute('data-cam');
+    var svg = m.querySelector('svg');
+    // 相机让位：浮层越高，选中的「三教」被推到还没被盖住的那条带里
+    if (cam === '1') svg.style.transform = 'translateY(-230px) scale(1.06)';
+    if (cam === '2') svg.style.transform = 'translateY(-300px) scale(1.10)';
+    svg.style.transformOrigin = '50% 40%';
+    svg.style.transition = 'none';
+  });
+</script>
+</body>
+</html>

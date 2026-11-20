@@ -3,17 +3,21 @@ package cn.dkarbon.enroute.ui.map
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -29,8 +33,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,6 +51,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -68,7 +71,12 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -78,9 +86,11 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.map.MapEdits
+import cn.dkarbon.enroute.data.map.MapEditsStore
 import cn.dkarbon.enroute.data.map.MapDataset
 import cn.dkarbon.enroute.data.map.MapEditsOps
 import cn.dkarbon.enroute.data.map.MapFeature
+import cn.dkarbon.enroute.data.map.MapFieldOverride
 import cn.dkarbon.enroute.data.map.MapGeometry
 import cn.dkarbon.enroute.data.map.MapHit
 import cn.dkarbon.enroute.data.map.MapLayers
@@ -94,6 +104,7 @@ import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke as StrokeTokens
+import kotlin.math.abs
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
@@ -109,6 +120,7 @@ import kotlinx.coroutines.launch
  * ## 三个已踩过的坑（都在数据层处理）
  * y 轴翻转 [MapTransform.screenY]、等比映射 [MapProjection.fit]、小面点不中 [MapHit.pickOrNearest] 的 24dp 兜底。
  */
+
 @Composable
 fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     val t = InkTokens.current
@@ -121,10 +133,29 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     var showLegend by remember { mutableStateOf(true) }
     var vectorOnly by remember { mutableStateOf(false) }
     var baseBitmap by remember { mutableStateOf<ImageBitmap?>(null) }
-    var addingField by remember { mutableStateOf(false) }
     var deletingField by remember { mutableStateOf<String?>(null) }
     var controlsVisible by remember { mutableStateOf(false) }
     var lastGestureAt by remember { mutableLongStateOf(0L) }
+
+    // ── 浮层三档（m31 F1）──
+    var sheetDetent by remember { mutableIntStateOf(MapSheet.DEFAULT) }
+    var sheetDragging by remember { mutableStateOf(false) }
+    var sheetDragFraction by remember { mutableFloatStateOf(MapSheet.DETENTS[MapSheet.DEFAULT]) }
+
+    // ── 保存回执（F3）与导出致谢（F4）──
+    var savedAt by remember { mutableStateOf("") }
+    var thanksSeq by remember { mutableLongStateOf(0L) }
+    var thanksOn by remember { mutableStateOf(false) }
+
+    // 量出来的两个位置：画布底边、根布局顶边（都在 boundsInRoot 坐标系里）
+    var rootTopPx by remember { mutableFloatStateOf(0f) }
+    var canvasBottomPx by remember { mutableFloatStateOf(0f) }
+
+    val sheetFraction by animateFloatAsState(
+        targetValue = if (sheetDragging) sheetDragFraction else MapSheet.DETENTS[sheetDetent],
+        animationSpec = tween(if (sheetDragging) 0 else MapSheet.SNAP_MS),
+        label = "sheetFraction",
+    )
 
     LaunchedEffect(Unit) { if (ui.mapPackage == null) vm.openCampusMap() }
 
@@ -149,11 +180,15 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     }
 
     // 导出：ACTION_CREATE_DOCUMENT 另存（GeoJSON / CSV 各一个）
-    fun writeTo(uri: android.net.Uri?, content: String) {
-        if (uri == null || content.isEmpty()) return
-        runCatching {
+    // 返回是否真的写成功 —— 写盘成功才算「导出成功」，才配得到那句谢谢。
+    fun writeTo(uri: android.net.Uri?, content: String): Boolean {
+        if (uri == null || content.isEmpty()) return false
+        val ok = runCatching {
             ctx.contentResolver.openOutputStream(uri)?.use { it.write(content.toByteArray(Charsets.UTF_8)) }
-        }
+            true
+        }.getOrDefault(false)
+        if (ok) thanksSeq = thanksSeq + 1
+        return ok
     }
     // ── 参与共建（票 23）：入口就在地图页，不用滚到设置里去翻 ──
     // 状态与设置页同一个 store，天然同步；上传走 MapUploader（一次同意，之后导出直接上云）
@@ -170,9 +205,85 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
         ActivityResultContracts.CreateDocument("text/csv"),
     ) { uri -> writeTo(uri, ui.mapExportCsv) }
 
+    // 导入标注（m32）：读导出过的 GeoJSON，合并进本机 edits —— 换签名卸载重装后靠它把标注带回来
+    val openGeo = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri ->
+        if (uri != null) {
+            val text = runCatching {
+                ctx.contentResolver.openInputStream(uri)?.use { it.readBytes().toString(Charsets.UTF_8) }
+            }.getOrNull()
+            if (text.isNullOrBlank()) {
+                exportHint = "这个文件读不出来（没权限或不是文本）"
+            } else {
+                vm.importMapAnnotations(text)
+            }
+        }
+    }
+
     val pkg = ui.mapPackage
     val manifest = pkg?.manifest
     val selected = pkg?.features?.firstOrNull { it.id == ui.mapSelectedId }
+
+    // ── 导出（F3/F4）：与原「导出标注」同一套动作，只是搬到常驻操作区 ──
+    fun exportNow() {
+        vm.exportMapAnnotations()
+        val ver = manifest?.version.orEmpty()
+        val count = ui.mapEdits.features.size
+        when {
+            !contributeOn -> {
+                exportHint = "已导出到本地 · 未开启共建，不会上传"
+                if (count > 0) thanksSeq = thanksSeq + 1
+            }
+            ver.isBlank() -> exportHint = "地图包还没加载完"
+            else -> {
+                exportHint = ""
+                if (count > 0) thanksSeq = thanksSeq + 1
+                val sid = ui.profile.studentNo
+                val hasName = ui.profile.name.isNotBlank()
+                exportScope.launch {
+                    val r = uploader.uploadFromEdits(ui.mapEdits, ver, sid, hasName)
+                    exportHint = when (r) {
+                        is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Ok ->
+                            "已上传 ${r.resp.accepted} 条到云端"
+                        is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Failed -> r.message
+                        cn.dkarbon.enroute.data.map.MapUploader.Outcome.NothingToDo -> "没有可上传的标注"
+                    }
+                }
+            }
+        }
+    }
+
+    // ── 保存（F3）：写盘成功，按钮就地换成「已保存 · HH:mm」，5s 后回到可点 ──
+    val editsStore = remember { MapEditsStore(ctx.applicationContext) }
+    val saveScope = androidx.compose.runtime.rememberCoroutineScope()
+    fun saveNow() {
+        if (savedAt.isNotEmpty()) return
+        val batch = ui.mapEdits
+        saveScope.launch {
+            val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                editsStore.write(batch)
+            }
+            if (ok) {
+                savedAt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.CHINA)
+                    .format(java.util.Date())
+            }
+        }
+    }
+
+    LaunchedEffect(savedAt) {
+        if (savedAt.isEmpty()) return@LaunchedEffect
+        kotlinx.coroutines.delay(MapSaved.HOLD_MS)
+        savedAt = ""
+    }
+
+    // 致谢浮行：一次导出触发一次，2.5s 自己淡出（再点导出会重新计时）
+    LaunchedEffect(thanksSeq) {
+        if (thanksSeq == 0L) return@LaunchedEffect
+        thanksOn = true
+        kotlinx.coroutines.delay(MapThanks.HOLD_MS)
+        thanksOn = false
+    }
 
     // ── 共享数据集（票 22 / 2026-11-16）：**按需**拉取，不再每次开地图自动拉 ──
     // 初次进入只读本地缓存（current() 只读盘），要更新就点下面「同步」按钮。
@@ -183,8 +294,38 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     var syncNote by remember { mutableStateOf("") }
     val syncScope = androidx.compose.runtime.rememberCoroutineScope()
 
-    Box(Modifier.fillMaxSize()) {
-        Column(Modifier.fillMaxSize().imePadding()) {
+    BoxWithConstraints(
+        Modifier.fillMaxSize().onGloballyPositioned {
+            val top = it.boundsInRoot().top
+            if (abs(rootTopPx - top) > 0.5f) rootTopPx = top
+        },
+    ) {
+        val rootHPx = with(density) { maxHeight.toPx() }
+        val barHPx = with(density) { MapActionBar.H.toPx() }
+        val sheetBasisPx = (rootHPx - barHPx).coerceAtLeast(1f)
+
+        // 拖动：跟手（tween(0)）→ 松手吸最近一档；拖动中不写 sheetDetent，免得每像素重建目标
+        val onSheetDragStart: () -> Unit = {
+            if (!sheetDragging) {
+                sheetDragFraction = sheetFraction
+                sheetDragging = true
+            }
+        }
+        val onSheetDragBy: (Float) -> Unit = { dyPx ->
+            // 起手基准是「当前动画值」；列表把余量让给浮层时 onDragStart 可能还没轮到
+            // （同一个手势里 pre-scroll 先于 snapshotFlow 的回调），这里自愈一次
+            val base = if (sheetDragging) sheetDragFraction else sheetFraction
+            sheetDragFraction = (base - dyPx / sheetBasisPx)
+                .coerceIn(MapSheet.DETENTS.first(), MapSheet.DETENTS.last())
+            sheetDragging = true
+        }
+        val onSheetDragStop: () -> Unit = {
+            sheetDetent = MapSheet.nearest(sheetDragFraction)
+            sheetDragging = false
+        }
+
+        // 底部预留操作条的高度：地图/提示都落在操作条之上，不会被压住
+        Column(Modifier.fillMaxSize().imePadding().padding(bottom = MapActionBar.H)) {
         // ── 顶栏 ──
         Row(
             Modifier.fillMaxWidth().padding(horizontal = Space.l, vertical = Space.s),
@@ -366,8 +507,9 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 }
             }
 
-            // ── 选中后把要素框到可视区上半部分：底部面板会盖住下半，地图得让路 ──
-            LaunchedEffect(ui.mapSelectedId) {
+            // ── 选中后把要素框进「还没被浮层盖住」的那条带（F1）──
+            // 浮层越矮让位越少；92% 档画布基本被盖住，退到画布 10% 处，往下拖一档即恢复
+            LaunchedEffect(ui.mapSelectedId, sheetDetent) {
                 val id = ui.mapSelectedId
                 if (id.isEmpty()) return@LaunchedEffect
                 val f = pkg?.features?.firstOrNull { it.id == id } ?: return@LaunchedEffect
@@ -375,7 +517,12 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 val px0 = panX
                 val py0 = panY
                 val tf = MapProjection.withUser(base, z0.toDouble(), px0, py0, cw, ch)
-                val plan = MapViewRules.frameFeature(z0, px0, py0, tf, f.bounds, cw, ch)
+                val sheetTopPx = rootTopPx + rootHPx - barHPx - sheetBasisPx * MapSheet.DETENTS[sheetDetent]
+                val coveredPx = (canvasBottomPx - sheetTopPx).coerceAtLeast(0f)
+                val targetY = MapSheet.targetYRatio(ch, coveredPx)
+                val plan = MapViewRules.frameFeature(
+                    z0, px0, py0, tf, f.bounds, cw, ch, targetYRatio = targetY,
+                )
                 val lx = MapViewRules.panLimit(
                     bboxW * base.scale.toFloat() * plan.zoom, cw, MapViewRules.viewMargin(cw),
                 )
@@ -397,7 +544,13 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             }
             Column(Modifier.fillMaxWidth()) {
                 // clipToBounds：放大后画面会超出地图块（Canvas 默认不裁剪，会溢到图例上）
-                Box(Modifier.fillMaxWidth().height(mapH).clipToBounds()) {
+                Box(
+                    Modifier.fillMaxWidth().height(mapH).clipToBounds().onGloballyPositioned {
+                        // 浮层盖掉多少，要看画布真实底边 —— 缩窗/图例展开都会变
+                        val bottom = it.boundsInRoot().bottom
+                        if (abs(canvasBottomPx - bottom) > 0.5f) canvasBottomPx = bottom
+                    },
+                ) {
                     Canvas(
                         Modifier.fillMaxSize().background(t.paper)
                             // 自己接管手势：`detectTransformGestures` **没有 onEnd 回调**，
@@ -650,80 +803,30 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
             )
         }
 
-        // ── 导出 ──
+        // ── 共建与另存（导出/保存不在这儿，见底部常驻操作区）──
         Row(
             Modifier.fillMaxWidth().padding(horizontal = Space.l, vertical = 6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            SmallButton("导出标注") {
-                vm.exportMapAnnotations()
-                val ver = manifest?.version.orEmpty()
-                if (!contributeOn) {
-                    exportHint = "已导出到本地 · 未开启共建，不会上传"
-                } else if (ver.isBlank()) {
-                    exportHint = "地图包还没加载完"
-                } else {
-                    exportHint = ""
-                    val sid = ui.profile.studentNo
-                    val hasName = ui.profile.name.isNotBlank()
-                    exportScope.launch {
-                        val r = uploader.uploadFromEdits(ui.mapEdits, ver, sid, hasName)
-                        exportHint = when (r) {
-                            is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Ok ->
-                                "已上传 ${r.resp.accepted} 条到云端"
-                            is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Failed -> r.message
-                            cn.dkarbon.enroute.data.map.MapUploader.Outcome.NothingToDo -> "没有可上传的标注"
-                        }
-                    }
-                }
-            }
-            Spacer(Modifier.width(Space.s))
             // 未开启 → 去开启（与设置页同一个 `MapContributeConsentDialog`，一次同意）
-            // 已开启 → 只显示状态；之后「导出标注」直接上传，不再二次确认
+            // 已开启 → 只显示状态；之后「导出」直接上传，不再二次确认
             if (contributeOn) {
                 Text("共建已开", fontSize = 9.sp, color = t.inkFaint)
             } else {
                 SmallButton("去开启") { askContribute = true }
             }
             Spacer(Modifier.width(Space.s))
+            // 导入与导出成对出现：能带走、也要能带回来（换签名重装时是唯一通路）
+            SmallButton("导入标注") {
+                openGeo.launch(arrayOf("application/geo+json", "application/json", "text/plain", "*/*"))
+            }
             if (ui.mapExportGeoJson.isNotEmpty()) {
+                Spacer(Modifier.width(Space.xs))
                 SmallButton("另存 GeoJSON") { saveGeo.launch(ui.mapExportGeoName) }
                 Spacer(Modifier.width(Space.xs))
                 SmallButton("另存 CSV") { saveCsv.launch(ui.mapExportCsvName) }
             }
             Spacer(Modifier.weight(1f))
-            // 手动同步（票 22）：平时靠 5 分钟窗口自动拉，这个按钮给「我就是想现在看」
-            Text(
-                if (syncing) "同步中…" else "同步",
-                fontSize = 9.sp,
-                color = if (syncing) t.inkFaint else t.inkSoft,
-                modifier = Modifier
-                    .heightIn(min = 32.dp)
-                    .clickable(enabled = !syncing) {
-                        val ver = manifest?.version.orEmpty()
-                        if (ver.isBlank()) return@clickable
-                        syncing = true
-                        syncScope.launch {
-                            val before = datasetClient.current()
-                            val ds = runCatching { datasetClient.sync(ver, force = true) }.getOrNull()
-                            if (ds != null) dataset = ds
-                            syncNote = when {
-                                ds != null -> "已更新 ${cn.dkarbon.enroute.data.map.MapDataset.updatedCount(before, ds)} 条"
-                                datasetClient.lastError().isNotBlank() -> datasetClient.lastError()
-                                else -> "已是最新"
-                            }
-                            syncing = false
-                        }
-                    }
-                    .padding(horizontal = 6.dp, vertical = 6.dp),
-            )
-            Spacer(Modifier.width(Space.s))
-            Text(
-                "已标注 ${ui.mapEdits.features.size} 个面",
-                fontSize = 9.sp,
-                color = t.inkFaint,
-                fontFamily = NumericFont,
-            )
         }
         if (exportHint.isNotBlank()) {
             Text(
@@ -753,7 +856,7 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
         }
         }
 
-        // ── 属性面板（可编辑，票 12 §7）：底部面板，贴屏幕下沿 ──
+        // ── 属性面板（可编辑，票 12 §7 / m31 F1+F2）：三档高度，落在操作条之上 ──
         if (selected != null && manifest != null) {
             PropertyPanel(
                 feature = selected,
@@ -764,29 +867,114 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 kindOptions = manifest.kindOptions(),
                 officialFields = manifest.customFields,
                 dataset = dataset,
+                sheetFraction = sheetFraction,
                 onChangeName = { vm.setMapFeatureName(selected.id, it) },
                 onChangeKind = { vm.setMapFeatureKind(selected.id, it) },
                 onChangeField = { f, v -> vm.setMapFeatureField(selected.id, f, v) },
-                onAddField = { addingField = true },
+                onAddCustomField = { key, value ->
+                    val k = key.trim()
+                    if (k.isNotEmpty()) {
+                        // 新键先立列（全局共享），再写这个要素的值
+                        if (!ui.mapEdits.fieldOrder.contains(k)) vm.addMapField(k)
+                        vm.setMapFeatureField(selected.id, k, value)
+                    }
+                },
                 onDeleteField = { deletingField = it },
+                onDragStart = onSheetDragStart,
+                onDragBy = onSheetDragBy,
+                onDragStop = onSheetDragStop,
                 onClose = { vm.clearMapSelection() },
-                modifier = Modifier.align(Alignment.BottomCenter).imePadding(),
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .imePadding()
+                    .padding(bottom = MapActionBar.H),
             )
+        }
+
+        // ── 底部常驻操作区（F3）：浮层拉到哪一档，「导出」和「保存」都在原位 ──
+        Column(
+            Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(t.card),
+        ) {
+            Box(Modifier.fillMaxWidth().height(StrokeTokens.hairline).background(t.rule))
+            Row(
+                Modifier.fillMaxWidth().height(MapActionBar.H).padding(horizontal = Space.m),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "已标注 ${ui.mapEdits.features.size} 个面",
+                    fontSize = 9.sp,
+                    color = t.inkFaint,
+                    fontFamily = NumericFont,
+                )
+                // 手动同步（票 22）：平时靠 5 分钟窗口自动拉，这个按钮给「我就是想现在看」
+                Text(
+                    if (syncing) "同步中…" else "同步",
+                    fontSize = 9.sp,
+                    color = if (syncing) t.inkFaint else t.inkSoft,
+                    modifier = Modifier
+                        .clickable(enabled = !syncing) {
+                            val ver = manifest?.version.orEmpty()
+                            if (ver.isBlank()) return@clickable
+                            syncing = true
+                            syncScope.launch {
+                                val before = datasetClient.current()
+                                val ds = runCatching { datasetClient.sync(ver, force = true) }.getOrNull()
+                                if (ds != null) dataset = ds
+                                syncNote = when {
+                                    ds != null ->
+                                        "已更新 ${cn.dkarbon.enroute.data.map.MapDataset.updatedCount(before, ds)} 条"
+                                    datasetClient.lastError().isNotBlank() -> datasetClient.lastError()
+                                    else -> "已是最新"
+                                }
+                                syncing = false
+                            }
+                        }
+                        .padding(horizontal = 6.dp, vertical = 6.dp),
+                )
+                Spacer(Modifier.weight(1f))
+                BarAction(label = "导出", primary = false) { exportNow() }
+                Spacer(Modifier.width(Space.s))
+                BarAction(
+                    label = if (savedAt.isEmpty()) "保存" else "已保存 · $savedAt",
+                    primary = true,
+                    enabled = savedAt.isEmpty(),
+                ) { saveNow() }
+            }
+        }
+
+        // ── 导出后的致谢浮行（F4）：浮在浮层与操作条之上，2.5s 淡出，不挡操作 ──
+        AnimatedVisibility(
+            visible = thanksOn,
+            enter = fadeIn(tween(MapThanks.IN_MS)),
+            exit = fadeOut(tween(MapThanks.OUT_MS)),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = Space.m)
+                .padding(
+                    bottom = MapActionBar.H + with(density) {
+                        (sheetBasisPx * sheetFraction).toDp()
+                    } + Space.s,
+                ),
+        ) {
+            Row(
+                Modifier.fillMaxWidth()
+                    .background(t.card)
+                    .border(StrokeTokens.hairline, t.outline)
+                    .padding(horizontal = Space.m, vertical = Space.s),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(Modifier.width(StrokeTokens.accentBar).height(14.dp).background(t.primary))
+                Spacer(Modifier.width(Space.s))
+                Text("谢谢，这份标注会帮到后来的人", fontSize = 10.5.sp, color = t.ink)
+            }
         }
 
     }
 
-    // 加字段对话框
-    if (addingField) {
-        AddFieldDialog(
-            existing = ui.mapEdits.fieldOrder,
-            onDismiss = { addingField = false },
-            onConfirm = { name ->
-                vm.addMapField(name)
-                addingField = false
-            },
-        )
-    }
     deletingField?.let { field ->
         AlertDialog(
             onDismissRequest = { deletingField = null },
@@ -803,6 +991,50 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
     }
 }
 
+/**
+ * 编辑浮层三档高度（m31 轨道 F）。比例按**根布局高度**算；浮层落在底部操作条之上，
+ * 所以浮层实际高度是 `fraction × (根高 − 操作条高)`。
+ */
+private object MapSheet {
+    val DETENTS = floatArrayOf(0.30f, 0.62f, 0.92f)
+    const val DEFAULT = 0
+    const val SNAP_MS = 240
+    private const val MIN_VISIBLE = 0.34f
+    private const val MIN_TARGET_Y = 0.10f
+
+    /** 松手后吸最近的一档。 */
+    fun nearest(fraction: Float): Int =
+        DETENTS.indices.minByOrNull { abs(DETENTS[it] - fraction) } ?: DEFAULT
+
+    /**
+     * 浮层盖掉画布下半截 → 相机把选中的要素放进**还没被盖住的那条带**的中间。
+     * 92% 档画布基本整块被盖住，这里退回 [MIN_VISIBLE] 的乐观值、最多把要素顶到画布 10% 处；
+     * 往下拖一档就恢复。
+     */
+    fun targetYRatio(canvasH: Float, coveredPx: Float): Float {
+        if (canvasH <= 0f) return MapViewRules.FRAME_TARGET_Y_RATIO
+        val visible = (canvasH - coveredPx).coerceIn(canvasH * MIN_VISIBLE, canvasH)
+        return ((visible / canvasH) / 2f).coerceIn(MIN_TARGET_Y, 0.5f)
+    }
+}
+
+/** 底部常驻操作区：浮层拉到哪一档，导出/保存都在原位。 */
+private object MapActionBar {
+    val H = 56.dp
+}
+
+/** 导出后的致谢浮行：2.5s 淡出，不阻塞、不弹窗。 */
+private object MapThanks {
+    const val HOLD_MS = 2500L
+    const val IN_MS = 220
+    const val OUT_MS = 600
+}
+
+/** 保存成功的回执：就地换字，5s 后自己回到可点。 */
+private object MapSaved {
+    const val HOLD_MS = 5000L
+}
+
 // ── 属性面板 ────────────────────────────────────────────────
 
 @Composable
@@ -817,11 +1049,20 @@ private fun PropertyPanel(
     officialFields: List<String> = emptyList(),
     /** 服务器共享数据集（票 22）：三档来源里的「共建」层 */
     dataset: MapDataset.Dataset? = null,
+    /** 浮层高度占屏高的比例：0.30 / 0.62 / 0.92 三档，拖动时连续 */
+    sheetFraction: Float = MapSheet.DETENTS[MapSheet.DEFAULT],
     onChangeName: (String) -> Unit,
     onChangeKind: (String) -> Unit,
     onChangeField: (String, String) -> Unit,
-    onAddField: () -> Unit,
+    /**
+     * 加自定义字段（m31 F2 的第二层）：键 + 值，只落 `edits.json`。
+     * 键与官方字段同名时 = 覆盖官方值（`MapFieldOverride` 同名优先，删掉即回落官方）。
+     */
+    onAddCustomField: (String, String) -> Unit = { _, _ -> },
     onDeleteField: (String) -> Unit,
+    onDragStart: () -> Unit = {},
+    onDragBy: (Float) -> Unit = {},
+    onDragStop: () -> Unit = {},
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -843,21 +1084,58 @@ private fun PropertyPanel(
         }
     }
 
+    // 两个入口各开各的层：分类只改官方 kind，自定义字段只写 edits.json
+    var showKinds by remember { mutableStateOf(false) }
+    var showCustom by remember(feature.id) { mutableStateOf(false) }
+
+    // 抓手与列表共用一根手指：列表先吃，滚到顶/底之后余下的那点才交给浮层
+    val contentScroll = rememberScrollState()
+    val scrollBridge = object : NestedScrollConnection {
+        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (source != NestedScrollSource.Drag) return Offset.Zero
+            val dy = available.y
+            if (dy == 0f) return Offset.Zero
+            val atTop = contentScroll.value <= 0
+            val atBottom = contentScroll.value >= contentScroll.maxValue
+            // 往下拉(dy>0)且已在顶、或往上拉(dy<0)且已在底 → 这根手指是冲着浮层来的
+            if ((dy > 0f && atTop) || (dy < 0f && atBottom)) {
+                onDragBy(dy)
+                return Offset(0f, dy)
+            }
+            return Offset.Zero
+        }
+    }
+    // 列表自己的「在拖 / 松手」就是浮层的起止信号，不靠计时器猜松手
+    LaunchedEffect(contentScroll) {
+        snapshotFlow { contentScroll.isScrollInProgress }.collect { active ->
+            if (active) onDragStart() else onDragStop()
+        }
+    }
+
     val sheetShape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
     Box(
         modifier
             .fillMaxWidth()
-            .fillMaxHeight(0.4f)
+            .fillMaxHeight(sheetFraction.coerceIn(MapSheet.DETENTS.first(), MapSheet.DETENTS.last()))
             .clip(sheetShape)
             .background(t.card)
             .border(StrokeTokens.hairline, t.outline, sheetShape),
     ) {
         Column(Modifier.fillMaxSize()) {
+            // 抓手：28×3dp、不写字；竖向可拖，松手吸最近一档
             Box(
-                Modifier.fillMaxWidth().padding(top = 6.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .height(24.dp)
+                    .draggable(
+                        state = rememberDraggableState { onDragBy(it) },
+                        orientation = Orientation.Vertical,
+                        onDragStarted = { onDragStart() },
+                        onDragStopped = { onDragStop() },
+                    ),
                 contentAlignment = Alignment.Center,
             ) {
-                Box(Modifier.width(36.dp).height(3.dp).background(t.outline.copy(alpha = 0.55f)))
+                Box(Modifier.width(28.dp).height(3.dp).background(t.outline.copy(alpha = 0.55f)))
             }
 
             Row(
@@ -895,7 +1173,9 @@ private fun PropertyPanel(
             }
 
             Column(
-                Modifier.weight(1f).verticalScroll(rememberScrollState())
+                Modifier.weight(1f)
+                    .nestedScroll(scrollBridge)
+                    .verticalScroll(contentScroll)
                     .padding(horizontal = Space.m, vertical = Space.s),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
@@ -910,42 +1190,67 @@ private fun PropertyPanel(
                     },
                 )
 
-                // 类别（19 个码，从 manifest.kindLabels 来）
-                Text("类别", fontSize = 10.sp, color = t.inkFaint)
-                LazyRow(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-                    items(kindOptions, key = { it.first }) { (code, label) ->
-                        val on = row.kind == code
-                        Box(
-                            Modifier.clip(RectangleShape)
-                                .background(if (on) t.cardAlt else t.paper)
-                                .border(if (on) 1.5.dp else StrokeTokens.hairline, if (on) t.primary else t.outline)
-                                .clickable { onChangeKind(if (on) "" else code) }
-                                .padding(horizontal = 10.dp, vertical = 5.dp),
-                        ) {
-                            Text(label, fontSize = 10.5.sp, color = if (on) t.ink else t.inkSoft)
-                        }
-                    }
+                // 分类（第一层）：改的是要素的官方 kind，不新增任何字段
+                Row(
+                    Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("分类", fontSize = 10.sp, color = t.inkFaint)
+                    Spacer(Modifier.width(Space.s))
+                    Text(
+                        kindOptions.firstOrNull { it.first == row.kind }?.second ?: "—",
+                        fontSize = 11.5.sp,
+                        color = if (row.kind.isBlank()) t.inkFaint else t.ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f),
+                    )
+                    SmallButton("改分类") { showKinds = true }
                 }
 
-                // 自定义字段（全局共享）：长按字段名可删
-                // 票 22：三档来源（待上传 / 共建 / 内置），**每一行都标出来** ——
+                // 字段（第二层）：官方字段 + 自己加的键值对，来源逐行标出（票 22）——
                 // 用户必须能一眼看出「这条是谁的数据」，这是主人接受共享风险后的最低限度。
                 val rows = MapDataset.rows(feature, edits, dataset, officialFields)
-                rows.forEach { row ->
+                rows.forEach { field ->
                     LabeledInput(
-                        label = row.name,
-                        value = row.value,
-                        singleLine = row.name.length > 6,
-                        onLongPressLabel = if (row.editable) ({ onDeleteField(row.name) }) else null,
-                        onChange = { if (row.editable) onChangeField(row.name, it) },
-                        // 只有「待上传」可编辑；共建/内置是只读层（要改就「＋ 添加字段」用同名列覆盖）
-                        readOnly = !row.editable,
-                        badge = MapDataset.label(row.source),
+                        label = field.name,
+                        value = field.value,
+                        singleLine = field.name.length > 6,
+                        onLongPressLabel = if (field.editable) ({ onDeleteField(field.name) }) else null,
+                        onChange = { if (field.editable) onChangeField(field.name, it) },
+                        // 只有「待上传」可编辑；共建/内置是只读层，要改就加同名的自定义字段覆盖
+                        readOnly = !field.editable,
+                        badge = MapDataset.label(field.source),
                     )
                 }
-                SmallButton("＋ 添加字段") { onAddField() }
+                SmallButton("加自定义字段") { showCustom = true }
             }
         }
+    }
+
+    if (showKinds) {
+        KindPickerDialog(
+            options = kindOptions,
+            current = row.kind,
+            onPick = { code ->
+                onChangeKind(code)
+                showKinds = false
+            },
+            onDismiss = { showKinds = false },
+        )
+    }
+    if (showCustom) {
+        CustomFieldDialog(
+            feature = feature,
+            edits = edits,
+            existing = edits.fieldOrder,
+            officialFields = officialFields,
+            onConfirm = { key, value ->
+                onAddCustomField(key, value)
+                showCustom = false
+            },
+            onDismiss = { showCustom = false },
+        )
     }
 }
 
@@ -995,7 +1300,7 @@ private fun LabeledInput(
             }
         }
         if (readOnly) {
-            // 官方值：不可编辑。要改它 → 先「＋ 添加字段」自建同名列（用户值优先）
+            // 官方值：不可编辑。要改它 → 用「加自定义字段」自建同名列（同名覆盖优先，删掉即回落）
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -1037,30 +1342,145 @@ private fun Modifier.combinedLongClick(onLongClick: () -> Unit): Modifier =
         },
     )
 
+/**
+ * 分类选择（m31 F2 的第一层）：只改要素的官方 `kind`，不往 `edits.json` 加列。
+ * 选项全部来自 `manifest.kindOptions()`，一个也不写死。
+ */
 @Composable
-private fun AddFieldDialog(existing: List<String>, onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
-    var text by remember { mutableStateOf("") }
-    val dup = existing.contains(text.trim())
+private fun KindPickerDialog(
+    options: List<Pair<String, String>>,
+    current: String,
+    onPick: (String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val t = InkTokens.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("添加字段", fontSize = 14.sp) },
+        title = { Text("分类", fontSize = 14.sp) },
         text = {
-            Column {
+            Column(
+                Modifier.heightIn(max = 360.dp).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(Space.xs),
+            ) {
+                // 三列等宽：一屏扫完 19 个码，不用左右翻
+                options.chunked(3).forEach { trio ->
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                        trio.forEach { (code, label) ->
+                            val on = current == code
+                            Box(
+                                Modifier.weight(1f)
+                                    .background(if (on) t.cardAlt else t.paper)
+                                    .border(
+                                        if (on) 1.5.dp else StrokeTokens.hairline,
+                                        if (on) t.primary else t.outline,
+                                    )
+                                    .clickable { onPick(if (on) "" else code) }
+                                    .padding(vertical = 8.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text(
+                                    label,
+                                    fontSize = 10.5.sp,
+                                    color = if (on) t.ink else t.inkSoft,
+                                    fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        repeat(3 - trio.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+            }
+        },
+        // 「清除」＝这个要素不归任何一类（kind 空串），与点已选中的码等价
+        confirmButton = { TextButton(onClick = { onPick("") }) { Text("清除", fontSize = 12.sp) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("取消", fontSize = 12.sp) } },
+    )
+}
+
+/**
+ * 加自定义字段（m31 F2 的第二层）：键自由、值自由，只落 `edits.json`。
+ * 键与官方字段同名时标「会覆盖官方值」——这是义务告知：不说清就等于悄悄改掉了官方数据。
+ */
+@Composable
+private fun CustomFieldDialog(
+    feature: MapFeature,
+    edits: MapEdits,
+    existing: List<String>,
+    officialFields: List<String>,
+    onConfirm: (String, String) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val t = InkTokens.current
+    var key by remember { mutableStateOf("") }
+    var value by remember { mutableStateOf("") }
+    val k = key.trim()
+    val dup = k.isNotEmpty() && existing.contains(k)
+    val overrides = MapFieldOverride.overridesOfficial(officialFields, k)
+    val officialValue = MapFieldOverride.valueOf(feature, edits, k)
+    val fieldColors = TextFieldDefaults.colors(
+        focusedContainerColor = t.paper,
+        unfocusedContainerColor = t.paper,
+        focusedIndicatorColor = t.primary,
+        unfocusedIndicatorColor = t.outline,
+        cursorColor = t.primary,
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("加自定义字段", fontSize = 14.sp) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
                 TextField(
-                    value = text,
-                    onValueChange = { text = it.take(12) },
+                    value = key,
+                    onValueChange = { key = it.take(20) },
                     singleLine = true,
-                    placeholder = { Text("如 层数 / 所属单位 / 教室号", fontSize = 12.sp) },
+                    placeholder = { Text("字段名", fontSize = 12.sp) },
                     textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                    colors = fieldColors,
                 )
+                // 快捷片：三个最常填的键，点一下落到键位
+                Row(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
+                    listOf("楼号", "层数", "备注").forEach { quick ->
+                        val on = k == quick
+                        Box(
+                            Modifier
+                                .background(if (on) t.cardAlt else t.card)
+                                .border(
+                                    if (on) 1.5.dp else StrokeTokens.hairline,
+                                    if (on) t.primary else t.outline,
+                                )
+                                .clickable { key = quick }
+                                .padding(horizontal = 10.dp, vertical = 5.dp),
+                        ) {
+                            Text(quick, fontSize = 10.5.sp, color = if (on) t.ink else t.inkSoft)
+                        }
+                    }
+                }
+                TextField(
+                    value = value,
+                    onValueChange = { value = it.take(60) },
+                    singleLine = true,
+                    placeholder = {
+                        Text(
+                            if (overrides && officialValue.isNotBlank()) "现为「$officialValue」" else "值",
+                            fontSize = 12.sp,
+                        )
+                    },
+                    textStyle = androidx.compose.ui.text.TextStyle(fontSize = 13.sp),
+                    colors = fieldColors,
+                )
+                if (overrides) {
+                    // 义务告知：同名键会盖住官方值
+                    Text("会覆盖官方值", fontSize = 10.sp, color = t.primary)
+                }
                 if (dup) {
-                    Spacer(Modifier.height(4.dp))
                     Text("已经有这个字段了", fontSize = 10.sp, color = Color(0xFFC74E17))
                 }
             }
         },
         confirmButton = {
-            TextButton(onClick = { onConfirm(text) }, enabled = text.isNotBlank() && !dup) {
+            TextButton(onClick = { onConfirm(k, value.trim()) }, enabled = k.isNotEmpty() && !dup) {
                 Text("添加", fontSize = 12.sp)
             }
         },
@@ -1200,6 +1620,47 @@ private fun SmallButton(label: String, onClick: () -> Unit) {
             .padding(horizontal = 10.dp, vertical = 6.dp),
     ) {
         Text(label, fontSize = 10.5.sp, color = t.inkSoft)
+    }
+}
+
+/**
+ * 底部常驻操作区的按钮（m31 F3）：主（主色实底）/ 次（描边）两态。
+ * 主按钮 `enabled = false` 就是「已保存」回执态：主色描边 + 卡面底 + 主色字，
+ * 一眼看出刚落盘，5 秒后自己回到可点的主色「保存」。
+ */
+@Composable
+private fun BarAction(
+    label: String,
+    primary: Boolean,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    val t = InkTokens.current
+    val filled = primary && enabled
+    Box(
+        Modifier
+            .heightIn(min = 34.dp)
+            .clip(RectangleShape)
+            .border(
+                if (primary) StrokeTokens.strong else StrokeTokens.hairline,
+                if (primary) t.primary else t.outline,
+            )
+            .background(if (filled) t.primary else t.card)
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = Space.l),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            label,
+            fontSize = 11.sp,
+            color = when {
+                !primary -> t.inkSoft
+                filled -> if (t.isDark) Color(0xFF100E0B) else Color.White
+                else -> t.primary
+            },
+            fontWeight = if (primary) FontWeight.Bold else FontWeight.Normal,
+            maxLines = 1,
+        )
     }
 }
 

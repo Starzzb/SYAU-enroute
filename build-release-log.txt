@@ -4,7 +4,6 @@ Daemon will be stopped at the end of the build
 
 > Configure project :app
 Unable to initialize metrics, ensure C:\Users\28759\.android is writable, details: C:\Users\28759\.android\analytics.settings (拒绝访问。)
-?? 未配置 ENROUTE_STORE_FILE，release 将回退 debug 签名（不建议分发）
 
 > Task :app:buildKotlinToolingMetadata UP-TO-DATE
 > Task :app:checkKotlinGradlePluginConfigurationErrors SKIPPED
@@ -35,9 +34,9 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:mergeReleaseShaders UP-TO-DATE
 > Task :app:compileReleaseShaders NO-SOURCE
 > Task :app:generateReleaseAssets UP-TO-DATE
-> Task :app:mergeReleaseAssets
-> Task :app:compressReleaseAssets
-> Task :app:extractReleaseVersionControlInfo
+> Task :app:mergeReleaseAssets UP-TO-DATE
+> Task :app:compressReleaseAssets UP-TO-DATE
+> Task :app:extractReleaseVersionControlInfo UP-TO-DATE
 > Task :app:collectReleaseDependencies UP-TO-DATE
 > Task :app:sdkReleaseDependencyData UP-TO-DATE
 > Task :app:validateSigningRelease UP-TO-DATE
@@ -47,6 +46,7 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:processReleaseResources
 > Task :app:optimizeReleaseResources
 > Task :app:compileReleaseKotlin
+w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/map/CampusMapScreen.kt:1095:46 'val Drag: NestedScrollSource' is deprecated. This has been replaced by UserInput.
 w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/timetable/TimetableScreen.kt:199:33 Condition is always 'true'.
 
 > Task :app:compileReleaseJavaWithJavac
@@ -68,6 +68,6 @@ Warning: Unable to initialize metrics, ensure C:\Users\28759\.android is writabl
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 2m 55s
-48 actionable tasks: 21 executed, 27 up-to-date
+BUILD SUCCESSFUL in 2m 42s
+48 actionable tasks: 18 executed, 30 up-to-date
 EXIT=0 

@@ -1,9 +1,9 @@
 {
-  "versionCode": 310,
-  "versionName": "0.7.3+m30",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m30/SYAU-enroute-m30.apk",
-  "sha256": "b4c326b9415a58ccff5a037aecefddce8db07f1ff1d0c5318a3ae8cfc02620a4",
-  "size": 8470457,
-  "notes": "校园地图换成 173 面、15 类的矢量图层，底图也是真图了。详见 CHANGELOG.md。",
+  "versionCode": 400,
+  "versionName": "0.8.0+m32",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m32/SYAU-enroute-m32.apk",
+  "sha256": "f7f58ca3953ed0b9a86ceb208c0e0e41e7a4fae064fb113983ad32249f995b2b",
+  "size": 8507321,
+  "notes": "这一版换了发布签名，旧版无法覆盖安装：请先在地图页导出标注，卸载旧版后再装新版。",
   "minSupported": 0
 }

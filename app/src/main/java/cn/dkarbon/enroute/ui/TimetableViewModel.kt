@@ -1080,6 +1080,38 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+    /**
+     * 导入标注（m32 迁移用）：把导出过的 GeoJSON 读回来，合并进本机 `edits.json`。
+     *
+     * 换签名之后旧版必须卸载重装，本机标注会被系统清掉 —— 这条路径是用户把标注带过来的唯一方式。
+     */
+    fun importMapAnnotations(text: String) {
+        val pkg = _ui.value.mapPackage
+        if (pkg == null) {
+            _ui.value = _ui.value.copy(mapExportMsg = "地图还没读出来，等它加载完再导入")
+            return
+        }
+        val res = cn.dkarbon.enroute.data.map.MapAnnotationImport.parse(
+            text = text,
+            official = pkg.features,
+            existing = _ui.value.mapEdits,
+            mapVersion = pkg.manifest.version,
+        )
+        if (res.error.isNotBlank()) {
+            _ui.value = _ui.value.copy(mapExportMsg = "导入失败：${res.error}")
+            return
+        }
+        updateEdits { res.edits }
+        val extra = buildString {
+            if (res.fields > 0) append("，新增 ${res.fields} 个字段")
+            if (res.skipped > 0) append("，${res.skipped} 个 id 在这版地图里找不到（已跳过）")
+        }
+        _ui.value = _ui.value.copy(mapExportMsg = "已导入 ${res.features} 个面的标注$extra")
+        cn.dkarbon.enroute.data.DebugLog.log(
+            "MAP", "导入标注：${res.features} 面 / 新字段 ${res.fields} / 跳过 ${res.skipped}",
+        )
+    }
+
     fun setMapFeatureName(id: String, name: String) = updateEdits {
         cn.dkarbon.enroute.data.map.MapEditsOps.setName(it, id, name)
     }
@@ -2188,7 +2220,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             raw.contains("Connect", true) || raw.contains("refused", true) ||
             raw.contains("Failed to connect", true)
         ) {
-            "连不上教务系统（10.2.0.47）。这个地址只在校内网可达 —— 请连校园网或 VPN 再试，或改用 JSON 导入。"
+            "连不上教务系统（10.2.0.47）—— 需要校园网内网或 mangoVPN 才能加载。也可以改用 JSON 导入。"
         } else {
             "失败：$raw"
         }

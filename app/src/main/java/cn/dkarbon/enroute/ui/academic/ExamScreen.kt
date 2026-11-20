@@ -1,5 +1,13 @@
 package cn.dkarbon.enroute.ui.academic
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,39 +23,48 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.AcademicApi
 import cn.dkarbon.enroute.data.ExamItem
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.TimetableViewModel
+import cn.dkarbon.enroute.ui.common.CampusNetworkHint
+import cn.dkarbon.enroute.ui.common.NetFailure
 import cn.dkarbon.enroute.ui.common.rememberListScrollState
 import cn.dkarbon.enroute.ui.theme.InkTokenSet
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Stroke
+import java.time.Duration
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.delay
 
 /**
- * 考试安排 —— **时间轴**（2026-11-13 重做）。
+ * 考试安排 —— **时间轴**（2026-11-13 重做，2026-11-20 m31 轨道 D 改版）。
  *
  * ## 为什么从「扁平卡片列表」改成时间轴
  * 旧版一屏四张一样的卡，看不出「哪场是下一场」「已经考完的混在中间」。考试这件事，
@@ -55,14 +72,24 @@ import java.time.LocalDateTime
  * 所以：左侧一根竖轴 + 日期节点回答「什么时候」，右侧卡片回答「哪场、在哪」，
  * 顶部一条「下一场」把倒计时提到第一眼；已结束折叠到底，不占首屏。
  *
- * ## 信息三层
- * 主：课程名 + 起止时刻 + 倒计时（一眼能读）
- * 次：校区 · 教学楼 · 教室 / 时长 / 座位（点开卡片是详情浮层）
- * 原始：完整 JSON + 接口全部 key（详情浮层的最后一段，长按直接进）
+ * ## m31 轨道 D 加了什么（都靠「形态」说话，界面上一句说明都不写）
+ * · **卡片边缘三态**：已考完 = 1dp 灰边 + 整体 55% 不透明；下一场 = 1dp 主色边 + 8dp 主色光晕；
+ *   更远的 = 常规细边。三态只看「此刻」，不看分桶 —— 一场十点半考完的考试，
+ *   十点半之后就自己变灰，不用等刷新。
+ * · **下一场呼吸**：scale 1 → 1.012、光晕 alpha 0.35 → 0.60，3.2s 一个来回；
+ *   顶部「下一场」卡与轴上的那一行同相位 —— 它们说的是同一场考试。
+ * · **轴上三态节点** + **当前时刻三角** + **LED 跑马灯**：一个光点从现在滚到下一场，
+ *   周期按剩余天数对数映射到 4–12 秒，到点闪一下再回起点（见 [ledPeriodMs]）。
+ * · **历史点亮**：展开「已结束」时，轴上的历史节点从灰空心点淡入成实心主色。
+ *
+ * ## 只有一个时钟
+ * `now` 是全页唯一的「现在」，60 秒跳一次。之前它是「刷新时才取一次」的快照，
+ * 于是页面停在那里半小时也不会自己翻面；现在跨小时、跨零点都会自己更新。
+ * 呼吸与 LED 各自是 Compose 的无限动画，不额外起线程，也不跟这个时钟打架。
  *
  * ## 性能（按 jetpack-compose-performance 规则）
- * · `today` / `now` 在屏幕级取一次，随参数下传 —— 不在每张卡里读时钟；
- * · 派生（分桶/排序/倒计时）全在 [ExamRows] 纯函数里，`remember` 带全 key；
+ * · `now` 在屏幕级取一次，随参数下传 —— 不在每张卡里读时钟；
+ * · 派生（分桶/排序/倒计时/行间距）全在 remember 里算，key 带全；
  * · `InkTokens` 只在屏幕级读一次，行拿到的是 `InkTokenSet` 值参数；
  * · 每个 Lazy item 都有 key + contentType（见 [ExamRow.rowKey] / [ExamRow.contentType]）。
  */
@@ -70,11 +97,19 @@ import java.time.LocalDateTime
 fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifier) {
     val t = InkTokens.current
 
-    // 刷新一次就重取一次「现在」：考试是按时辰判「已考完」的，跨小时要准
-    val stamp = remember(ui.exams, ui.examsLoading) { LocalDateTime.now() }
-    val today = stamp.toLocalDate()
+    // ── 整页唯一的「现在」：60 秒一跳 ──────────────────────────
+    // 考试是按时辰判「已考完 / 下一场」的，跨小时要准；但也没必要每行各起一个定时器。
+    var now by remember { mutableStateOf(LocalDateTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000L)
+            now = LocalDateTime.now()
+        }
+    }
+    val today = now.toLocalDate()
 
-    var collapsed by remember { mutableStateOf(emptySet<ExamBucket>()) }
+    // 已考完的默认收起：首屏只给要考的（「更多」面板里可以再打开）
+    var collapsed by remember { mutableStateOf(setOf(ExamBucket.PAST)) }
     var detail by remember { mutableStateOf<ExamItem?>(null) }
     var showRawFirst by remember { mutableStateOf(false) }
     var showDiag by remember { mutableStateOf(false) }
@@ -84,16 +119,59 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
     // 从详情浮层返回、或折叠/展开后都停在你刚才那一行。
     val listState = rememberListScrollState()
 
-    val rows = remember(ui.exams, today, stamp, collapsed) {
-        ExamRows.build(ui.exams, today, stamp, collapsed)
+    val rows = remember(ui.exams, today, now, collapsed) {
+        ExamRows.build(ui.exams, today, now, collapsed)
     }
-    val stats = remember(ui.exams, today, stamp) { ExamRows.stats(ui.exams, today, stamp) }
+    val stats = remember(ui.exams, today, now) { ExamRows.stats(ui.exams, today, now) }
     val label = remember(stats, collapsed) {
         buildString {
             append(ExamRows.toolbarLabel(stats))
             if (collapsed.isNotEmpty()) append(" · 已折叠 ${collapsed.size} 组")
         }
     }
+
+    // ── 呼吸：全页一个相位，顶部卡和轴上那一行共用 ─────────────
+    val motionOn = remember { animationsEnabled() }
+    val breath = rememberInfiniteTransition(label = "exam-breath")
+    val pulseRaw by breath.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 1600, easing = FastOutSlowInEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
+        label = "exam-breath-x",
+    )
+    // 系统关掉动画时停在静止帧：scale 1.0、光晕最淡。不是消失，是不再自己动。
+    val pulse = if (motionOn) pulseRaw else 0f
+
+    // 行间距：两场隔得越远，轴上留白越大。Lazy 的行是独立的，只能在这里预算
+    val gaps = remember(rows, today, now) {
+        val out = HashMap<String, Dp>(rows.size)
+        var prev: ExamItem? = null
+        rows.forEach { row ->
+            if (row is ExamRow.Card) {
+                out[row.rowKey] = rowGap(prev, row.exam, edgeState(row, today, now))
+                prev = row.exam
+            }
+        }
+        out
+    }
+
+    // LED 周期只跟「离下一场还有几天」有关（含小数：今天下午考就比明天考快）
+    val next = stats.next
+    val ledPeriod = remember(next, now) {
+        val start = next?.let { ExamRows.startOf(it) }
+        if (start == null) {
+            6_000
+        } else {
+            ledPeriodMs(Duration.between(now, start).toMinutes() / 1440.0)
+        }
+    }
+    val prevStartOfNext = remember(next, ui.exams) {
+        next?.let { target -> previousStart(ui.exams, target) }
+    }
+    val nowLabel = remember(now) { now.format(HOUR_MIN) }
 
     Box(modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
@@ -105,46 +183,47 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                 onMore = { showMore = true },
             )
 
-            // 年龄只在下面那行红字里说一次（「本地缓存 · 考试更新于 11 小时前」）；
-            // 这里原来还叠了一行「数据取自 11-16 22:13」，同一件事两种写法，已删。
-
             if (ui.exams.isEmpty()) {
-                AcademicProblem(
-                    t = t,
-                    title = "考试安排没读出来",
-                    reason = ui.examsMsg,
-                    loggedIn = ui.loggedIn,
-                    onRetry = { vm.refreshExams() },
-                    onDiagnose = { showDiag = true },
-                )
+                // 「教务系统说本学期没有待考考试」是真结论，不是失败 —— 两种空态分开走
+                if (ui.examsMsg.contains(NO_EXAM_MARK)) {
+                    NothingToTake(t = t, msg = ui.examsMsg)
+                } else {
+                    ExamLoadFailed(
+                        t = t,
+                        msg = ui.examsMsg,
+                        onRetry = { vm.refreshExams() },
+                        onDiagnose = { showDiag = true },
+                    )
+                }
             } else {
-                // 失败但旧数据还在：给一行说明，列表照旧可读（不清空、不白屏）
+                // 失败但旧数据还在：只留一行内网提示，列表照旧可读（不清空、不白屏）
                 if (ui.examsMsg.isNotBlank() && !ui.examsMsg.startsWith("✅")) {
-                    Text(
-                        ui.examsMsg,
-                        fontSize = 10.sp,
-                        lineHeight = 15.sp,
-                        color = t.brick,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                    CampusNetworkHint(
+                        failure = failureOf(ui.examsMsg),
+                        compact = true,
+                        modifier = Modifier.padding(horizontal = Axis.ContentStart),
                     )
                 }
                 LazyColumn(
                     Modifier.fillMaxSize(),
                     state = listState,
-                    contentPadding = PaddingValues(start = 12.dp, end = 16.dp, top = 2.dp, bottom = 28.dp),
+                    contentPadding = PaddingValues(start = 0.dp, end = 16.dp, top = 2.dp, bottom = 28.dp),
                 ) {
-                    val next = stats.next
                     if (next != null) {
                         item(key = "next-up", contentType = "exam-next") {
-                            NextUpCard(
-                                t = t,
-                                exam = next,
-                                daysAhead = stats.nextDays,
-                                onClick = {
-                                    detail = next
-                                    showRawFirst = false
-                                },
-                            )
+                            // 与下方卡片同一条左边线（轴上 24dp + 28dp 留白）
+                            Box(Modifier.padding(start = Axis.ContentStart)) {
+                                NextUpCard(
+                                    t = t,
+                                    exam = next,
+                                    daysAhead = stats.nextDays,
+                                    pulse = pulse,
+                                    onClick = {
+                                        detail = next
+                                        showRawFirst = false
+                                    },
+                                )
+                            }
                         }
                     }
                     items(items = rows, key = { it.rowKey }, contentType = { it.contentType }) { row ->
@@ -160,18 +239,34 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
                                     }
                                 },
                             )
-                            is ExamRow.Card -> TimelineRow(
-                                t = t,
-                                row = row,
-                                onClick = {
-                                    detail = row.exam
-                                    showRawFirst = false
-                                },
-                                onLongClick = {
-                                    detail = row.exam
-                                    showRawFirst = true
-                                },
-                            )
+                            is ExamRow.Card -> {
+                                // 三态只在这里算一次：只有「下一场」那一行才吃呼吸相位，
+                                // 其余行传 0，别让整屏每帧都因为 pulse 变化而重组。
+                                val state = edgeState(row, today, now)
+                                TimelineRow(
+                                    t = t,
+                                    row = row,
+                                    state = state,
+                                    gap = gaps[row.rowKey] ?: 10.dp,
+                                    pulse = if (state == EdgeState.NEXT) pulse else 0f,
+                                    motionOn = motionOn,
+                                    ledPeriod = ledPeriod,
+                                    marker = if (row.isNext) {
+                                        markerFraction(prevStartOfNext, ExamRows.startOf(row.exam), now)
+                                    } else {
+                                        0f
+                                    },
+                                    nowLabel = nowLabel,
+                                    onClick = {
+                                        detail = row.exam
+                                        showRawFirst = false
+                                    },
+                                    onLongClick = {
+                                        detail = row.exam
+                                        showRawFirst = true
+                                    },
+                                )
+                            }
                         }
                     }
                 }
@@ -243,6 +338,34 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
     }
 }
 
+private const val NO_EXAM_MARK = "教务系统说"
+private val HOUR_MIN = DateTimeFormatter.ofPattern("HH:mm")
+
+/** 三态判定：只看「现在」。已考完的永远优先于 isNext —— 一场正在拖堂的考试也不该还发光。 */
+private fun edgeState(row: ExamRow.Card, today: LocalDate, now: LocalDateTime): EdgeState = when {
+    ExamRows.isFinished(row.exam, today, now) -> EdgeState.PAST
+    row.isNext -> EdgeState.NEXT
+    else -> EdgeState.FUTURE
+}
+
+/** 排在 target 之前、且离它最近的那一场的开考时刻（用来把「现在」摆到两场之间的比例位置上）。 */
+private fun previousStart(exams: List<ExamItem>, target: ExamItem): LocalDateTime? {
+    val targetStart = ExamRows.startOf(target) ?: return null
+    return exams
+        .mapNotNull { e -> ExamRows.startOf(e)?.takeIf { it.isBefore(targetStart) } }
+        .maxOrNull()
+}
+
+/**
+ * 仓库层不告诉我们是「没网」还是「站点改版」，这里按文案兜底判一次性质。
+ * 判不出来的按 [NetFailure.Unreachable] 处理：内网不通是这个页面最常见的失败。
+ */
+private fun failureOf(msg: String): NetFailure = when {
+    msg.contains("解析") || msg.contains("格式") || msg.contains("改版") -> NetFailure.Parse
+    msg.contains("HTTP") || msg.contains("状态码") || msg.contains("服务端") -> NetFailure.ServerError
+    else -> NetFailure.Unreachable
+}
+
 // ── 顶部「下一场」────────────────────────────────────────
 
 /**
@@ -250,12 +373,14 @@ fun ExamScreen(ui: AppState, vm: TimetableViewModel, modifier: Modifier = Modifi
  *
  * 主诉求「能一眼看出下一场还有几天」就靠这一条：它在列表最上面，
  * 不进分组、不可折叠，所以无论已结束折叠与否它都在第一屏。
+ * 它和轴上那一行说的是同一场考试，所以共用同一个呼吸相位（[pulse]）。
  */
 @Composable
 private fun NextUpCard(
     t: InkTokenSet,
     exam: ExamItem,
     daysAhead: Long?,
+    pulse: Float,
     onClick: () -> Unit,
 ) {
     val countdown = ExamRows.countdownLabel(daysAhead) ?: "日期待定"
@@ -264,18 +389,22 @@ private fun NextUpCard(
         ExamRows.timeRangeLabel(exam),
         ExamRows.placeLabel(exam),
     ).filter { it.isNotBlank() }.joinToString(" · ")
+    val scale = 1f + 0.012f * pulse
 
     Box(
         Modifier
             .fillMaxWidth()
             .padding(top = 10.dp, bottom = 6.dp)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            // 光晕先画（在卡面之下），露出来的就是卡片外沿那 8dp
+            .drawBehind { edgeGlow(t.primary, 0.35f + 0.25f * pulse) }
             .background(t.card)
             .drawBehind {
                 // 3dp 主色条：硬朗体系里「当前」的记号（Stroke.accentBar）。
                 // ⚠️ 必须画在 background 之后，否则会被卡面盖掉
                 drawRect(t.primary, size = Size(3.dp.toPx(), size.height))
             }
-            .border(Stroke.hairline, t.outline)
+            .border(Stroke.hairline, t.primary)
             .clickable(onClick = onClick)
             .padding(start = 14.dp, end = 12.dp, top = 10.dp, bottom = 10.dp),
     ) {
@@ -308,6 +437,10 @@ private fun NextUpCard(
 
 // ── 分组头 ────────────────────────────────────────────────
 
+/**
+ * 分组头。轴在这一行也照常穿过（细线），不被标题打断 ——
+ * 分组是「批注」，时间轴是「骨架」，批注不该把骨架剪断。
+ */
 @Composable
 private fun BucketHeader(
     t: InkTokenSet,
@@ -315,134 +448,196 @@ private fun BucketHeader(
     onToggle: () -> Unit,
 ) {
     val dim = header.bucket == ExamBucket.PAST || header.bucket == ExamBucket.LATER
-    Row(
+    Column(
         Modifier
             .fillMaxWidth()
             .then(if (header.collapsible) Modifier.clickable(onClick = onToggle) else Modifier)
-            .heightIn(min = if (header.collapsible) 48.dp else 28.dp)
-            .padding(start = 12.dp, end = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .drawBehind { axisLine(t.outline) },
     ) {
-        Text(
-            header.bucket.label,
-            fontSize = 11.5.sp,
-            fontWeight = FontWeight.Bold,
-            letterSpacing = 0.4.sp,
-            color = if (dim) t.inkSoft else t.ink,
-        )
-        Spacer(Modifier.width(6.dp))
-        Text(
-            "${header.count} 场",
-            fontSize = 10.sp,
-            fontFamily = NumericFont,
-            color = t.inkFaint,
-        )
-        Spacer(Modifier.weight(1f))
-        if (header.collapsible) {
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .heightIn(min = if (header.collapsible) 48.dp else 28.dp)
+                .padding(start = Axis.ContentStart, end = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
-                if (header.collapsed) "▸" else "▾",
-                fontSize = 11.sp,
+                header.bucket.label,
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.4.sp,
+                color = if (dim) t.inkSoft else t.ink,
+            )
+            Spacer(Modifier.width(6.dp))
+            Text(
+                "${header.count} 场",
+                fontSize = 10.sp,
+                fontFamily = NumericFont,
                 color = t.inkFaint,
             )
+            Spacer(Modifier.weight(1f))
+            if (header.collapsible) {
+                Text(
+                    if (header.collapsed) "▸" else "▾",
+                    fontSize = 11.sp,
+                    color = t.inkFaint,
+                )
+            }
         }
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .padding(start = Axis.ContentStart)
+                .height(0.75.dp)
+                .background(t.rule),
+        )
     }
-    Box(Modifier.fillMaxWidth().padding(start = 12.dp).height(0.75.dp).background(t.rule))
 }
 
 // ── 时间轴一行 ────────────────────────────────────────────
 
 /**
- * 一行 = 左侧日期节点 + 右侧考试卡。
+ * 一行 = 左侧竖直轴 + 轴上节点 + 右侧日期与考试卡。
  *
- * 竖轴画在 `drawBehind` 里（一次绘制，不用 Box 套 Box）：
- * 轴在 x = 44dp，节点对齐日期文字的第一行；下一场用实心主色方块，其余是空心方框 ——
- * 全部方角，与红线一致。
+ * 轴、节点、当前时刻三角、LED 全在 `drawBehind` 里一次画完（见 `ExamTimeline.kt`）：
+ * 位置都是「按比例算的」，用 Compose 的盒子拼不出来，也没必要为它建一套图标。
+ *
+ * @param gap 行顶留白：两场隔得越久越大，轴的「疏密」就是时间流逝的刻度
+ * @param state 三态（已考 / 下一场 / 更远）
+ * @param marker 当前时刻在这一段轴上的比例（只在下一场那一行用）
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun TimelineRow(
     t: InkTokenSet,
     row: ExamRow.Card,
+    state: EdgeState,
+    gap: Dp,
+    pulse: Float,
+    motionOn: Boolean,
+    ledPeriod: Int,
+    marker: Float,
+    nowLabel: String,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
     val e = row.exam
-    val highlight = row.isNext
+    val nodeY = Axis.nodeY(gap)
+    val markerY = nodeY * marker
+
+    // 历史节点点亮：展开「已结束」时这些行是新组合出来的，从灰点到实心主色 420ms 渐入
+    val lit = if (state == EdgeState.PAST && motionOn) {
+        val a = remember { Animatable(0f) }
+        LaunchedEffect(Unit) { a.animateTo(1f, tween(durationMillis = 420)) }
+        a.value
+    } else {
+        1f
+    }
+
+    // LED：只在下一场那一行跑。一个光点从「现在」滚到节点，到点闪一下，再回起点
+    val led = if (state == EdgeState.NEXT && motionOn) {
+        val tr = rememberInfiniteTransition(label = "exam-led")
+        tr.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = ledPeriod, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "exam-led-x",
+        ).value
+    } else {
+        0f
+    }
+
     Box(
         Modifier
             .fillMaxWidth()
             .drawBehind {
-                val axisX = 44.dp.toPx()
-                // 轴线用 outline 而不是 rule：暗色下 rule(#3E362C) 在纸底上几乎看不见，
-                // 而轴线是「时间轴」这个隐喻的骨架，不能省。
-                drawLine(t.outline, Offset(axisX, 0f), Offset(axisX, size.height), 1.dp.toPx())
-                val cy = 20.dp.toPx()
-                val half = 3.5.dp.toPx()
-                val topLeft = Offset(axisX - half, cy - half)
-                val nodeSize = Size(half * 2, half * 2)
-                if (highlight) {
-                    drawRect(t.primary, topLeft, nodeSize)
-                } else {
-                    // 先用纸色挖空轴线，再描边框 —— 否则线会从方块中间穿过去
-                    drawRect(t.paper, topLeft, nodeSize)
-                    drawRect(
-                        t.outline,
-                        topLeft,
-                        nodeSize,
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()),
-                    )
+                axisLine(t.outline)
+                timelineNode(t, state, Axis.X.toPx(), nodeY.toPx(), pulse, lit)
+                if (state == EdgeState.NEXT) {
+                    val startY = markerY.toPx()
+                    val endY = nodeY.toPx()
+                    nowMarker(t, Axis.X, startY)
+                    ledDot(t, Axis.X, startY + (endY - startY) * led, led)
                 }
             },
     ) {
-        Row(Modifier.fillMaxWidth().padding(vertical = 5.dp)) {
-            Column(
-                Modifier.width(40.dp).padding(top = 8.dp),
-                horizontalAlignment = Alignment.End,
-            ) {
+        Column(Modifier.fillMaxWidth().padding(start = Axis.ContentStart)) {
+            Spacer(Modifier.height(gap))
+            Box(Modifier.height(Axis.DateLine), contentAlignment = Alignment.CenterStart) {
                 Text(
-                    ExamRows.dayLabel(e),
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Bold,
+                    "${ExamRows.dayLabel(e)} ${ExamRows.weekdayLabel(e)}".trim(),
+                    fontSize = 10.5.sp,
                     fontFamily = NumericFont,
-                    color = if (highlight) t.primary else t.ink,
-                )
-                Text(
-                    ExamRows.weekdayLabel(e),
-                    fontSize = 9.sp,
-                    color = t.inkFaint,
+                    color = if (state == EdgeState.NEXT) t.primary else t.inkFaint,
                 )
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.height(6.dp))
             ExamCard(
                 t = t,
                 exam = e,
                 daysAhead = row.daysAhead,
-                highlight = highlight,
+                state = state,
+                pulse = pulse,
                 onClick = onClick,
                 onLongClick = onLongClick,
             )
+            Spacer(Modifier.height(10.dp))
+        }
+
+        // 三角旁边标一下「现在几点」。越靠近下一场越淡：快到点时它会和日期行撞上，
+        // 那时候「还有几小时」这件事已经由卡片上的倒计时接管了。
+        if (state == EdgeState.NEXT) {
+            val fade = ((0.66f - marker) / 0.11f).coerceIn(0f, 1f)
+            if (fade > 0.01f) {
+                Text(
+                    "现在 $nowLabel",
+                    fontSize = 9.5.sp,
+                    fontFamily = NumericFont,
+                    color = t.primary.copy(alpha = fade),
+                    modifier = Modifier
+                        .align(Alignment.TopStart)
+                        .offset(x = Axis.X + 10.dp, y = markerY - 7.dp),
+                )
+            }
         }
     }
 }
 
+// ── 考试卡 ────────────────────────────────────────────────
+
+/**
+ * 一张考试卡。三态只差边缘与不透明度，正文排版完全一致 ——
+ * 「已考完」是同一张卡退到背景里，不是另一套组件。
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ExamCard(
     t: InkTokenSet,
     exam: ExamItem,
     daysAhead: Long?,
-    highlight: Boolean,
+    state: EdgeState,
+    pulse: Float,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
 ) {
     val countdown = ExamRows.countdownLabel(daysAhead)
     val timeRange = ExamRows.timeRangeLabel(exam)
     val duration = ExamRows.durationLabel(exam)
+    val glow = if (state == EdgeState.NEXT) 0.35f + 0.25f * pulse else 0f
+    val scale = if (state == EdgeState.NEXT) 1f + 0.012f * pulse else 1f
+
     Column(
         Modifier
             .fillMaxWidth()
+            // 55% 不透明包住整张卡（含边框与文字）：alpha 放在链首，背景和描边一起淡
+            .then(if (state == EdgeState.PAST) Modifier.alpha(0.55f) else Modifier)
+            .graphicsLayer { scaleX = scale; scaleY = scale }
+            .drawBehind { edgeGlow(t.primary, glow) }
             .background(t.card)
-            .border(if (highlight) Stroke.emphasis else Stroke.hairline, if (highlight) t.primary else t.outline)
+            .border(Stroke.hairline, if (state == EdgeState.NEXT) t.primary else t.outline)
             .combinedClickable(onClick = onClick, onLongClick = onLongClick)
             .padding(horizontal = 12.dp, vertical = 10.dp),
     ) {
@@ -462,7 +657,7 @@ private fun ExamCard(
                     countdown,
                     fontSize = 11.sp,
                     fontFamily = NumericFont,
-                    color = if (highlight) t.primary else t.inkSoft,
+                    color = if (state == EdgeState.NEXT) t.primary else t.inkSoft,
                 )
             }
         }
@@ -493,5 +688,43 @@ private fun ExamCard(
             Spacer(Modifier.height(2.dp))
             Text("这条返回里没有可用的课程名与地点", fontSize = 10.sp, color = t.brick)
         }
+    }
+}
+
+// ── 两种空态 ──────────────────────────────────────────────
+
+/**
+ * 失败的统一说法。原来每个页面各写一句（「没连上学院官网」「刷新失败」…），
+ * 用户看不出「该怎么解决」；现在只走 [CampusNetworkHint] 那一套口径。
+ */
+@Composable
+private fun ExamLoadFailed(
+    t: InkTokenSet,
+    msg: String,
+    onRetry: () -> Unit,
+    onDiagnose: () -> Unit,
+) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 24.dp)) {
+        Text("考试安排没读出来", fontSize = 15.sp, fontWeight = FontWeight.Bold, color = t.ink)
+        Spacer(Modifier.height(8.dp))
+        CampusNetworkHint(failure = failureOf(msg))
+        Spacer(Modifier.height(16.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            SheetAction(t = t, label = "重新抓取", primary = true, onClick = onRetry)
+            SheetAction(t = t, label = "接口诊断", onClick = onDiagnose)
+        }
+    }
+}
+
+/** 教务系统明确说本学期没有待考考试 —— 这是结论，不是失败，不要再摆一套「重试」。 */
+@Composable
+private fun NothingToTake(t: InkTokenSet, msg: String) {
+    Column(Modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 24.dp)) {
+        Text(
+            msg.ifBlank { "教务系统说本学期没有待考考试" },
+            fontSize = 12.5.sp,
+            lineHeight = 20.sp,
+            color = t.inkSoft,
+        )
     }
 }

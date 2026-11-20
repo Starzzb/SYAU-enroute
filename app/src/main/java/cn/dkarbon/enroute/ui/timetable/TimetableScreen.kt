@@ -1349,7 +1349,8 @@ private fun ImportPanel(ui: AppState, vm: TimetableViewModel) {
             item {
                 Column(Modifier.fillMaxWidth()) {
                     Text(
-                        "需要连着校园网（关掉代理 / VPN）。密码只用一次，不保存。",
+                        // 「关掉 VPN」的旧说法不成立：mangoVPN 是学校自己的，反而是常用通路（2026-11-20 统一口径）
+                        "需要连着校园网内网或 mangoVPN。密码只用一次，不保存。",
                         fontSize = 11.5.sp,
                         lineHeight = 17.sp,
                         color = t.inkFaint,
