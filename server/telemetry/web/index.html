@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>沈农在途 · 使用情况</title>
+<style>
+  :root{
+    --paper:#FAF7F1; --card:#FFFFFF; --card-alt:#F1ECE1;
+    --ink:#16211B; --ink-soft:#3C4A42; --ink-faint:#5A6A60;
+    --rule:#7B897F; --olive:#3E5C34; --brick:#8E2B1E; --ghost:#D8D2C4;
+    --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Roboto Mono", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#141A17; --card:#1B231F; --card-alt:#232C27;
+      --ink:#F1EFE7; --ink-soft:#C6CDC6; --ink-faint:#9AA69D;
+      --rule:#6E7B72; --olive:#A9C496; --brick:#E5A08F; --ghost:#3A443D;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--sans); font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px;margin:0 auto;padding:40px 22px 64px}
+  header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+         padding-bottom:18px;border-bottom:2px solid var(--ink)}
+  h1{font-size:20px;line-height:1.3;margin:0;letter-spacing:.02em}
+  h1 small{display:block;font-size:12px;font-weight:400;color:var(--ink-faint);letter-spacing:.18em;margin-top:6px}
+  .stamp{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:right;white-space:nowrap;line-height:1.8}
+  .lede{margin:18px 0 0;color:var(--ink-soft);font-size:13.5px}
+  section{margin-top:34px}
+  h2{font-size:12px;font-weight:600;letter-spacing:.2em;color:var(--ink-faint);
+     margin:0 0 14px;text-transform:none}
+  .figs{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--ghost);
+        border:1px solid var(--ghost)}
+  .fig{background:var(--card);padding:16px 14px}
+  .fig .n{font-family:var(--mono);font-size:30px;line-height:1.1;letter-spacing:-.02em}
+  .fig .n.dim{color:var(--ink-faint)}
+  .fig .k{font-size:11.5px;color:var(--ink-faint);margin-top:6px}
+  .chart{position:relative;padding-top:8px}
+  .bars{display:flex;align-items:flex-end;gap:3px;height:132px;border-bottom:1px solid var(--rule)}
+  .bars i{flex:1 1 0;min-width:2px;max-width:26px;background:var(--ink-soft);opacity:.55;
+          border-radius:1px 1px 0 0;display:block;position:relative}
+  .bars i.today{background:var(--olive);opacity:1}
+  .bars i.zero{height:3px !important;background:var(--ghost);opacity:1}
+  .axis{display:flex;justify-content:space-between;font-family:var(--mono);font-size:10.5px;
+        color:var(--ink-faint);margin-top:8px;border-top:1px solid var(--ghost);padding-top:6px}
+  .rows{display:grid;gap:10px}
+  .row{display:grid;grid-template-columns:112px 1fr 40px;align-items:center;gap:10px;font-size:13px}
+  .row .lb{color:var(--ink-soft);font-size:12.5px;font-family:var(--mono);
+           white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .tr{height:8px;background:var(--card-alt);position:relative;overflow:hidden}
+  .row .tr b{position:absolute;left:0;top:0;bottom:0;background:var(--olive);display:block;min-width:2px}
+  .row .vv{font-family:var(--mono);font-size:12px;color:var(--ink-faint);text-align:right}
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--ghost);border:1px solid var(--ghost)}
+  .duo > div{background:var(--card);padding:16px 14px}
+  .duo .n{font-family:var(--mono);font-size:24px;line-height:1.2}
+  .duo .n.dim{color:var(--ink-faint);font-size:20px}
+  .duo .k{font-size:11.5px;color:var(--ink-faint);margin-top:4px}
+  .duo .sub{font-family:var(--mono);font-size:11px;color:var(--ink-faint);margin-top:8px}
+  .ev{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12.5px;color:var(--ink-soft)}
+  .ev span{font-family:var(--mono);color:var(--ink-faint)}
+  footer{margin-top:44px;padding-top:14px;border-top:1px solid var(--ghost);
+         font-size:12px;color:var(--ink-faint);line-height:1.9}
+  footer b{color:var(--ink-soft);font-weight:600}
+  .empty{padding:22px 16px;border:1px dashed var(--rule);color:var(--ink-faint);font-size:13px}
+  .fail{border-left:2px solid var(--brick);padding:10px 14px;color:var(--brick);font-size:13px;margin-top:14px}
+  @media (max-width:520px){
+    .figs{grid-template-columns:1fr 1fr}
+    .row{grid-template-columns:78px 1fr 38px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>沈农在途<small>使用情况</small></h1>
+    <div class="stamp" id="stamp">读取中…</div>
+  </header>
+
+  <p class="lede">这台 App 会记下「哪个功能被用过几次」，不记学号、姓名、课程或搜索词。</p>
+
+  <section>
+    <div class="figs">
+      <div class="fig"><div class="n" id="f-today">—</div><div class="k">今天使用过的设备</div></div>
+      <div class="fig"><div class="n" id="f-users">—</div><div class="k">用过的设备合计</div></div>
+      <div class="fig"><div class="n" id="f-days">—</div><div class="k">记录了多少天</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>近 30 天，每天有多少台设备在用</h2>
+    <div class="chart">
+      <div class="bars" id="bars"></div>
+      <div class="axis"><span id="ax-from">—</span><span id="ax-note"></span><span id="ax-to">—</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>版本分布</h2>
+    <div class="rows" id="versions"><div class="empty">还没有数据</div></div>
+  </section>
+
+  <section>
+    <h2>用过的天数</h2>
+    <div class="rows" id="agedays"><div class="empty">还没有数据</div></div>
+  </section>
+
+  <section>
+    <h2>回访</h2>
+    <div class="duo">
+      <div>
+        <div class="n dim" id="d1-rate">—</div>
+        <div class="k">次日还在用</div>
+        <div class="sub" id="d1-sub">—</div>
+      </div>
+      <div>
+        <div class="n dim" id="d7-rate">—</div>
+        <div class="k">七天内回来过</div>
+        <div class="sub" id="d7-sub">—</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>今天记下的事件</h2>
+    <div class="ev" id="events"><span>—</span></div>
+  </section>
+
+  <footer id="foot">
+    <b>只统计次数。</b>每条记录只有：版本号、CPU 架构、事件名、一个按档位取整的耗时。
+    设备用一个本机生成的安装标识去重，它是随机串的哈希，不含任何能指向个人的信息，也不上传学号、姓名、课表与搜索内容。
+    服务端只保留聚合结果与原始计数，原始记录 180 天后删除。
+  </footer>
+</div>
+
+<script>
+(function () {
+  var EVENT_CN = {
+    "app.start": "启动", "app.background": "切到后台", "app.crash": "崩溃",
+    "perf.first_frame": "首屏耗时", "perf.asset_read": "读取课程资产",
+    "syllabus.search": "大纲搜索", "plan.course_tap": "方案里点课程",
+    "map.sheet.detent": "地图面板停顿", "update.download": "更新下载",
+    "course.add": "添加课程", "course.edit": "修改课程", "course.delete": "删除课程",
+    "grade.view": "看成绩", "exam.view": "看考试", "feed.open": "打开资讯",
+    "feed.detail": "读资讯正文", "empty.room": "查空闲教室"
+  };
+  var AGE_CN = [["1","只用过 1 天"],["2-3","2–3 天"],["4-7","4–7 天"],["8-30","8–30 天"],["31+","30 天以上"]];
+
+  function $(id) { return document.getElementById(id); }
+  function num(n) { return (n === null || n === undefined || isNaN(n)) ? "—" : String(n); }
+  function pct(rate) { return (rate === null || rate === undefined) ? "—" : Math.round(rate * 100) + "%"; }
+  function short(d) { return d ? d.slice(5).replace("-", "/") : "—"; }
+
+  function pad2(n) { return n < 10 ? "0" + n : String(n); }
+
+  // 服务端只返回有记录的那几天；这里补齐成「到今天的 30 个自然日」，
+  // 否则只有一天数据时图上会是一根占满整行的柱子，看不出这是一个月。
+  function last30(series) {
+    var map = {}, now = new Date(), out = [], i, dt, k;
+    series.forEach(function (p) { map[p.d] = p.dau; });
+    for (i = 29; i >= 0; i--) {
+      dt = new Date(now.getTime() - i * 86400000);
+      k = dt.getFullYear() + "-" + pad2(dt.getMonth() + 1) + "-" + pad2(dt.getDate());
+      out.push({ d: k, dau: map[k] || 0 });
+    }
+    return out;
+  }
+
+  function bars(raw) {
+    var box = $("bars"), series = last30(raw || []), n = series.length;
+    box.innerHTML = "";
+    var max = 1;
+    series.forEach(function (p) { if (p.dau > max) max = p.dau; });
+    var today = series[n - 1].d;
+    series.forEach(function (p) {
+      var el = document.createElement("i");
+      var h = p.dau === 0 ? 0 : Math.max(3, Math.round(p.dau / max * 100));
+      el.style.height = h + "%";
+      if (p.dau === 0) el.className = "zero";
+      else if (p.d === today) el.className = "today";
+      el.title = p.d + " · " + p.dau + " 台";
+      box.appendChild(el);
+    });
+    var hit = series.filter(function (p) { return p.dau > 0; }).length;
+    $("ax-from").textContent = short(series[0].d);
+    $("ax-to").textContent = short(series[n - 1].d);
+    $("ax-note").textContent = hit + " / " + n + " 天有记录";
+  }
+
+  function rows(box, pairs, total) {
+    box.innerHTML = "";
+    if (!pairs.length) { box.innerHTML = '<div class="empty">还没有数据</div>'; return; }
+    pairs.forEach(function (p) {
+      var label = p[0], value = p[1];
+      var w = total > 0 ? Math.max(1, Math.round(value / total * 100)) : 0;
+      var d = document.createElement("div");
+      d.className = "row";
+      d.innerHTML = '<div class="lb">' + label + '</div>' +
+        '<div class="tr"><b style="width:' + w + '%"></b></div>' +
+        '<div class="vv">' + value + '</div>';
+      box.appendChild(d);
+    });
+  }
+
+  function retention(key) {
+    var r = (DATA.retention || {})[key] || {};
+    var cohort = r.cohort || 0, returned = r.returned || 0;
+    var rate = (r.rate === null || r.rate === undefined) ? null : r.rate;
+    return { rate: rate, cohort: cohort, returned: returned };
+  }
+
+  var DATA = {};
+
+  function render() {
+    $("stamp").innerHTML = "更新于<br>" + (DATA.server_time || "—");
+    $("f-today").textContent = num((DATA.today || {}).dau);
+    $("f-users").textContent = num(DATA.users_total);
+    $("f-days").textContent = num(DATA.days_tracked);
+
+    bars(DATA.dau_series || []);
+
+    var vs = Object.keys(DATA.versions || {}).map(function (k) { return [k, DATA.versions[k]]; });
+    vs.sort(function (a, b) { return b[1] - a[1]; });
+    var vtotal = vs.reduce(function (s, x) { return s + x[1]; }, 0);
+    rows($("versions"), vs, vtotal);
+
+    var ad = DATA.active_days || {};
+    var pairs = AGE_CN.map(function (x) { return [x[1], ad[x[0]] || 0]; });
+    var atotal = pairs.reduce(function (s, x) { return s + x[1]; }, 0);
+    rows($("agedays"), pairs, atotal);
+
+    ["d1", "d7"].forEach(function (k) {
+      var r = retention(k);
+      $(k + "-rate").textContent = pct(r.rate);
+      $(k + "-sub").textContent = r.cohort > 0
+        ? r.returned + " / " + r.cohort + " 台"
+        : "还没有可比的队列";
+    });
+
+    var ev = DATA.events_today || {};
+    var keys = Object.keys(ev);
+    var box = $("events");
+    if (!keys.length) { box.innerHTML = "<span>今天还没有事件</span>"; }
+    else {
+      keys.sort(function (a, b) { return ev[b] - ev[a]; });
+      box.innerHTML = keys.map(function (k) {
+        return (EVENT_CN[k] || k) + " <span>" + ev[k] + "</span>";
+      }).join("　·　");
+    }
+
+    var nothing = !DATA.users_total && (!DATA.dau_series || DATA.dau_series.every(function (p) { return !p.dau; }));
+    if (nothing) {
+      $("foot").insertAdjacentHTML("beforebegin",
+        '<section><div class="empty">还没有数据。装了这个版本的设备上报之后，这里会出现第一天的数字。</div></section>');
+    }
+  }
+
+  function fail(msg) {
+    $("stamp").textContent = "读取失败";
+    var el = document.createElement("div");
+    el.className = "fail";
+    el.textContent = msg;
+    document.querySelector(".wrap").appendChild(el);
+  }
+
+  fetch("/api/telemetry/public?t=" + Date.now(), { cache: "no-store" })
+    .then(function (r) {
+      if (!r.ok) throw new Error("服务端返回 " + r.status);
+      return r.json();
+    })
+    .then(function (d) { DATA = d || {}; render(); })
+    .catch(function (e) { fail("拿不到数据：" + e.message); });
+})();
+</script>
+</body>
+</html>

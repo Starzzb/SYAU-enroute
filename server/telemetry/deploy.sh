@@ -83,6 +83,60 @@ for site in /etc/nginx/sites-enabled/cet6-http /etc/nginx/sites-enabled/campusma
   fi
 done
 
+# ── 公开统计页（https://wb.dkarbon.cn/enroute/）────────────────────
+# TLS 站点不能复用上面那段 include：wb2api 里有一条 `location ~* ^/(v1|api)/` 正则块，
+# 正则优先于普通前缀 location，/api/telemetry 会被当成网关接口转走。
+# 所以单独写一份带 `^~` 的 snippet，抢在正则前面。
+WEB_SRC=${WEB_SRC:-/tmp/enroute-web/index.html}
+if [ -f "$WEB_SRC" ]; then
+  install -d -m 755 /var/www/enroute
+  install -m 644 "$WEB_SRC" /var/www/enroute/index.html
+  echo "installed /var/www/enroute/index.html"
+else
+  echo "WARN: $WEB_SRC 不存在，公开页会 404"
+fi
+
+TLS_SNIPPET=/etc/nginx/snippets/enroute-telemetry-tls.conf
+cat > "$TLS_SNIPPET" <<'EOF'
+# TLS 站点（wb.dkarbon.cn）上的遥测入口 + 公开统计页
+# ^~ 必需：wb2api 的 `location ~* ^/(v1|api)/` 正则优先于普通前缀 location
+location ^~ /api/telemetry {
+    proxy_pass http://127.0.0.1:18090;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    client_max_body_size 256k;
+    proxy_read_timeout 20s;
+}
+
+location = /enroute { return 301 /enroute/; }
+
+location ^~ /enroute/ {
+    root /var/www;
+    index index.html;
+    charset utf-8;
+    add_header X-Robots-Tag "noindex, nofollow" always;
+    add_header Cache-Control "no-store" always;
+    add_header X-Content-Type-Options "nosniff" always;
+}
+EOF
+
+TLS_SITE=/etc/nginx/sites-enabled/wb2api
+if [ -f "$TLS_SITE" ] && ! grep -q 'enroute-telemetry-tls.conf' "$TLS_SITE"; then
+  python3 - "$TLS_SITE" "$TLS_SNIPPET" <<'PY'
+import io, sys
+site, snippet = sys.argv[1], sys.argv[2]
+src = io.open(site, encoding='utf-8').read()
+needle = '    server_name wb.dkarbon.cn;'
+if needle not in src:
+    print('WARN: 没找到 wb.dkarbon.cn 的 server 块，跳过 TLS 接线')
+    sys.exit(0)
+src = src.replace(needle, needle + '\n    include ' + snippet + ';', 1)
+io.open(site, 'w', encoding='utf-8').write(src)
+print('wired ' + site)
+PY
+fi
+
 nginx -t
 systemctl reload nginx
 
@@ -99,5 +153,8 @@ curl -fsS -o /dev/null -w 'via nginx 18082: %{http_code}\n' http://127.0.0.1:180
 curl -fsS -o /dev/null -w 'via nginx 18081: %{http_code}\n' http://127.0.0.1:18081/api/telemetry/health || true
 echo "--- stats ---"
 curl -fsS -H "X-Admin-Key: $ADMIN_KEY" http://127.0.0.1:18082/api/telemetry/stats.txt || true
+echo "--- public page ---"
+curl -fsS -o /dev/null -w "public api via tls site: %{http_code}\n" -k https://127.0.0.1/api/telemetry/public -H "Host: wb.dkarbon.cn" || true
+curl -fsS -o /dev/null -w "public page via tls site: %{http_code}\n" -k https://127.0.0.1/enroute/ -H "Host: wb.dkarbon.cn" || true
 echo "admin key: $ADMIN_KEY（也可 cat $ENVFILE）"
 echo "deployed. tail -f $DATA_DIR/events-\$(date +%F).ndjson"

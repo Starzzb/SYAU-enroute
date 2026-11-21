@@ -4,6 +4,21 @@
 `versionName` 用标准 SemVer + build metadata（`0.3.0+m20`，`mNN` = 第 N 轮开发批次），
 `versionCode = (mNN + 1) × 10`（发版）或 `(mNN + 1) × 10 + n`（开发版）。
 
+## 公开统计页（服务器侧，2026-11-21，App 包未变）
+
+https://wb.dkarbon.cn/enroute/ —— 挂在已有 TLS 站点上：单文件页面 + 新端点
+`GET /api/telemetry/public`（免钥匙，60 秒缓存）。只放聚合数字：今日日活、累计设备数、
+近 30 天每天多少台、版本分布、用过的天数、D1/D7 回访、今日事件次数；**页面上不出现任何设备标识**。
+
+- `server/telemetry/web/index.html`：12 KB 单文件，无外链、无图表库，纸墨配色，跟随系统深浅色。
+- `server/telemetry/server.py`：新增 `PUBLIC_TTL`、`build_public(days=30)`、`/api/telemetry/public` 路由。
+- `server/telemetry/deploy.sh`：装页面到 `/var/www/enroute/`；生成
+  `/etc/nginx/snippets/enroute-telemetry-tls.conf`（用 `location ^~ /api/telemetry` 抢在
+  `wb2api` 那条 `^/(v1|api)/` 正则之前）；幂等插入 include；完成后自查公开端点与页面。
+- 详见 `docs/实现-使用数据采集-m40.md` §5.1。
+
+---
+
 ## m41 · 课表组件化 · 五套预设与逐轴覆盖 · 统计标识可跨天（2026-11-21）
 
 `0.10.0+m41` / `versionCode 490`。详见 `docs/设计-课程表组件化-m41.md`。

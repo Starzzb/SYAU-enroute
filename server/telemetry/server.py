@@ -48,6 +48,11 @@ RETAIN_DAYS = 180
 MAX_DAYS_PER_DEVICE = 400
 ADMIN_KEY = os.environ.get("ENROUTE_TELEMETRY_ADMIN_KEY", "").strip()
 
+# 公开统计页（https://wb.dkarbon.cn/enroute/）用的缓存秒数：页面每分钟刷新一次，
+# 服务端没必要每次都去读两个 json
+PUBLIC_TTL = 60
+_public_cache = {"at": 0.0, "obj": None}
+
 VERSION_RE = re.compile(r"^\d{1,3}\.\d{1,3}\.\d{1,3}(\+m\d{1,5})?$")
 HEX = set("0123456789abcdef")
 
@@ -274,6 +279,14 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/api/telemetry/health":
             self._send(200, {"ok": True, "version": SCHEMA["version"], "events": len(EVENTS)})
             return
+        if path == "/api/telemetry/public":
+            # 公开：聚合数字，不需要钥匙，但只有每分钟刷新的快照
+            now = time.time()
+            if _public_cache["obj"] is None or now - _public_cache["at"] > PUBLIC_TTL:
+                _public_cache["obj"] = build_public()
+                _public_cache["at"] = now
+            self._send(200, _public_cache["obj"])
+            return
         if path == "/api/telemetry/stats":
             if not self._admin_ok():
                 self._send(403, {"error": "admin key required"})
@@ -499,6 +512,46 @@ def build_stats():
         },
         "retention": users.get("retention", {}),
         "generated_at": users.get("generated_at", ""),
+    }
+
+
+def build_public(days=30):
+    """公开统计页的数据源。
+
+    只给聚合数字：**一个设备标识都不出去**（不给 i、不给 d、不给 IP），
+    也不给事件明细里的任何内容字段 —— 事件本身就只带枚举与档位。
+    """
+    daily = _read_json(DAILY_PATH, {})
+    users = _read_json(USERS_PATH, {})
+    if not isinstance(daily, dict):
+        daily = {}
+    if not isinstance(users, dict):
+        users = {}
+    today = date.today().isoformat()
+    kept = sorted(daily.keys())[-days:]
+    series = []
+    for d in kept:
+        row = daily.get(d) or {}
+        series.append({"d": d, "dau": int(row.get("dau", 0) or 0)})
+    t = daily.get(today) or {}
+    events = t.get("events") or {}
+    versions = users.get("by_version") or t.get("versions") or {}
+    versions = {str(k): int(v) for k, v in versions.items() if isinstance(k, str)}
+    return {
+        "generated_at": users.get("generated_at") or "",
+        "server_time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "today": {
+            "date": today,
+            "dau": int(t.get("dau", 0) or 0),
+            "events": int(sum(events.values())) if events else 0,
+        },
+        "dau_series": series,
+        "users_total": int(users.get("users_total", 0) or 0),
+        "versions": versions,
+        "active_days": users.get("active_days") or {},
+        "retention": users.get("retention") or {},
+        "events_today": {str(k): int(v) for k, v in (events or {}).items()},
+        "days_tracked": len(daily),
     }
 
 
