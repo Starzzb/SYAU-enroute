@@ -1,0 +1,669 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+<title>新闻网</title><META Name="keywords" Content="新闻网" />
+
+
+<meta name="Description" content="沈阳农业大学新闻网" />
+<link rel="stylesheet" type="text/css" href="dfiles/12906/_wsp_tpl/news2/global.css" />
+<link rel="stylesheet" type="text/css" href="dfiles/12906/_wsp_tpl/news2/cover.css" />
+<link type="text/css" rel="stylesheet" href="dfiles/12906/_wsp_tpl/news2/responsive.css" media="screen and (max-width:768px)" />
+<script type="text/javascript" src="dfiles/12906/_wsp_tpl/news2/js/jquery-1.7.2.js"></script>
+<script type="text/javascript" src="dfiles/12906/_wsp_tpl/news2/js/jquery.wsp.js"></script>
+<script type="text/javascript" src="dfiles/12906/_wsp_tpl/news2/js/common.js"></script>
+<script type="text/javascript" src="dfiles/12906/_wsp_tpl/news2/js/index.js"></script>
+<script type="text/javascript" src="dfiles/12906/_wsp_lib/js/jquery.slidebox.min.js"></script>
+<script type="text/javascript" src="dfiles/12906/_wsp_tpl/news2/js/responsive.js"></script>
+<script type="text/javascript" src="dfiles/12906/_wsp_tpl/news2/js/bigpicroll.js"></script> 
+<script>
+jQuery(function($){
+    $('#homefocus').slideBox({
+        duration : 0.3,//滚动持续时间，单位：秒
+        easing : 'linear',//swing,linear//滚动特效
+        delay : 5,//滚动延迟时间，单位：秒
+        hideClickBar : false,//不自动隐藏点选按键
+        clickBarRadius : 10
+    });
+});
+</script>
+<link rel="stylesheet" type="text/css" href="_sitegray/_sitegray_d.css" />
+<script language="javascript" src="_sitegray/_sitegray.js"></script>
+<!-- CustomerNO:7765626265723230797347545353554a03090203 -->
+<link rel="stylesheet" type="text/css" href="index.vsb.css" />
+<script type="text/javascript" src="/system/resource/js/counter.js"></script>
+<script type="text/javascript">_jsq_(1001,'/index.jsp',-1,1597115801)</script>
+</head>
+
+<body>
+<!--顶部封套S-->
+<div id="wrapT">
+<div id="toptool">
+<script language="javascript">
+function dosuba206119a()
+{
+    try{
+        var ua = navigator.userAgent.toLowerCase();
+        if(ua.indexOf("msie 8")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE8
+        }else if(ua.toLowerCase().indexOf("rv:")>-1)
+        {
+            window.external.AddToFavoritesBar(document.location.href,document.title,"");//IE11+
+        }else{
+            if (document.all) 
+            {
+                window.external.addFavorite(document.location.href, document.title);
+            }else if(window.sidebar)
+            {
+                window.sidebar.addPanel( document.title, document.location.href, "");//firefox
+            }
+            else
+            {
+                alert(hotKeysa206119a());
+            }
+        }
+
+    }
+    catch (e){alert("无法自动添加到收藏夹，请使用 Ctrl + d 手动添加");}
+}
+function hotKeysa206119a() 
+{
+    var ua = navigator.userAgent.toLowerCase(); 
+    var str = "";    
+    var isWebkit = (ua.indexOf('webkit') != - 1); 
+    var isMac = (ua.indexOf('mac') != - 1);     
+    if (ua.indexOf('konqueror') != - 1) 
+    {  
+        str = 'CTRL + B'; // Konqueror   
+    } 
+    else if (window.home || isWebkit || isMac) 
+    {        
+        str = (isMac ? 'Command/Cmd' : 'CTRL') + ' + D'; // Netscape, Safari, iCab, IE5/Mac   
+    }
+    return ((str) ? '无法自动添加到收藏夹，请使用' + str + '手动添加' : str);
+}
+function setHomepagea206119a()
+{
+    var url = document.location.href;
+    if (document.all)
+    {
+        document.body.style.behavior='url(#default#homepage)';
+        document.body.setHomePage(url);
+    }
+    else if (window.sidebar)
+    {
+        if(window.netscape)
+        {
+             try{
+                  netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+             }catch (e){
+                   alert("该操作被浏览器拒绝，如果想启用该功能，请在地址栏内输入 about:config,然后将项 signed.applets.codebase_principal_support 值该为true");
+             }
+        }
+    var prefs = Components.classes['@mozilla.org/preferences-service;1'].getService(Components. interfaces.nsIPrefBranch);
+    prefs.setCharPref('browser.startup.homepage',url);
+    }
+    else
+    {
+        alert("浏览器不支持自动设为首页，请手动设置");
+    }
+}
+</script>
+
+
+<li style="float:left;width:180px;"><a class="sj-off">主办：沈阳农业大学党委宣传部</a></li>
+<li><A onclick="javascript:dosuba206119a();" href="#" style="TEXT-DECORATION: none;">加入收藏</a></li><li><a href="http://www.syau.edu.cn" target="_blank">沈农主页</a></li></div>
+<div id="header">
+<div id="logo"></div><span class="sj-logo"><img src="dfiles/12906/_wsp_tpl/news2/images/sj-logo.jpg" width="100%" height="100%" /></span>
+</div>
+<div class="clear"></div>
+ <div id="nav">
+    <dl class="navbtns">    <dd><a href="index.htm" title="网站首页">网站首页</a></dd>
+    
+    <dd><a href="snyw.htm" title="沈农要闻">沈农要闻</a></dd>
+    
+    <dd><a href="ddjs.htm" title="党的建设">党的建设</a></dd>
+    
+    <dd><a href="xysd.htm" title="校园视点">校园视点</a></dd>
+    
+    <dd><a href="rcpy.htm" title="人才培养">人才培养</a></dd>
+    
+    <dd><a href="shfw.htm" title="社会服务">社会服务</a></dd>
+    
+    <dd><a href="kxyj.htm" title="科学研究">科学研究</a></dd>
+    
+    <dd><a href="xywh.htm" title="校园文化">校园文化</a></dd>
+    
+    <dd><a href="hzjl.htm" title="合作交流">合作交流</a></dd>
+    
+    <dd><a href="mtsn.htm" title="媒体沈农">媒体沈农</a></dd>
+    
+    <dd><a href="http://syau.ihwrm.com/" title="校报在线">校报在线</a></dd>
+    
+
+</dl>
+    
+   </div>
+
+<div class="layout">
+    <div class="header">
+          <div class="header-wp">
+              <div class="nav">
+              <ul>
+     <li><a href="index.htm">网站首页</a></li>
+     <li><a href="snyw.htm">沈农要闻</a></li>
+     <li><a href="ddjs.htm">党的建设</a></li>
+     <li><a href="xysd.htm">校园视点</a></li>
+     <li><a href="rcpy.htm">人才培养</a></li>
+     <li><a href="shfw.htm">社会服务</a></li>
+     <li><a href="kxyj.htm">科学研究</a></li>
+     <li><a href="xywh.htm">校园文化</a></li>
+     <li><a href="hzjl.htm">合作交流</a></li>
+     <li><a href="mtsn.htm">媒体沈农</a></li>
+     <li><a href="http://syau.ihwrm.com/">校报在线</a></li>
+</ul>
+        
+
+
+ 
+            </div>
+        </div>
+    </div>
+</div>
+
+</div>
+
+<div id="wrap">
+    <div class="lay" style="margin-top:10px;">
+    <div class="yx_tpl"> <div class="layHLeft">
+    
+     <div class="focus">
+         
+         <script language="javascript" src="/system/resource/js/dynclicks.js"></script><script language="javascript" src="/system/resource/js/ajax.js"></script><div id="homefocus">
+<ul class="items">
+ <li class=" "><a href="info/1005/24442.htm" title="党委副书记、校长李斌为学生讲授思政课"><img src="/__local/D/1D/5E/11964E526BAEFA45A94737C5C5E_540C7D2C_11EF7.jpg"></a></li>
+ <li class=" "><a href="info/1002/24434.htm" title="我校召开2026年学生代表大会、研究生代表大会"><img src="/__local/D/79/6E/33F182DA6E4C7F145EEEFFC770A_1899CE4A_172C5.jpg"></a></li>
+ <li class=" "><a href="info/1005/24431.htm" title="我校在第六届全国大学生植物保护专业技能大赛中获团体一等奖"><img src="/__local/7/9C/25/AC2909EA0354C3716A7A6804869_633EEFBB_24851.jpg"></a></li>
+ <li class=" "><a href="info/1002/24407.htm" title="我校举办纪念中国工农红军长征胜利90周年思政大课"><img src="/__local/7/E0/70/A75DDC8B851259DB9614ECA368B_4415B505_127F6.jpg"></a></li>
+ <li class=" "><a href="info/1002/24379.htm" title="我校与中华全国供销合作总社济南果品研究所签署战略合作协议"><img src="/__local/F/C3/71/0D464446486CBA0293786E82F33_F4BBB5AF_14815.jpg"></a></li>
+</ul>
+
+ <div class="tips" style="opacity: 0.6;">
+ <div class="title">
+ <a href="info/1005/24442.htm">党委副书记、校长李斌为学生讲授思政课</a>
+ <a href="info/1002/24434.htm">我校召开2026年学生代表大会、研究生代表大会</a>
+ <a href="info/1005/24431.htm">我校在第六届全国大学生植物保护专业技能大赛中...</a>
+ <a href="info/1002/24407.htm">我校举办纪念中国工农红军长征胜利90周年思政大课</a>
+ <a href="info/1002/24379.htm">我校与中华全国供销合作总社济南果品研究所签署...</a>
+ </div>
+ <div class="nums">
+ <a href="info/1005/24442.htm" class=" " style="border-radius: 10px;">党委副书记、校长李斌为学生讲授思政课</a>
+ <a href="info/1002/24434.htm" class=" " style="border-radius: 10px;">我校召开2026年学生代表大会、研究生代表大会</a>
+ <a href="info/1005/24431.htm" class=" " style="border-radius: 10px;">我校在第六届全国大学生植物保护专业技能大赛中...</a>
+ <a href="info/1002/24407.htm" class=" " style="border-radius: 10px;">我校举办纪念中国工农红军长征胜利90周年思政大课</a>
+ <a href="info/1002/24379.htm" class=" " style="border-radius: 10px;">我校与中华全国供销合作总社济南果品研究所签署...</a>
+ </div>
+ </div>
+
+</div>
+
+<script>_showDynClickBatch(['dynclicks_u3_24442','dynclicks_u3_24434','dynclicks_u3_24431','dynclicks_u3_24407','dynclicks_u3_24379'],[24442,24434,24431,24407,24379],"wbnews", 1597115801)</script>
+
+        
+     </div>
+ </div></div> 
+    <div class="yx_tpr">
+    
+   
+               <ul class="ul0"><ul class="ul0">
+     <h3><a href="info/1005/24442.htm">党委副书记、校长李斌为学生讲授思政课</a></h3>
+                <p>11月19日，党委副书记、校长李斌以“厚植知农爱农情怀 勇担强农兴...<a href="info/1005/24442.htm">【详细】</a></p>    
+   <li><a href="info/1007/24443.htm" target="_blank" title="李晓楠团队在Plant Physiology发表论文揭示十字花科根肿病抗性表观调控新模型">李晓楠团队在Plant Physiology发表论文...</a><em>11/19</em></li>
+    
+   <li><a href="info/1005/24440.htm" target="_blank" title="我校在中国研究生数学建模竞赛中获二等奖">我校在中国研究生数学建模竞赛中获二等奖</a><em>11/19</em></li>
+    
+   <li><a href="info/1002/24434.htm" target="_blank" title="我校召开2026年学生代表大会、研究生代表大会">我校召开2026年学生代表大会、研究生代...</a><em>11/18</em></li>
+    
+   <li><a href="info/1006/24423.htm" target="_blank" title="孙红梅教授团队助力革命老区百合产业提质发展">孙红梅教授团队助力革命老区百合产业提...</a><em>11/18</em></li>
+    
+   <li><a href="info/1005/24430.htm" target="_blank" title="我校在“高教社杯”全国大学生数学建模竞赛中获二等奖">我校在“高教社杯”全国大学生数学建模...</a><em>11/17</em></li>
+    
+   <li><a href="info/1002/24420.htm" target="_blank" title="我校承办辽宁省高校思想政治理论课集体备课会暨学习党的二十届五中全会精神研讨会">我校承办辽宁省高校思想政治理论课集体...</a><em>11/17</em></li>
+    
+</ul><script>_showDynClickBatch(['dynclicks_u4_24442','dynclicks_u4_24443','dynclicks_u4_24440','dynclicks_u4_24434','dynclicks_u4_24423','dynclicks_u4_24430','dynclicks_u4_24420'],[24442,24443,24440,24434,24423,24430,24420],"wbnews", 1597115801)</script>
+</ul>
+
+            </div>
+    </div>
+</div>
+
+<div id="wrap">
+<div class="lay">
+<div class="clear15"></div>
+<div class="clear20"></div>
+<div class="layL">
+<div class="box1"><div class="bar1"><b>党的建设</b><span><a href="ddjs.htm" title="党的建设">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul4">
+                 
+<li><a href="info/1003/24408.htm" title="学校开展“送纪法上门”推动警示教育精准落地">·学校开展“送纪法上门”推动...</a></li>
+<li><a href="info/1003/24372.htm" title="九三学社辽宁省委员会来校开展专题调研">·九三学社辽宁省委员会来校开...</a></li>
+<li><a href="info/1003/23982.htm" title="习近平总书记在庆祝中国共产党成立105周年大会上的重要讲话在我校师生中引发热烈反响">·习近平总书记在庆祝中国共产...</a></li>
+<li><a href="info/1003/23981.htm" title="我校师生积极收看庆祝中国共产党成立105周年大会直播">·我校师生积极收看庆祝中国共...</a></li>
+<li><a href="info/1003/23973.htm" title="学校召开庆祝中国共产党成立105周年暨“两优一先”表彰大会">·学校召开庆祝中国共产党成立1...</a></li>
+<li><a href="info/1003/23964.htm" title="刘洋书记与交流、提任处级领导干部进行任前谈话">·刘洋书记与交流、提任处级领...</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u5_24408','dynclicks_u5_24372','dynclicks_u5_23982','dynclicks_u5_23981','dynclicks_u5_23973','dynclicks_u5_23964'],[24408,24372,23982,23981,23973,23964],"wbnews", 1597115801)</script>
+</div></div>
+<div class="layM">
+<div class="box1"><div class="bar1"><b style="border-color:#65CC33">沈农要闻</b><span><a href="snyw.htm" title="沈农要闻">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul1">
+                 
+<li><em>2026/11/18</em><a href="info/1002/24434.htm" title="我校召开2026年学生代表大会、研究生代表大会">我校召开2026年学生代表大会、研究生代表大会</a></li>
+<li><em>2026/11/17</em><a href="info/1002/24420.htm" title="我校承办辽宁省高校思想政治理论课集体备课会暨学习党的二十届五中全会精神研讨会">我校承办辽宁省高校思想政治理论课集体备课会暨学习...</a></li>
+<li><em>2026/11/15</em><a href="info/1002/24416.htm" title="学校召开2026年网络安全工作会议">学校召开2026年网络安全工作会议</a></li>
+<li><em>2026/11/13</em><a href="info/1002/24409.htm" title="学校组织召开学习贯彻党的二十届五中全会精神动员部署会">学校组织召开学习贯彻党的二十届五中全会精神动员部署会</a></li>
+<li><em>2026/11/13</em><a href="info/1002/24411.htm" title="学校召开2026年保密工作会议">学校召开2026年保密工作会议</a></li>
+<li><em>2026/11/12</em><a href="info/1002/24407.htm" title="我校举办纪念中国工农红军长征胜利90周年思政大课">我校举办纪念中国工农红军长征胜利90周年思政大课</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u6_24434','dynclicks_u6_24420','dynclicks_u6_24416','dynclicks_u6_24409','dynclicks_u6_24411','dynclicks_u6_24407'],[24434,24420,24416,24409,24411,24407],"wbnews", 1597115801)</script>
+</div>
+      
+
+      
+
+      
+
+</div>
+<div class="layR sj-off">
+<div class="box1">              
+              <div class="bar1"><b style="border-color:#FFCC00">视频新闻</b><span><a href="index/spxw.htm" title="视频新闻">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>            
+        <div class="body1">
+
+
+          <a href="https://news.syau.edu.cn/info/1010/22450.htm"><img src="/__local/3/BC/9D/EEC6E6DBFC5870D12E1035229A2_B9EE7969_1B45C.png" width="220" height="130"></a>
+                 <h4><a href="https://news.syau.edu.cn/info/1010/22450.htm">辽宁晚新闻：借新质生产力之势 蓝莓超级工厂“加速跑”</a></h4>
+                <div class="clear"></div>
+              </div>
+      
+
+<script>_showDynClickBatch(['dynclicks_u7_22451'],[22451],"wbnews", 1597115801)</script>
+</div>
+      
+
+      
+
+            
+
+</div>
+</div><!--@lay-->
+<div class="clear20"></div>
+<div class="lay">
+<div class="layL sj-off"><div class="box1"><div class="bar1"><b style="border-color:#FFCC00">电子校报</b><span><a href="http://www.cuepa.cn/unit.php?deptname=%C9%F2%D1%F4%C5%A9%D2%B5%B4%F3%D1%A7&papername=&posid=&ForSearch=1&search_an.x=24&search_an.y=8" title="沈阳农业大学电子校报">>>　MORE</a> </span>　</div>
+              <div class="clear"></div>
+        <div class="body1">    <a href="http://syau.ihwrm.com/" title="沈阳农业大学电子校报"><img src="images/939a.jpg" width="220" height="150"></a>
+          <h4><a href="http://syau.ihwrm.com/">沈阳农业大学电子校报</a></h4>
+                            
+                <div class="clear"></div>
+              
+
+</div></div></div>
+<div class="layM"><div class="box1"><div class="bar1"><b style="border-color:#65CC33">人才培养</b><span><a href="rcpy.htm" title="人才培养">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul1">
+                 
+<li><em>2026/11/20</em><a href="info/1005/24442.htm" title="党委副书记、校长李斌为学生讲授思政课">党委副书记、校长李斌为学生讲授思政课</a></li>
+<li><em>2026/11/19</em><a href="info/1005/24440.htm" title="我校在中国研究生数学建模竞赛中获二等奖">我校在中国研究生数学建模竞赛中获二等奖</a></li>
+<li><em>2026/11/17</em><a href="info/1005/24430.htm" title="我校在“高教社杯”全国大学生数学建模竞赛中获二等奖">我校在“高教社杯”全国大学生数学建模竞赛中获二等奖</a></li>
+<li><em>2026/11/16</em><a href="info/1005/24431.htm" title="我校在第六届全国大学生植物保护专业技能大赛中获团体一等奖">我校在第六届全国大学生植物保护专业技能大赛中获团...</a></li>
+<li><em>2026/11/06</em><a href="info/1005/24376.htm" title="我校教师在辽宁省高校军事理论课教学比赛中获二等奖">我校教师在辽宁省高校军事理论课教学比赛中获二等奖</a></li>
+<li><em>2026/11/05</em><a href="info/1005/24373.htm" title="我校在中国研究生创新实践系列大赛中获多项国家级奖项">我校在中国研究生创新实践系列大赛中获多项国家级奖项</a></li>
+<li><em>2026/10/27</em><a href="info/1005/24341.htm" title="我校教师在第十五届辽宁省高校思政课教学大赛中取得佳绩">我校教师在第十五届辽宁省高校思政课教学大赛中取得佳绩</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u9_24442','dynclicks_u9_24440','dynclicks_u9_24430','dynclicks_u9_24431','dynclicks_u9_24376','dynclicks_u9_24373','dynclicks_u9_24341'],[24442,24440,24430,24431,24376,24373,24341],"wbnews", 1597115801)</script>
+</div></div>
+<div class="layR">
+<div class="box1"><div class="bar1"><b style="border-color:#FFCC00">媒体沈农</b><span><a href="mtsn.htm" title="媒体沈农">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+                      <div class="body1">
+    
+                <ul class="ul4" style="margin-top:7px;">
+                
+ <dfn><a href="info/1010/24013.htm"><img src="/__local/2/FA/84/8AC1630ABE6B7105001E20F6E6B_E3ACC85B_90F0F.png" style="width:114px;height:76px;"></a></dfn>
+          <div class="dfnR" style="width:101px;">
+                <dt><a href="info/1010/24013.htm">中国新闻网：暴雨致沈阳农大内...</a></dt>     
+                </div>
+                <div class="clear"></div>
+<li><em>2026-11-12</em><a href="info/1010/24403.htm" title="沈阳日报：高质量党建播下师资队伍建设“金种子”">沈阳日报：高质量党建播下师资...</a></li>
+
+<li><em>2026-11-07</em><a href="info/1010/24386.htm" title="辽宁纪检监察网：沈阳农业大学：师生共上一堂清廉家风课">辽宁纪检监察网：沈阳农业大学...</a></li>
+
+<li><em>2026-11-07</em><a href="info/1010/24385.htm" title="辽视主播说：沈阳农大举办厨艺大赛150道菜品同台亮相">辽视主播说：沈阳农大举办厨艺...</a></li>
+
+<li><em>2026-11-06</em><a href="info/1010/24384.htm" title="沈阳日报：用实干诠释担当 用实绩书写答卷">沈阳日报：用实干诠释担当 用实...</a></li>
+
+</ul>
+
+              </div><script>_showDynClickBatch(['dynclicks_u10_24013','dynclicks_u10_24403','dynclicks_u10_24386','dynclicks_u10_24385','dynclicks_u10_24384'],[24013,24403,24386,24385,24384],"wbnews", 1597115801)</script>
+</div>
+</div>
+</div>
+
+<div class="clear20"></div>
+
+<div class="lay">
+<div class="layL sj-off">    
+<img src="dfiles/12906/_wsp_tpl/news2/images/wx.jpg" width="220" height="117" alt="">
+
+      <a href="gaojian.jsp?urltype=tree.TreeTempUrl&wbtreeid=1014"><img src="dfiles/12906/_wsp_tpl/news2/images/gj.jpg" alt="" width="220" height="65" style="margin:10px 0px;"></a>
+
+ <a href="index/zxdc.htm"><img src="dfiles/12906/_wsp_tpl/news2/images/dc.jpg" alt="" width="220" height="65" style="margin:10px 0px;"></a>
+
+
+ </div>
+<div class="layM"><div class="box1"><div class="bar1"><b style="border-color:#007E3F">科学研究</b><span><a href="kxyj.htm" title="科学研究">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul1">
+                 
+<li><em>2026/11/19</em><a href="info/1007/24443.htm" title="李晓楠团队在Plant Physiology发表论文揭示十字花科根肿病抗性表观调控新模型">李晓楠团队在Plant Physiology发表论文揭示十字花科...</a></li>
+<li><em>2026/11/13</em><a href="info/1007/24410.htm" title="陈温福院士团队在The Crop Journal上发表论文阐明水稻耐铝性的分子机制">陈温福院士团队在The Crop Journal上发表论文阐明水...</a></li>
+<li><em>2026/11/06</em><a href="info/1007/24377.htm" title="我校牵头项目荣获中国食品科学技术学会科学技术进步奖一等奖">我校牵头项目荣获中国食品科学技术学会科学技术进步...</a></li>
+<li><em>2026/10/28</em><a href="info/1007/24345.htm" title="马跃团队在Plant Physiology发表论文揭示同源四倍体苹果抗炭疽病免疫调控新机制">马跃团队在Plant Physiology发表论文揭示同源四倍体...</a></li>
+<li><em>2026/10/24</em><a href="info/1007/24327.htm" title="王喆团队在PNAS上发表论文揭示LHX家族基因调控动物四肢形态的分子机制">王喆团队在PNAS上发表论文揭示LHX家族基因调控动物四...</a></li>
+<li><em>2026/09/29</em><a href="info/1007/24263.htm" title="栾军波团队在PNAS杂志发文揭示转录因子调控携带细菌的真核细胞发育机制">栾军波团队在PNAS杂志发文揭示转录因子调控携带细菌...</a></li>
+<li><em>2026/06/18</em><a href="info/1007/23948.htm" title="陈温福院士团队在Science子刊发表论文阐明水稻开花期的分子机制">陈温福院士团队在Science子刊发表论文阐明水稻开花期...</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u13_24443','dynclicks_u13_24410','dynclicks_u13_24377','dynclicks_u13_24345','dynclicks_u13_24327','dynclicks_u13_24263','dynclicks_u13_23948'],[24443,24410,24377,24345,24327,24263,23948],"wbnews", 1597115801)</script>
+</div></div>
+<div class="layR"><div class="box1"><div class="bar1"><b style="border-color:#007E3F">社会服务</b><span><a href="shfw.htm" title="社会服务">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul4">
+                 
+<li><a href="info/1006/24423.htm" title="孙红梅教授团队助力革命老区百合产业提质发展">孙红梅教授团队助力革命老区百合产业提质发展</a></li>
+<li><a href="info/1006/24432.htm" title="我校主办2026年辽宁省水利学术年会">我校主办2026年辽宁省水利学术年会</a></li>
+<li><a href="info/1006/24399.htm" title="我校承办神农英才科技沙龙学术活动">我校承办神农英才科技沙龙学术活动</a></li>
+<li><a href="info/1006/24267.htm" title="农业农村部科技发展中心主任杨礼胜到我校调研">农业农村部科技发展中心主任杨礼胜到我校调研</a></li>
+<li><a href="info/1006/24120.htm" title="我校承办中国农业工程学会智慧耕地利用与保护工程专业委员会2026年学术年会">我校承办中国农业工程学会智慧耕地利用与保护工程专业委员会2026年学术年会</a></li>
+<li><a href="info/1006/23998.htm" title="我校承办东北暨内蒙古地区高校会计学教师联合会2026年工作会">我校承办东北暨内蒙古地区高校会计学教师联合会2026年工作会</a></li>
+<li><a href="info/1006/23990.htm" title="辽宁省生物制造产学研用协同发展座谈会在我校召开">辽宁省生物制造产学研用协同发展座谈会在我校召开</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u14_24423','dynclicks_u14_24432','dynclicks_u14_24399','dynclicks_u14_24267','dynclicks_u14_24120','dynclicks_u14_23998','dynclicks_u14_23990'],[24423,24432,24399,24267,24120,23998,23990],"wbnews", 1597115801)</script>
+</div> </div>
+</div>
+
+<div class="clear20"></div>
+<div class="lay">
+<div class="layL sj-off">
+<div>
+<table width="100%" border="0" cellspacing="0" cellpadding="0" class="hl1">
+          <tr>
+            <td align="center" valign="top">
+              
+              
+              
+<script language="javascript" src="/system/resource/js/calendar/monthcld.js"></script> 
+<script> 
+    var u15vmc = new VsbMonthcld();
+    u15monthnames = new Array("一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"); 
+</script>
+<table border="0" cellpadding="1" cellspacing="0" bordercolor="#000000" class="mainstyle206133"> 
+    <tr bordercolor="#000000">
+        <td colspan="7" align="center" class="monthstyle206133"> 
+            <script language="javascript">document.write(u15monthnames[u15vmc.getMonth()] + " " + u15vmc.getYear());</script> 
+        </td>
+    </tr> 
+    <tr bordercolor="#000000"> 
+        <td align="center" class="weekstyle206133">周日</td> 
+        <td align="center" class="weekstyle206133">周一</td> 
+        <td align="center" class="weekstyle206133">周二</td> 
+        <td align="center" class="weekstyle206133">周三</td> 
+        <td align="center" class="weekstyle206133">周四</td> 
+        <td align="center" class="weekstyle206133">周五</td> 
+        <td align="center" class="weekstyle206133">周六</td> 
+    </tr> 
+    <tr bordercolor="#000000"> 
+        <script>u15vmc._getWriteDateHtml(' class="currentstyle206133" ',' class="daystyle206133" ','#000000')</script> 
+</table>
+                <script type="text/javascript">
+function checkinputdata206134()
+{
+        encodeinputdata206134(document.getElementById("_w_v_l_s_n_s_show_title_206134"),document.getElementById("_w_v_l_s_n_s_k_title_id206134"));
+        encodeinputdata206134(document.getElementById("_w_v_l_s_n_s_show_content_206134"),document.getElementById("_w_v_l_s_n_s_k_content_id206134"));
+
+}
+function encodeinputdata206134(showinputobj,inputobj){
+        var keyword = showinputobj.value;
+        if(window.toFF==1)
+        {
+            showinputobj.value = Simplized(keyword );
+        }else
+        {
+            showinputobj.value = keyword;            
+        }
+        var  base64 = new Base64();
+        inputobj.value = base64.encode(showinputobj.value);
+        new VsbFormFunc().disableAutoEnable(showinputobj);
+    } 
+</script>
+<form action="search.jsp?wbtreeid=1001" method="post" id="au16a" name="au16a" onsubmit="return checkinputdata206134();" style="display: inline">
+ <input type="hidden" id="_w_v_l_s_n_s_k_title_id206134" name="_w_v_l_s_n_s_k_title" value=""><input type="hidden" id="_w_v_l_s_n_s_k_content_id206134" name="_w_v_l_s_n_s_k_content" value=""><input type="hidden" id="_w_v_l_s_n_s_k_k_id206134" name="_w_v_l_s_n_s_k_k" value=""><input type="hidden" id="_w_v_l_s_n_s_k_sumary_id206134" name="_w_v_l_s_n_s_k_sumary" value=""><input type="hidden" id="_w_v_l_s_n_s_k_author_id206134" name="_w_v_l_s_n_s_k_author" value=""><input type="hidden" id="_w_v_l_s_n_s_k_source_id206134" name="_w_v_l_s_n_s_k_source" value=""><input type="hidden" id="_w_v_l_s_n_s_k_column_id206134" name="_w_v_l_s_n_s_k_column" value=""><input type="hidden" id="searchScope206134" name="searchScope" value="0">
+ <table width="100%" align="center" border="0" cellspacing="0" cellpadding="3" style="FONT-FAMILY: 宋体;FONT-SIZE: 12px;">
+        <tr>
+            <td width="25">标题</td>
+            <td>
+                <input type="text" name="_w_v_l_s_n_s_show_title" id="_w_v_l_s_n_s_show_title_206134" value="" style="BORDER-BOTTOM: #878787 1px solid;BORDER-LEFT: #878787 1px solid;FONT-FAMILY: 宋体;HEIGHT: 22px;COLOR: #222222;FONT-SIZE: 12px;BORDER-TOP: #878787 1px solid;BORDER-RIGHT: #878787 1px solid;PADDING-TOP: 1px;height:14px;">
+            </td>
+        </tr>
+        <tr>
+            <td width="25">正文</td>
+            <td>
+                <input type="text" name="_w_v_l_s_n_s_show_content" id="_w_v_l_s_n_s_show_content_206134" value="" style="BORDER-BOTTOM: #878787 1px solid;BORDER-LEFT: #878787 1px solid;FONT-FAMILY: 宋体;HEIGHT: 22px;COLOR: #222222;FONT-SIZE: 12px;BORDER-TOP: #878787 1px solid;BORDER-RIGHT: #878787 1px solid;PADDING-TOP: 1px;height:14px;">
+            </td>
+        </tr>
+
+        <tr>
+            <td width="25">日期</td>
+            <td>
+                <input type="text" readonly="readonly" name="_w_v_l_s_n_s_k_begin" id="fgidate" class="Wdate" size="22" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',maxDate:'#F{$dp.$D(\'lgidate\')}'})" style="height:14px;margin-bottom:2px;" />
+                <input type="text" readonly="readonly" name="_w_v_l_s_n_s_k_end" id="lgidate" class="Wdate" size="22" onfocus="WdatePicker({dateFmt:'yyyy-MM-dd HH:mm:ss',minDate:'#F{$dp.$D(\'fgidate\')}',maxDate:'2030-1-1'})" style="height:14px;" />
+            </td>
+        </tr>
+        <tr height="30">
+            <TD>&nbsp;</TD>
+            <td>
+                <input type="image" src="/system/resource/images/research/seach22.gif" border="0" align="absmiddle" style="cursor: pointer;">
+            </td>
+        </tr>
+    </table>
+</form>
+<script language="javascript" src="/system/resource/js/base64.js"></script><script language="javascript" src="/system/resource/js/newcalendar/WdatePicker.js"></script><script language="javascript" src="/system/resource/js/formfunc.js"></script> 
+
+
+            </td>
+          </tr>
+        </table>
+</div>
+ </div>
+<div class="layM"><div class="box2"><div class="bar1"><b>校园视点</b><span><a href="xysd.htm" title="校园视点">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul4">
+                 
+<li><a href="info/1004/23984.htm" title="我校举行天柱山智慧农场专项基金捐赠仪式">·我校举行天柱山智慧农场专项基金捐赠仪式</a></li>
+<li><a href="info/1004/23971.htm" title="学校大幅提升高精尖仪器检测服务能力">·学校大幅提升高精尖仪器检测服务能力</a></li>
+<li><a href="info/1004/23932.htm" title="学校举行2026届校友联络员聘任仪式">·学校举行2026届校友联络员聘任仪式</a></li>
+<li><a href="info/1004/23901.htm" title="我校在辽宁省高校辅导员素质能力大赛中获奖">·我校在辽宁省高校辅导员素质能力大赛中获奖</a></li>
+<li><a href="info/1004/23824.htm" title="我校匹克球代表队在2026年辽宁省大学生匹克球锦标赛中获佳绩">·我校匹克球代表队在2026年辽宁省大学生匹克球锦标赛中获佳绩</a></li>
+<li><a href="info/1004/23812.htm" title="学校召开2026年网络安全工作会议">·学校召开2026年网络安全工作会议</a></li>
+<li><a href="info/1004/23784.htm" title="我校启动“沈农人耘享汇”品牌活动">·我校启动“沈农人耘享汇”品牌活动</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u17_23984','dynclicks_u17_23971','dynclicks_u17_23932','dynclicks_u17_23901','dynclicks_u17_23824','dynclicks_u17_23812','dynclicks_u17_23784'],[23984,23971,23932,23901,23824,23812,23784],"wbnews", 1597115801)</script>
+</div>
+            
+<div class="box2" style="float:right"><div class="bar1"><b>校园文化</b><span><a href="xywh.htm" title="校园文化">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul4">
+                 
+<li><a href="info/1008/24395.htm" title="学校举办2026年“振兴杯”教职工羽毛球赛">·学校举办2026年“振兴杯”教职工羽毛球赛</a></li>
+<li><a href="info/1008/23949.htm" title="端午节文化香溢校园 图书馆开展手作香囊体验">·端午节文化香溢校园 图书馆开展手作香囊体验</a></li>
+<li><a href="info/1008/23753.htm" title="学校举行“缅怀复旦先贤 弘扬北迁精神”纪念活动">·学校举行“缅怀复旦先贤 弘扬北迁精神”纪念活动</a></li>
+<li><a href="info/1008/23750.htm" title="缅怀沈农先贤 弘扬教育家精神 学校开展清明节祭扫活动">·缅怀沈农先贤 弘扬教育家精神 学校开展清明节祭扫活动</a></li>
+<li><a href="info/1008/23634.htm" title="学校直属党支部联合开展急救培训 用行动践行雷锋精神">·学校直属党支部联合开展急救培训 用行动践行雷锋精神</a></li>
+<li><a href="info/1008/23630.htm" title="我校新学期“开学第一课”弘扬雷锋精神 唱响英雄赞歌">·我校新学期“开学第一课”弘扬雷锋精神 唱响英雄赞歌</a></li>
+<li><a href="info/1008/23532.htm" title="我校举行2025年“禾丰-春桂”奖助学金颁发仪式">·我校举行2025年“禾丰-春桂”奖助学金颁发仪式</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u18_24395','dynclicks_u18_23949','dynclicks_u18_23753','dynclicks_u18_23750','dynclicks_u18_23634','dynclicks_u18_23630','dynclicks_u18_23532'],[24395,23949,23753,23750,23634,23630,23532],"wbnews", 1597115801)</script>
+</div></div>
+<div class="layR"><div class="box1"><div class="bar1"><b>合作交流</b><span><a href="hzjl.htm" title="合作交流">&gt;&gt;　MORE</a> </span>　</div>
+              <div class="clear"></div>
+              <div class="body1">
+                <ul class="ul4">
+                 
+<li><a href="info/1009/24000.htm" title="我校与中国银行辽宁省分行签署战略合作协议">我校与中国银行辽宁省分行签署战略合作协议</a></li>
+<li><a href="info/1009/23985.htm" title="省工商联来校开展“两融”对接交流">省工商联来校开展“两融”对接交流</a></li>
+<li><a href="info/1009/23961.htm" title="李斌校长会见智利国家农业科学研究院专家">李斌校长会见智利国家农业科学研究院专家</a></li>
+<li><a href="info/1009/23954.htm" title="安徽农业大学副校长吴祥为一行来校调研">安徽农业大学副校长吴祥为一行来校调研</a></li>
+<li><a href="info/1009/23952.htm" title="党委书记刘洋、校长李斌率队赴禾丰调研交流并签署战略合作协议">党委书记刘洋、校长李斌率队赴禾丰调研交流并签署战略合作协议</a></li>
+<li><a href="info/1009/23836.htm" title="中国京粤港投资控股集团董事局主席李栋良一行来校交流">中国京粤港投资控股集团董事局主席李栋良一行来校交流</a></li>
+<li><a href="info/1009/23831.htm" title="李斌校长会见西澳大学汉斯·兰伯斯院士">李斌校长会见西澳大学汉斯·兰伯斯院士</a></li>
+</ul>
+                <div class="blank10"></div>
+              </div><script>_showDynClickBatch(['dynclicks_u19_24000','dynclicks_u19_23985','dynclicks_u19_23961','dynclicks_u19_23954','dynclicks_u19_23952','dynclicks_u19_23836','dynclicks_u19_23831'],[24000,23985,23961,23954,23952,23836,23831],"wbnews", 1597115801)</script>
+</div> </div>
+</div>
+
+
+<div class="lay">
+
+<div class="bar1"><b style="border-color:#9A32CD">校园风光</b><span><a href="http://news.syau.edu.cn/news/xyfg/" title="校园风光">>>　MORE</a> </span>　</div>
+
+<div class="xmtp">
+      <ul class="ys1">  <li class="r15"><a href="info/1013/11547.htm"><img src="/__local/0/46/27/616EBB4644F12F9DF0337CF2F04_8EA9BD6D_39919.jpg" style="width:154px;height:116px;"></a></li>
+    
+        
+  <li><a href="info/1013/11552.htm"><img src="/__local/B/15/BC/9E2E91A5B75C2CA8B2E9463AA9E_A013CB7E_1D679.jpg" style="width:154px;height:116px;"></a></li>
+    
+        
+<li><a href="info/1013/11548.htm"><img src="/__local/D/8E/02/D1E94AC242E8B7FA51867754767_F15A4845_2E028.jpg" style="width:323px;height:246px;"></a></li>
+
+        
+
+<script>_showDynClickBatch(['dynclicks_u20_11547','dynclicks_u20_11552','dynclicks_u20_11548'],[11547,11552,11548],"wbnews", 1597115801)</script>
+</ul>
+      <ul class="ys2"><li style="display:none;"><a href="info/1013/11547.htm"><img src="/__local/0/46/27/616EBB4644F12F9DF0337CF2F04_8EA9BD6D_39919.jpg" style="width:323px;height:246px;"></a></li>
+<li style="display:none;"><a href="info/1013/11552.htm"><img src="/__local/B/15/BC/9E2E91A5B75C2CA8B2E9463AA9E_A013CB7E_1D679.jpg" style="width:323px;height:246px;"></a></li>
+<li style="display:none;"><a href="info/1013/11548.htm"><img src="/__local/D/8E/02/D1E94AC242E8B7FA51867754767_F15A4845_2E028.jpg" style="width:323px;height:246px;"></a></li>
+    <li class="r15"><a href="info/1013/11553.htm"><img src="/__local/F/38/67/64CAAB7C885124701DD623FBE52_B5B6FE88_24B05.jpg" style="width:323px;height:246px;"></a></li>
+
+
+    <li class="r15"><a href="info/1013/11551.htm"><img src="/__local/C/B1/0A/B1EE5F3C3D922497AB337E6D319_D8654F30_337D4.jpg" style="width:154px;height:116px;"></a></li>
+    
+
+    <li><a href="info/1013/11546.htm"><img src="/__local/8/61/B4/5EA08FC759600273E0B1B55B93B_B80B1427_2CDED.jpg" style="width:154px;height:116px;"></a></li>
+    
+
+
+<script>_showDynClickBatch(['dynclicks_u21_11547','dynclicks_u21_11552','dynclicks_u21_11548','dynclicks_u21_11553','dynclicks_u21_11551','dynclicks_u21_11546'],[11547,11552,11548,11553,11551,11546],"wbnews", 1597115801)</script>
+</ul>
+      <ul class="ys3"><li style="display:none;"><a href="info/1013/11547.htm"><img src="/__local/0/46/27/616EBB4644F12F9DF0337CF2F04_8EA9BD6D_39919.jpg" style="width:154px;height:116px;"></a></li>
+<li style="display:none;"><a href="info/1013/11552.htm"><img src="/__local/B/15/BC/9E2E91A5B75C2CA8B2E9463AA9E_A013CB7E_1D679.jpg" style="width:154px;height:116px;"></a></li>
+<li style="display:none;"><a href="info/1013/11548.htm"><img src="/__local/D/8E/02/D1E94AC242E8B7FA51867754767_F15A4845_2E028.jpg" style="width:154px;height:116px;"></a></li>
+<li style="display:none;"><a href="info/1013/11553.htm"><img src="/__local/F/38/67/64CAAB7C885124701DD623FBE52_B5B6FE88_24B05.jpg" style="width:154px;height:116px;"></a></li>
+<li style="display:none;"><a href="info/1013/11551.htm"><img src="/__local/C/B1/0A/B1EE5F3C3D922497AB337E6D319_D8654F30_337D4.jpg" style="width:154px;height:116px;"></a></li>
+<li style="display:none;"><a href="info/1013/11546.htm"><img src="/__local/8/61/B4/5EA08FC759600273E0B1B55B93B_B80B1427_2CDED.jpg" style="width:154px;height:116px;"></a></li>
+    <li class="r15"><a href="info/1013/11556.htm"><img src="/__local/E/87/11/0BAE526E58622670AA37E09A5D8_D3E483E7_27AD8.jpg" style="width:154px;height:116px;"></a></li>
+    
+    <li><a href="info/1013/11549.htm"><img src="/__local/F/56/26/F79B1B4EA51BE962BD6FEBAEDE2_2D520575_664E3.jpg" style="width:154px;height:116px;"></a></li>
+    
+  <li><a href="info/1013/11550.htm"><img src="/__local/C/74/74/AF3240F7BD631CD1CC950B3310E_31DB177E_1C660.jpg" style="width:323px;height:246px;"></a></li>
+
+
+<script>_showDynClickBatch(['dynclicks_u22_11547','dynclicks_u22_11552','dynclicks_u22_11548','dynclicks_u22_11553','dynclicks_u22_11551','dynclicks_u22_11546','dynclicks_u22_11556','dynclicks_u22_11549','dynclicks_u22_11550'],[11547,11552,11548,11553,11551,11546,11556,11549,11550],"wbnews", 1597115801)</script>
+</ul>
+</div></div>
+
+</div><!--@wrap-->
+<div class="clear8"></div>
+<div class="lay" style="background-color:#24975C">
+<div class="crumbBar">
+ <dl class="crumbNav clearfix"><dd>
+<script language="javascript" src="/system/resource/js/openlink.js"></script><div class="dropMenu">
+   <a href="javascript:void(0);" title="党群机构">党群机构</a><i></i>
+   </div>
+   <div class="dropBox">
+   <ul>
+<li><a href="http://office.syau.edu.cn" title="" target="_blank">党委办公室</a></li>
+    
+<li><a href="http://www.syau.edu.cn/zzb" title="" target="_blank">组织部</a></li>
+    
+<li><a href="http://xcb.syau.edu.cn" title="" target="_blank">党委宣传部</a></li>
+    
+</ul>
+</div>
+</dd>
+
+<dd><div class="dropMenu">
+   <a href="javascript:void(0);" title="党群机构">党群机构</a><i></i>
+   </div>
+   <div class="dropBox">
+   <ul>
+<li><a href="http://office.syau.edu.cn" title="" target="_blank">校长办公室</a></li>
+    
+<li><a href="http://xsc.syau.edu.cn" title="" target="_blank">学生处</a></li>
+    
+<li><a href="http://dag.syau.edu.cn" title="" target="_blank">档案馆</a></li>
+    
+</ul>
+</div>
+</dd>
+
+<dd><div class="dropMenu">
+   <a href="javascript:void(0);" title="党群机构">党群机构</a><i></i>
+   </div>
+   <div class="dropBox">
+   <ul>
+<li><a href="http://www.moe.edu.cn" title="" target="_blank">国家教育部</a></li>
+    
+<li><a href="http://www.agri.gov.cn" title="" target="_blank">国家农业部</a></li>
+    
+<li><a href="http://www.most.gov.cn" title="" target="_blank">国家科技部</a></li>
+    
+</ul>
+</div>
+</dd>
+        </dl>
+
+</div>
+</div>
+
+<div id="wrapF">
+<div id="footer">  
+             <div class="dbbq"><!-- 版权内容请在本组件"内容配置-版权"处填写 -->
+<p>学校地址：地址：辽宁省沈阳市东陵路120号 邮编：110866 </p>
+             <p>沈阳农业大学新闻网 Ver 6.0 技术支持：Mitsoft R&D Center</p>
+             <p>Copyright (c) 2010-2019 SYAU.EDU.CN. All Rights Reserved .</p>
+             <p></p></div>
+</div>
+
+</div>
+<script type="text/javascript" src="dfiles/12906/_wsp_tpl/news2/js/lunbo.js"></script>
+</body>
+</html>

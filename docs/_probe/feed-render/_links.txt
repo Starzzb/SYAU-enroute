@@ -1,0 +1,211 @@
+================== cxcycomp  declared=UTF-8 utf8_ok=True gb_ok=False used=utf-8 anchors=18
+    http://cxcy.syau.edu.cn | 
+    http://cxcy.syau.edu.cn/ | 首页
+    http://cxcy.syau.edu.cn/comp/front/comp/list | 比赛信息
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/list | 大创项目
+    https://job.syau.edu.cn/info/1025/3856.htm | 建赛流程指导视频教程
+    /ucenter/index/reg | 跨校人员注册
+    ../comp/list | 科技竞赛
+    ../comp/articlelist?cid=12 | 科技竞赛成果公示
+    / | 首页
+    ../comp/info?id=1542 | 第十二届全国大学生生命科学竞赛（科学探究类）
+    ../comp/info?id=1583 | 第一届辽宁省大学生外语综合技能创新挑战赛-省赛
+    ../comp/info?id=1515 | 2026“外研社•国才杯”“理解当代中国” 辽宁省大学外语能力大赛-校园选拔赛
+    ../comp/info?id=1589 | 2026年“外教社·词达人杯”全国大学生英语词汇能力大赛-省赛
+    ../comp/info?id=1597 | 2026年“高教社”杯全国大学生数学建模竞赛
+    ../comp/info?id=1592 | 第十二届中国研究生未来飞行器创新大赛
+    ../comp/info?id=1588 | 2026“外研社•国才杯”“理解当代中国” 辽宁省大学外语能力大赛-省赛
+    http://www.syau.edu.cn/# | 辽ICP备18018285号-1
+
+================== cxcydc  declared=UTF-8 utf8_ok=True gb_ok=False used=utf-8 anchors=15
+    http://cxcy.syau.edu.cn | 
+    http://cxcy.syau.edu.cn/ | 首页
+    http://cxcy.syau.edu.cn/comp/front/comp/list | 比赛信息
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/list | 大创项目
+    https://job.syau.edu.cn/info/1025/3856.htm | 建赛流程指导视频教程
+    /ucenter/index/reg | 跨校人员注册
+    / | 首页
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/info?id=1417 | 2026年大学生创新训练计划
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/info?id=1081 | 2025年大学生创新训练计划
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/info?id=743 | 2024年大学生创新创业训练计划
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/info?id=255 | 2023年大学生创新创业训练计划项目
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/info?id=1 | 2022年大学生创新创业训练计划项目立项申报
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/info?id=10 | 2021年大学生创新创业训练计划项目
+    http://www.syau.edu.cn/# | 辽ICP备18018285号-1
+
+================== cxcyart  declared=UTF-8 utf8_ok=True gb_ok=False used=utf-8 anchors=14
+    http://cxcy.syau.edu.cn | 
+    http://cxcy.syau.edu.cn/ | 首页
+    http://cxcy.syau.edu.cn/comp/front/comp/list | 比赛信息
+    http://cxcy.syau.edu.cn/dcplan/front/dcplan/list | 大创项目
+    https://job.syau.edu.cn/info/1025/3856.htm | 建赛流程指导视频教程
+    /ucenter/index/reg | 跨校人员注册
+    ../comp/list | 科技竞赛
+    ../comp/articlelist?cid=12 | 科技竞赛成果公示
+    / | 首页
+    ../comp/articledetail?id=163 | 第11节国际智能农业装备创新大赛校园选拔赛获奖作品展（部分）
+    ../comp/articledetail?id=154 | 第七届外教社杯全国大学生跨文化能力大赛辽宁赛区获奖名单证书
+    ../comp/articledetail?id=150 | 德泰杯“东北三省一区第四届大学生生态环保作品竞赛优秀作品奖获奖信息
+    ../comp/articledetail?id=151 | 东北三省一区第四届大学生生态环保作品竞赛校园选拔赛结果公示
+    http://www.syau.edu.cn/# | 辽ICP备18018285号-1
+
+================== tzb  declared=None utf8_ok=True gb_ok=False used=utf-8 anchors=96
+    /accounts/login/ | 登录
+    /accounts/register/?source=www | 注册
+    / | 首页
+    /focus | 了解挑战杯
+    /tzb | 挑战杯动态
+    https://xmk.tiaozhanbei.net/project/ | 人才项目库
+    https://2026.tiaozhanbei.net/ | 2026国赛
+    /baobei | 省赛/报备
+    https://www.tiaozhanbei.net/gxzq/ | 高校专区
+    tzb/notice | 更多
+    /article/15842/ | 挑战杯丨关于举办第十五届“挑战杯”建设银行中国大学生创业计划竞赛的通知
+    /article/15841/ | 2026年度中国青年科技创新“揭榜挂帅”擂台赛第二批榜题等你来战！
+    /article/15836/ | 谁有本事，谁就揭榜！2026年度中国青年科技创新“揭榜挂帅”擂台赛重磅启幕！
+    /article/15824/ | 榜题征集正式开启！这个全国青年的科创擂台邀您发榜
+    /article/15812/ | 第二十届“挑战杯”全国大学生课外学术科技作品竞赛联合发起高校名单
+    /article/15811/ | DAY1丨第十九届“挑战杯”竞赛终审决赛，开赛！
+    tzb/event | 更多
+    /article/15858/ | 挑战杯丨第十五届“挑战杯”新疆维吾尔自治区大学生创业计划竞赛圆满落幕
+    /article/15846/ | 挑战杯丨第十五届“挑战杯”黑龙江省大学生创业计划竞赛终审决赛在东北林业大学举行
+    /article/15843/ | 挑战杯丨浙江省第十五届“挑战杯”大学生创业计划竞赛圆满落幕
+    /article/15859/ | 挑战杯丨第十五届“挑战杯”中国大学生创业计划竞赛重庆市选拔赛决赛成功举办
+    /article/15857/ | 挑战杯丨第十二届“挑战杯”云南省大学生创业计划竞赛圆满落幕
+    /article/15856/ | 挑战杯丨第十五届“挑战杯”山西省大学生创业计划竞赛成功举办
+    tzb/media | 更多
+    /article/15864/ | 第十五届“挑战杯”中国大学生创业计划竞赛成功举行
+    /article/15863/ | DAY4丨青创故事不断，“挑战杯”配套活动收官！
+    /article/15862/ | DAY3丨第十五届“挑战杯”竞赛主体赛终审决赛开赛，配套活动火热进行中！
+    /article/15861/ | DAY2丨第十五届“挑战杯”竞赛东北振兴产业升级专项赛终审决赛，今日开赛！
+    /article/15860/ | DAY1丨第十五届“挑战杯”竞赛终审决赛，开赛！
+    /article/15810/ | 划重点！6家“挑战杯”大学生创新创业项目科技创新成果孵化转化基地齐亮相（下）
+
+================== lnjyt  declared=utf-8 utf8_ok=True gb_ok=False used=utf-8 anchors=132
+    http://www.ln.gov.cn/ | 辽宁省人民政府
+    http://mail.ln.gov.cn/ | 邮箱系统
+    /AiWza/index.html#/eportal/ui | 无障碍浏览
+    /jyt/index/index.shtml | 首页
+    /jyt/index/jcjy/index.shtml | 基础教育
+    /jyt/index/gdjy/index.shtml | 高等教育
+    /jyt/index/wddt/index.shtml | 网点地图
+    /jyt/index/zyjy/index.shtml | 职业教育
+    /jyt/jgsz/sjyt/index.shtml | 机构
+    /jyt/jgsz/lnsjyt/index.shtml | 省教育厅工作职责
+    /jyt/jgsz/ywcs/index.shtml | 业务处室
+    /jyt/jgsz/zsdw/index.shtml | 直属单位
+    /jyt/jyzx/index.shtml | 新闻
+    /jyt/jyzx/tbtt/index.shtml | 头版头条
+    /jyt/jyzx/jybxx/index.shtml | 教育部信息
+    /jyt/jyzx/swszfxx/index.shtml | 省委省政府信息
+    /jyt/jyzx/jyyw/index.shtml | 教育要闻
+    /jyt/jyzx/zxlb/index.shtml | 战线联播
+    /jyt/jyzx/tpxw/index.shtml | 图片新闻
+    /jyt/gk/index.shtml | 公开
+    /jyt/gk/zxtz/index.shtml | 最新通知
+    /jyt/gk/gsgg/index.shtml | 公示公告
+    /jyt/gk/jywj/index.shtml | 教育文件
+    /jyt/gk/zcjd/index.shtml | 政策解读
+    /jyt/gk/zfxxgk/zfxxgkzn/index.shtml | 政府信息公开
+    https://www.lnzwfw.gov.cn/bmym/?groupId=11210000001099970L&amp;gb=1&amp;aisiteOutPageId=fd8bce2cbfb044a09466e9d82cd | 服务
+    https://www.lnzwfw.gov.cn/bmym/?groupId=11210000001099970L&amp;gb=1&amp;aisiteOutPageId=7f7b197ae6154b899dfb6f55319 | 政务服务
+    /jyt/fw/bmfw/index.shtml | 便民服务
+    /jyt/hd/index.shtml | 互动
+    https://www.lnzwfw.gov.cn/8890/index?aisiteOutPageId=0e367f0ee6d84c878ceb2138106e5c29 | 12345综合服务平台
+
+================== cahe  declared=utf-8 utf8_ok=True gb_ok=False used=utf-8 anchors=99
+    /site/index.html | 
+    https://www.cahe.edu.cn/site/content/18880.html | EN
+    https://www.cahe.edu.cn/site/term/362.html | 学会概况
+    https://www.cahe.edu.cn/site/term/374.html | 学会领导
+    https://www.cahe.edu.cn/site/term/375.html | 学会简介
+    https://www.cahe.edu.cn/site/term/376.html | 发展战略
+    https://www.cahe.edu.cn/site/term/377.html | 学会规章
+    https://www.cahe.edu.cn/site/term/792.html | 大事记
+    https://www.cahe.edu.cn/site/term/363.html | 治理架构
+    https://www.cahe.edu.cn/site/term/364.html | 学术动态
+    https://www.cahe.edu.cn/site/term/382.html | 智库观点
+    https://www.cahe.edu.cn/site/term/383.html | 科研参考
+    https://www.cahe.edu.cn/site/term/384.html | 课题研究
+    https://www.cahe.edu.cn/site/term/385.html | 成果发布
+    https://www.cahe.edu.cn/site/term/365.html | 品牌建设
+    https://heec64.reed-sinopharm.com/cn/web/index/ | 高博会
+    https://www.cahe.edu.cn/site/term/387.html | 国际论坛年会 International Forum on Higher Education
+    https://www.cahe.edu.cn/site/term/938.html | 中国高教研究
+    http://wupf.cahe.edu.cn/ | 世界大学校长论坛
+    https://www.cahe.edu.cn/site/term/366.html | 分支机构
+    https://www.cahe.edu.cn/site/term/462.html | 分会列表
+    https://www.cahe.edu.cn/site/term/818.html | 分会纵横
+    https://www.cahe.edu.cn/site/term/465.html | 下载专区
+    https://www.cahe.edu.cn/site/term/862.html | 工作简讯
+    https://www.cahe.edu.cn/site/term/868.html | 年检事项
+    https://www.cahe.edu.cn/site/term/869.html | 申请新设
+    https://www.cahe.edu.cn/site/term/896.html | 账户信息
+    https://www.cahe.edu.cn/site/term/367.html | 服务与合作
+    https://www.cahe.edu.cn/site/term/389.html | 国际交流
+    https://www.cahe.edu.cn/site/term/390.html | 政府职能转移
+
+================== jingsai  declared=gbk utf8_ok=False gb_ok=True used=gb18030 anchors=266
+    https://www.52jingsai.com/ | 收藏本站
+    http://wpa.qq.com/msgrd?v=3&amp;uin=664130854&amp;site=qq&amp;menu=yes | 发布比赛
+    http://wpa.qq.com/msgrd?v=3&amp;uin=642009640&amp;site=qq&amp;menu=yes | 推广合作
+    member.php?mod=register | 立即注册
+    ./ | 
+    https://www.52jingsai.com/connect.php?mod=login&op=init&referer=index.php&statfrom=login_simple | 
+    index.php | 首页
+    https://www.52jingsai.com/bisai/ | 比赛信息
+    https://www.52jingsai.com/gongyi/ | 公益征集
+    https://www.52jingsai.com/jiyu/ | 青年机遇
+    https://www.52jingsai.com/huizong/ | 赛事汇总
+    https://www.52jingsai.com/xinwen/ | 新闻资讯
+    https://www.52jingsai.com/women/rongyu/ | 荣誉嘉奖
+    https://www.52jingsai.com/bisai/shangyechuangye/chuangye/ | 创业大赛
+    https://www.52jingsai.com/bisai/yingyujingsai/ | 英语竞赛
+    https://www.52jingsai.com/bisai/xkjn/bangdan/ | 榜单竞赛
+    https://www.52jingsai.com/bisai/shangyechuangye/yxch/ | 营销策划
+    https://www.52jingsai.com/bisai/shangyechuangye/jinrong/ | 金融比赛
+    https://www.52jingsai.com/bisai/gggy/guanggao/ | 广告创意
+    https://www.52jingsai.com/bisai/keji/sheji/ | 设计比赛
+    https://www.52jingsai.com/bisai/keji/kfyy/ | IT应用开发
+    https://www.52jingsai.com/bisai/yishuaihao/yjwx/ | 文学演讲
+    https://www.52jingsai.com/bisai/yishuaihao/byzc/ | 播音主持
+    https://www.52jingsai.com/bisai/yishuaihao/dmsh/ | 动漫书画
+    https://www.52jingsai.com/bisai/yishuaihao/yssy/ | 影视摄影
+    https://www.52jingsai.com/bisai/xkjn/xkxs/ | 学科学术
+    https://www.52jingsai.com/bisai/keji/keji/ | 科技大赛
+    https://www.52jingsai.com/bisai/gggy/gongyi/ | 公益大赛
+    https://www.52jingsai.com/bisai/yishuaihao/wdws/ | 舞蹈武术
+    https://www.52jingsai.com/bisai/yishuaihao/mote/ | 模特大赛
+
+================== fwwb  declared=UTF-8 utf8_ok=True gb_ok=False used=utf-8 anchors=87
+    / | 首页
+    /public/index | 大赛公告
+    /topic/index | 本届赛题
+    /organization/index | 组织机构
+    /news/index | 大赛新闻
+    /activity/index | 大赛花絮
+    /video/index | 大赛视频
+    /about/index | 关于大赛
+    /team/forgetPass | 忘记密码？
+    /university/login | 高校登录
+    /university/register | 高校注册
+    /team/register | 没有团队账号，前往注册？
+    /news/show/529 | 
+    /news/show/226 | 
+    /news/show/663 | 第十七届中国大学生服务外包创新创业大赛全国赛获奖团 ...
+    /news/show/662 | 关于第十七届服创大赛全国赛一、二等奖获奖证书已开放 ...
+    /news/show/661 | 第十七届中国大学生服务外包创新创业大赛全国赛决赛获 ...
+    /news/show/666 | 关于收取第十八届中国大学生服务外包创 新创业大赛赛题 ...
+    /news/show/665 | 十八届服创大赛D赛道开通征集及招标说明
+    /news/show/664 | 关于收取第十七届中国大学生服务外包创 新创业大赛赛题 ...
+    /news/show/595 | 关于中国大学生服务外包创新创业大赛开通D赛道的说明
+    /news/show/594 | 关于服创大赛指定江苏万维艾斯网络智能产业创新中心有限 ...
+    /video/play/4440db8c-64fe-4367-b158-ceffa75e14ba | 访谈VCR
+    /video/play/7e4c4cfa-1671-4826-9342-1304bfe77568 | 中国大学生服务外包创新创业大赛
+    /video/play/eb1897f7-f751-4c89-8901-c5438c4d89c1 | 中国大学生服务外包创新创业大赛赛歌
+    /activity/show/21 | 第十一届大赛决赛颁奖5
+    /activity/show/20 | 第十一届大赛决赛颁奖4
+    /activity/show/19 | 第十一届大赛决赛颁奖3
+    /activity/show/18 | 第十一届大赛决赛颁奖2
+    /activity/show/17 | 第十一届大赛决赛颁奖1
+

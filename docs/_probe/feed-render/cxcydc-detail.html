@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>2026年大学生创新训练计划 - 沈阳农业大学创新创业管理平台</title>
+    <meta name="keywords" content=",2026年大学生创新训练计划"/>
+    <meta name="description" content="沈阳农业大学创新创业管理平台,关于开展2026年大学生创新训练计划项目立项工作的通知就业〔2026〕14号各学院：为深入贯彻落实《国务院办公厅关于进一步支持大学生创新创业的指导意见》《国务院办公厅关于深化高等学校创新创业教育改革的..."/>
+
+    <script src="/static/js/jquery.js"></script>
+
+    <script src="/templates/system/default/static/lib/pagination/jquery.pagination.js"></script>
+    <script type="text/javascript" language="javascript" src="/static/layer/layer.js"></script>
+    <link rel="stylesheet" href="/templates/system/default/static/css/tml_main.css">
+    <link rel="stylesheet" href="/templates/system/default/static/css/tml_main_new.css">
+    <link rel="stylesheet" href="/templates/system/default/static/css/idangerous.swiper2.7.6.css">
+    <script src="/templates/system/default/static/js/idangerous.swiper2.7.6.js"></script>
+    <script src="/static/js/jquery.qrcode.min.js"></script>
+    <script src="/static/superSlider/jquery.SuperSlide.2.1.3.js"></script>
+    <style>
+        .layui-layer-btn .layui-layer-btn0 {
+            border-color: #043b72;
+            background-color: #043b72;
+            color: #fff;
+        }
+    </style>
+</head>
+<style>
+    .header a.login, .header a.user, .header a.SignOut {
+        color: #3980c6;
+    }
+
+    .header a.login:hover, .header a.user:hover, .header a.SignOut:hover {
+        color: #f00;
+    }
+.tml_header{
+
+   margin-bottom:0!important;
+}
+    .tml_header .header_top .top_left ul{
+        height:initial !important;
+    }
+</style>
+<body>
+<div class="tml_header" >
+    <div class="tml_header_new tml_headerB">
+        <div class="txt container">沈阳农业大学创新创业教育智能管控一体化平台</div>
+        <div class="top_right">
+            <script type="text/javascript" src="/static/js/ucssoclient.js?v=20190314"></script>  
+                    <style>
+                        .Warning {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            
+                            
+                        }
+                        .Warning span {
+                            background:url(/static/img/icon-warning.png) no-repeat;
+                            background-position:left 1px;
+                            padding-left:20px;
+                        }
+                        .Success {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            display:none;
+                        }
+                        .Success span {
+                            background:url(/static/img/icon-success.png) no-repeat;
+                            background-position:left 3px;
+                            padding-left:20px;
+                        }
+
+                        .TipInfo {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            display: none;
+                        }
+
+                        .TipInfo span {
+                            padding-left:20px;
+                        }
+                        .change_role_student_old_img{
+                            background:url(/static/changerole/img/page_old_btn_change_character_white.png) no-repeat;
+                            width: 14px;
+                            height: 14px;
+                            display: inline-block;
+                            margin-right: 5px;
+                            vertical-align: middle;
+                            margin-top: -2px;                 
+                        }
+                        .change_role_student_old:hover .change_role_student_old_img{
+                            background:url(/static/changerole/img/page_old_btn_change_character_yellow.png) no-repeat;
+                        }
+                    </style>
+                    <div class="Warning" style="display: none;">
+                        <span></span>
+                    </div>
+                    <div class="Success" style="display: none;z-index: 1000;">
+                        <span></span>
+                    </div>
+
+                    <div class="TipInfo" style="display: none;z-index: 1000;">
+                        <span></span>
+                    </div>
+                    <script>
+                      $(document).ready(function(){
+                        var outval = true;
+                        $(".SignOut").click(function () {
+                            if (outval) {
+                                outval=false;
+                                $(".Warning span").html("退出中...");
+                                $(".Warning").fadeIn(300);window.location.href = '/ucenter/index/signout';
+                                   return false;YC.ssoLoginOut(success,fail,error);
+                            } else{
+                                warning("请不要重复点击");
+                            }
+                        });
+                        function success () {
+                            setTimeout(function(){
+                                warning("退出登录成功");
+                                window.location.href="http://cxcy.syau.edu.cn";
+                            },5000);
+                        }
+                        function fail (data) {
+                            warning(data.message);
+                        }
+                        function error (data) {
+                            warning("退出登录失败");
+                        }
+                        //验证帐号信息
+                        function warning(msg){
+                            $(".Warning span").html(msg);
+                            $(".Warning").fadeIn(300).delay(3000).fadeOut(300);
+
+                        }
+                      });
+                        
+                    </script>
+                    <script type="text/javascript">
+                    //验证帐号信息
+                    function alertWarning(msg) {
+                        $(".Success").hide();
+                        $(".TipInfo").hide();
+                        $(".Warning span").html(msg);
+                        $(".Warning").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                    function alertSuccess(msg) {
+                        $(".Warning").hide();
+                        $(".TipInfo").hide();
+                        $(".Success span").html(msg);
+                        $(".Success").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                    function alertTipInfo(msg) {
+                        $(".Warning").hide();
+                        $(".Success").hide();
+                        $(".TipInfo span").html(msg);
+                        $(".TipInfo").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                </script>        </div>
+    </div>
+    <div class="tml_header_nav">
+        <div class="container">
+            <div class="logo" style="padding-top: 28px;">
+                <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn"><img style="" src="/static/uploads/site/20260724091656_2576.png"></a>
+            </div>
+            <div class="nav_list">
+                    <ul class="clearfix">
+                                                                            <li id="item1"  >
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/">首页</a>
+                                                                                            </li>
+                                                    <li id="item2"  >
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/comp/front/comp/list">比赛信息</a>
+                                                                                            </li>
+                                                    <li id="item3"  class="this">
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/dcplan/front/dcplan/list">大创项目</a>
+                                                                                            </li>
+                                                    <li id="item4"  >
+                                                                    <a rel="noopener noreferrer" href="https://job.syau.edu.cn/info/1025/3856.htm">建赛流程指导视频教程</a>
+                                                                                            </li>
+                                                    <li id="item5"  >
+                                                                    <a rel="noopener noreferrer" href="/ucenter/index/reg">跨校人员注册</a>
+                                                                                            </li>
+                                            </ul>
+                </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(".tml_header").slide({mainCell:".header_top ul",autoPage:true,effect:"topLoop",autoPlay:true,delayTime:1000});
+</script>
+
+
+<div class="tml_banner bannerB">
+    <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+    <div class="second_menu container">
+        <div class="title">
+            <div class="zh">大创项目</div>
+            <div class="en"></div>
+        </div>
+        <div class="menu_item clearfix">
+            <a rel="noopener noreferrer" class="this" href="../dcplan/list">大创项目</a>
+        </div>
+    </div>
+</div>
+<div class="tml_body">
+    <div class="title container clearfix">
+        <div class="left">
+            <div class="zh"><span class="blue">大创</span>项目</div>
+            <div class="en"></div>
+            <div class="line"></div>
+        </div>
+        <div class="right">
+            <span><span class="icon position_icon"></span>当前位置：</span>
+            <a rel="noopener noreferrer" href="#">首页</a>
+            <span>. 大创项目</span>
+        </div>
+    </div>
+    <div class="body_box container clearfix">
+        <div class="body_left">
+            <div class="body_part body_part1">
+                <div class="title">2026年大学生创新训练计划</div>
+                <div class="msg"><span class="time_icon icon"></span>报名时间：2026-05-13 11:03 至 2026-06-08 16:30</div>
+                <div class="msg org"><span class="people_icon icon"></span>主办方：</div>
+                <div class="btn_groups">
+                    <a class="btn" style="background-color: #8d98a2;cursor: no-drop">已结束</a>                                    </div>
+                <div class="img">
+                    <img src="/static/uploads/res/comp/202605/17786388144684.jpg" alt="">
+                </div>
+            </div>
+            <div class="body_part body_part2">
+                <div class="p_title">
+                    <span>项目简介</span>
+                </div>
+                <div class="content">
+                    <p class="MsoNormal" style="text-indent:0pt;text-align:center;">
+	<span>关于开展</span><span>2026年大学生创新训练计划项目</span>
+</p>
+<p class="MsoNormal" style="text-indent:0pt;text-align:center;">
+	立项工作的通知
+</p>
+<p class="p" style="text-indent:21pt;text-align:right;">
+	<span>就业〔</span><span>202</span><span>6</span><span>〕</span><span>14</span><span>号</span>
+</p>
+<p class="p">
+	<span>各</span><span>学院</span><span>：</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>为深入贯彻落实《国务院办公厅关于进一步支持大学生创新创业的指导意见》《国务院办公厅关于深化高等学校创新创业教育改革的实施意见》等文件要求，进一步深化新发展阶段</span><span>我</span><span>校创新教育改革，</span><span>学校决定组织开展</span><span>2026年大学生创新训练计划立项工作</span><span>，</span><span>有关事项通知如下。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<b><span>一、申报</span></b><b><span>学生</span></b><b><span>范围</span></b>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>我校</span><span>全日制</span><span>在校</span><span>本科</span><span>一、二、三年级学生（包括动物医学专业四年级学生</span><span>，不允许其他专业四年级学生参与</span><span>）。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<b><span>二、项目分类</span></b>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>大学生创新训练计划实行项目式管理，分为国家级、省级、校级三个级别。项目内容要和项目成员所学专业密切相关。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>项目类别包括：</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>1.创新训练项目：本科生个人或团队在导师指导下，自主完成创新性研究项目设计、研究条件准备和项目实施、研究报告撰写、成果（学术）交流等工作。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>2.创业训练项目：学生团队在导师指导下，团队中每个学生在项目实施过程中扮演一个或多个具体角色，完成商业计划书编制、可行性研究、企业模拟运行、撰写创业报告等工作。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>3.创业实践项目：学生团队在学校导师和企业导师共同指导下，采用创新训练项目或创新性实验等成果，提出具有市场前景的创新性产品或服务，以此为基础开展创业实践活动。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<b><span>三、立项程序</span></b>
+</p>
+<p class="p" style="text-indent:28pt;">
+	<span>1.学生申报（</span><span>5月</span><span>13</span><span>日</span><span>—</span><span>6</span><span>月</span><span>1</span><span>日</span><span>）。通过沈阳农业大学创新创业管理平台（</span><span>http://cxcy.syau.edu.cn/）和辽宁省大学生创新创业管理共享平台（https://cxcy.upln.cn/inen）进行。务必在两个平台同时申报，且信息务必保持完全一致，否则视为无效申报。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>（</span><span>1）校平台操作：项目负责人登录校平台后（内网访问，校外登录平台需要使用VPN），根据《大学生创新训练计划项目申请书》（附件1）内容在“大创项目”栏填报相关信息；上传申请书、项目汇报PPT以及《诚信承诺书》（附件2）。填报结束后通知第一指导教师，登录校平台对申请内容进行审核。负责人注意要给指导教师审核预留好时间。跨学院申请项目，由项目负责人所在学院申报。学生填报与指导教师审核截止时间为：</span><span>6月</span><span>1</span><span>日上午</span><span>11:59</span><span>。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>（</span><span>2）省平台操作：校平台填报完毕后，务必由项目负责人登录省平台填报信息，其他人无效。具体操作参阅《云创创新创业教育管理系统V1.0</span><span>－</span><span>省级项目填报辅助工具操作说明书》（附件</span><span>3）。请认真阅读后，准确操作。省平台截止时间为：</span><span>6月</span><span>1</span><span>日上午</span><span>11:59</span><span>。</span>
+</p>
+<p class="p" style="text-indent:28pt;">
+	<span>2.报名数据整理、核对</span><span>（</span><span>6月</span><span>2—7</span><span>日）</span><span>。创新创业学院对两个平台数据进行核对校验，确保报名信息一致后，通知各学院组织评审推荐。信息审核以校平台为准，</span><span>因涉及</span><span>项目定级</span><span>，</span><span>请务必准确填写。</span>
+</p>
+<p class="p" style="text-indent:28pt;">
+	<span>3.评审与推荐</span><span>（</span><span>6月</span><span>8—12</span><span>日</span><span>）</span><span>。各学院组织专家对本单位申请项目按类别</span><span>（</span><span>创新训练和创业训练类项目</span><span>）</span><span>进行评审论证、</span><span>排序</span><span>、公示。同时在管理平台分类录入推荐</span><span>排序</span><span>，推荐数量不限</span><span>，</span><span>并将《</span><span>2026年大学生创新训练计划项目申报信息汇总表》（附件4，纸质版，须加盖单位公章、学院</span><span>分管领导</span><span>签字）于</span><span>6月</span><span>12</span><span>日</span><span>前报送至</span><span>服务中心</span><span>411</span><span>办公室。</span><span>创业实践类只审核，不需排序，由创新创业学院组织评审工作。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>4.学校</span><span>公布立项名单</span><span>（</span><span>6月</span><span>13—17</span><span>日）</span><span>。按照规定比例，确定国家级</span><span>、</span><span>省级</span><span>推荐</span><span>项目</span><span>和校级项目，</span><span>经公示通过后</span><span>报送至省教育厅</span><span>。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<b><span>四、申报要求</span></b>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>1.原则上每名学生每年只可主持或参与1个项目，如有超项，取消项目申报资格。创新训练项目一般为1-5人，创业训练项目、创业实践项目一般为3</span><span>—</span><span>5人。项目一经立项，原则上不允许调整团队成员。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>2.每个项目有1-2名指导教师，每年作为第一指导教师最多指导1个项目参与申报。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>3.往年已立项的项目，不允许以相同内容再次申报</span><span>。</span><span>一经发现，取消学生及指导教师立项申报资格。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>4.鼓励学生加强跨专业、跨年级之间的项目合作，提高项目的科技含量，推动创新训练计划项目高水平发展。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>5.项目运行周期一般为1年，项目预算清晰、合理，符合相关管理规定。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<b><span>五、经费</span></b>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>1.</span><span>学校对</span><span>国家级、省级项目给予</span><span>一定的</span><span>经费资助。资助项目数量和资助金额，根据财务预算和申报项目数量确定。校级项目为自筹项目。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>2.</span><span>资助</span><span>经费专款专用，在预算框架下自主使用。项目结题后，经费报销由项目成员提出，经指导教师审核、签字确认，创新创业学院审批后方可报销。学校资助的经费仅可用于项目研究期间的相关支出，与项目不相关及不符合财务管理规定的支出不予报销。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<b><span>六、其他</span></b>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>1.各学院做好</span><span>立项</span><span>的宣传、动员、组织等工作，鼓励学生及指导教师积极准备项目，并做好申报工作。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>2.联系人：邵老师、王老师</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>办公地点：服务中心</span><span>411办公室</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>3.工作QQ群：1094905883</span><span>，</span><span>后续相关工作将在</span><span>QQ群内通知，请项目负责人和指导教师务必进群。</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>附件：</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>1.大学生创新训练计划项目申请书</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>2.诚信承诺书</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>3.云创创新创业教育管理系统V1.0</span><span>－</span><span>省级项目填报辅助工具操作说明书</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>4.202</span><span>6</span><span>年大学生创新训练计划项目</span><span>申报信息</span><span>汇总表</span>
+</p>
+<p class="p" style="text-indent:21pt;">
+	<span>5.申报工作重要时间节点</span>
+</p>
+<p class="p" style="text-indent:21pt;text-align:right;">
+	<span>学生创新创业与就业指导处（创新创业学院）</span>
+</p>
+<p class="p" style="text-indent:21pt;text-align:right;">
+	<span>202</span><span>6</span><span>年</span><span>5月</span><span>13</span><span>日</span>
+</p>                </div>
+            </div>
+                                    <div class="page_turn">
+                                <div class="page_item clearfix">
+                    <div class="name">
+                        上一篇
+                        <span class="line"></span>
+                    </div>
+                    <div class="txt">
+                        <a rel="noopener noreferrer" class="content" href="../dcplan/info?id=1081" title="2025年大学生创新训练计划" title="2025年大学生创新训练计划">2025年大学生创新训练计划</a>
+                        <span class="time">2025.05.14</span>
+                    </div>
+                </div>
+                                            </div>
+        </div>
+        <div class="body_right">
+            <div class="sign_msg">
+                <div class="top clearfix" style="margin-bottom: 0">
+                    <div class="item">
+                        <span class="icon t_groups_icon"></span> <span class="num">438</span>组
+                        <div class="tip">已报名组数</div>
+                    </div>
+                    <div class="item">
+                        <span class="icon t_people_icon"></span> <span class="num">1558</span>人
+                        <div class="tip">已报名人数</div>
+                    </div>
+                </div>
+            </div>
+            <div class="notice_list">
+                <div class="title clearfix">
+                    <span>公告</span>
+                    <a rel="noopener noreferrer" href="../dcplan/notice?id=MTQxNy02YWY3NDY" target="_blank">more+</a>
+                </div>
+                                <div class="NoticeList_none" style="display:block;text-align: center;padding: 20px 0">暂无公告</div>
+                            </div>
+            <div class="notice_list">
+                <div class="title clearfix">
+                    <span>优秀项目</span>
+                    <a rel="noopener noreferrer" href="../dcplan/excellent?id=MTQxNy02YWY3NDY" target="_blank">more+</a>
+                </div>
+                                <div class="NoticeList_none" style="display:block;text-align: center;padding: 20px 0">暂无优秀项目</div>
+                             </div>
+        </div>
+    </div>
+</div>
+<script src="/static/js/dateformat.js"></script>
+<br clear="both"/>
+<!--选择分类弹出层-->
+<style>
+    .back{
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 995;
+        background: rgba(0,0,0,0.5);
+    }
+    .cateAlert{
+        position: fixed;
+        z-index: 999;
+        top: 150px;
+        width: 449px;
+        left: 0px;
+        right: 0px;
+        margin-right: auto;
+        margin-left: auto;
+
+
+        max-height: 895px;
+    }
+    .close{
+        height: 40px;
+        background: url("/static/img/cateAlertClose.png") no-repeat right;
+        background-size:58px 19px;
+        width: 100%;
+    }
+    .cateAlert .alertBody{
+        border-radius: 4px;
+        background: #fff;
+    }
+    .cateAlert .alertBody .title{
+        height: 52px;
+        background-color: #439ff6;
+        color:#ffffff;
+        font-size: 16px;
+        font-family: "微软雅黑";
+        border-radius: 5px;
+        line-height: 52px;
+        text-align: center;
+
+    }
+    .cateAlert .alertBody .content{
+        max-height: 300px;
+        padding-top: 5px;
+        padding-left: 20px;
+        padding-right: 20px;
+        overflow: auto;
+    }
+    .cateAlert .alertBody  li{
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        padding-top: 20px;
+    }
+    .cateAlert .alertBody  li .catetitle{
+        font-size: 16px;
+        color: #439ff6;
+        line-height: 34px;
+    }
+    .cateAlert .alertBody  li .info{
+        font-size: 14px;
+        color: #888888;
+        line-height: 20px;
+        padding-right: 30px;
+
+    }
+
+</style>
+                    <div class="back" style="display: none"> </div>
+                    <div class="cateAlert" style="display: none">
+                        <div class="close"></div>
+                        <div class="alertBody">
+                            <div class="title"><span>请选择分类</span></div>
+                            <div class="content">
+                                <ul><li><a href="../enter/index?compId=1417&appId=9029&compSubId=1707"><div class="catetitle">创新训练项目</div><div class="info">自主完成创新性研究项目设计、研究条件准备和项目实施、研究报告撰写、成果（学术）交流等工作</div></a></li><li><a href="../enter/index?compId=1417&appId=9036&compSubId=1708"><div class="catetitle">创业训练项目</div><div class="info">编制商业计划书、开展可行性研究、模拟企业运行、参加企业实践、撰写创业报告等工作</div></a></li><li><a href="../enter/index?compId=1417&appId=9043&compSubId=1709"><div class="catetitle">创业实践项目</div><div class="info">提出一项具有市场前景的创新性产品或者服务，以此为基础开展创业实践活动</div></a></li></ul>
+                            </div>
+                        </div>
+                    
+                    </div>
+                    <script>
+                        $('.close').click(function () {
+                                $('.back').hide();
+                                $('.cateAlert').hide();
+                        });
+                        $('.back').click(function () {
+                                $('.back').hide();
+                                $('.cateAlert').hide();
+                        });
+                        $("#alertSub").click(function() {
+                                $(".cateAlert").show();
+                                $('.back').show();
+                        });
+                    </script><style>
+    .doubleback{
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 995;
+        background: rgba(0,0,0,0.5);
+    }
+    .doublecateAlert{
+        position: fixed;
+        z-index: 999;
+        top: 150px;
+        width: 449px;
+        left: 0px;
+        right: 0px;
+        margin-right: auto;
+        margin-left: auto;
+
+
+        max-height: 895px;
+    }
+    .doubleclose{
+        height: 40px;
+        background: url("/static/img/cateAlertClose.png") no-repeat right;
+        background-size:58px 19px;
+        width: 100%;
+    }
+    .doublecateAlert .doublealertBody{
+        border-radius: 4px;
+        background: #fff;
+    }
+    .doublecateAlert .doublealertBody .title{
+        height: 52px;
+        background-color: #439ff6;
+        color:#ffffff;
+        font-size: 16px;
+        font-family: "微软雅黑";
+        border-radius: 5px;
+        line-height: 52px;
+        text-align: center;
+
+    }
+    .doublecateAlert .doublealertBody .content{
+        max-height: 300px;
+        padding-top: 5px;
+        padding-left: 20px;
+        padding-right: 20px;
+        overflow: auto;
+    }
+    .doublecateAlert .doublealertBody  li{
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        padding-top: 20px;
+    }
+    .doublecateAlert .doublealertBody  li .doublecatetitle{
+        font-size: 16px;
+        color: #439ff6;
+        line-height: 34px;
+    }
+    .doublecateAlert .doublealertBody  li .info{
+        font-size: 14px;
+        color: #888888;
+        line-height: 20px;
+        padding-right: 30px;
+
+    }
+
+</style>
+                    <div class="doubleback" style="display: none"> </div>
+                    <div class="doublecateAlert" style="display: none">
+                        <div class="doubleclose"></div>
+                        <div class="doublealertBody">
+                            <div class="title"><span>请选择分类</span></div>
+                            <div class="content">
+                                <ul><li><a href="../double/createproject?compId=1417&compSubId=1707"><div class="doublecatetitle">创新训练项目</div><div class="info">自主完成创新性研究项目设计、研究条件准备和项目实施、研究报告撰写、成果（学术）交流等工作</div></a></li><li><a href="../double/createproject?compId=1417&compSubId=1708"><div class="doublecatetitle">创业训练项目</div><div class="info">编制商业计划书、开展可行性研究、模拟企业运行、参加企业实践、撰写创业报告等工作</div></a></li><li><a href="../double/createproject?compId=1417&compSubId=1709"><div class="doublecatetitle">创业实践项目</div><div class="info">提出一项具有市场前景的创新性产品或者服务，以此为基础开展创业实践活动</div></a></li></ul>
+                            </div>
+                        </div>
+                    
+                    </div>
+                    <script>
+                        $('.doubleclose').click(function () {
+                                $('.doubleback').hide();
+                                $('.doublecateAlert').hide();
+                        });
+                        $('.doubleback').click(function () {
+                                $('.doubleback').hide();
+                                $('.doublecateAlert').hide();
+                        });
+                        $("#doublealertSub").click(function() {
+                                $(".doublecateAlert").show();
+                                $('.doubleback').show();
+                        });
+                    </script><!--选择分类弹出层结束-->
+<script type="text/javascript">
+    var shareTitle = "2026年大学生创新训练计划-沈阳农业大学创新创业管理平台";
+    var shareUrl = "http%3A%2F%2Fcxcy.syau.edu.cn%2Fdcplan%2Ffront%2Fdcplan%2Finfo%3Fid%3DMTQxNy02YWY3NDY";
+    var sharePicUrl = "http://cxcy.syau.edu.cn//static/uploads/res/comp/202605/17786388144684.jpg";
+    $('.share-02').click(function () {
+        QqShare(shareTitle,shareUrl,sharePicUrl);
+    });
+    //分享到QQ空间
+    function QqShare(title,url,picurl)
+    {
+        var shareqqzonestring='http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?summary='+title+'&url='+url+'&pics='+picurl;
+        window.open(shareqqzonestring,'newwindow','height=400,width=400,top=100,left=100');
+    }
+    $(".share_btn").children(".share-01").hover(function(){
+        $(this).siblings(".wechat_QR_code").css({"display":"block"});
+    },function(){
+        $(this).siblings(".wechat_QR_code").css({"display":"none"});
+    });
+    var id="1417";
+    var page=2;
+    var size = "16";
+    function getMoreMember(){
+        // $("#getMoreBt").unbind();
+        $("#getMoreBt").text('加载中...');
+        var getMoreUrl = "getall";
+        $.post(getMoreUrl,{'id':id,'page':page},function(re){
+
+            if(re.status) {
+                console.log(re);
+                page++;
+                var html = '';
+                for(i in re.oridata){
+                    html += '<li>'
+                        +'<img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">'
+                        +'<div class="name">'+re.oridata[i].name+'</div>'
+                        +'<div class="time">'+formatDate(re.oridata[i].createtime,'MM.dd')+'</div>'
+
+                        +'</li>';
+                }
+
+                $(".people_list").find('ul').append(re.data);
+                $("#getMoreBt").text('加载更多');
+                if (re.num < size) $("#getMoreBt").hide();
+            }
+        },'json');
+
+    }
+    $('.share-04').click(function () {
+        warning('暂不支持该功能。');
+    });
+
+</script>
+
+<!-- 底部 开始 -->
+<div class="tml_footer_bg">
+    <div class="tml_footer container">
+        <div class="footer_bottom">
+            <div class="copyright" style="text-align: center">
+                <span>   <a rel="noopener noreferrer" style="color: #ffffff;" href="http://www.syau.edu.cn/#" target="_blank">辽ICP备18018285号-1</a></span><br>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 底部 结束 -->
+<script>
+    var listBodyheight = $(".list_body").height() - 80;
+    console.log(listBodyheight);
+    $(".nav_list").css({
+        "height": listBodyheight
+    })
+</script>
+</body>
+</html>
+    <script >
+
+    //滚动通知公告
+    // (function ($) {
+    //     $.fn.extend({
+    //         "slideW": function (value) {
+    //             var docthis = this;
+    //             //默认参数
+    //             value = $.extend({
+    //                 "li_h": "39",
+    //                 "time": 2000,
+    //                 "movetime": 1000,
+    //                 "yuansu": 1
+    //             }, value);
+    //
+    //             //向上滑动动画
+    //             function autoani() {
+    //                 $("li:lt(" + value.yuansu + ")", docthis).animate({"margin-top": -value.li_h}, value.movetime, function () {
+    //                     $(this).css("margin-top", 0).appendTo(".notice_link");
+    //                 })
+    //             }
+    //
+    //             //自动间隔时间向上滑动
+    //             var anifun = setInterval(autoani, value.time);
+    //             //悬停时停止滑动，离开时继续执行
+    //             $(docthis).children("li").hover(function () {
+    //                 clearInterval(anifun);			//清除自动滑动动画
+    //             }, function () {
+    //                 anifun = setInterval(autoani, value.time);	//继续执行动画
+    //             })
+    //         }
+    //     })
+    // })(jQuery);
+    // //执行通知动画
+    // $(".notice_link").slideW();
+    //$(".tml_header").slide({mainCell:".header_top ul",autoPage:true,effect:"topLoop",autoPlay:true,delayTime:1000});
+
+
+    $('.nav li').on('click', function (e) {
+        e.stopPropagation();
+        if ($(this).find('.down_box').css('display') == 'none') {
+            $(this).find('.down_box').slideDown(200);
+            $(this).siblings('li').find('.down_box').slideUp(200);
+        } else {
+            $(this).find('.down_box').slideUp(200);
+        }
+    });
+    $(document).on('click', function () {
+        $('.nav li').find('.down_box').hide()
+    })
+
+
+    $(function(){
+        function footerPosition(){
+            $(".tml_footer_bg").removeClass("fixed-bottom");
+            var contentHeight = document.body.scrollHeight,//网页正文全文高度
+                winHeight = window.innerHeight;//可视窗口高度，不包括浏览器顶部工具栏
+            console.log(contentHeight,winHeight)
+            if(contentHeight >= winHeight){
+                $(".tml_footer_bg").removeClass("fixed-bottom");
+            } else {
+                //当网页正文高度小于可视窗口高度时，为footer添加类fixed-bottom
+                $(".tml_footer_bg").addClass("fixed-bottom");
+
+            }
+        }
+        footerPosition();
+        $(window).resize(footerPosition);
+    });
+    if($('.tml_header').siblings('.tml_banner').length==''){
+        $('.tml_header').css({
+            'background': '#043b72',
+            'height':'150px',
+            'position':'unset',
+            'margin-bottom':'30px',
+        })
+    }
+    $(function () {
+        var winWidth=$(window).width();
+
+        var liwid=$('.nav li a');
+        if(winWidth<1300){
+            liwid.css({
+                'padding-left':'10px',
+                'padding-right':'10px',
+            })
+        }else if(winWidth<1400){
+            liwid.css({
+                'padding-left':'15px',
+                'padding-right':'15px',
+            })
+        }else if(winWidth<1500){
+            liwid.css({
+                'padding-left':'20px',
+                'padding-right':'20px',
+            })
+        }
+    })
+</script>

@@ -1,0 +1,58 @@
+## cxcycomp body=9661 text=4499 imgs=1
+   IMG> <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   JS \$\.post\( x1
+
+## cxcycomp2 body=7680 text=1177 imgs=1
+   IMG> <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   JS \$\.post\( x1
+
+## cxcydc body=17649 text=4392 imgs=1
+   IMG> <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   JS \$\.post\( x1
+
+## cxcydc2 body=19624 text=4491 imgs=1
+   IMG> <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   JS \$\.post\( x1
+
+## cxcyart body=538 text=0 imgs=4
+   IMG> <img src="/static/uploads/res/editor/202512/20251208172845_51496.jpg" alt="" />
+   IMG> <img src="/static/uploads/res/editor/202512/20251208172857_97808.jpg" alt="" />
+   IMG> <img src="/static/uploads/res/editor/202512/20251208172908_26120.jpg" alt="" />
+
+## cxcyart2 body=251 text=29 imgs=0
+
+## tzb body=9999 text=1493 imgs=13
+   IMG> <img alt="" src="/media/ckeditor_uploads/genrui/2026/11/05/1____.jpg" style="width: 600px; height: 338px;" />
+   IMG> <img alt="" src="/media/ckeditor_uploads/genrui/2026/11/05/2____.jpg" style="width: 600px; height: 338px;" />
+   IMG> <img alt="" src="/media/ckeditor_uploads/genrui/2026/11/05/3____.jpg" style="width: 600px; height: 338px;" />
+
+## tzb2 body=20760 text=883 imgs=12
+   IMG> <img alt="" src="/media/ckeditor_uploads/genrui/2026/07/02/1.png" style="width: 600px; height: 400px;" />
+   IMG> <img alt="" src="/media/ckeditor_uploads/genrui/2026/07/02/2___.png" style="width: 600px; height: 399px;" />
+   IMG> <img alt="" src="/media/ckeditor_uploads/genrui/2026/07/02/3_.png" style="width: 600px; height: 401px;" />
+
+## lnjyt body=16518 text=5207 imgs=0
+
+## lnjyt2 body=6086 text=651 imgs=0
+
+## cahe body=8202 text=623 imgs=2
+   IMG> <img src="/gdjy/images/red/logo2.png?v=1">
+   IMG> <img src="https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/5f28cba4773f5.jpg">
+
+## cahe2 body=9276 text=995 imgs=2
+   IMG> <img src="/gdjy/images/red/logo2.png?v=1">
+   IMG> <img src="https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/5f28cba4773f5.jpg">
+
+## jingsai body=14413 text=3026 imgs=1
+   IMG> <img src="http://cdn1.52jingsai.com/portal/202611/04/104655xlxd533olleox23l.jpg">
+
+## jingsai2 body=8528 text=356 imgs=2
+   IMG> <img src="http://cdn1.52jingsai.com/portal/202611/04/153034ixkylijxdjejq42y.png">
+   IMG> <img src="http://cdn1.52jingsai.com/portal/202611/04/153035vsdnk3bs31r640n0.png">
+
+## fwwb body=274 text=7 imgs=1
+   IMG> <img src="/attached/image/20261120/20261120204717_669.jpeg" alt="" />
+
+## fwwb2 body=273 text=7 imgs=1
+   IMG> <img src="/attached/image/20261120/20261120204209_103.jpg" alt="" />
+

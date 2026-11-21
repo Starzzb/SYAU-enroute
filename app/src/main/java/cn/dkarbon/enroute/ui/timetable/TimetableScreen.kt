@@ -90,6 +90,7 @@ import cn.dkarbon.enroute.data.Course
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.TimetableViewModel
 import cn.dkarbon.enroute.ui.theme.Form
+import cn.dkarbon.enroute.ui.theme.FormSpec
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.NumericFont
 import cn.dkarbon.enroute.ui.theme.Stroke
@@ -150,6 +151,16 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
         return
     }
 
+    // 卡片配置放在 TtCardPrefs.config（Compose mutableStateOf）里，
+    // 下游任何 Composable 读它都会自动订阅，这里不需要再包一层 provider。
+    TimetableBody(ui = ui, vm = vm)
+}
+
+@Composable
+private fun TimetableBody(ui: AppState, vm: TimetableViewModel) {
+    val ctx = androidx.compose.ui.platform.LocalContext.current
+    // 父函数已判过 null，这里再取一次是为了让本函数自洽（Compose 里重复 smart-cast 不成立）
+    val tt = ui.timetable ?: return
     val cal = remember { TermCalendar(ctx.applicationContext) }
     var calibrating by rememberSaveable { mutableStateOf(!cal.isCalibrated) }
 
@@ -305,7 +316,9 @@ fun TimetableScreen(ui: AppState, vm: TimetableViewModel) {
 
     // 编辑版（票 17）：整页铺一层极低对比度纸纹，替代「卡片+描边」的空间感。
     // 老主题不铺 —— 这一段是新分支，HARD / SCHOLAR 渲染不变。
-    val form = Form.current
+    // 版式开关（m39）：设置里选「账页」就强制走 editorial 分支，
+    // 形态完全由 TtCardPrefs 决定（见 TtCardPrefs 注释第 4 条：回退到 styleSet 会让两个选项都变账页）。
+    val form = TtCardForm
     val tone = InkTokens.current
 
     Box(
@@ -490,7 +503,7 @@ internal fun GridArea(
     val t = InkTokens.current
     // 票 17：编辑版分支。ed = false 时下面每处 `if (ed) ... else <原值>` 都取原值，
     // 所以 HARD / SCHOLAR 的绘制指令与改造前完全一致。
-    val f = Form.current
+    val f = TtCardForm
     val ed = f.editorial
     val accentText = primaryInk()
     val allBigs = BigSession.entries
@@ -734,14 +747,15 @@ internal fun GridArea(
                                         // 而且一直点得开。侵蚀只做「褪色」，不做「删除」。
                                         ed -> LedgerCourseCell(
                                             course = course,
-                                            progress = prog,
+                                            // 侵蚀开关（m39）：关掉就恒为 0（= 完整卡片）
+                                            progress = if (TtCardPrefs.erode) prog else 0f,
                                             isNow = isTodayCol && prog > 0f,
                                             onClick = { onCourseClick(course) },
                                             onLongClick = { onCourseLongClick(course) },
                                         )
                                         else -> CourseCard(
                                             course = course,
-                                            progress = prog,
+                                            progress = if (TtCardPrefs.erode) prog else 0f,
                                             isNow = isTodayCol && prog > 0f,
                                             onClick = { onCourseClick(course) },
                                             onLongClick = { onCourseLongClick(course) },
@@ -759,8 +773,8 @@ internal fun GridArea(
                     }
                 }
 
-                // 小幽灵覆盖层：按真实时间定位（不是匀速巡逻）
-                if (isThisWeek) {
+                // 小幽灵覆盖层：按真实时间定位（不是匀速巡逻）；可在设置里关掉
+                if (isThisWeek && TtCardPrefs.ghost) {
                     val eating = cells[todayWeekday to currentBig(nowMin, summer)?.index]
                     val eatKey = eating?.let { it.courseNo.ifBlank { it.name } }
                     TravellingGhost(
@@ -808,7 +822,7 @@ internal fun GridArea(
 @Composable
 private fun AxisRowLabel(sections: String, startTime: String) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val ed = f.editorial
     Column(
         Modifier.fillMaxSize().padding(top = 3.dp, end = 3.dp),
@@ -852,11 +866,18 @@ private fun CourseCard(
     onLongClick: () -> Unit,
 ) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val key = course.courseNo.ifBlank { course.name }
     val fam = Tt.famOf(key)
-    val wash = Tt.washOf(fam, t.isDark)
+    // 配置开关（m39）：默认值与改造前完全一致，所以不开设置页时渲染不变。
+    val tint = cn.dkarbon.enroute.ui.timetable.TtCardPrefs.tint
+    val wash = when (tint) {
+        1 -> if (t.isDark) t.cardAlt else t.cardAlt   // 单墨：不按课程分色
+        2 -> if (t.isDark) t.card else t.card         // 无色：就是卡片底色
+        else -> Tt.washOf(fam, t.isDark)
+    }
     val spine = Tt.spineOf(fam, t.isDark)
+    val showSpine = cn.dkarbon.enroute.ui.timetable.TtCardPrefs.spine
     val haptic = LocalHapticFeedback.current
 
     Box(Modifier.fillMaxSize()) {
@@ -879,7 +900,7 @@ private fun CourseCard(
                 ),
         ) {
             Row(Modifier.fillMaxSize()) {
-                Box(Modifier.width(2.5.dp).fillMaxHeight().background(spine))
+                if (showSpine) Box(Modifier.width(2.5.dp).fillMaxHeight().background(spine))
                 Column(Modifier.padding(start = 4.dp, top = 2.5.dp, end = 2.dp, bottom = 2.dp)) {
                     Text(
                         course.name,
@@ -915,8 +936,8 @@ private fun CourseCard(
             }
         }
 
-        // 正在上：2dp 主色描边（「当前」档）
-        if (isNow) {
+        // 正在上：2dp 主色描边（「当前」档）；可在设置里关掉
+        if (isNow && cn.dkarbon.enroute.ui.timetable.TtCardPrefs.nowRing) {
             Box(
                 Modifier
                     .matchParentSize()
@@ -990,7 +1011,7 @@ private fun nowMinutes(): Int {
 @Composable
 private fun UnscheduledHeader(n: Int) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val ed = f.editorial
     Row(
         Modifier.fillMaxWidth().padding(start = 14.dp, top = 14.dp, bottom = 6.dp, end = 14.dp),
@@ -1026,7 +1047,7 @@ private fun UnscheduledHeader(n: Int) {
 private fun UnscheduledRow(c: Course, onClick: () -> Unit) {
     val t = InkTokens.current
     // 票 17 重做：账页的未排课行是「便签条」（圆角 + 描边，无阴影），不是无容器的版面线
-    if (Form.current.editorial) {
+    if (TtCardForm.editorial || TtCardPrefs.ledger) {
         LedgerUnscheduledRow(c, onClick)
         return
     }
@@ -1044,8 +1065,10 @@ private fun UnscheduledRow(c: Course, onClick: () -> Unit) {
             .padding(horizontal = 9.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        FoodIcon(food = food, modifier = Modifier.size(20.dp), eaten = 0f)
-        Spacer(Modifier.width(9.dp))
+        if (TtCardPrefs.food) {
+            FoodIcon(food = food, modifier = Modifier.size(20.dp), eaten = 0f)
+            Spacer(Modifier.width(9.dp))
+        }
         Column(Modifier.weight(1f)) {
             Text(
                 c.name,
@@ -1080,7 +1103,7 @@ private fun FootNote(
     isThisWeek: Boolean,
 ) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val ed = f.editorial
     Column(Modifier.fillMaxWidth().padding(start = 14.dp, top = 10.dp, end = 14.dp)) {
         if (weekTotal == 0) {
@@ -1132,7 +1155,7 @@ private fun WeekHeader(
     onRecalibrate: () -> Unit,
 ) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val ed = f.editorial
     Column(Modifier.fillMaxWidth()) {
         // ⚠️ 表头布局**逐 dp 冻结**：三枚图标按钮各占 32dp，标题列 weight(1f) 吃掉剩余。
@@ -1266,7 +1289,7 @@ private fun HeaderTapPad(
     Box(
         modifier
             .size(48.dp)
-            .clip(Form.current.shapes.circle)
+            .clip(TtCardForm.shapes.circle)
             .clickable(
                 interactionSource = interaction,
                 indication = ripple(),

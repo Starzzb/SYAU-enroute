@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<title>m39 原型：课程卡配置 · 深色底纹 · 大纲筛布</title>
+<style>
+:root{--paper:#F8F5F0;--card:#FCFAF6;--cardAlt:#F1ECE3;--ink:#2C2C2C;--inkSoft:#4A4A46;
+--inkFaint:#686660;--rule:#8C8578;--outline:#7E776A;--primary:#2C2C2C;--accent:#6B7B6E;
+--brick:#8F4A3A;--slate:#697A7C;--olive:#6B7B6E;--amber:#A89279;}
+*{box-sizing:border-box}
+body{margin:0;background:#E9E5DE;color:#2C2C2C;font-family:"Noto Serif SC",-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:1500px;margin:0 auto;padding:26px 20px 64px}
+h1{font-size:21px;font-weight:700;margin:0 0 4px}
+.sub{font-size:12px;color:#686660;margin-bottom:20px;line-height:19px}
+.row{display:grid;gap:18px;align-items:start}
+.panel{background:var(--paper);border:1px solid var(--outline)}
+.ptitle{font-size:12px;font-weight:700;padding:10px 14px;border-bottom:1px solid var(--rule);background:var(--cardAlt)}
+.pbody{padding:16px}
+.note{font-size:10.5px;line-height:17px;color:#5F574C;margin-top:12px}
+.note b{color:#2C2C2C}
+.note code{background:#F1ECE3;padding:0 3px;font-family:ui-monospace,monospace;font-size:9.5px}
+.phone{background:var(--paper);border:1px solid var(--outline);width:340px;overflow:hidden}
+.dark{--paper:#191713;--card:#1F1C17;--cardAlt:#2B2721;--ink:#EDE7DA;--inkSoft:#C5BDAD;
+--inkFaint:#A39A8A;--rule:#7E7668;--outline:#8C8474;--primary:#EDE7DA;--accent:#A89279;
+--brick:#C88A78;--slate:#96A8A8;--olive:#A8BAA5;--amber:#C9B79C}
+.hd{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid var(--rule);background:var(--paper)}
+.hd .w{font-size:13px;font-weight:700;color:var(--ink)}
+.hd .s{font-size:9.5px;color:var(--inkFaint);font-family:ui-monospace,monospace}
+.grid{display:grid;grid-template-columns:24px repeat(4,1fr);font-size:8px;background:var(--paper)}
+.ax{background:var(--cardAlt);border-right:1px solid var(--rule);color:var(--inkFaint);
+display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:7px}
+.cell{border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);height:70px;padding:2px;position:relative}
+.cell.today{background:rgba(143,74,58,.055)}
+.card{border-radius:4px;height:100%;position:relative;overflow:hidden;border:.75px solid rgba(0,0,0,.20)}
+.card .spine{position:absolute;left:0;top:0;bottom:0;width:3px}
+.card .body{padding:3px 4px 2px 7px}
+.card .nm{font-size:8.5px;line-height:10.5px;font-weight:500;color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card .rm{font-size:7px;line-height:9px;color:var(--inkSoft);margin-top:1px}
+.card .tc{font-size:6.5px;line-height:8px;color:var(--inkFaint)}
+/* 亮档四色（现状） */
+.f1{background:#F0E1D8}.f1 .spine{background:#A63D2F}
+.f2{background:#DEE4E7}.f2 .spine{background:#3B5566}
+.f3{background:#E5E8DA}.f3 .spine{background:#5C6B3C}
+.f4{background:#EDE5D3}.f4 .spine{background:#9A6A16}
+/* 暗档 A：现状（washDark 直铺，spine 反色） */
+.dark .oldA .f1{background:#3A2620}.dark .oldA .f1 .spine{background:#F0E1D8}
+.dark .oldA .f2{background:#232C31}.dark .oldA .f2 .spine{background:#DEE4E7}
+.dark .oldA .f3{background:#2A2E20}.dark .oldA .f3 .spine{background:#E5E8DA}
+.dark .oldA .f4{background:#322A1B}.dark .oldA .f4 .spine{background:#EDE5D3}
+/* 暗档 B：提案（同亮度不同色相 + 提亮 spine + 点纹） */
+.dark .newB .f1{background:#2A1D18}.dark .newB .f1 .spine{background:#C4776A}
+.dark .newB .f2{background:#1B2226}.dark .newB .f2 .spine{background:#7E9AA5}
+.dark .newB .f3{background:#20241A}.dark .newB .f3 .spine{background:#93A57E}
+.dark .newB .f4{background:#262019}.dark .newB .f4 .spine{background:#B4956A}
+.newB .card{background-image:radial-gradient(circle at 1px 1px, rgba(237,231,218,.055) .5px, transparent 0);background-size:5px 5px}
+.newB .card{box-shadow:inset 0 1px 0 rgba(255,255,255,.045)}
+.cap{font-size:9px;padding:5px 8px;color:var(--inkFaint);border-bottom:1px solid var(--rule);background:var(--cardAlt);text-align:center;letter-spacing:.04em}
+.strip{display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
+.state{width:150px}
+.state .lab{font-size:9px;color:#686660;text-align:center;margin-top:5px}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-bottom:1px solid var(--rule);gap:8px}
+.srow:last-child{border-bottom:none}
+.srow .k{font-size:11.5px;color:var(--ink)}
+.srow .d{font-size:9px;color:var(--inkFaint);margin-top:2px;line-height:13px}
+.seg{display:flex;gap:5px;flex-shrink:0}
+.seg span{font-size:9.5px;padding:3px 7px;border:.75px solid var(--outline);color:var(--inkSoft);white-space:nowrap}
+.seg span.on{background:var(--cardAlt);border:1.5px solid var(--primary);color:var(--ink);font-weight:700}
+.sw{width:30px;height:16px;border-radius:8px;border:1px solid var(--outline);position:relative;flex-shrink:0}
+.sw.on{background:var(--accent);border-color:var(--accent)}
+.sw i{position:absolute;top:2px;left:2px;width:10px;height:10px;border-radius:50%;background:var(--paper)}
+.sw.on i{left:16px}
+.sec{padding:9px 12px 4px;font-size:9px;letter-spacing:.12em;color:var(--inkFaint);border-bottom:1px solid var(--rule);background:var(--cardAlt)}
+.chips{display:flex;flex-wrap:wrap;gap:5px;padding:9px 10px}
+.ch{font-size:9.5px;padding:4px 8px;border:.75px solid var(--outline);color:var(--inkSoft);background:var(--card)}
+.ch.on{background:var(--primary);border-color:var(--primary);color:var(--paper);font-weight:700}
+.ch.ghost{border-style:dashed}
+.searchbar{display:flex;align-items:center;gap:6px;padding:8px 10px;border-bottom:1px solid var(--rule)}
+.searchbar .fld{flex:1;border:.75px solid var(--outline);background:var(--card);padding:6px 8px;font-size:10px;color:var(--inkFaint)}
+.searchbar .btn{font-size:9.5px;padding:6px 10px;border:.75px solid var(--outline);color:var(--inkSoft)}
+.searchbar .btn.p{background:var(--primary);color:var(--paper);border-color:var(--primary);font-weight:700}
+.schoolrow{display:flex;align-items:center;gap:7px;padding:8px 10px;border-bottom:1px solid var(--rule)}
+.schoolrow .nm{font-size:10.5px;color:var(--ink);font-weight:500;flex:1}
+.schoolrow .meta{font-size:8.5px;color:var(--inkFaint);font-family:ui-monospace,monospace}
+.tag{font-size:8px;padding:1px 5px;background:var(--cardAlt);color:var(--inkSoft);border:.5px solid var(--rule)}
+.foot{font-size:8.5px;color:var(--inkFaint);padding:8px 10px;line-height:13px}
+.flow{display:flex;gap:6px;align-items:center;padding:12px;font-size:9.5px;color:var(--inkSoft);flex-wrap:wrap}
+.flow b{color:var(--ink)}
+.box{border:.75px solid var(--outline);padding:4px 7px;background:var(--card);font-family:ui-monospace,monospace;font-size:8.5px}
+</style></head><body><div class="wrap">
+<h1>m39 原型 · 课程卡配置 / 深色底纹 / 大纲筛布 / 子页统一</h1>
+<div class="sub">四块一次看完。假数据一律 张三 / 2024000000。<b>①</b> 设置里新开「课程表卡片」页　<b>②</b> 深色底纹重做（现状 vs 提案并排 + 四状态分镜 + 可重播）　<b>③</b> 大纲筛布　<b>④</b> 子页页眉统一</div>
+
+<!-- ② 深色底纹：全宽 -->
+<div class="panel" style="margin-bottom:18px">
+  <div class="ptitle">② 卡片底纹在深色模式下重做 —— 现状 vs 提案，同一组数据同一尺寸</div>
+  <div class="pbody">
+    <div class="strip">
+      <div>
+        <div class="phone dark oldA">
+          <div class="hd"><span class="w">现状 · 深色</span><span class="s">第 12 周</span></div>
+          <div class="grid">
+            <div class="ax">1</div>
+            <div class="cell today"><div class="card f1"><div class="spine"></div><div class="body"><div class="nm">高等数学</div><div class="rm">理-201</div><div class="tc">张三</div></div></div></div>
+            <div class="cell"><div class="card f2"><div class="spine"></div><div class="body"><div class="nm">大学英语</div><div class="rm">文-305</div><div class="tc">李四</div></div></div></div>
+            <div class="cell"><div class="card f3"><div class="spine"></div><div class="body"><div class="nm">程序设计</div><div class="rm">信-410</div></div></div></div>
+            <div class="cell"><div class="card f4"><div class="spine"></div><div class="body"><div class="nm">土壤学</div><div class="rm">土-102</div></div></div></div>
+            <div class="ax">2</div>
+            <div class="cell today"></div>
+            <div class="cell"><div class="card f1"><div class="spine"></div><div class="body"><div class="nm">线性代数</div><div class="rm">理-305</div></div></div></div>
+            <div class="cell"></div>
+            <div class="cell"><div class="card f2"><div class="spine"></div><div class="body"><div class="nm">体育</div><div class="rm">场-1</div></div></div></div>
+          </div>
+        </div>
+        <div class="note" style="width:340px">
+          <b>问题（三条，都是真机上能看见的）</b><br>
+          ① 四块洗色 <code>#3A2620 #232C31 #2A2E20 #322A1B</code> 亮度跨 18–20 但色相跳得远，在黑底上像<b>四块不同亮度的补丁</b>，块与块的分界比网格线还抢眼；<br>
+          ② spine 取的是<b>亮档 wash</b>（近白），2.5dp 白条在暗底上发光，成了卡片里最亮的东西 —— 抢课名；<br>
+          ③ 暗档没有纹理，大块纯色在 OLED 上发「塑料感」，和纸本体系对不上。
+        </div>
+      </div>
+      <div>
+        <div class="phone dark newB">
+          <div class="hd"><span class="w">提案 · 深色</span><span class="s">第 12 周</span></div>
+          <div class="grid">
+            <div class="ax">1</div>
+            <div class="cell today"><div class="card f1"><div class="spine"></div><div class="body"><div class="nm">高等数学</div><div class="rm">理-201</div><div class="tc">张三</div></div></div></div>
+            <div class="cell"><div class="card f2"><div class="spine"></div><div class="body"><div class="nm">大学英语</div><div class="rm">文-305</div><div class="tc">李四</div></div></div></div>
+            <div class="cell"><div class="card f3"><div class="spine"></div><div class="body"><div class="nm">程序设计</div><div class="rm">信-410</div></div></div></div>
+            <div class="cell"><div class="card f4"><div class="spine"></div><div class="body"><div class="nm">土壤学</div><div class="rm">土-102</div></div></div></div>
+            <div class="ax">2</div>
+            <div class="cell today"></div>
+            <div class="cell"><div class="card f1"><div class="spine"></div><div class="body"><div class="nm">线性代数</div><div class="rm">理-305</div></div></div></div>
+            <div class="cell"></div>
+            <div class="cell"><div class="card f2"><div class="spine"></div><div class="body"><div class="nm">体育</div><div class="rm">场-1</div></div></div></div>
+          </div>
+        </div>
+        <div class="note" style="width:340px">
+          <b>三处修改</b><br>
+          ① 四款 washDark 统一压到 <code>#2A1D18 #1B2226 #20241A #262019</code>（亮度差 ≤4%），<b>同亮度、不同色相</b>：暗处只读色相，不读亮度；<br>
+          ② spine 改成<b>同色系提亮到 65–70%</b>（<code>#C4776A #7E9AA5 #93A57E #B4956A</code>），不再是近白，课名重新成为卡片里最亮的东西；<br>
+          ③ 卡面加 5dp 点纹（screen 混合 α .055）+ 上沿一线内高光，大块纯色有纸纤维感。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 四状态分镜 -->
+<div class="panel" style="margin-bottom:18px">
+  <div class="ptitle">②b 一张卡在一天里的四个状态（点「重播」看侵蚀过程）</div>
+  <div class="pbody">
+    <div class="strip" id="strip">
+      <div class="state">
+        <div class="phone dark newB" style="width:150px">
+          <div class="grid" style="grid-template-columns:1fr"><div class="cell" style="height:78px"><div class="card f1"><div class="spine"></div><div class="body"><div class="nm">高等数学</div><div class="rm">理-201</div><div class="tc">张三</div></div></div></div></div>
+        </div>
+        <div class="lab">未开始 · p=0</div>
+      </div>
+      <div class="state">
+        <div class="phone dark newB" style="width:150px">
+          <div class="grid" style="grid-template-columns:1fr"><div class="cell" style="height:78px"><div class="card f1" id="mid"><div class="spine"></div><div class="body"><div class="nm">高等数学</div><div class="rm">理-201</div><div class="tc">张三</div></div><div id="ov" style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(23,21,15,.92),rgba(58,54,46,.55) 55%,rgba(58,54,46,.18));height:50%"></div></div></div></div>
+        </div>
+        <div class="lab">进行中 · p≈0.5</div>
+      </div>
+      <div class="state">
+        <div class="phone dark newB" style="width:150px">
+          <div class="grid" style="grid-template-columns:1fr"><div class="cell" style="height:78px"><div class="card f1"><div class="spine"></div><div class="body"><div class="nm">高等数学</div><div class="rm">理-201</div><div class="tc">张三</div></div><div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(23,21,15,.95),rgba(33,30,24,.85));"></div></div></div></div>
+        </div>
+        <div class="lab">已下课 · p=1（字仍在）</div>
+      </div>
+      <div class="state">
+        <div class="phone dark newB" style="width:150px">
+          <div class="grid" style="grid-template-columns:1fr"><div class="cell" style="height:78px"><div class="card f1" style="border:2px solid rgba(237,231,218,.55)"><div class="spine"></div><div class="body"><div class="nm">高等数学</div><div class="rm">理-201</div><div class="tc">张三</div></div></div></div></div>
+        </div>
+        <div class="lab">正在上 · 2dp 描边</div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:12px"><span class="ch on" id="replay" style="cursor:pointer">重播</span></div>
+    <div class="note">
+      <b>现状的坑</b>：<code>ErodedCard</code> 里 <code>paper/faded/gone</code> 三个色是硬编码的 <code>#17150F/#3A362E/#211E18</code>，与 token 体系脱钩 —— 换主题或换 washDark 就会露馅。提案把它们换成 <code>t.paper / t.cardAlt / t.inkFaint</code> 的混合值，跟④一起收进 token。<br>
+      <b>字永远在最上层</b>（2026-11-17 主人要求）：分镜第三格里课名仍然读得清，就是这条的实现结果。
+    </div>
+  </div>
+</div>
+
+<div class="row" style="grid-template-columns:340px 1fr">
+  <!-- ① 设置页 -->
+  <div class="panel">
+    <div class="ptitle">① 设置 →「课程表卡片」新页</div>
+    <div class="pbody">
+      <div class="phone light">
+        <div class="hd"><span class="w">课程表卡片</span><span class="s">← 设置</span></div>
+        <div class="sec">卡片形态</div>
+        <div class="srow"><div><div class="k">版式</div><div class="d">侵蚀纸卡 / 账页格</div></div><div class="seg"><span class="on">纸卡</span><span>账页</span></div></div>
+        <div class="srow"><div><div class="k">底色来源</div><div class="d">按课程号固定四色系</div></div><div class="seg"><span class="on">四色</span><span>单墨</span><span>无色</span></div></div>
+        <div class="srow"><div><div class="k">竖脊</div><div class="d">左侧 3dp 满彩</div></div><div class="sw on"><i></i></div></div>
+        <div class="srow"><div><div class="k">圆角</div><div class="d">4dp</div></div><div class="seg"><span>0</span><span class="on">4</span><span>10</span></div></div>
+        <div class="sec">随时间的效果</div>
+        <div class="srow"><div><div class="k">上课进度侵蚀</div><div class="d">下课走完，卡片从顶部掉色</div></div><div class="sw on"><i></i></div></div>
+        <div class="srow"><div><div class="k">小幽灵</div><div class="d">越过当前时刻</div></div><div class="sw on"><i></i></div></div>
+        <div class="srow"><div><div class="k">食物图标</div><div class="d">未排课列表左侧</div></div><div class="sw on"><i></i></div></div>
+        <div class="srow"><div><div class="k">当前课描边</div><div class="d">2dp 主色</div></div><div class="sw on"><i></i></div></div>
+        <div class="sec">底纹</div>
+        <div class="srow"><div><div class="k">卡片底纹</div><div class="d">深色下默认「无」</div></div><div class="seg"><span class="on">无</span><span>点</span><span>格</span></div></div>
+      </div>
+      <div class="note">
+        <b>为什么这一页必须存在</b>：m34 把「主题风格」开关拔掉后，<code>Form.current.editorial</code> 那条分支<b>还在编进包里、还在跑</b>（<code>LedgerCourseCell / LedgerAxisRow / LedgerBand / LedgerWeekStamp / LedgerUnscheduledRow</code> 五个组件，共 326 行）。课表卡片能正常加载，但用户已经没有入口切到它 —— 这就是「设计还在、入口消失」。<br>
+        <b>不做新状态机</b>：开关全部写进已有的 <code>Prefs</code>（新 key <code>tt_card_*</code>），<b>默认值 = 今天的行为</b>，老用户升级后视觉零变化。
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <!-- ③ 大纲 -->
+    <div class="panel" style="margin-bottom:18px">
+      <div class="ptitle">③ 课程大纲：筛布分三层，按钮分三种形态</div>
+      <div class="pbody" style="display:flex;gap:20px;flex-wrap:wrap">
+        <div class="phone light" style="width:340px">
+          <div class="hd"><span class="w">课程大纲</span><span class="s">2 066 门</span></div>
+          <div class="searchbar">
+            <div class="fld">课程名 / 代码</div>
+            <div class="btn p">搜</div>
+            <div class="btn">筛</div>
+          </div>
+          <div class="chips">
+            <span class="ch on">全部 2066</span><span class="ch">理论 1260</span>
+            <span class="ch">实验 612</span><span class="ch">实践 194</span>
+            <span class="ch ghost">有学分</span><span class="ch ghost">有 PDF 页</span>
+          </div>
+          <div class="srow" style="padding:6px 10px"><span class="d">按学院</span><div class="seg"><span class="on">土环</span><span>农学</span><span>经管</span><span>…13</span></div></div>
+          <div class="schoolrow"><span class="nm">不动产估价</span><span class="tag">理论</span><span class="meta">3 学分</span><span class="meta">p.412</span></div>
+          <div class="schoolrow"><span class="nm">土地资源管理学</span><span class="tag">理论</span><span class="meta">2.5 学分</span><span class="meta">p.388</span></div>
+          <div class="schoolrow"><span class="nm">地籍测量实习</span><span class="tag">实践</span><span class="meta">1 学分</span><span class="meta">p.507</span></div>
+          <div class="schoolrow"><span class="nm">土壤学实验</span><span class="tag">实验</span><span class="meta">1 学分</span><span class="meta">p.265</span></div>
+          <div class="foot">14 册 11 146 页 · 通识课不在此册</div>
+        </div>
+        <div class="note" style="flex:1;min-width:260px;margin-top:0">
+          <b>三层筛（从粗到细）</b><br>
+          1. <b>搜索框</b>：名字 / 代码，随打随筛，右侧「搜」是主色实心（唯一的强动作）；<br>
+          2. <b>类型 chip 带数量</b>：实心选中 = 单选，浅字 = 可点；数量直接写在标签里，不用点进去数；<br>
+          3. <b>学院横滑</b>：一次只看一个学院，换学院不重置类型筛选。<br><br>
+          <b>按钮形态分三种，不靠文字解释</b><br>
+          · 实心填充 = 已选中的单选；<br>
+          · 细边框 = 可点的单选；<br>
+          · <b>虚线边框 = 布尔开关</b>（有学分 / 有 PDF 页），与「单选」在形态上就是两套东西。<br><br>
+          <b>列表行补两个事实</b>：课程类型标签 + PDF 页码（<code>pdf页码范围</code> 一直躺在资产里没上屏）。页码只在此册有值时显示，没有就留空 —— 不猜。
+        </div>
+      </div>
+    </div>
+
+    <!-- ④ 子页统一 -->
+    <div class="panel">
+      <div class="ptitle">④ 子页统一：成绩 / 考试 / 培养方案 / 大纲共用一把页眉</div>
+      <div class="pbody">
+        <div class="flow">
+          <span class="box">SubPageHeader(标题, 计数, 主色动作, ⋯)</span>→
+          <span class="box">SectionCard(标题, 正文)</span>→
+          <span class="box">Chip(单选 / 虚线布尔)</span>→
+          <span class="box">EmptyState(一句事实)</span>
+        </div>
+        <div class="strip" style="margin-top:8px">
+          <div class="phone light" style="width:300px">
+            <div class="hd"><span class="w">成绩查询</span><span class="s">55 门 · 4 学期</span></div>
+            <div class="foot" style="color:#686660">现状：<code>AcademicToolbar</code> 自带刷新 / ⋯，但大纲页自己又写了一套搜索行；两边字号 11.5/14 不一致</div>
+          </div>
+          <div class="phone light" style="width:300px">
+            <div class="hd"><span class="w">成绩查询</span><span class="s">55 门 · 4 学期</span></div>
+            <div class="foot" style="color:#686660">提案：页眉只有一份实现，四个子页调用同一个 <code>SubPageHeader</code>；页面内容排列<b>不动</b></div>
+          </div>
+        </div>
+        <div class="note"><b>范围</b>：只统一页眉、分区标题、chip、空态四种积木。<b>不动</b>数据层、不动成绩/考试的业务逻辑与字段。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="panel" style="margin-top:18px">
+  <div class="ptitle">⑤ 死代码与「无入口」清单（只读扫描结果，待你点头再删）</div>
+  <div class="pbody">
+    <div class="note" style="margin-top:0">
+      <b>A. 有实现、无入口（就是你说的「设计还在、入口消失」）</b><br>
+      · <code>Form.current.editorial</code> 整条分支 —— 账页格课表：<code>LedgerCourseCell</code> / <code>LedgerAxisRow</code> / <code>LedgerBand</code> / <code>LedgerWeekStamp</code> / <code>LedgerUnscheduledRow</code>（<code>ui/timetable/LedgerTimetable.kt</code>，326 行）。<br>
+      · <code>StyleSet.SCHOLAR / EDITORIAL</code> + <code>ScholarTokens.kt</code> / <code>EditorialTokens.kt</code>（31 KB）+ <code>ColorTunerPanel</code> 的 <code>styleSet</code> 入参 —— 只在 <code>baseTokenSet()</code> 里被读到，但没有任何 UI 能把它改成 1 或 2。<br>
+      · <code>TimetableViewModel.setStyleSet()</code> —— <b>零调用者</b>。<br><br>
+      <b>B. 完全无引用（可删）</b><br>
+      · <code>MathBackdrop.CurrentBackdrop</code>、<code>ScrollMemory.rememberTransientListState</code>、<code>CampusNetworkHint.campusNetworkDetail</code>、<code>LedgerKit.LedgerNavEntry</code>、<code>UpdateSection.helpTextFor</code>、<code>FeedScreen.sanitizeSummary</code>、<code>EditorialTokens.LedgerDisplay / LedgerNumeric / LedgerMicro</code>、<code>HardTokens.LabelMicro / dashedEffect</code>。<br><br>
+      <b>建议分两步</b>：这次先把 A 类<b>接上入口</b>（变成设置页里的可选项），B 类一起删；<b>不</b>一次性删掉 A —— 那是你当初花力气做的两套主体，删掉就没有第二选了。
+    </div>
+  </div>
+</div>
+
+<script>
+// 侵蚀进度可重播演示
+const ov = document.getElementById('ov');
+const mid = document.getElementById('mid');
+let raf = null;
+function play(){
+  if (raf) cancelAnimationFrame(raf);
+  const t0 = performance.now(), dur = 2600;
+  const step = (now) => {
+    const p = Math.min(1, (now - t0) / dur);
+    const h = 50 + 50 * p;
+    ov.style.height = h + '%';
+    ov.style.background = 'linear-gradient(180deg, rgba(23,21,15,' + (0.62 + 0.33 * p) + '), rgba(58,54,46,' + (0.55 - 0.37 * p) + ') 55%, rgba(58,54,46,' + (0.18 - 0.18 * p) + '))';
+    if (p < 1) raf = requestAnimationFrame(step);
+  };
+  raf = requestAnimationFrame(step);
+}
+document.getElementById('replay').addEventListener('click', play);
+setTimeout(play, 400);
+</script>
+</div></body></html>

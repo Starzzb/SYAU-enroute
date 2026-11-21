@@ -189,6 +189,13 @@ data class AppState(
     val syllabusQuery: String = "",
     /** 类型筛选（空 = 全部；理论课/实验课/实践课） */
     val syllabusType: String = "",
+    /** 大纲按学院筛（空 = 全部 14 个学院） */
+    /**
+     * 大纲已选的学院（**多选**，空集 = 全部 14 个学院）。
+     *
+     * 2026-11-21 主人指定多选：想同时看「农学院 + 园艺学院」的课时不用来回切。
+     */
+    val syllabusColleges: Set<String> = emptySet(),
     /** 过滤后的列表 */
     val syllabusList: List<SyllabusIndexEntry> = emptyList(),
     val syllabusIndexLoading: Boolean = false,
@@ -241,6 +248,20 @@ data class AppState(
     val themeMode: Int = 0,
     /** 视觉风格：0 硬朗农业 / 2 校报头版（1 学院纸本已下线，仅做老数据回落）；与 themeMode 正交 */
     val styleSet: Int = 0,
+
+    // ── 课表卡片（m39）──
+    // 把 m34 拔掉入口后仍留在代码里的那两套课表主体接回设置页。
+    // 全部默认 = 今天的行为，老用户升级视觉零变化。
+
+    /** 版式：0 = 侵蚀纸卡 / 1 = 账页格 */
+    val ttCardLayout: Int = 0,
+    /** 底色来源：0 = 四色系 / 1 = 单墨 / 2 = 无色 */
+    val ttCardTint: Int = 0,
+    val ttCardSpine: Boolean = true,
+    val ttCardErode: Boolean = true,
+    val ttCardGhost: Boolean = true,
+    val ttCardFood: Boolean = true,
+    val ttCardNowRing: Boolean = true,
     /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效）/ 2 自定义配色 */
     val colorSource: Int = 0,
     /** 自定义配色的四个槽（票 25）：浅色/深色各自独立，0 = 该槽未设置 */

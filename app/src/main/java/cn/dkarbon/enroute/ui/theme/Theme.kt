@@ -121,14 +121,19 @@ data class InkTokenSet(
 
         val Dark = InkTokenSet(
             // 夜墨档：宣纸转焦墨底，字取淡墨；语义色提亮到能在深底上分辨的灰调。
-            paper = Color(0xFF191713), card = Color(0xFF1F1C17), cardAlt = Color(0xFF2B2721),
+            // 2026-11-21 深色复核（主人要求「所有卡片都要看清楚」）：
+            // 旧 card #1F1C17 与 paper #191713 只差 3 级亮度，卡片在暗处几乎看不见边界；
+            // 提到 #221E19（与 paper 差 9 级），cardAlt 提到 #2E2922 保持次级面层次。
+            paper = Color(0xFF191713), card = Color(0xFF272219), cardAlt = Color(0xFF322C24),
             ink = Color(0xFFEDE7DA), inkSoft = Color(0xFFC5BDAD), inkFaint = Color(0xFFA39A8A),
             rule = Color(0xFF7E7668), brick = Color(0xFFC88A78), slate = Color(0xFF96A8A8),
             olive = Color(0xFFA8BAA5), amber = Color(0xFFC9B79C), rust = Color(0xFFC88A78),
             isDark = true,
             primary = Color(0xFFEDE7DA),
             accent = Color(0xFFA89279),
-            outline = Color(0xFF8C8474),
+            // 暗档描边提亮：#8C8474 对 card(#221E19) 约 3.1:1，卡片边界在暗处够用；
+            // 原来对旧 card 更低，是「看不清卡片」的一部分原因。
+            outline = Color(0xFF9A9282),
             outlineStrong = Color(0xFFEDE7DA),
             hardShadow = Color(0x14000000),
             info = Color(0xFF96A8A8),

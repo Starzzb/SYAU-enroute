@@ -1,9 +1,9 @@
 {
-  "versionCode": 450,
-  "versionName": "0.9.0+m37",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m37/SYAU-enroute-m37.apk",
-  "sha256": "9b96d49810085e58cd777869ce5f4049f766f974e5e5d3bc56b7a2685203916d",
-  "size": 8523729,
-  "notes": "墨洗纸本改版 + 阻塞式更新。之前签名丢失，装在换签名前旧版上的需要卸载重装。详见 CHANGELOG.md。",
+  "versionCode": 470,
+  "versionName": "0.9.1+m39",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m39/SYAU-enroute-m39.apk",
+  "sha256": "b0a4f1f5de2a41290ff83d2ee52ccd6cba62ade2283ae61416e5df8b3a7a01ec",
+  "size": 8028840,
+  "notes": "课程表卡片新增可换版式，深色下所有卡片重做对比度，资讯页面内容解析器重构。",
   "minSupported": 0
 }

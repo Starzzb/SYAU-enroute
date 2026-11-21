@@ -1,0 +1,13 @@
+cxcyart download aid=163&id=150: {"status": 200, "ct": "application/vnd.openxmlformats-officedocument.wordprocessingml.document", "cd": "attachment; filename=\"ç¬¬11å±å½éå¤§å­¦çæºè½åä¸è£å¤åæ°å¤§èµæ ¡å­éæèµ-ç°åºç§ç.docx\"; filename*=utf-8''%E7%AC%AC11%E5%B1%8A%E5%9B%BD%E9%99%85%E5%A4%A7%E5%AD%A6%E7%94%9F%E6%99%BA%E8%83%BD%E5%86%9C%E4%B8%9A%E8%A3%85%E5%A4%87%E5%88%9B%E6%96%B0%E5%A4%A7%E8%B5%9B%E6%A0%A1%E5%9B%AD%E9%80%89%E6%8B%94%E8%B5%9B-%E7%8E%B0%E5%9C%BA%E7%85%A7%E7%89%87.docx", "len": "748236", "final": "http://cxcy.syau.edu.cn/comp/front/comp/articledownload?aid=163&id=150", "first": "PK\u0003\u0004\n\u0000\u0000\u0000"}
+cxcyart download aid=154&id=140: {"status": 200, "ct": "image/jpeg", "cd": "attachment; filename=\"å¾®ä¿¡å¾ç_20250508130822.jpg\"; filename*=utf-8''%E5%BE%AE%E4%BF%A1%E5%9B%BE%E7%89%87_20250508130822.jpg", "len": "378913", "final": "http://cxcy.syau.edu.cn/comp/front/comp/articledownload?aid=154&id=140", "first": "ÿØÿà\u0000\u0010JF"}
+fwwb public/index: {"status": 200, "ct": "text/html;charset=utf-8", "cd": null, "len": null, "final": "https://www.fwwb.org.cn/public/index", "first": "<!doctyp"}
+jingsai article page2: {"status": 200, "ct": "text/html; charset=gbk", "cd": null, "len": "41655", "final": "https://www.52jingsai.com/article-24180-2.html", "first": "\r\n<!DOCT"}
+lnjyt-detail.html: attach pushes=2 img pushes=0
+   ATT> 'src':'/jyt/gk/zxtz/2026102110290659632/2026102110254421584.pdf','title':'附件','desc':'','type':'ATTACHMENT','id':'9b9fec5ad117406aa5736ea119ab6ce9','isTitleImage':false
+   ATT> 'src':'/jyt/gk/zxtz/2026102110290659632/2026102110254421584.pdf','title':'附件','desc':'','type':'ATTACHMENT','id':'9b9fec5ad117406aa5736ea119ab6ce9','isTitleImage':false
+lnjyt-detail2.html: attach pushes=4 img pushes=0
+   ATT> 'src':'/jyt/gk/zxtz/2026092211315648073/2026092211311684891.docx','title':'1.第三十届辽宁省教育教学信息化交流活动高等学校组获奖名单','desc':'','type':'ATTACHMENT','id':'94808ac3f2e8460dab2e64475dcc944d','isTitleImage':false
+   ATT> 'src':'/jyt/gk/zxtz/2026092211315648073/2026092211313926290.docx','title':'2.第三十届辽宁省教育教学信息化交流活动中小学校组（含中等职业学校）获奖名单','desc':'','type':'ATTACHMENT','id':'c62a0e33c6e349959d2813d3bfc13b4e','isTitleImage':
+   ATT> 'src':'/jyt/gk/zxtz/2026092211315648073/2026092211311684891.docx','title':'1.第三十届辽宁省教育教学信息化交流活动高等学校组获奖名单','desc':'','type':'ATTACHMENT','id':'94808ac3f2e8460dab2e64475dcc944d','isTitleImage':false
+   ATT> 'src':'/jyt/gk/zxtz/2026092211315648073/2026092211313926290.docx','title':'2.第三十届辽宁省教育教学信息化交流活动中小学校组（含中等职业学校）获奖名单','desc':'','type':'ATTACHMENT','id':'c62a0e33c6e349959d2813d3bfc13b4e','isTitleImage':
+fwwb /public/index items=5 sample=['/news/show/659', '/news/show/660', '/news/show/661', '/news/show/662', '/news/show/663']

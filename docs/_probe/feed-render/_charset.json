@@ -1,0 +1,44 @@
+{
+ "jwc": {
+  "declared": "utf-8",
+  "utf8_decodable": true,
+  "gbk_decodable": false,
+  "bom": true
+ },
+ "www": {
+  "declared": "utf-8",
+  "utf8_decodable": true,
+  "gbk_decodable": false,
+  "bom": true
+ },
+ "xsc": {
+  "declared": "UTF-8",
+  "utf8_decodable": true,
+  "gbk_decodable": false,
+  "bom": true
+ },
+ "news": {
+  "declared": "UTF-8",
+  "utf8_decodable": true,
+  "gbk_decodable": false,
+  "bom": true
+ },
+ "job": {
+  "declared": "UTF-8",
+  "utf8_decodable": true,
+  "gbk_decodable": false,
+  "bom": true
+ },
+ "cxcy": {
+  "declared": "UTF-8",
+  "utf8_decodable": true,
+  "gbk_decodable": false,
+  "bom": true
+ },
+ "tw": {
+  "declared": "utf-8",
+  "utf8_decodable": true,
+  "gbk_decodable": false,
+  "bom": false
+ }
+}

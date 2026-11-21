@@ -20,8 +20,55 @@ data class BodyPayload(
     val text: String = "",
     val links: List<FeedLink> = emptyList(),
     val attachments: List<FeedLink> = emptyList(),
+    /**
+     * 正文里的插图（绝对地址）。
+     *
+     * 只收 VSB 站群的 `/__local/…`（或其它站的正经正文图）—— 2026-11-21 实测 56 个详情页：
+     * 校内正文图 100% 走 `/__local/`，不带这个前缀的 `<img>` 全是模板 logo / 角标
+     * （`images/logo.png`、`snjybq.png`、`ewm.jpg`），收进来就是垃圾。
+     */
+    val images: List<FeedLink> = emptyList(),
+    /**
+     * 正文**本身就是一份 PDF** 时的直链。
+     *
+     * 学生处 xsc 实测：正文只有 115 字「请安装 PDF 阅读器」，真正内容在
+     * `iframe[src=/__local/…pdf?e=.pdf]` 里；lnjyt / cahe / fwwb 则是正文旁挂大 PDF。
+     * 空串 = 没有。给了直链就说明「文字读不到但有文件可看」，界面显示 PDF 卡片，
+     * 而不是报「解析失败」。
+     */
+    val pdfUrl: String = "",
+    /**
+     * 附件需要人工过图形验证码（校内站 `/system/_content/download.jsp`）。
+     *
+     * 实测：App 内直接下会拿到 3805 字节的验证码页，存成 .pdf 打不开、用户以为坏了。
+     * 置 true 时界面只给「浏览器打开」并把理由写清楚，不提供「下载」。
+     */
+    val attachmentsBlocked: Boolean = false,
+    /**
+     * 缓存 schema 版本。**升级解析能力时必须加 1**，否则老缓存会一直挡着新字段。
+     *
+     * 2026-11-21 真机踩过：加了 images / pdfUrl 之后，已经缓存过的正文读出来
+     * 还是旧结构（这两个字段恒为空），详情页照旧显示「请安装 PDF 阅读器」那段废话，
+     * 看起来像新的 PDF 卡片没做。所以缓存要带版本，旧版本的当未命中处理。
+     *
+     * | 版本 | 变更 |
+     * |---|---|
+     * | 0 | 早期只有 text / links / attachments（未写版本号） |
+     * | 2 | 增加 images / pdfUrl / attachmentsBlocked |
+     */
+    // ⚠️ 默认值必须是 0，不能写成 SCHEMA：
+    // 旧缓存里根本没有这个字段，默认值就是「缺字段时填什么」——
+    // 填 SCHEMA 等于让所有旧缓存都自称最新，闸门失效（单测已经抓到过一次）。
+    val schema: Int = 0,
 ) {
-    val isEmpty: Boolean get() = text.isBlank() && attachments.isEmpty() && links.isEmpty()
+    val isEmpty: Boolean
+        get() = text.isBlank() && attachments.isEmpty() && links.isEmpty() &&
+            images.isEmpty() && pdfUrl.isBlank()
+
+    companion object {
+        /** 当前解析能力的版本号；改解析逻辑就 +1（见 [schema] 注释） */
+        const val SCHEMA = 2
+    }
 }
 
 /**
@@ -59,6 +106,15 @@ object FeedParser {
     private val RE_EM = Regex("""<em\b[^>]*>(.*?)</em>""", setOf(RegexOption.DOT_MATCHES_ALL, RegexOption.IGNORE_CASE))
     private val RE_DATE = Regex("""(\d{4})-(\d{1,2})-(\d{1,2})""")
     private val RE_DEPT = Regex("""^\s*\[([^\]]{1,20})]\s*""")
+
+    /** 正文容器：`id="vsb_content"` 或 `id="vsb_content_4"`（校内竞赛 cxcy 是后者） */
+    private val RE_VSB_CONTENT = Regex("""id\s*=\s*["']vsb_content""", RegexOption.IGNORE_CASE)
+    /** `<img …>` */
+    private val RE_IMG = Regex("""<img\b([^>]*)>""", RegexOption.IGNORE_CASE)
+    /** `<iframe/embed/object …>`（正文是 PDF 时用它定位） */
+    private val RE_EMBED = Regex("""<(?:iframe|embed|object)\b([^>]*)>""", RegexOption.IGNORE_CASE)
+    /** `src="…"` / `data="…"` */
+    private val RE_SRC = Regex("""(?:src|data)\s*=\s*["']([^"']+)["']""", RegexOption.IGNORE_CASE)
 
     /** 附件后缀 */
     private val RE_ATT_EXT = Regex(
@@ -318,12 +374,42 @@ object FeedParser {
         val body = if (cjkCount(pRun) >= 80) pRun else window
 
         val (links, attachments) = collectLinks(body, baseUrl)
+
+        // 插图与 PDF：非 VSB 源（高教学会 / 我爱竞赛网 / 服务外包 / 人事考试网）同样要认
+        val images = LinkedHashMap<String, FeedLink>()
+        for (m in RE_IMG.findAll(body)) {
+            val src = RE_SRC.find(m.groupValues[1])?.groupValues?.get(1)?.trim().orEmpty()
+            if (src.isBlank() || !looksLikeBodyImage(src)) continue
+            val real = when {
+                src.startsWith("http") -> src
+                baseUrl.isBlank() -> src
+                else -> resolve(baseUrl, src)
+            }
+            images.putIfAbsent(real, FeedLink("", real))
+        }
+        var pdfUrl = ""
+        for (m in RE_EMBED.findAll(body)) {
+            val src = RE_SRC.find(m.groupValues[1])?.groupValues?.get(1)?.trim().orEmpty()
+            if (!src.contains(".pdf", true)) continue
+            pdfUrl = when {
+                src.startsWith("http") -> src
+                baseUrl.isBlank() -> src
+                else -> resolve(baseUrl, src)
+            }
+            break
+        }
+
         var text = htmlToText(body).replace(Regex("""<[^<>]*$"""), "").trim()
 
         return BodyPayload(
             text = if (text.length < 20) "" else text,
             links = links.take(40),
             attachments = attachments.take(20),
+            images = images.values.take(8).toList(),
+            pdfUrl = pdfUrl,
+            attachmentsBlocked = attachments.any {
+                it.url.contains("download.jsp", true) || it.url.contains("articledownload", true)
+            },
         )
     }
 
@@ -331,6 +417,18 @@ object FeedParser {
         // Discuz 系（我爱竞赛网等）：正文在 <td id="article_content">，必须先命中它，
         // 否则会落到后面的 class="content"（那是侧栏推荐块，抓出来全是别的比赛链接）
         "id=\"article_content\"",
+        // ── 2026-11-21 三路实测补进来的容器（写死一种会让整源空白） ──
+        // 四个 neea 站同一 CMS 但分两个模板：前三个 Condiv、教育考试院公告是 conts
+        "class=\"Condiv\"", "class=\"conts\"",
+        // 中国人事考试网：正文 div#p_content
+        "id=\"p_content\"",
+        // 高教学会：正文 div.branch_text_box
+        "class=\"branch_text_box\"",
+        // 服务外包大赛：正文 div.show-content（长截图 + PDF）
+        "class=\"show-content\"",
+        // 竞赛成果：正文 div.content_detail（纯图片）
+        "class=\"content_detail\"",
+        // 省教育厅：正文 div.zoom（已在上面的 zoom 覆盖，这里保留注释说明）
         "class=\"zoom\"", "id=\"zoom\"", "class=\"TRS_Editor\"", "class=\"detail_con\"",
         "class=\"article-content\"", "class=\"article\"", "id=\"content\"", "class=\"content\"",
         "class=\"main_rcont\"",
@@ -813,7 +911,9 @@ object FeedParser {
      * 以及正文直接是 PDF 的 `/__local/…/xxx.pdf`。
      */
     fun parseBody(html: String, baseUrl: String = ""): BodyPayload {
-        val mark = html.indexOf("id=\"vsb_content\"")
+        // 容器 id 实测有两种：`vsb_content`（6 源）与 `vsb_content_4`（校内竞赛 cxcy）。
+        // 写死 `id="vsb_content"` 会让 cxcy 整页空白 —— 用正则认前缀。
+        val mark = RE_VSB_CONTENT.find(html)?.range?.first ?: -1
         if (mark < 0) return BodyPayload()
 
         // 从开标签的 `>` 之后开始 —— 否则正文里会残留 `id="vsb_content">` 这段垃圾
@@ -866,18 +966,111 @@ object FeedParser {
         }
 
 
+        // ── 插图：只留正文图，丢掉模板 logo ──
+        // 实测（2026-11-21，56 个 VSB 详情页）：正文图 100% 走 `/__local/…`，
+        // 其余 `<img>` 全是 logo/角标/二维码（images/logo.png、snjybq.png、ewm.jpg）。
+        val images = LinkedHashMap<String, FeedLink>()
+        for (m in RE_IMG.findAll(body)) {
+            val attrs = m.groupValues[1]
+            val src = RE_SRC.find(attrs)?.groupValues?.get(1)?.trim().orEmpty()
+            if (src.isBlank()) continue
+            if (!looksLikeBodyImage(src)) continue
+            val real = when {
+                src.startsWith("http") -> src
+                baseUrl.isBlank() -> src
+                else -> resolve(baseUrl, src)
+            }
+            images.putIfAbsent(real, FeedLink("", real))
+        }
+
+        // ── 正文本身是 PDF：iframe/embed/object 指向 .pdf（学生处 xsc 实测） ──
+        var pdfUrl = ""
+        for (m in RE_EMBED.findAll(body)) {
+            val src = RE_SRC.find(m.groupValues[1])?.groupValues?.get(1)?.trim().orEmpty()
+            if (!src.contains(".pdf", true)) continue
+            pdfUrl = when {
+                src.startsWith("http") -> src
+                baseUrl.isBlank() -> src
+                else -> resolve(baseUrl, src)
+            }
+            break
+        }
+
         var text = htmlToText(body)
         // 切割点可能落在标签中间，去掉末尾那半个标签（形如 `<div`）
         text = text.replace(Regex("""<[^<>]*$"""), "").trim()
 
+        // download.jsp / articledownload = 附件挂图形验证码（实测返回 3805 字节验证码页）。
+        // 界面据此只给「浏览器打开」，不给「下载」—— 否则存下来是张 HTML。
+        val attBlocked = attachments.keys.any {
+            it.contains("download.jsp", true) || it.contains("articledownload", true)
+        }
         return BodyPayload(
             text = if (text.length < 5) "" else text,
             links = links.values.take(40).toList(),
             attachments = attachments.values.take(20).toList(),
+            images = images.values.take(8).toList(),
+            pdfUrl = pdfUrl,
+            attachmentsBlocked = attBlocked,
         )
     }
 
+    /**
+     * 这张图是不是「正文图」（而不是模板元素）。
+     *
+     * 判据来自 2026-11-21 对 20 个源的实测：
+     *  · 校内 VSB：正文图全在 `/__local/`，其余是 logo / 角标 / 二维码；
+     *  · 高教学会：图在 `cmsfiles.zhongkefu.com.cn`；
+     *  · 我爱竞赛网：图在 `cdn1.52jingsai.com`；
+     *  · 服务外包大赛：长截图在 `/attached/image/`。
+     */
+    private fun looksLikeBodyImage(src: String): Boolean =
+        src.contains("/__local/") ||
+            src.contains("cmsfiles.", true) ||
+            src.contains("cdn1.52jingsai.com", true) ||
+            src.contains("/attached/image/", true)
+
     /** 是不是附件（下载链接 / 常见文档后缀 / PDF） */
+
+
+    /**
+     * 就业信息网（jobsyau.jysd.com，VSB 之外的 SaaS）正文解包。
+     *
+     * 2026-11-21 实测完整链路：
+     *     base64 解码 -> zlib inflate -> substr(91) -> base64 解码 -> substr(15)
+     * 样本 aid=752839 解出 1926 字节 / 10 个 <p> / 436 汉字 / 1 张图。
+     *
+     * 为什么不用 WebView：那条链要先跑站点自己的 base64.min.js，还会被外链重定向带跑
+     * （aid=752480 就跳到辽宁日报客户端页）。纯计算的事放在数据层，可单测。
+     *
+     * @return 解出来的 HTML 片段；解不开返回空串（上层会退回普通正文提取）
+     */
+    fun decodeJyBody(html: String): String {
+        val m = RE_JY_PAYLOAD.find(html) ?: return ""
+        val raw = m.groupValues[1]
+        return runCatching {
+            // ⚠️ 必须按 ISO_8859_1（单字节一一映射）转，不能用默认 UTF-8：
+            // 这一步解出来的是 deflate 二进制，用 UTF-8 解码会把非法字节替换成 U+FFFD，
+            // 再转回字节就永远 inflate 失败。
+            val step1 = String(java.util.Base64.getDecoder().decode(raw.trim()), Charsets.ISO_8859_1)
+            // 中间层是 "A"*91 + base64 的纯 ASCII，用 UTF-8 解没问题；显式写出来是为了别让人以为靠默认值
+            val step2 = String(inflate(step1.toByteArray(Charsets.ISO_8859_1)), Charsets.UTF_8)
+            val cut = if (step2.length > 91) step2.substring(91) else step2
+            // 最内层是正文 HTML（可能含中文），必须 UTF-8
+            val step3 = String(java.util.Base64.getDecoder().decode(cut.trim()), Charsets.UTF_8)
+            if (step3.length > 15) step3.substring(15) else step3
+        }.getOrDefault("")
+    }
+
+    private fun inflate(b: ByteArray): ByteArray =
+        java.util.zip.InflaterInputStream(b.inputStream()).use { it.readBytes() }
+
+    /** 就业信息网正文载荷：`var content = "…base64…"` 这一类赋值 */
+    private val RE_JY_PAYLOAD = Regex(
+        """(?:content|article)\s*[=:]\s*[\x22\x27]([A-Za-z0-9+/=\s]{60,})[\x22\x27]""",
+        RegexOption.IGNORE_CASE,
+    )
+
     private fun isAttachment(href: String): Boolean =
         href.contains("download.jsp", true) ||
             href.contains("wbfileid=", true) ||

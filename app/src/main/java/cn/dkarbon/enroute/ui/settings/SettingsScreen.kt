@@ -65,6 +65,7 @@ import cn.dkarbon.enroute.ui.theme.Space
 fun SettingsScreen(
     ui: AppState,
     vm: TimetableViewModel,
+    onOpenCardSettings: () -> Unit = {},
     onOpenDebug: () -> Unit,
     onOpenAbout: () -> Unit,
     modifier: Modifier = Modifier,
@@ -101,6 +102,31 @@ fun SettingsScreen(
                     )
                 }
             }
+        }
+
+        // 课程表卡片：把 m34 拔掉入口后仍在跑的那两套课表主体接回来（m39）。
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .clickable(onClick = onOpenCardSettings)
+                .padding(vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(Modifier.weight(1f)) {
+                Text("课程表卡片", fontSize = 13.sp, color = t.ink)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "版式、底色、侵蚀与幽灵",
+                    fontSize = 10.5.sp,
+                    color = t.inkFaint,
+                )
+            }
+            Icon(
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                contentDescription = null,
+                tint = t.inkFaint,
+                modifier = Modifier.size(18.dp),
+            )
         }
 
         // 主题风格切换已下线（2026-11-20，m34 墨洗改版）：只保留一套 INK，明暗正交。

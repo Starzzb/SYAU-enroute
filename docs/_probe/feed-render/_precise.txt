@@ -1,0 +1,22 @@
+jingsai-detail.html: body=14396 text=3009 imgs=1
+   http://cdn1.52jingsai.com/portal/202611/04/104655xlxd533olleox23l.jpg
+jingsai-detail2.html: body=8511 text=339 imgs=2
+   http://cdn1.52jingsai.com/portal/202611/04/153034ixkylijxdjejq42y.png
+   http://cdn1.52jingsai.com/portal/202611/04/153035vsdnk3bs31r640n0.png
+tzb-detail.html: body=9515 text=1460 imgs=13
+   /media/ckeditor_uploads/genrui/2026/11/05/1____.jpg
+   /media/ckeditor_uploads/genrui/2026/11/05/2____.jpg
+   /media/ckeditor_uploads/genrui/2026/11/05/3____.jpg
+tzb-detail2.html: body=20154 text=810 imgs=12
+   /media/ckeditor_uploads/genrui/2026/07/02/1.png
+   /media/ckeditor_uploads/genrui/2026/07/02/2___.png
+   /media/ckeditor_uploads/genrui/2026/07/02/3_.png
+cahe-detail.html: pdf=0 docx=1
+   DOC https://www.cahe.edu.cn/upload/gdjy/file/20261031/1793453287107980.docx
+cahe-detail2.html: pdf=2 docx=0
+   PDF https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/file/20260928/1790586060381787.pdf
+   PDF https://www.cahe.edu.cn/upload/gdjy/file/20250930/1759215429196221.pdf
+lnjyt-detail.html: attach block: <div class="l-fj">附件下载</div>');                     document.write ('<ul class="gov_ddlist">');                     for (var n=0;n<attachHuilanMediaArray.length;n++)                      {                      document.write ('<li><a href="'+attachHuilanMediaArray[n].src+'" target="_blank">'+attachHuilanMediaArray[n].title+'</a></li>');                      }                     document.write ('</ul></div>');                     }                 </script>   <!--<script type="text/javascript">v
+lnjyt-detail2.html: attach block: <div class="l-fj">附件下载</div>');                     document.write ('<ul class="gov_ddlist">');                     for (var n=0;n<attachHuilanMediaArray.length;n++)                      {                      document.write ('<li><a href="'+attachHuilanMediaArray[n].src+'" target="_blank">'+attachHuilanMediaArray[n].title+'</a></li>');                      }                     document.write ('</ul></div>');                     }                 </script>   <!--<script type="text/javascript">v
+fwwb list news items=10 ['/news/show/226', '/news/show/529', '/news/show/594', '/news/show/595', '/news/show/661', '/news/show/662', '/news/show/663', '/news/show/664']
+fwwb list page links: []

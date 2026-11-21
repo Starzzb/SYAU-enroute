@@ -1,0 +1,8 @@
+cahe list dated=48 sample=[('18880', '2026', '10'), ('19836', '2026', '09'), ('19480', '2026', '04'), ('19434', '2026', '03'), ('19431', '2026', '03')]
+cahe main ul found=True
+cxcyart list items=4 ids=['150', '151', '154', '163']
+fwwb list total dated 9 (含 5 条 大赛新闻 + 4 条 大赛公告)
+cahe-detail.html: body=8202 text=3363
+cahe-detail2.html: body=9276 text=3719
+cxcydc-detail.html: body=17639 text=4382 p=42
+cxcydc-detail2.html: body=19614 text=4481 p=49

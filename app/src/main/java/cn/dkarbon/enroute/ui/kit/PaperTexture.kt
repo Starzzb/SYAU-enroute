@@ -45,7 +45,10 @@ enum class PaperTex { NONE, WEAVE, GRID, CROSS, RIPPLE, SCALLOP, DOTS, CRACK, ED
 /** 纹理线的颜色：亮档用墨、暗档用纸，暗档整体再淡三成。 */
 private fun texInk(t: InkTokenSet, alpha: Float): Color {
     val base = if (t.isDark) t.ink else t.inkFaint
-    return base.copy(alpha = if (t.isDark) alpha * 0.72f else alpha)
+    // 暗档原来乘 0.72（把它压得更淡）—— 2026-11-21 真机复核发现这条是反的：
+    // 深色底是 #191713、纹理用 ink(#EDE7DA)，再乘 0.72 就等于「几乎没有」。
+    // 深色下纹理要**提亮**才看得见：乘 1.35 后仍远低于正文对比度，不会抢字。
+    return base.copy(alpha = if (t.isDark) (alpha * 1.35f).coerceAtMost(0.22f) else alpha)
 }
 
 /**
@@ -222,10 +225,15 @@ private fun DrawScope.drawDots(t: InkTokenSet) {
  * 所以它也能用在内容最密的盒子上（教务数据那块）。
  */
 private fun DrawScope.drawEdge(t: InkTokenSet) {
-    val shade = if (t.isDark) Color.Black else t.ink
-    val aTop = if (t.isDark) 0.55f else 0.105f
-    val aBottom = if (t.isDark) 0.42f else 0.075f
-    val aSide = if (t.isDark) 0.34f else 0.055f
+    // 暗档不能用纯黑压边：黑底 + 黑边 = 没有边缘。改成用纸色极淡地提亮边缘，
+    // 效果等价于「纸被压进凹槽」的暗档版本 —— 上沿一条亮边、四角略亮。
+    val shade = t.ink
+    // 亮档：墨色压边（0.105 / 0.075 / 0.055）；
+    // 暗档：同一个 shade 现在是浅色，强度要压到亮档的一半左右 ——
+    // 原来那组 0.55/0.42/0.34 是「用黑压边」时代的值，套在浅色上会糊成一片白雾。
+    val aTop = if (t.isDark) 0.075f else 0.105f
+    val aBottom = if (t.isDark) 0.055f else 0.075f
+    val aSide = if (t.isDark) 0.040f else 0.055f
     val span = 18.dp.toPx().coerceAtMost(size.minDimension * 0.45f)
 
     // 上深下浅：光从上方来（与压印阴影同一套物理直觉）
@@ -268,7 +276,7 @@ private fun DrawScope.drawEdge(t: InkTokenSet) {
 
     // 上沿一线亮边：纸边被压出的一道高光
     drawLine(
-        color = (if (t.isDark) Color.White else Color.White).copy(alpha = if (t.isDark) 0.06f else 0.55f),
+        color = Color.White.copy(alpha = if (t.isDark) 0.10f else 0.55f),
         start = Offset(1.dp.toPx(), 0.5f.dp.toPx()),
         end = Offset(size.width - 1.dp.toPx(), 0.5f.dp.toPx()),
         strokeWidth = 1.dp.toPx(),

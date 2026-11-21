@@ -1,0 +1,52 @@
+#### cxcy pagination cfg ####
+$('.page').pagination({
+        totalData: '994',
+        showData: '7',
+        prevContent: '上一页', //上一页内容
+        nextContent: '下一页',
+        coping: true,
+        keepShowPN: true,
+        activeCls: 'this',
+        hasLi : true,
+        isHide : true,
+        prevCls: 'pre', //上一页class
+        nextCls: 'next',
+        // toolbtn : '.page',
+        current : '1',
+        callback: function (api) {
+            window.location.href='../comp/list?page='+api.getCurrent()+'&'+$('#doublesearchform').serialize();
+        }
+    });
+    $('.qrcode').each(function(){
+        var _this = $(this);
+        var qrcode = new QRCode(_this.get(0), {
+            text: _this.data('url'),
+            width: 128,
+            height: 128,
+            colorDark : "#000000",
+            colorLight : "#ffffff",
+            correctLevel : QRCode.CorrectLevel.H
+        });
+    });
+</script>                
+
+<!-- 底部 开始 -->
+<div class="tml_footer_bg">
+    <div class="tml_footer container">
+        <div class="footer_bottom">
+            <div class="copyright" style="text-align: center">
+                <span>   <a rel="noopener noreferrer" style="color: #ffffff;" href="http://www.syau.edu.cn/#" target="_blank">辽ICP备18018285号-1</a></span><br>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 底部 结束 -->
+<script>
+    var listBodyheight = $(".list_body").height() - 80;
+    console.log(listBodyheight)
+
+cahe page=2: 200 94322
+   dates: ['2026年10月31', '2026年9月29', '2026年3月24', '2025年10月27', '2025年10月27']
+   ids: ['18880', '19967', '19836', '19480', '19434']
+lnjyt p2 dates: ['2026-11-04', '2026-01-23', '2025-12-24', '2025-12-09', '2025-12-09', '2025-12-04', '2025-12-02', '2025-11-05']
+lnjyt p2 titles: ['关于做好2026年辽宁省职业院校教师素质提高计划项目实施工作的通知', '关于印发《辽宁省普通高校专升本招生考试公共课考试纲要》的通知', '关于做好2026年职业教育拟招生专业设置管理工作的通知', '关于印发《辽宁省教育厅优化营商环境若干举措》的通知']

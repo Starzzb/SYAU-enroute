@@ -1,0 +1,14 @@
+cxcycomp-detail.html: pdf=0 doc=0 dl-links=[]
+cxcycomp-detail2.html: pdf=0 doc=0 dl-links=[]
+cxcydc-detail.html: pdf=0 doc=0 dl-links=[]
+cxcydc-detail2.html: pdf=0 doc=0 dl-links=[]
+jingsai detail 共\s*\d+\s*页 -> [] (n=0)
+jingsai detail article-\d+-\d+\.html -> ['article-23649-1.html', 'article-24030-1.html', 'article-23886-1.html', 'article-23944-1.html', 'article-23941-1.html', 'article-23883-1.html'] (n=26)
+jingsai detail <a[^>]*>\s*\d+\s*</a> -> ['<a href="space-uid-332820.html" target="_blank"> \t49228</a>', '<a href="space-uid-332820.html" target="_blank"> \t36216</a>', '<a href="space-uid-358059.html" target="_blank"> \t8170</a>'] (n=3)
+lnjyt idx2: status=404 bytes=0
+cahe page1: status=200 bytes=94322
+   dates=['2026年10月31', '2026年9月29', '2026年3月24', '2025年10月27', '2025年10月27', '2025年10月27']
+fwwb public index: status=200 bytes=8723
+   dates=['2026-08-27', '2026-08-25', '2026年8月25', '2026年9月11', '2026年8月25', '2026-08-24']
+tzb tzb p2: status=200 bytes=61298
+   dates=['2026/5/23', '2026-5-23', '2026/7/2', '2026-7-2', '2026/11/5', '2026-11-5']

@@ -128,6 +128,20 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
+    // 课表卡片配置（m39）：配置真身在 AppState，这里 provide 给整棵树。
+    // 绝对不能改成全局单例 —— 那样设置改了画面不动（真机踩过三次，见 TtCardPrefs 注释）。
+    val cardConfig = cn.dkarbon.enroute.ui.timetable.TtCardConfig(
+        layout = ui.ttCardLayout,
+        tint = ui.ttCardTint,
+        spine = ui.ttCardSpine,
+        erode = ui.ttCardErode,
+        ghost = ui.ttCardGhost,
+        food = ui.ttCardFood,
+        nowRing = ui.ttCardNowRing,
+    )
+    androidx.compose.runtime.CompositionLocalProvider(
+        cn.dkarbon.enroute.ui.timetable.LocalTtCardConfig provides cardConfig,
+    ) {
     Scaffold(
         containerColor = t.paper,
         // 墨洗底栏（m34，2026-11-20）：贴底、上部 16dp 圆角、三栏等距、朱点指示当前项。
@@ -221,5 +235,6 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
             }
         }
     }
+    }  // CompositionLocalProvider(LocalTtCardConfig)
 }
 

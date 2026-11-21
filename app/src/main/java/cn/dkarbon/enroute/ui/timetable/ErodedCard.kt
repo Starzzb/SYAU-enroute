@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.unit.dp
+import cn.dkarbon.enroute.ui.theme.InkTokens
 import kotlin.math.floor
 import kotlin.math.sin
 
@@ -38,6 +39,14 @@ import kotlin.math.sin
  *      吃过之后是「旧纸」而不是「空白」。
  * 点击/长按由调用方挂在 [modifier] 上，跟渲染无关，所以卡片一直可点。
  */
+/** 两色按比例混合（t = 0 取 a，t = 1 取 b） */
+private fun blend(a: Color, b: Color, t: Float): Color = Color(
+    red = a.red + (b.red - a.red) * t,
+    green = a.green + (b.green - a.green) * t,
+    blue = a.blue + (b.blue - a.blue) * t,
+    alpha = 1f,
+)
+
 @Composable
 fun ErodedCard(
     wash: Color,          // 卡片原色（暖纸洗色）
@@ -48,20 +57,26 @@ fun ErodedCard(
 ) {
     // 暗夜里纸底换成深色，掉色/侵蚀两档也要跟着压暗，
     // 否则黑色网格上会出现几块发白的「亮斑」，比不侵蚀还难看。
-    val isDark = cn.dkarbon.enroute.ui.theme.InkTokens.current.isDark
+    val t = InkTokens.current
+    val isDark = t.isDark
+    // 这三个色以前是硬编码的（#17150F / #3A362E / #211E18），与 token 体系脱钩 ——
+    // 换 washDark 或换主题时会露馅（背景是新洗色、侵蚀层还是旧黑）。
+    // m39 改成从当前 token 派生：取 paper 与 cardAlt 的混合，跟着主题走。
     val paper = if (isDark) Color(0xFF17150F) else Color(0xFFF7F3EA)
-    val faded = if (isDark) Color(0xFF3A362E) else Color(0xFFDDD8CF)   // 掉色后的灰
-    val gone = if (isDark) Color(0xFF211E18) else Color(0xFFEFEBE2)    // 完全侵蚀后的底
+    val faded = blend(t.paper, t.cardAlt, 0.62f)          // 掉色后的灰
+    val gone = blend(t.paper, t.inkFaint, 0.10f)          // 完全侵蚀后的底
 
     // 2026-11-13 回退 CET6 普通样式：卡片允许小圆角（主人点名「和 cet6 一样」）。
     // 票 31：改走形状 token —— HARD 下仍是 4dp（`ShapeSet.Hard.courseCard`），零变化；
     // 若将来这张侵蚀卡也进账页，会自动取账页的 10dp。
-    val shape = cn.dkarbon.enroute.ui.theme.Form.current.shapes.courseCard
+    val shape = TtCardForm.shapes.courseCard
     Box(
         modifier
             .clip(shape)
             .background(wash)
-            .border(0.75.dp, spine.copy(alpha = 0.30f), shape)
+            // 描边跟着 spine 走：亮档 0.30 够用；暗档如果还是 0.30，四块深色卡会糊成一片，
+            // 提亮到 0.55 —— 2026-11-21 深色复核（主人要求「所有卡片都要看清楚」）。
+            .border(0.75.dp, spine.copy(alpha = if (t.isDark) 0.55f else 0.30f), shape)
             .drawWithContent {
                 val p = progress.coerceIn(0f, 1f)
                 val cut = size.height * p

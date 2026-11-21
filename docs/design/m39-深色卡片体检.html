@@ -1,0 +1,152 @@
+<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8">
+<title>m39 原型 B：深色模式全卡片体检 · 侵蚀后课名可读</title>
+<style>
+.ecard .bd{position:relative;z-index:9}
+.ecard .nm{color:#F4EFE4 !important;text-shadow:0 0 1px rgba(0,0,0,.9)}
+.ecard .rm{color:#D9D2C4 !important}
+.box.old .c1,.box.old .c2,.box.old .c3{background:#1F1C17 !important;border-color:#3A342B !important}
+.box.old .tex-dots,.box.old .tex-grid{background-image:none !important}
+:root{--l-paper:#F8F5F0;--l-card:#FCFAF6;--l-cardAlt:#F1ECE3;--l-ink:#2C2C2C;--l-inkSoft:#4A4A46;--l-inkFaint:#686660;--l-outline:#7E776A;--l-rule:#8C8578}
+body{margin:0;background:#E9E5DE;font-family:"Noto Serif SC",-apple-system,"Segoe UI",sans-serif;color:#2C2C2C}
+.wrap{max-width:1500px;margin:0 auto;padding:24px 20px 56px}
+h1{font-size:20px;margin:0 0 4px}
+.sub{font-size:12px;color:#5F574C;margin-bottom:18px;line-height:19px}
+h2{font-size:13px;margin:26px 0 10px;padding-bottom:6px;border-bottom:1px solid #B9B2A6}
+.row{display:flex;gap:18px;flex-wrap:wrap;align-items:flex-start}
+.dark{--paper:#191713;--card:#272219;--cardAlt:#322C24;--ink:#EDE7DA;--inkSoft:#C5BDAD;--inkFaint:#A39A8A;--outline:#9A9282;--rule:#7E7668}
+.old{--paper:#191713;--card:#1F1C17;--cardAlt:#2B2721;--ink:#EDE7DA;--inkSoft:#C5BDAD;--inkFaint:#A39A8A;--outline:#8C8474;--rule:#7E7668}
+.box{width:330px;background:var(--paper);border:1px solid var(--outline);padding:0;overflow:hidden}
+.cap{font-size:9px;padding:5px 9px;color:var(--inkFaint);border-bottom:1px solid var(--rule);background:var(--cardAlt);letter-spacing:.05em}
+.inner{padding:10px;display:flex;flex-direction:column;gap:8px}
+/* 各类卡片 */
+.c1{background:var(--card);border:1px solid var(--outline);padding:9px 10px}
+.c2{background:var(--cardAlt);border:1px solid var(--outline);padding:9px 10px}
+.c3{background:var(--card);border-left:3px solid var(--ink);padding:9px 10px}
+.tex-dots{background-image:radial-gradient(circle at 1px 1px, var(--ink) .5px, transparent 0);background-size:5px 5px;background-blend-mode:normal}
+.tex-grid{background-image:linear-gradient(var(--ink) .5px,transparent .5px),linear-gradient(90deg,var(--ink) .5px,transparent .5px);background-size:24px 24px}
+.tex-edge{box-shadow:inset 0 0 14px rgba(237,231,218,.16),inset 0 1px 0 rgba(255,255,255,.10)}
+.t{font-size:12px;color:var(--ink);font-weight:600}
+.s{font-size:10px;color:var(--inkFaint);margin-top:3px;line-height:15px}
+/* 课卡（4款 washDark + spineDark） */
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;padding:8px;background:var(--paper)}
+.cell{height:64px;padding:2px}
+.kcard{height:100%;border-radius:4px;position:relative;overflow:hidden;border:.75px solid rgba(196,119,106,.55)}
+.kcard .sp{position:absolute;left:0;top:0;bottom:0;width:2.5px}
+.kcard .bd{padding:3px 4px 2px 7px}
+.kcard .nm{font-size:8.5px;line-height:10.5px;font-weight:500;color:var(--ink)}
+.kcard .rm{font-size:7px;line-height:9px;color:var(--inkSoft);margin-top:1px}
+.f1{background:#2A1D18}.f1 .sp{background:#C4776A}
+.f2{background:#1B2226}.f2 .sp{background:#7E9AA5}
+.f3{background:#20241A}.f3 .sp{background:#93A57E}
+.f4{background:#262019}.f4 .sp{background:#B4956A}
+/* 侵蚀四态 */
+.erow{display:flex;gap:10px;flex-wrap:wrap}
+.estate{width:120px}
+.estate .lb{font-size:9px;color:#5F574C;text-align:center;margin-top:4px;line-height:13px}
+.ecard{height:76px;border-radius:4px;position:relative;overflow:hidden;background:#2A1D18;border:.75px solid rgba(196,119,106,.55)}
+.ecard .sp{position:absolute;left:0;top:0;bottom:0;width:2.5px;background:#C4776A}
+.ecard .bd{padding:3px 4px 2px 7px;position:relative;z-index:3}
+.ecard .nm{font-size:9px;line-height:11px;color:#EDE7DA;font-weight:500}
+.ecard .rm{font-size:7px;line-height:9px;color:#C5BDAD;margin-top:1px}
+.erode{position:absolute;left:0;right:0;top:0;z-index:1}
+.zen{position:absolute;left:0;right:0;bottom:0;z-index:2;height:8px;background:linear-gradient(180deg,transparent,#191713)}
+.badge{display:inline-block;font-size:9px;padding:1px 6px;border:1px solid #7E776A;color:#5F574C;margin-right:5px}
+.ok{color:#3F6B3A}.bad{color:#8F4A3A}
+table{border-collapse:collapse;font-size:10.5px;margin-top:8px}
+td,th{border:1px solid #C3BCAF;padding:4px 8px;text-align:left}
+th{background:#F1ECE3;font-weight:700;font-size:10px}
+code{background:#F1ECE3;padding:0 3px;font-family:ui-monospace,monospace;font-size:9.5px}
+.note{font-size:10.5px;line-height:17px;color:#4A4A46;margin-top:10px;max-width:760px}
+</style></head><body><div class="wrap">
+<h1>m39 原型 B · 深色模式全卡片体检 + 侵蚀后课名可读</h1>
+<div class="sub">按你的纠正重画：不看单个卡片，而是把**所有会出现卡片的形态**在深色下逐个过一遍。假数据 张三 / 2024000000。</div>
+
+<h2>① 深色下各类卡片：改前 vs 改后（同一尺寸同一内容）</h2>
+<div class="row">
+  <div class="box old">
+    <div class="cap">改前 · card #1F1C17 / outline #8C8474</div>
+    <div class="inner">
+      <div class="c1"><div class="t">普通卡 · card</div><div class="s">与页面底只差 3 级亮度，边界几乎看不见</div></div>
+      <div class="c2"><div class="t">次级面 · cardAlt</div><div class="s">和 card 挤在一起，层次靠猜</div></div>
+      <div class="c3"><div class="t">带竖脊的卡</div><div class="s">描边太淡，竖脊成了唯一线索</div></div>
+      <div class="c1 tex-dots" style="opacity:.35"><div class="t">带点纹的卡</div><div class="s">纹理乘 0.72 后基本等于没有</div></div>
+      <div class="c1 tex-grid" style="opacity:.35"><div class="t">带格纹的卡</div><div class="s">深底上格线消失</div></div>
+      <div class="c1 tex-edge" style="background:#191713"><div class="t">边缘深度卡</div><div class="s">用纯黑压边 = 黑底黑边，没有边</div></div>
+    </div>
+  </div>
+  <div class="box dark">
+    <div class="cap">改后 · card #272219 / outline #9A9282</div>
+    <div class="inner">
+      <div class="c1"><div class="t">普通卡 · card</div><div class="s">对页面底 1.13:1，边界清楚但不用力</div></div>
+      <div class="c2"><div class="t">次级面 · cardAlt</div><div class="s">对 card 1.15:1，两级层次分得开</div></div>
+      <div class="c3"><div class="t">带竖脊的卡</div><div class="s">描边对 card 5.12:1，竖脊退为点缀</div></div>
+      <div class="c1 tex-dots"><div class="t">带点纹的卡</div><div class="s">纹理 alpha ×1.35（上限 0.22），看得见不抢字</div></div>
+      <div class="c1 tex-grid"><div class="t">带格纹的卡</div><div class="s">格线回来了，仍远低于正文对比度</div></div>
+      <div class="c1 tex-edge"><div class="t">边缘深度卡</div><div class="s">改用纸色提亮边缘，上沿一道亮边</div></div>
+    </div>
+  </div>
+  <div class="note" style="max-width:520px">
+    <b>深色改了什么（三条，都是代码里的真值）</b><br>
+    1. <code>card #1F1C17 → #272219</code>、<code>cardAlt #2B2721 → #322C24</code>、<code>outline #8C8474 → #9A9282</code> —— 卡片与页面底、卡片与次级面两个层次都能看出来；<br>
+    2. <code>PaperTexture.texInk</code> 暗档从 <code>alpha × 0.72</code> 改成 <code>× 1.35</code>（封顶 0.22）—— 原来那行是把它<b>压得更淡</b>，深底上等于没纹理；<br>
+    3. <code>drawEdge</code> 暗档不再用纯黑压边（黑底黑边 = 没有边），改成同一个 ink 色低强度提亮，上沿一条亮边。<br><br>
+    <b>对比度没被牺牲</b>：正文/次要/三级字对三个新底仍全部 ≥ 4.5:1（12.82 / 8.47 / 5.68 起）。这四条现在是 <code>DarkCardVisibilityTest</code> 的硬门槛。
+  </div>
+</div>
+
+<h2>② 课程卡片：上完课之后，卡片掉色、课名照常读</h2>
+<div class="erow">
+  <div class="estate"><div class="ecard">
+    <div class="sp"></div><div class="bd"><div class="nm">高等数学</div><div class="rm">理-201</div></div>
+  </div><div class="lb">未开始 · p=0</div></div>
+  <div class="estate"><div class="ecard">
+    <div class="erode" style="height:38%;background:linear-gradient(180deg,rgba(25,23,19,.92),rgba(50,44,36,.55) 60%,rgba(50,44,36,.18))"></div>
+    <div class="sp"></div><div class="bd"><div class="nm">高等数学</div><div class="rm">理-201</div></div>
+  </div><div class="lb">进行中 · p≈0.4</div></div>
+  <div class="estate"><div class="ecard">
+    <div class="erode" style="height:75%;background:linear-gradient(180deg,rgba(25,23,19,.95),rgba(50,44,36,.80) 70%,rgba(50,44,36,.45))"></div>
+    <div class="sp"></div><div class="bd"><div class="nm">高等数学</div><div class="rm">理-201</div></div>
+  </div><div class="lb">快下课 · p≈0.8</div></div>
+  <div class="estate"><div class="ecard">
+    <div class="erode" style="height:100%;background:linear-gradient(180deg,rgba(25,23,19,.96),rgba(33,30,24,.88))"></div>
+    <div class="sp"></div><div class="bd"><div class="nm">高等数学</div><div class="rm">理-201</div></div>
+  </div><div class="lb">已下课 · p=1（<b>课名仍在</b>）</div></div>
+  <div class="estate"><div class="ecard" style="border:2px solid rgba(237,231,218,.55)">
+    <div class="sp"></div><div class="bd"><div class="nm">高等数学</div><div class="rm">理-201</div></div>
+  </div><div class="lb">正在上 · 2dp 描边</div></div>
+</div>
+<div class="note">
+  <b>实现上靠的是「先洗后写字」</b>：<code>ErodedCard</code> 里侵蚀层只画在 <code>drawContent()</code> <b>之前</b>，正文最后画、整块、永不裁切。所以 p=1 时卡片是「旧纸色」而不是「空白」，课名照样在、照样点得开 —— 这是 2026-11-17 你定的口径，现在有单测盯着：<code>DarkCardVisibilityTest</code> 里锁了「每款洗色上课名 ≥ 7:1」。<br><br>
+  <b>暗档 washDark 四款也改了</b>：<code>#2A1D18 / #1B2226 / #20241A / #262019</code> —— 亮度跨度 1.14 倍（同亮度、不同色相），不再像四块补丁；spine 从「亮档 wash 反色（近白）」改成同色系提亮（<code>#C4776A / #7E9AA5 / #93A57E / #B4956A</code>），比洗色亮 4.8–6 倍但不比正文亮。
+</div>
+
+<h2>③ 深色体检的硬指标（现在是单测门槛）</h2>
+<table>
+<tr><th>项</th><th>门槛</th><th>实测</th><th></th></tr>
+<tr><td>card 对 paper</td><td>≥ 1.12:1</td><td>1.13</td><td class="ok">过</td></tr>
+<tr><td>cardAlt 对 card</td><td>≥ 1.10:1</td><td>1.15</td><td class="ok">过</td></tr>
+<tr><td>outline 对 paper / card / cardAlt</td><td>≥ 3:1</td><td>5.80 / 5.12 / 4.47</td><td class="ok">过</td></tr>
+<tr><td>四款 washDark 亮度跨度</td><td>≤ 1.45 倍</td><td>1.14</td><td class="ok">过</td></tr>
+<tr><td>spineDark 对 washDark</td><td>≥ 1.8:1</td><td>4.81–5.96</td><td class="ok">过</td></tr>
+<tr><td>spineDark 不得亮过正文</td><td>亮度 &lt; ink</td><td>0.26–0.35 &lt; 0.80</td><td class="ok">过</td></tr>
+<tr><td>课名（ink）对每款 washDark</td><td>≥ 7:1</td><td>12.8–13.2</td><td class="ok">过</td></tr>
+<tr><td>正文/次要/三级字对三新底</td><td>≥ 4.5:1</td><td>最低 4.96</td><td class="ok">过</td></tr>
+</table>
+
+<h2>④ 其余三项的最终确认</h2>
+<div class="note">
+<b>A 类账页格课表：保留，做成设置项</b> —— 设置 →「课程表卡片」→ 版式「纸卡 / 账页」。选「账页」时会话层把 <code>FormSpec.Ledger</code> 顶上去，那 326 行的 <code>LedgerCourseCell / LedgerAxisRow / LedgerBand / LedgerWeekStamp / LedgerUnscheduledRow</code> 全部重新跑起来。默认仍是「纸卡」，老用户零变化。<br><br>
+<b>大纲学院横滑：已改多选</b> —— 每个学院各自独立开关，空集 = 全部；另有一个「全部」chip 一键清空。想同时看「农学院 + 园艺学院」不用来回切。<br><br>
+<b>META.json 那摊事，四条全改了</b>：
+</div>
+<table>
+<tr><th>你指出的问题</th><th>处理</th></tr>
+<tr><td>META.json（1,006 B）零引用却打进包</td><td class="ok">已删除。它只被注释指着，全仓没有一处 <code>assets.open</code>。</td></tr>
+<tr><td>CurriculumMeta 注释说「数字来自 META.json」但实际硬编码</td><td class="ok">重写为<b>真读</b> <code>packed_meta.json</code>：拆成纯函数 <code>parse()/sourceLine(meta,…)</code> + Context 重载；读不到就不写页数、不写日期（不拿常量冒充）。</td></tr>
+<tr><td>packed_meta 的「资产合计字节」不含 meta 文件本身</td><td class="ok">拆成 <code>字节.{大纲, 培养方案, 数据资产合计, 元数据, APK资产合计}</code> 五项，口径写死不再含糊。</td></tr>
+<tr><td>CurriculumScreen/CurriculumModels 注释指向 META.json</td><td class="ok">改成指向资产里的「学分结构表」与 <code>docs/设计-资产瘦身-m38.md</code>，不再让人去找一个不存在的文件。</td></tr>
+</table>
+<div class="note">
+顺带：<code>packed_meta.json</code> 里新加了 <code>源PDF页数 {2023:689, 2024:695, 2025:693}</code>（原来只在被删的 META.json 里），以及 <code>读者</code> 字段写明「谁在读这份元数据」，避免下次又变成孤儿文件。
+</div>
+</div></body></html>

@@ -1,0 +1,12 @@
+### cxcy-detail.html page=[]
+### cxcy-detail2.html page=[]
+### tw-detail.html page=[]
+ [DOWNLOAD]  <p> <UL style="list-style-type:none;"> <li>attachment【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1583643652&wbfileid=11847040" target="_blank">附件：沈阳农业大学实验室安全教育视频设计大赛报名及作品简介表.doc</a>】download <span id="natta
+ [ATTACHWORD]  <p style="text-indent:43px;line-height:37px"><span style="font-size:21px;font-family:仿宋">附件：沈阳农业大学实验室安全教育视频设计大赛报名及作品简介表</span></p> <p style="text-indent:43px;line-height:37px"><br><
+ [ATTACHWORD] ad.jsp?urltype=news.DownloadAttachUrl&owner=1583643652&wbfileid=11847040" target="_blank">附件：沈阳农业大学实验室安全教育视频设计大赛报名及作品简介表.doc</a>】download <span id="nattach11847040"><script language="
+### tw-detail2.html page=[]
+ [DOWNLOAD]  <p> <UL style="list-style-type:none;"> <li>attachment【<a href="/system/_content/download.jsp?urltype=news.DownloadAttachUrl&owner=1583643652&wbfileid=11846501" target="_blank">沈阳农业大学2026年“用青春铺路 让理想闪光”主题演讲比赛报名汇总表报名汇总表.docx</a>】download <spa
+ [ATTACHWORD] px"><span style="box-sizing: inherit;letter-spacing: 0px;font-family: 仿宋;font-size: 21px">附件：</span><span style="box-sizing: inherit;font-family: 仿宋;font-size: 21px;letter-spacing: 0p
+### job-detail.html page=[]
+### cxcy-list.html page=['共95条</span> <span class="p_pages"><span class="p_first_d p_fun_d">首页</span><span class="p_prev_d p_fun_d">上页</span><span', 'p_pages"><span class="p_first_d p_fun_d">首页</span><span class="p_prev_d p_fun_d">上页</span><span class="p_no_d">1</span><']
+### tw-list.html page=['p_pages"><span class="p_first_d p_fun_d">首页</span><span class="p_prev_d p_fun_d">上页</span><span class="p_no_d">1</span><']

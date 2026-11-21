@@ -38,6 +38,9 @@ object SyllabusParse {
                 bytes = str(o, "bytes").toIntOrNull() ?: 0,
                 pack = str(o, "pack"),
                 line = str(o, "line").toIntOrNull() ?: -1,
+                college = str(o, "college"),
+                pageRange = (o["pages"] as? JsonArray)
+                    ?.mapNotNull { (it as? JsonPrimitive)?.content?.toIntOrNull() }.orEmpty(),
             )
         }.filter { it.name.isNotBlank() && it.id.isNotBlank() }
     }
@@ -210,16 +213,23 @@ object SyllabusParse {
      * @param query 空白 = 不过滤
      * @param type 空白 = 全部类型
      */
-    fun filter(entries: List<SyllabusIndexEntry>, query: String, type: String): List<SyllabusIndexEntry> {
+    fun filter(
+        entries: List<SyllabusIndexEntry>,
+        query: String,
+        type: String,
+        colleges: Set<String> = emptySet(),
+    ): List<SyllabusIndexEntry> {
         val q = normalizeCourseName(query)
         val t = type.trim()
         return entries.filter { e ->
             val typeOk = t.isBlank() || e.type == t
+            // 多选：空集 = 不过滤；否则命中任一选中学院即可
+            val collegeOk = colleges.isEmpty() || e.college in colleges
             val qOk = q.isBlank() ||
                 normalizeCourseName(e.name).contains(q) ||
                 e.code.contains(query.trim()) ||
                 e.name.contains(query.trim())
-            typeOk && qOk
+            typeOk && collegeOk && qOk
         }
     }
 

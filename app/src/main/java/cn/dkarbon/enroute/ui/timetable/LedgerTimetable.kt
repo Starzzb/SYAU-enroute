@@ -37,7 +37,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.data.Course
-import cn.dkarbon.enroute.ui.theme.Form
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.cardFloat
 
@@ -65,7 +64,7 @@ internal fun LedgerCourseCell(
     onLongClick: () -> Unit,
 ) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val key = course.courseNo.ifBlank { course.name }
     val fam = Tt.famOf(key)
     val spine = Tt.spineOf(fam, t.isDark)
@@ -169,7 +168,7 @@ internal fun LedgerCourseCell(
 @Composable
 internal fun LedgerAxisRow(sections: String, startTime: String) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     Column(
         Modifier.fillMaxSize().padding(end = 8.dp),
         verticalArrangement = Arrangement.Center,
@@ -218,7 +217,7 @@ internal fun LedgerAxisRow(sections: String, startTime: String) {
 @Composable
 internal fun LedgerBand(axisW: androidx.compose.ui.unit.Dp, height: androidx.compose.ui.unit.Dp, label: String) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     Row(
         Modifier
             .fillMaxWidth()
@@ -251,7 +250,7 @@ internal fun LedgerBand(axisW: androidx.compose.ui.unit.Dp, height: androidx.com
 @Composable
 internal fun LedgerUnscheduledRow(c: Course, onClick: () -> Unit) {
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val fam = Tt.famOf(c.courseNo.ifBlank { c.name })
     val spine = Tt.spineOf(fam, t.isDark)
     val shape = f.shapes.card
@@ -305,7 +304,7 @@ internal fun LedgerUnscheduledRow(c: Course, onClick: () -> Unit) {
 internal fun LedgerWeekStamp(isThisWeek: Boolean) {
     if (!isThisWeek) return
     val t = InkTokens.current
-    val f = Form.current
+    val f = TtCardForm
     val ink = cn.dkarbon.enroute.ui.theme.primaryInk()
     val shape = f.shapes.pill
     Box(

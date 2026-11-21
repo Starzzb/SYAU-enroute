@@ -37,6 +37,47 @@ class Prefs(ctx: Context) {
         get() = sp.getInt("style_set", 0)
         set(v) = sp.edit().putInt("style_set", v).apply()
 
+    // ── 课表卡片（m39，2026-11-21）────────────────────────
+    //
+    // 这一组是「把老设计接回入口」：m34 拔掉主题风格开关后，`Form.current.editorial`
+    // 那套账页格课表还在编进包里跑，但没人能切过去。现在拆成独立开关，
+    // **默认值 = 今天的行为**，老用户升级后一个像素都不变。
+
+    /** 卡片版式：0 = 侵蚀纸卡（默认）/ 1 = 账页格 */
+    var ttCardLayout: Int
+        get() = sp.getInt("tt_card_layout", 0)
+        set(v) = sp.edit().putInt("tt_card_layout", v).apply()
+
+    /** 底色来源：0 = 四色系（默认）/ 1 = 单墨 / 2 = 无色 */
+    var ttCardTint: Int
+        get() = sp.getInt("tt_card_tint", 0)
+        set(v) = sp.edit().putInt("tt_card_tint", v).apply()
+
+    /** 左侧竖脊 */
+    var ttCardSpine: Boolean
+        get() = sp.getBoolean("tt_card_spine", true)
+        set(v) = sp.edit().putBoolean("tt_card_spine", v).apply()
+
+    /** 上课进度侵蚀（下课走完，卡片从顶部掉色） */
+    var ttCardErode: Boolean
+        get() = sp.getBoolean("tt_card_erode", true)
+        set(v) = sp.edit().putBoolean("tt_card_erode", v).apply()
+
+    /** 小幽灵 */
+    var ttCardGhost: Boolean
+        get() = sp.getBoolean("tt_card_ghost", true)
+        set(v) = sp.edit().putBoolean("tt_card_ghost", v).apply()
+
+    /** 食物图标（未排课列表左侧） */
+    var ttCardFood: Boolean
+        get() = sp.getBoolean("tt_card_food", true)
+        set(v) = sp.edit().putBoolean("tt_card_food", v).apply()
+
+    /** 正在上的课加 2dp 主色描边 */
+    var ttCardNowRing: Boolean
+        get() = sp.getBoolean("tt_card_now_ring", true)
+        set(v) = sp.edit().putBoolean("tt_card_now_ring", v).apply()
+
     /**
      * 取色来源（票 16 追加项②）：0 = 固定农业色板；1 = 跟随壁纸取色（仅 Android 12+ 生效）。
      *

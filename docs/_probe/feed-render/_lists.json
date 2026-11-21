@@ -1,0 +1,149 @@
+{
+ "jwc": {
+  "total": null,
+  "n_info_links": 14,
+  "dates_first3": [
+   "2026-11-19",
+   "2026-11-19",
+   "2026-11-13"
+  ],
+  "dates_last3": [
+   "2026-10-21",
+   "2026-10-20",
+   "2026-10-19"
+  ],
+  "pagination_href": [
+   "../info/1250/10684.htm",
+   "../info/1249/10683.htm",
+   "../info/1250/10680.htm",
+   "../info/1248/10667.htm"
+  ],
+  "next_link": "jwtz/191.htm"
+ },
+ "www": {
+  "total": "21",
+  "n_info_links": 10,
+  "dates_first3": [
+   "2026-11-11",
+   "2026-11-10",
+   "2026-11-10"
+  ],
+  "dates_last3": [
+   "2026-10-20",
+   "2026-10-19",
+   "2026-10-13"
+  ],
+  "pagination_href": [
+   "https://rcb.syau.edu.cn/info/1031/1830.htm",
+   "../info/1144/10999.htm",
+   "../info/1144/10998.htm",
+   "../info/1144/10997.htm"
+  ],
+  "next_link": "tzgg/2.htm"
+ },
+ "xsc": {
+  "total": "384",
+  "n_info_links": 10,
+  "dates_first3": [
+   "2026-11-20",
+   "2026-11-13",
+   "2026-11-13"
+  ],
+  "dates_last3": [
+   "2026-11-03",
+   "2026-11-03",
+   "2026-11-03"
+  ],
+  "pagination_href": [
+   "info/1048/5441.htm",
+   "info/1048/5438.htm",
+   "info/1048/5437.htm",
+   "info/1048/5435.htm"
+  ],
+  "next_link": "tzgg/38.htm"
+ },
+ "news": {
+  "total": null,
+  "n_info_links": 101,
+  "dates_first3": [
+   "2026-11-12",
+   "2026-11-07",
+   "2026-11-07"
+  ],
+  "dates_last3": [
+   "2026-11-07",
+   "2026-11-07",
+   "2026-11-06"
+  ],
+  "pagination_href": [
+   "info/1005/24442.htm",
+   "info/1002/24434.htm",
+   "info/1005/24431.htm",
+   "info/1002/24407.htm"
+  ],
+  "next_link": null
+ },
+ "job": {
+  "total": "288",
+  "n_info_links": 15,
+  "dates_first3": [
+   "2026-11-18",
+   "2026-11-16",
+   "2026-10-28"
+  ],
+  "dates_last3": [
+   "2026-06-17",
+   "2026-06-08",
+   "2026-06-04"
+  ],
+  "pagination_href": [
+   "info/1023/3860.htm",
+   "info/1023/3859.htm",
+   "info/1023/3858.htm",
+   "info/1023/3857.htm"
+  ],
+  "next_link": "tzgg/19.htm"
+ },
+ "cxcy": {
+  "total": "95",
+  "n_info_links": 15,
+  "dates_first3": [
+   "2025-12-17",
+   "2025-12-10",
+   "2025-08-11"
+  ],
+  "dates_last3": [
+   "2024-05-15",
+   "2024-03-06",
+   "2024-03-01"
+  ],
+  "pagination_href": [
+   "../info/1040/3806.htm",
+   "../info/1040/3807.htm",
+   "../info/1040/3808.htm",
+   "../info/1040/3548.htm"
+  ],
+  "next_link": "cxcyjs/6.htm"
+ },
+ "tw": {
+  "total": null,
+  "n_info_links": 15,
+  "dates_first3": [
+   "2026-11-05",
+   "2026-11-06",
+   "2026-11-05"
+  ],
+  "dates_last3": [
+   "2026-11-05",
+   "2026-11-06",
+   "2026-11-05"
+  ],
+  "pagination_href": [
+   "info/1053/8428.htm",
+   "info/1053/8419.htm",
+   "info/1053/8412.htm",
+   "info/1053/8411.htm"
+  ],
+  "next_link": "?a1071550t=34&a1071550p=2&a1071550c=15&urltype=tree.TreeTempUrl&wbtreeid=1053"
+ }
+}

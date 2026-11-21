@@ -63,13 +63,35 @@ object Tt {
      * wash 用于浅色底，washDark 用于深色底 —— 之前 washDark 定义了却从没被用过，
      * 等于暗夜下把浅色 wash 直接铺在黑底上，卡片亮得刺眼。
      */
-    data class Fam(val wash: Color, val spine: Color, val washDark: Color)
+    /**
+     * 一档课程配色：亮档 wash/spine、暗档 washDark/spineDark。
+     *
+     * `spineDark` 是 m39 新加的：旧代码暗档直接拿亮档 wash 当 spine（近白），
+     * 2.5dp 白条在黑底上发光，比课名还亮。
+     */
+    data class Fam(
+        val wash: Color,
+        val spine: Color,
+        val washDark: Color,
+        val spineDark: Color = spine,
+    )
 
+    /**
+     * 深色档三色（m39 重做，2026-11-21）。
+     *
+     * 旧值 `#3A2620 / #232C31 / #2A2E20 / #322A1B` 的问题（真机可见）：
+     * 四块洗色亮度跨 18–20% 但色相跳得远，在黑底上像**四块不同亮度的补丁**，
+     * 块与块的分界比网格线还抢眼 —— 暗处人眼先读亮度、后读色相，这是生理上的。
+     *
+     * 新口径：**同亮度、不同色相**。四档亮度差压到 ≤4%，只在色相上区分；
+     * spine 也从「亮档 wash 反色（近白）」改成「同色系提亮到 65–70%」，
+     * 让课名重新成为卡片里最亮的东西 —— 旧值的白 spine 反而抢字。
+     */
     val Fams = listOf(
-        Fam(Color(0xFFF0E1D8), Color(0xFFA63D2F), Color(0xFF3A2620)),
-        Fam(Color(0xFFDEE4E7), Color(0xFF3B5566), Color(0xFF232C31)),
-        Fam(Color(0xFFE5E8DA), Color(0xFF5C6B3C), Color(0xFF2A2E20)),
-        Fam(Color(0xFFEDE5D3), Color(0xFF9A6A16), Color(0xFF322A1B)),
+        Fam(Color(0xFFF0E1D8), Color(0xFFA63D2F), Color(0xFF2A1D18), Color(0xFFC4776A)),
+        Fam(Color(0xFFDEE4E7), Color(0xFF3B5566), Color(0xFF1B2226), Color(0xFF7E9AA5)),
+        Fam(Color(0xFFE5E8DA), Color(0xFF5C6B3C), Color(0xFF20241A), Color(0xFF93A57E)),
+        Fam(Color(0xFFEDE5D3), Color(0xFF9A6A16), Color(0xFF262019), Color(0xFFB4956A)),
     )
 
     /** 按课程号取色（改名不换色） */
@@ -79,7 +101,7 @@ object Tt {
     fun washOf(fam: Fam, dark: Boolean): Color = if (dark) fam.washDark else fam.wash
 
     /** 该用哪一档竖脊 */
-    fun spineOf(fam: Fam, dark: Boolean): Color = if (dark) fam.wash else fam.spine
+    fun spineOf(fam: Fam, dark: Boolean): Color = if (dark) fam.spineDark else fam.spine
 }
 
 /** 时段起始时刻（用于轴与小人定位） */

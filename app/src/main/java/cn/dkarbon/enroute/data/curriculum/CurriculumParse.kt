@@ -146,6 +146,8 @@ object CurriculumParse {
             creditTable = table(o["学分结构表"]),
             semesterTable = table(o["各学期学分分配表"]),
             notes = notes.map { (k, v) -> k to tidy(v) },
+            goalPages = (o["目标与要求页码"] as? JsonArray)
+                ?.mapNotNull { (it as? JsonPrimitive)?.content?.toIntOrNull() }.orEmpty(),
         )
     }
 

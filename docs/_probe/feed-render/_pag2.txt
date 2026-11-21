@@ -1,0 +1,45 @@
+#### fwwb list item markup ####
+                               </div>
+                            </li>
+                    </ul>
+                </div>
+
+                <div class="clearfix"></div>
+            </div>
+
+        </div>
+        <!--大赛新闻-->
+        <div class="public">
+            <div class="item-title clearfix">
+                <ul class="item" style="width:140px;">
+                    <li class="current"><a href="#" class="current">大赛新闻</a></li>
+                </ul>
+            </div>
+            <div class="top-news">
+                <div class="line_news">
+                    <ul>
+                            <li><h6><span class="time">2026-11-20</span><a
+                                            href="/news/show/666"
+                                            target="_blank">关于收取第十八届中国大学生服务外包创 新创业大赛赛题
+                                            ...</a></h6>
+                                <div>
+                                        <a href="/news/show/666"
+                                           target="_blank">下载PDF文件</a>
+                                </div>
+                            </li>
+                            <li><h6><span class="time">2026-11-20</span><a
+                                            href="/news/show/665"
+                                            target="_blank">十八届服创大赛D赛道开通征集及招标说明</a></h6>
+                                <div>
+                         
+
+lnjyt https://jyt.ln.gov.cn/jyt/gk/zxtz/f797aa36-2.shtml: 200 40733
+lnjyt https://jyt.ln.gov.cn/jyt/gk/zxtz/f797aa36-1.shtml: 200 40627
+lnjyt https://jyt.ln.gov.cn/jyt/gk/zxtz/f797aa36-%1.shtml: 400 0
+cahe PAGX:      var _this = $(this);         _pageInput = _this.siblings("input");         goPage = _pageInput.val();         pageLink = "/site/term/373.html?page=1&per-page=0";         if(term_ishtml && is_html){             if(goPage > 1){                 pageLink = pageLink.replace("index.html", "index_" + goPage+".html");             }         } e
+cahe PAGX: his = $(this);         _pageInput = _this.siblings("input");         goPage = _pageInput.val();         pageLink = "/site/term/373.html?page=1&per-page=0";         if(term_ishtml && is_html){             if(goPage > 1){                 pageLink = pageLink.replace("index.html", "index_" + goPage+".html");             }         } else {     
+cahe PAGX:      pageLink = pageLink.replace("index.html", "index_" + goPage+".html");             }         } else {             pageLink = pageLink.replace("page=1", "page=" + goPage);         }         if (goPage >= 1 && goPage <= 48) {             window.location.href = pageLink;         } else {             _pageInput.focus();         }     });
+cxcy PAGX: F-8">     <title>比赛报名-沈阳农业大学创新创业管理平台</title>     <meta name="keywords" content=",比赛报名"/>     <meta name="description" content="沈阳农业大学创新创业管理平台"/>      <script src="/static/js/jquery.js"></script>      <script src="/templates/system/default/static/lib/pagination/jquery.pagination.js"></script>     <script type="text/javascript" language="javascript" src="/static/layer/layer.js"></script>     <link r
+cxcy PAGX: 赛报名-沈阳农业大学创新创业管理平台</title>     <meta name="keywords" content=",比赛报名"/>     <meta name="description" content="沈阳农业大学创新创业管理平台"/>      <script src="/static/js/jquery.js"></script>      <script src="/templates/system/default/static/lib/pagination/jquery.pagination.js"></script>     <script type="text/javascript" language="javascript" src="/static/layer/layer.js"></script>     <link rel="stylesheet" hr
+cxcy PAGX: .syau.edu.cn/comp/mobile/comp/info?id=1588"></div>                     </div>                 </li>                              </ul>                     </div>     </div>     <div class="page container">      </div> </div> <script>      $('.page').pagination({         totalData: '994',         showData: '7',         prevContent: '上一页', //上一页内容         nextContent: '下一页',         coping: true,   
+cxcy PAGX:          </ul>                     </div>     </div>     <div class="page container">      </div> </div> <script>      $('.page').pagination({         totalData: '994',         showData: '7',         prevContent: '上一页', //上一页内容         nextContent: '下一页',         coping: true,         keepShowPN: true,         activeCls: 'this',         hasLi : true,         isHide : true,         prevCls: 'pre', 

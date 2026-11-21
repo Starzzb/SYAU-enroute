@@ -27,7 +27,18 @@ data class SyllabusIndexEntry(
     val pack: String = "",
     /** 在该包里的行号（0 起）。`.jsonl` 一行一门，按行定位不用解整包 */
     val line: Int = -1,
+    /** 所属学院（索引的 `college`）；旧资产没有就是空串 */
+    val college: String = "",
+    /** 该课在原 PDF 里的页码范围 `[起, 止]`；索引不带就空 —— 不猜 */
+    val pageRange: List<Int> = emptyList(),
 ) {
+    /** `p.412` 或 `p.412–418`；没有页码就空串（界面据此不显示） */
+    val pageRangeLabel: String
+        get() = when {
+            pageRange.size >= 2 && pageRange[1] > pageRange[0] -> "p.${pageRange[0]}–${pageRange[1]}"
+            pageRange.isNotEmpty() -> "p.${pageRange[0]}"
+            else -> ""
+        }
     /** `3 学分 · 48 / 0 学时`；缺项就少一段 */
     val creditHoursLabel: String
         get() {

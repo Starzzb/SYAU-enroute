@@ -1,0 +1,7 @@
+cahe https://www.cahe.edu.cn/site/term/373.html?page=2&per-page=0: 200 94322 ids=['18880', '19967', '19836', '19480']
+cahe https://www.cahe.edu.cn/site/term/373_2.html: 404 0 ids=[]
+cahe https://www.cahe.edu.cn/site/term/373.html?pageNo=2: 200 94331 ids=['18880', '19967', '19836', '19480']
+fwwb https://www.fwwb.org.cn/news/index: 200 7924 ids=['666', '666', '665', '665', '664', '664']
+fwwb https://www.fwwb.org.cn/news/index?page=2: 200 7924 ids=['666', '666', '665', '665', '664', '664']
+tzb article ids(56): [66, 75, 76, 77, 78] ... [15860, 15861, 15862, 15863, 15864]
+tzb samples: [('15841', '2026年度中国青年科技创新“揭榜挂帅”擂台赛第二批榜题等你来战！'), ('15836', '谁有本事，谁就揭榜！2026年度中国青年科技创新“揭榜挂帅”擂台赛重磅启幕！'), ('15824', '榜题征集正式开启！这个全国青年的科创擂台邀您发榜')]

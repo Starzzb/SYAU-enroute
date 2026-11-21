@@ -106,19 +106,44 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 )
                 val custom = customStore.load()
                 val remind = prefs.remindersEnabled
-                Loaded(store.load(), week, theme, style, remind, colorSource, custom, palette)
+                // 课表卡片偏好（m39）：一次读齐，和上面那批一起进 Loaded
+                val cardLayout = prefs.ttCardLayout
+                val cardTint = prefs.ttCardTint
+                val cardSpine = prefs.ttCardSpine
+                val cardErode = prefs.ttCardErode
+                val cardGhost = prefs.ttCardGhost
+                val cardFood = prefs.ttCardFood
+                val cardNowRing = prefs.ttCardNowRing
+                Loaded(
+                    store.load(), week, theme, style, remind, colorSource, custom, palette,
+                    cardLayout = cardLayout,
+                    cardTint = cardTint,
+                    cardSpine = cardSpine,
+                    cardErode = cardErode,
+                    cardGhost = cardGhost,
+                    cardFood = cardFood,
+                    cardNowRing = cardNowRing,
+                )
             }
             _ui.value = _ui.value.copy(
                 timetable = saved.tt,
                 timetableWeek = saved.week,
                 themeMode = saved.theme,
                 styleSet = saved.style,
+                ttCardLayout = saved.cardLayout,
+                ttCardTint = saved.cardTint,
+                ttCardSpine = saved.cardSpine,
+                ttCardErode = saved.cardErode,
+                ttCardGhost = saved.cardGhost,
+                ttCardFood = saved.cardFood,
+                ttCardNowRing = saved.cardNowRing,
                 colorSource = saved.colorSource,
                 customPalette = saved.palette,
                 customCourses = saved.custom,
                 remindersEnabled = saved.remind,
                 timetableMsg = if (saved.tt == null) "" else "已载入 ${saved.tt.courses.size} 门课",
             )
+            // 读盘后立刻把卡片配置推给绘制层（否则冷启动第一帧还是默认值）
             // ①a 票 24：先把教务数据的三档缓存灌进界面 —— **这一步不发任何网络请求**，
             //     断网冷启动也能立刻看到身份 / 成绩 / 考试（失败绝不覆盖旧值的另一半在这里）。
             loadAcademicCacheIntoState()
@@ -163,6 +188,14 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val custom: List<cn.dkarbon.enroute.data.custom.CustomCourse> = emptyList(),
         val palette: cn.dkarbon.enroute.ui.theme.CustomPalette =
             cn.dkarbon.enroute.ui.theme.CustomPalette.NONE,
+        // 课表卡片偏好（m39）
+        val cardLayout: Int = 0,
+        val cardTint: Int = 0,
+        val cardSpine: Boolean = true,
+        val cardErode: Boolean = true,
+        val cardGhost: Boolean = true,
+        val cardFood: Boolean = true,
+        val cardNowRing: Boolean = true,
     )
 
     // ── 登录态：冷启动恢复 + 验活（票 04）──────────────────
@@ -852,7 +885,9 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             val list = withContext(Dispatchers.IO) { curriculum.syllabusIndex() }
             _ui.value = _ui.value.copy(
                 syllabusIndex = list,
-                syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(list, _ui.value.syllabusQuery, _ui.value.syllabusType),
+                syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(
+                    list, _ui.value.syllabusQuery, _ui.value.syllabusType, _ui.value.syllabusColleges,
+                ),
                 syllabusIndexLoading = false,
                 syllabusIndexMsg = if (list.isEmpty()) "没读到大纲索引（安装包可能不完整）" else "",
             )
@@ -862,7 +897,31 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     fun setSyllabusQuery(q: String) {
         _ui.value = _ui.value.copy(
             syllabusQuery = q,
-            syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(_ui.value.syllabusIndex, q, _ui.value.syllabusType),
+            syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(
+                _ui.value.syllabusIndex, q, _ui.value.syllabusType, _ui.value.syllabusColleges,
+            ),
+        )
+    }
+
+    /** 大纲学院多选：点一下切换该学院，空集 = 全部 */
+    fun toggleSyllabusCollege(college: String) {
+        val cur = _ui.value.syllabusColleges
+        val next = if (college in cur) cur - college else cur + college
+        _ui.value = _ui.value.copy(
+            syllabusColleges = next,
+            syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(
+                _ui.value.syllabusIndex, _ui.value.syllabusQuery, _ui.value.syllabusType, next,
+            ),
+        )
+    }
+
+    /** 清空学院筛选（UI 上的「全部」） */
+    fun clearSyllabusColleges() {
+        _ui.value = _ui.value.copy(
+            syllabusColleges = emptySet(),
+            syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(
+                _ui.value.syllabusIndex, _ui.value.syllabusQuery, _ui.value.syllabusType, emptySet(),
+            ),
         )
     }
 
@@ -870,7 +929,9 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         val t = if (type == _ui.value.syllabusType) "" else type   // 再点一次取消筛选
         _ui.value = _ui.value.copy(
             syllabusType = t,
-            syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(_ui.value.syllabusIndex, _ui.value.syllabusQuery, t),
+            syllabusList = cn.dkarbon.enroute.data.curriculum.SyllabusParse.filter(
+                _ui.value.syllabusIndex, _ui.value.syllabusQuery, t, _ui.value.syllabusColleges,
+            ),
         )
     }
 
@@ -1316,6 +1377,48 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         prefs.themeMode = m
         _ui.value = _ui.value.copy(themeMode = m)
     }
+
+    // ── 课表卡片（m39）──────────────────────────────────
+
+    /** 版式：0 = 侵蚀纸卡 / 1 = 账页格（老 `Form.current.editorial` 那套） */
+    fun setTtCardLayout(v: Int) {
+        val s = v.coerceIn(0, 1)
+        prefs.ttCardLayout = s
+        _ui.value = _ui.value.copy(ttCardLayout = s)
+    }
+
+    /** 底色来源：0 = 四色系 / 1 = 单墨 / 2 = 无色 */
+    fun setTtCardTint(v: Int) {
+        val s = v.coerceIn(0, 2)
+        prefs.ttCardTint = s
+        _ui.value = _ui.value.copy(ttCardTint = s)
+    }
+
+    fun setTtCardSpine(on: Boolean) {
+        prefs.ttCardSpine = on
+        _ui.value = _ui.value.copy(ttCardSpine = on)
+    }
+
+    fun setTtCardErode(on: Boolean) {
+        prefs.ttCardErode = on
+        _ui.value = _ui.value.copy(ttCardErode = on)
+    }
+
+    fun setTtCardGhost(on: Boolean) {
+        prefs.ttCardGhost = on
+        _ui.value = _ui.value.copy(ttCardGhost = on)
+    }
+
+    fun setTtCardFood(on: Boolean) {
+        prefs.ttCardFood = on
+        _ui.value = _ui.value.copy(ttCardFood = on)
+    }
+
+    fun setTtCardNowRing(on: Boolean) {
+        prefs.ttCardNowRing = on
+        _ui.value = _ui.value.copy(ttCardNowRing = on)
+    }
+
 
     /** 切视觉风格（硬朗农业 / 学院纸本）；与明暗正交，不改 themeMode */
     fun setStyleSet(style: Int) {

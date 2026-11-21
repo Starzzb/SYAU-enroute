@@ -38,6 +38,15 @@ desktop.ini
 # ── 构建日志（每次编译重生成的中间物）────────────────────
 build-log.txt
 build-log-utf8.txt
+build-compile-log.txt
+build-release-log.txt
+build-done.txt
+build-verify-log.txt
+build-verify-done.txt
+log-convert-done.txt
+
+# ── 资产瘦身中间产物（源在 curriculum/asset/，这批是可重生成的产物）──
+在途/curriculum/asset_squeezed/
 build-done.txt
 log-convert-done.txt
 

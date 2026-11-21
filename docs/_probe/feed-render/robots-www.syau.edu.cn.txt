@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /$
+Allow: /*.htm$
+Allow: /*.html$
+Disallow: /info/*.htm$
+Disallow: /info/*.html$
+Disallow: /*?*
+Disallow: /

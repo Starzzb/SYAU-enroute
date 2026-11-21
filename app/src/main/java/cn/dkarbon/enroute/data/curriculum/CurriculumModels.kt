@@ -6,7 +6,7 @@ package cn.dkarbon.enroute.data.curriculum
  * 数据来自内置资产 `assets/curriculum/`（由 `tools/curriculum/pack.py` 从教务处 PDF 生成），
  * **全部离线读取，不打网络**。
  *
- * ⚠️ 三条诚实规则（`META.json` 原文，代码里也必须守）：
+ * ⚠️ 三条诚实规则（资产构建时写下的口径，代码里也必须守）：
  * 1. **学分合计不能用课程行求和**：方案把各选修模块的全部候选课都列出来，学生只修其中一部分。
  *    实测 82 份有「总学分」行的方案里，**82 份**的课程行求和都高于总学分（最多高 52 学分）。
  *    「最低毕业学分」只读 [CurriculumPlan.creditTable]（学分结构表）。
@@ -112,6 +112,14 @@ data class CurriculumPlan(
     val semesterTable: List<List<String>> = emptyList(),
     /** 2025 版多出来的说明段落（开课单位说明 / 课程替代情况说明），原样展示 */
     val notes: List<Pair<String, String>> = emptyList(),
+    /**
+     * 「培养目标 + 毕业要求（含指标点）」原文在原 PDF 里的页码 [起, 止]。
+     *
+     * 这两节动辄两三千字，结构化信息（培养目标1 / 毕业要求1.1）别的字段已经给全，
+     * 为体积只在内置资产里留一句话指路；页码由此字段给出，**不猜** ——
+     * 老资产没有这个字段就是空列表，界面按「原文节选已精简」显示，不编页号。
+     */
+    val goalPages: List<Int> = emptyList(),
 ) {
     /** 这个专业的 PDF 页数（章节页范围给的是闭区间） */
     val pageCount: Int

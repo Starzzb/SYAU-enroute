@@ -74,6 +74,7 @@ private enum class UserPage(val title: String) {
     Teacher("查教师"),
     TeacherDetail("教师详情"),
     Settings("设置"),
+    CardSettings("课程表卡片"),
     About("关于"),
     Debug("调试日志"),
     Login("登录"),
@@ -168,12 +169,17 @@ fun UserScreen(
                     },
                 )
                 UserPage.TeacherDetail -> cn.dkarbon.enroute.ui.home.TeacherDetailScreen(ui = ui, vm = vm)
+                UserPage.CardSettings -> cn.dkarbon.enroute.ui.settings.CourseCardSettingsScreen(
+                    ui = ui,
+                    vm = vm,
+                )
                 UserPage.Settings -> {
                     // 进设置页先把本机凭据状态读准（票 14）
                     androidx.compose.runtime.LaunchedEffect(Unit) { vm.refreshCredStatus() }
                     SettingsScreen(
                         ui = ui,
                         vm = vm,
+                        onOpenCardSettings = { stack.add(UserPage.CardSettings) },
                         onOpenDebug = { stack.add(UserPage.Debug) },
                         onOpenAbout = { stack.add(UserPage.About) },
                     )

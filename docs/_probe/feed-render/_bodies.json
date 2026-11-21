@@ -1,0 +1,108 @@
+{
+ "cxcycomp": {
+  "body_chars": 9661,
+  "text_chars": 4499,
+  "imgs": [],
+  "n_img": 0,
+  "lazy": 0,
+  "pdfs": [],
+  "docs": []
+ },
+ "cxcydc": {
+  "body_chars": 17649,
+  "text_chars": 4392,
+  "imgs": [],
+  "n_img": 0,
+  "lazy": 0,
+  "pdfs": [],
+  "docs": []
+ },
+ "cxcyart": {
+  "body_chars": 538,
+  "text_chars": 0,
+  "imgs": [
+   "/static/uploads/res/editor/202512/20251208172845_51496.jpg",
+   "/static/uploads/res/editor/202512/20251208172857_97808.jpg",
+   "/static/uploads/res/editor/202512/20251208172908_26120.jpg",
+   "/static/uploads/res/editor/202512/20251208172917_94803.jpg"
+  ],
+  "n_img": 4,
+  "lazy": 0,
+  "pdfs": [],
+  "docs": []
+ },
+ "tzb": {
+  "body_chars": 11605,
+  "text_chars": 1775,
+  "imgs": [
+   "/media/ckeditor_uploads/genrui/2026/11/05/1____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/2____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/3____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/4____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/5___.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/6____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/7____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/8____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/9_____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/10____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/11____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/12____.jpg",
+   "/media/ckeditor_uploads/genrui/2026/11/05/13___.jpg"
+  ],
+  "n_img": 13,
+  "lazy": 0,
+  "pdfs": [],
+  "docs": []
+ },
+ "lnjyt": {
+  "body_chars": 16518,
+  "text_chars": 5207,
+  "imgs": [],
+  "n_img": 0,
+  "lazy": 0,
+  "pdfs": [
+   "/jyt/gk/zxtz/2026102110290659632/2026102110254421584.pdf"
+  ],
+  "docs": []
+ },
+ "cahe": {
+  "body_chars": 9276,
+  "text_chars": 995,
+  "imgs": [
+   "https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/5f28cba4773f5.jpg"
+  ],
+  "n_img": 1,
+  "lazy": 0,
+  "pdfs": [
+   "https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/file/20260928/1790586060381787.pdf",
+   "https://www.cahe.edu.cn/upload/gdjy/file/20250930/1759215429196221.pdf",
+   "中国高等教育学会“2026年度高等教育科学研究规划课题”拟立项名单 .pdf",
+   "附件：中国高等教育学会“2025年度高等教育科学研究规划课题”拟立项名单 .pdf"
+  ],
+  "docs": []
+ },
+ "jingsai": {
+  "body_chars": 14413,
+  "text_chars": 3026,
+  "imgs": [
+   "http://cdn1.52jingsai.com/portal/202611/04/104655xlxd533olleox23l.jpg"
+  ],
+  "n_img": 1,
+  "lazy": 0,
+  "pdfs": [],
+  "docs": []
+ },
+ "fwwb": {
+  "body_chars": 267,
+  "text_chars": 7,
+  "imgs": [
+   "/attached/image/20261120/20261120204717_669.jpeg"
+  ],
+  "n_img": 1,
+  "lazy": 0,
+  "pdfs": [
+   "/attached/file/20261120/20261120204900_532.pdf"
+  ],
+  "docs": []
+ }
+}

@@ -1,0 +1,11 @@
+### jwc /__local image context
+  span>https://www.wjx.cn/vm/xxx.aspx<span style="font-size: 16px; font-family: 宋体;">）进行填写。</span></span></p> <p style="text-align: center; line-height: 1.5em;"><img src="/__local/E/C3/1C/ABBB8258282B995F03274968A6F_E718331A_2F92.jpg" width="256" vsbhref="vurl" vurl="/_vsl/EC31CABBB8258282B995F03274968A6F/E718331A/2F92" vheight="" vwidth="256" orisrc="/__local/E/C3/1C/ABBB8258282B995F03274968A6F_E718331A_2F92.jpg" class="img_vsb_content"></p> <p><br></p> <p style="text-indent: 28px; line-height: 1.5em;"><span style
+### news /__local image context
+  实践，立足专业建功立业，奋力书写新时代沈农青年的奋斗答卷。（马克思主义学院 赵光辉 黄家慧）</p> <p style="line-height: 2em; text-indent: 2em; text-align: justify;"><br></p> <p style="text-align: center"><img src="/__local/D/1D/5E/11964E526BAEFA45A94737C5C5E_540C7D2C_11EF7.jpg" width="500" vsbhref="vurl" vurl="/_vsl/D1D5E11964E526BAEFA45A94737C5C5E/540C7D2C/11EF7" vheight="" vwidth="500" orisrc="/__local/5/FA/8B/6194AC6346E76C084015EEC039A_D7A14383_25A4B3.jpg" class="img_vsb_content"></p> <p><br></p> </div></div><div 
+### tw /__local image context
+  此群发布。</span></p> <p style="text-align:center;"><span lang="EN-US" style="font-size:21px;font-family:仿宋;color:black"></span></p> <p style="text-align: center"><img src="/__local/E/63/C4/69AC400AC4723B968AD6EFBAEAD_655FCFDC_D868.jpg" width="275" height="249" vsbhref="vurl" vurl="/_vsl/E63C469AC400AC4723B968AD6EFBAEAD/655FCFDC/D868" vheight=" 249px" vwidth=" 275px" orisrc="/__local/E/63/C4/69AC400AC4723B968AD6EFBAEAD_655FCFDC_D868.jpg" class="img_vsb_content" style="width: 275px; height: 249px;"></p> <p style="text-align:center;"><span lang="EN-US" style="font-size:21px;fon
+=== E-class sweep over all sampled detail pages ===
+pages with vsb_content checked: 56
+image-only candidates (<40 chars text, >=1 img): []
+=== xsc iframe exact markup ===
+  <iframe width="100%" height="600" src="/__local/B/26/85/2DB3EDE8D40795F683D3741CC48_E3453E83_25C6A.pdf?e=.pdf" style="border:1px solid #DDDDDD">

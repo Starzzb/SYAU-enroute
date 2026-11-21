@@ -1,0 +1,63 @@
+============================== cxcycomp
+  imgs=9 lazy(data-*)=0
+   <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   <img src="/static/uploads/res/comp/202609/17896148159400.png" alt="第十二届全国大学生生命科学竞赛（科学探究类）">
+  dates(2): ['2026年11月12', '2026年12月30']
+  page_hrefs: []
+
+============================== cxcydc
+  imgs=8 lazy(data-*)=0
+   <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   <img src="/static/uploads/res/comp/202605/17786388144684.jpg" alt="2026年大学生创新训练计划">
+  dates(0): []
+  page_hrefs: []
+
+============================== cxcyart
+  imgs=2 lazy(data-*)=0
+   <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+  dates(0): []
+  page_hrefs: []
+
+============================== tzb
+  imgs=21 lazy(data-*)=0
+   <img src="/static/images/mobile/mobile_header_logo.svg" width="204" height="auto" />
+   <img src="/static/images/icons/bread-divide.svg" height="16" width="16" alt="&gt;" />
+   <img src="/static/images/icons/event-notice.svg" height="24" width="24"/>
+  dates(8): ['2026/5/23', '2026-5-23', '2026/7/2', '2026-7-2', '2026/11/5', '2026-11-5', '2026/5/14', '2026-5-14']
+  page_hrefs: []
+
+============================== lnjyt
+  imgs=5 lazy(data-*)=0
+   <img src="/uiFramework/commonResource/image/2021081910340980436.png">
+   <img src="/uiFramework/commonResource/image/2021081910342070093.png">
+   <img src="/uiFramework/commonResource/image/2021081910343166971.png" />
+  dates(16): ['2026-11-04', '2026-10-21', '2026-09-22', '2026-08-25', '2026-07-31', '2026-07-16', '2026-07-09', '2026-06-18']
+  page_hrefs: ['/jyt/template/page/head/skin.css?timestamp=1717641042970', '/jyt/template/page/Sjyt_List/Sjyt_List.css?timestamp=1646899628946', 'https://www.upln.cn/?aisiteOutPageId=2afe863483b347eb88180047c8eba05c', 'https://www.lnzwfw.gov.cn/8890/index?aisiteOutPageId=0e367f0ee6d84c878ceb2138106e5c29', 'https://www.lnzwfw.gov.cn/bmym/?groupId=11210000001099970L&amp;gb=1&amp;aisiteOutPageId=7f7b197ae6154b899dfb6f553192b8c6', '/jyt/template/page/head/head.css?timestamp=1717641042970', '/jyt/template/page/foot/foot.css?timestamp=1663760214100', 'https://www.lnzwfw.gov.cn/bmym/?groupId=11210000001099970L&amp;gb=1&amp;aisiteOutPageId=fd8bce2cbfb044a09466e9d82cd7b8b0']
+
+============================== cahe
+  imgs=5 lazy(data-*)=0
+   <img src="https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/69e07f779840a.png">
+   <img src="/gdjy/images/red/text1.png?v=1">
+   <img src="/gdjy/images/icon1.png">
+  dates(24): ['2026年10月31', '2026年9月29', '2026年3月24', '2025年10月27', '2025年10月27', '2025年10月27', '2025年9月29', '2025年9月2']
+  page_hrefs: []
+
+============================== jingsai
+  imgs=57 lazy(data-*)=0
+   <img src="template/ituiz_qing/style/img/logo.jpg" alt="我爱竞赛网" border="0" />
+   <img src="static/image/common/qq_login.gif" class="vm" alt="QQ登录" />
+   <img src="data/attachment/block/82/8253119358e79bd0e2d3f5a0e9ec7bf1.jpg" width="200" height="200" title="【初赛知识竞赛】2026年第二届大学生AI应用与创新竞赛" />
+  dates(29): ['2026年11月20', '2026-11-10', '2026年11月19', '2026-11-9', '2026-11-4', '2026年11月1', '2027年1月20', '2026-11-4']
+  page_hrefs: ['https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=12', 'https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=9', 'https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=4', 'https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=3', 'https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=8', 'https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=6', 'https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=2', 'https://www.52jingsai.com/bisai/xkjn/bangdan/index.php?page=5']
+
+============================== fwwb
+  imgs=59 lazy(data-*)=0
+   <img src="/static/images/logo.jpg"/>
+   <img src="/static/images/banner.jpg" alt="基金会banner1">
+   <img src="/static/images/banner-2.jpg" alt="基金会banner2">
+  dates(10): ['2026-08-27', '2026-08-25', '2026-08-24', '2026-11-20', '2026-11-20', '2026-11-12', '2026-01-11', '2026-01-11']
+  page_hrefs: ['https://www.10086.cn/index/sd/index_531_532.html']
+

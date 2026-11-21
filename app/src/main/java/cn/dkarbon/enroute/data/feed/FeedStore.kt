@@ -67,19 +67,34 @@ class FeedStore(ctx: Context) {
     fun body(key: String): BodyPayload? = runCatching {
         val f = bodyFile(key)
         if (!f.exists() || f.length() == 0L) return null
-        json.decodeFromString(BodyPayload.serializer(), f.readText())
+        val p = json.decodeFromString(BodyPayload.serializer(), f.readText())
+        // 解析能力升级后，旧缓存当作未命中 —— 否则新字段永远是空的，
+        // 详情页会一直显示旧结果（真机踩过：PDF 卡片出不来）。
+        if (p.schema < BodyPayload.SCHEMA) return null
+        p
     }.getOrNull() ?: legacyBody(key)
 
-    /** 兼容早期只存纯文本的 `.txt` 缓存 */
-    private fun legacyBody(key: String): BodyPayload? = runCatching {
-        val f = File(bodiesDir, key.replace(Regex("""[^\w\-]"""), "_") + ".txt")
-        if (f.exists() && f.length() > 0) BodyPayload(text = f.readText()) else null
-    }.getOrNull()
+    /**
+     * 早期只存纯文本的 `.txt` 缓存：**一律视为未命中**，顺手删掉。
+     *
+     * 那种缓存只有正文，没有 images / pdfUrl / attachmentsBlocked，
+     * 读出来会让详情页显示半套内容 —— 不如重抓一次。
+     */
+    private fun legacyBody(key: String): BodyPayload? {
+        runCatching {
+            val f = File(bodiesDir, key.replace(Regex("""[^\w\-]"""), "_") + ".txt")
+            if (f.exists()) f.delete()
+        }
+        return null
+    }
 
     suspend fun saveBody(key: String, payload: BodyPayload) = mutex.withLock {
         runCatching {
             bodiesDir.mkdirs()
-            bodyFile(key).writeText(json.encodeToString(BodyPayload.serializer(), payload))
+            // 落盘前盖版本号：调用方（解析器）不需要关心这个字段，
+            // 但缓存闸门认它 —— 漏盖就会让这条缓存下一版立刻失效。
+            val stamped = payload.copy(schema = BodyPayload.SCHEMA)
+            bodyFile(key).writeText(json.encodeToString(BodyPayload.serializer(), stamped))
         }
         Unit
     }

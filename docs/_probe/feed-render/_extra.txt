@@ -1,0 +1,164 @@
+#### cxcy $.post ctx ####
+= "http://cxcy.syau.edu.cn//static/uploads/res/comp/202609/17896148159400.png";
+    $('.share-02').click(function () {
+        QqShare(shareTitle,shareUrl,sharePicUrl);
+    });
+    //分享到QQ空间
+    function QqShare(title,url,picurl)
+    {
+        var shareqqzonestring='http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?summary='+title+'&url='+url+'&pics='+picurl;
+        window.open(shareqqzonestring,'newwindow','height=400,width=400,top=100,left=100');
+    }
+    $(".share_btn").children(".share-01").hover(function(){
+        $(this).siblings(".wechat_QR_code").css({"display":"block"});
+    },function(){
+        $(this).siblings(".wechat_QR_code").css({"display":"none"});
+    });
+    var id="1542";
+    var page=2;
+    var size = "16";
+    function getMoreMember(){
+        // $("#getMoreBt").unbind();
+        $("#getMoreBt").text('加载中...');
+        var getMoreUrl = "getall";
+        $.post(getMoreUrl,{'id':id,'page':page},function(re){
+
+            if(re.status) {
+                console.log(re);
+                page++;
+                var html = '';
+                for(i in re.oridata){
+                    html += '<li>'
+                                +'<img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">'
+                                +'<div class="name">'+re.oridata[i].name+'</div>'
+                                +'<div class="time">'+formatDate(re.oridata[i].createtime,'MM.dd')+'</div>'
+
+                        +'</li>';
+                }
+
+                $(".people_list").find('ul').append(re.data);
+  
+
+#### www.tiaozhanbei.net.robots.txt ####
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+User-agent: Baiduspider
+Allow: /
+
+User-agent: 360Spider
+Allow: /
+
+User-agent: Sogou web spider
+Allow: /
+
+User-agent: GPTBot
+Disallow: /
+
+User-agent: ChatGPT-User
+Disallow: /
+
+User-agent: OAI-SearchBot
+Disallow: /
+
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: ClaudeBot
+Disallow: /
+
+User-agent: Claude-SearchBot
+Disallow: /
+
+User-agent: anthropic-ai
+Disallow: /
+
+User-agent: PerplexityBot
+Disallow: /
+
+User-agent: Bytespider
+Disallow: /
+
+User-agent: CCBot
+Disallow: /
+
+User-agent: Applebot-Extended
+Disallow: /
+
+User-agent: *
+Disallow: /project/
+Disallow: /project/list/
+Disallow: /project/list/project/
+Disallow: /project/list/talent/
+Disallow: /project/list/project/search/
+Disallow: /project/list/talent/search/
+
+
+
+#### jyt.ln.gov.cn.robots.txt ####
+﻿
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <title>404</title>
+        <style>
+            .layout-table{display:table;height:100%;width:100%;vertical-align: middle;margin-top:150px}
+            .layout-table-cell{display: table-cell;vertical-align: middle;text-align:center}
+            .layout-tip{font-size:28px;color:#373737;margin: 0 auto;margin-top:16px;border-bottom: 1px solid #eee;padding-bottom: 20px;width: 360px;}
+            #tips{font-size:18px;color:#666666;margin-top:16px;}
+        </style>
+    </head>
+    <body class="layui-layout-body">
+        <div class="layui-layout layui-layout-admin">
+            
+            <div class="layui-body">
+                <div class="layout-table">
+                    <div class="layout-table-cell">
+                        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAV4AAACMCAYAAAA0qsGKAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyBpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIENTNSBXaW5kb3dzIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkIwRDQ0ODRFMzMyODExRThBQ0Q5Q0UyNkNCMkE4MDk0IiB4bXBNTTpEb2N1bWVudEl
+
+#### www.52jingsai.com.robots.txt ####
+#
+# robots.txt for Discuz! X3.2
+#
+
+User-agent: *
+Allow: /data/attachment/
+Allow: /data/avatar/
+Allow: /data/cache/
+Allow: /uc_server/data/avatar/
+Disallow: /api/
+Disallow: /data/
+Disallow: /source/
+Disallow: /install/
+Disallow: /template/default/
+Disallow: /config/
+Disallow: /uc_client/
+Disallow: /uc_server/
+Disallow: /admin.php
+Disallow: /search.php
+Disallow: /member.php
+Disallow: /api.php
+Disallow: /misc.php
+Disallow: /connect.php
+Disallow: /forum.php?mod=redirect*
+Disallow: /forum.php?mod=post*
+Disallow: /home.php?mod=spacecp*
+Disallow: /*?mod=misc*
+Disallow: /*?mod=attachment*
+Disallow: /*mobile=yes*
+
+Sitemap: http://www.52jingsai.com/sitemap_index.xml
+
+## cxcycomp pagination: ["下一页->1: ['下一页']"]
+## cxcydc pagination: ["下一页->1: ['下一页']"]
+## cxcyart pagination: ["下一页->1: ['下一页']"]
+## tzb pagination: []
+## lnjyt pagination: ["共\\s*(\\d+)\\s*[条页]->1: ['18']", "下一页->2: ['下一页', '下一页']", ">尾页<->1: ['>尾页<']", "totalpage->1: ['totalpage']"]
+## cahe pagination: ["page=\\d+->3: ['page=1', 'page=0', 'page=1']"]
+## jingsai pagination: ["共\\s*(\\d+)\\s*[条页]->1: ['12']", "page=\\d+->11: ['page=2', 'page=3', 'page=4', 'page=5']", "下一页->1: ['下一页']"]
+## fwwb pagination: []

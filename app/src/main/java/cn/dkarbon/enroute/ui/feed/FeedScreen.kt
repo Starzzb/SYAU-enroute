@@ -102,6 +102,15 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import cn.dkarbon.enroute.data.feed.FeedImages
+import java.io.File
 import cn.dkarbon.enroute.data.feed.FeedItem
 import cn.dkarbon.enroute.data.feed.FeedSources
 import cn.dkarbon.enroute.data.feed.SourceResult
@@ -1611,6 +1620,18 @@ private fun FeedDetailView(
                     }
                 }
 
+                // ── 正文插图：实测正文图都在 /__local/ 等正文域，模板图已在解析层滤掉 ──
+                if (payload.images.isNotEmpty()) {
+                    Spacer(Modifier.height(Space.l))
+                    FeedImageList(urls = payload.images.map { it.url })
+                }
+
+                // ── 正文本身是 PDF（学生处 xsc 实测：正文只有「请安装 PDF 阅读器」）──
+                if (payload.pdfUrl.isNotBlank()) {
+                    Spacer(Modifier.height(Space.l))
+                    FeedPdfCard(url = payload.pdfUrl, onOpen = { openUrl(payload.pdfUrl) })
+                }
+
                 if (payload.attachments.isNotEmpty()) {
                     Spacer(Modifier.height(Space.xxl))
                     SectionLabel("附件 ${payload.attachments.size}")
@@ -1635,7 +1656,12 @@ private fun FeedDetailView(
                                 modifier = Modifier.weight(1f),
                             )
                             Spacer(Modifier.width(Space.s))
-                            Text("下载", fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.primary)
+                            // 实测：校内站附件走 download.jsp + 图形验证码，App 内下拿到的是验证码页。
+                            // 所以有验证码时只给「浏览器打开」，措辞如实说明要人工过码。
+                            Text(
+                                if (payload.attachmentsBlocked) "浏览器打开" else "下载",
+                                fontSize = 14.sp, fontWeight = FontWeight.Bold, color = t.primary,
+                            )
                         }
                     }
                 }
@@ -1690,6 +1716,88 @@ private fun SectionLabel(text: String) {
 }
 
 // ── 小工具 ────────────────────────────────────────────────
+
+/**
+ * 正文插图：按宽度铺满、高度按原图比例算，多张竖排。
+ *
+ * 三条来自 2026-11-21 实测的处理：
+ *  · **不裁切**（ContentScale.FillWidth 而不是 Crop）—— 通知里的图常是表格截图/名单，
+ *    裁掉两边就等于丢信息；
+ *  · **长截图不设高度上限**（服务外包大赛那条 873×3780，等比到屏宽约 1500dp 高），
+ *    外层是 DetailScaffold 的滚动容器，让它自然撑开；
+ *  · tzb 那种写死 style="width:600px;height:338px" 的内联尺寸已在解析层丢弃，
+ *    这里只认原图宽高比。
+ */
+@Composable
+private fun FeedImageList(urls: List<String>) {
+    val ctx = LocalContext.current
+    val t = InkTokens.current
+    var files by remember(urls) { mutableStateOf<List<File>>(emptyList()) }
+
+    LaunchedEffect(urls) {
+        val done = withContext(Dispatchers.IO) {
+            runCatching { FeedImages.ensure(ctx, urls) }.getOrElse { emptyList() }
+        }
+        files = done
+    }
+
+    if (files.isNotEmpty()) {
+        Column(verticalArrangement = Arrangement.spacedBy(Space.s)) {
+            files.forEach { f -> FeedImage(f) }
+        }
+    } else if (urls.isNotEmpty()) {
+        // 图没下满时不解释太多：文字已经在上面，图是补充
+        Text("正文有 " + urls.size + " 张图，暂未取下", fontSize = 11.sp, color = t.inkFaint)
+    }
+}
+
+@Composable
+private fun FeedImage(file: File) {
+    var bitmap by remember(file.path) { mutableStateOf<ImageBitmap?>(null) }
+    LaunchedEffect(file.path) {
+        bitmap = withContext(Dispatchers.IO) {
+            runCatching { BitmapFactory.decodeFile(file.path)?.asImageBitmap() }.getOrNull()
+        }
+    }
+    val img = bitmap ?: return
+    Image(
+        bitmap = img,
+        contentDescription = null,
+        // FillWidth：长截图等比铺满，不裁、不留白边
+        contentScale = ContentScale.FillWidth,
+        modifier = Modifier.fillMaxWidth(),
+    )
+}
+
+/**
+ * 正文就是一份 PDF 时（学生处 xsc 实测：正文 0 字，只有「请安装 PDF 阅读器」）。
+ *
+ * 不内嵌渲染：Android WebView 不带 PDF 插件，iframe src=.pdf 会白屏；
+ * 引 PdfRenderer 又要自己拼每页位图，收益不抵成本。
+ * 这里如实说「这是 PDF」，给一键交给系统查看器 —— 直链实测无需 Referer/Cookie。
+ */
+@Composable
+private fun FeedPdfCard(url: String, onOpen: () -> Unit) {
+    val t = InkTokens.current
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(t.cardAlt)
+            .border(Stroke.hairline, t.outline)
+            .clickable(onClick = onOpen)
+            .padding(Space.m),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Text("这份公告是 PDF", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = t.ink)
+        Text(
+            "正文没有文字版，内容在文件里。点开用系统查看器阅读。",
+            fontSize = 11.sp,
+            lineHeight = 17.sp,
+            color = t.inkSoft,
+        )
+        Text(hostOf(url), fontSize = 9.5.sp, color = t.inkFaint, fontFamily = NumericFont)
+    }
+}
 
 private fun sanitizeSummary(s: String): String =
     s.replace("id=\"vsb_content\">", "").trim()

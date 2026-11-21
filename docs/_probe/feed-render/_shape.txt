@@ -1,0 +1,201 @@
+### cxcycomp-detail.html  (36240 B)
+   CONT: <div class="content">
+   IMG_COUNT=4
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   IMG: <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   IMG: <img src="/static/uploads/res/comp/202609/17896148159400.png" alt="">
+   IMG: <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   XHR/VUE markers: []
+   P_COUNT=4 P_TEXT_LEN=4440
+
+### cxcycomp-detail2.html  (26605 B)
+   CONT: <div class="content">
+   IMG_COUNT=4
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   IMG: <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   IMG: <img src="/static/uploads/res/comp/202611/17939239554346.png" alt="">
+   IMG: <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   XHR/VUE markers: []
+   P_COUNT=4 P_TEXT_LEN=56
+
+### cxcydc-detail.html  (39938 B)
+   CONT: <div class="content">
+   IMG_COUNT=4
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   IMG: <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   IMG: <img src="/static/uploads/res/comp/202605/17786388144684.jpg" alt="">
+   IMG: <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   XHR/VUE markers: []
+   P_COUNT=42 P_TEXT_LEN=2230
+
+### cxcydc-detail2.html  (41991 B)
+   CONT: <div class="content">
+   IMG_COUNT=4
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   IMG: <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   IMG: <img src="/static/uploads/res/comp/202506/17496894787076.png" alt="">
+   IMG: <img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">
+   XHR/VUE markers: []
+   P_COUNT=49 P_TEXT_LEN=2351
+
+### cxcyart-detail.html  (18768 B)
+   IMG_COUNT=6
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   IMG: <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   IMG: <img src="/static/uploads/res/editor/202512/20251208172845_51496.jpg" alt="" />
+   IMG: <img src="/static/uploads/res/editor/202512/20251208172857_97808.jpg" alt="" />
+   XHR/VUE markers: []
+   P_COUNT=0 P_TEXT_LEN=0
+
+### cxcyart-detail2.html  (19046 B)
+   IMG_COUNT=2
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img style="" src="/static/uploads/site/20260724091656_2576.png">
+   IMG: <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+   XHR/VUE markers: []
+   P_COUNT=0 P_TEXT_LEN=0
+
+### tzb-detail.html  (28511 B)
+   CONT: <div class="w-[1200px] mx-auto flex justify-between items-center text-[#333] text-sm min-h-[44px]">
+   IMG_COUNT=32
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="/static/images/mobile/mobile_header_logo.svg" width="204" height="auto" />
+   IMG: <img src="/static/images/icons/bread-divide.svg" height="16" width="16" alt="&gt;" />
+   IMG: <img src="/static/images/icons/bread-divide.svg" height="16" width="16" alt="&gt;" />
+   IMG: <img src="/static/images/icons/bread-divide.svg" height="16" width="16" alt="&gt;" />
+   XHR/VUE markers: []
+   P_COUNT=28 P_TEXT_LEN=1666
+
+### tzb-detail2.html  (38805 B)
+   CONT: <div class="w-[1200px] mx-auto flex justify-between items-center text-[#333] text-sm min-h-[44px]">
+   IMG_COUNT=31
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="/static/images/mobile/mobile_header_logo.svg" width="204" height="auto" />
+   IMG: <img src="/static/images/icons/bread-divide.svg" height="16" width="16" alt="&gt;" />
+   IMG: <img src="/static/images/icons/bread-divide.svg" height="16" width="16" alt="&gt;" />
+   IMG: <img src="/static/images/icons/bread-divide.svg" height="16" width="16" alt="&gt;" />
+   XHR/VUE markers: []
+   P_COUNT=22 P_TEXT_LEN=1000
+
+### lnjyt-detail.html  (59502 B)
+   CONT: <div class="content con_w over column" id="content" name="内容区域" runat="server">
+   CONT: <div class="zoom">
+   CONT: <div class="foot-main">
+   PDF: >附件.pdf</a></li></ul>
+             </div>
+           
+        </div>--> 
+ <style>
+.gov_ddlist li {
+    position: relative;
+    padding-left: 20px;
+   
+   PDF: /jyt/gk/zxtz/2026102110290659632/2026102110254421584.pdf
+   IMG_COUNT=5
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="/uiFramework/commonResource/image/2021081910340980436.png">
+   IMG: <img src="/uiFramework/commonResource/image/2021081910342070093.png">
+   IMG: <img src="/uiFramework/commonResource/image/2021081910343166971.png" />
+   IMG: <img style="margin-right: 10px; vertical-align: middle;" src="/uiFramework/commonResource/image/2022010509283147252.jpg">
+   XHR/VUE markers: []
+   P_COUNT=69 P_TEXT_LEN=5135
+
+### lnjyt-detail2.html  (39960 B)
+   CONT: <div class="content con_w over column" id="content" name="内容区域" runat="server">
+   CONT: <div class="zoom">
+   CONT: <div class="foot-main">
+   ATT: /jyt/gk/zxtz/2026092211315648073/2026092211311684891.docx'
+   ATT: /jyt/gk/zxtz/2026092211315648073/2026092211313926290.docx'
+   IMG_COUNT=5
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="/uiFramework/commonResource/image/2021081910340980436.png">
+   IMG: <img src="/uiFramework/commonResource/image/2021081910342070093.png">
+   IMG: <img src="/uiFramework/commonResource/image/2021081910343166971.png" />
+   IMG: <img style="margin-right: 10px; vertical-align: middle;" src="/uiFramework/commonResource/image/2022010509283147252.jpg">
+   XHR/VUE markers: []
+   P_COUNT=12 P_TEXT_LEN=438
+
+### cahe-detail.html  (25747 B)
+   CONT: <div class="content">
+   CONT: <div class="news_content clear">
+   ATT: https://www.cahe.edu.cn/upload/gdjy/file/20261031/1793453287107980.docx"
+   ATT: 附件：“中国高等教育学会学术创新计划——高等教育学博士学位论文文库”入库论文名单.docx"
+   IMG_COUNT=5
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/69e07f779840a.png">
+   IMG: <img src="/gdjy/images/red/text1.png?v=1">
+   IMG: <img src="/gdjy/images/icon1.png">
+   IMG: <img src="/gdjy/images/red/logo2.png?v=1">
+   XHR/VUE markers: []
+   P_COUNT=21 P_TEXT_LEN=637
+
+### cahe-detail2.html  (26722 B)
+   CONT: <div class="content">
+   CONT: <div class="news_content clear">
+   PDF: https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/file/20260928/1790586060381787.pdf
+   PDF: https://www.cahe.edu.cn/upload/gdjy/file/20250930/1759215429196221.pdf
+   PDF: 中国高等教育学会“2026年度高等教育科学研究规划课题”拟立项名单 .pdf
+   PDF: >中国高等教育学会“2026年度高等教育科学研究规划课题”拟立项名单 .pdf</span></a></p><p style=
+   PDF: 附件：中国高等教育学会“2025年度高等教育科学研究规划课题”拟立项名单 .pdf
+   IMG_COUNT=5
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="https://cmsfiles.zhongkefu.com.cn/caheedu/gdjy/69e07f779840a.png">
+   IMG: <img src="/gdjy/images/red/text1.png?v=1">
+   IMG: <img src="/gdjy/images/icon1.png">
+   IMG: <img src="/gdjy/images/red/logo2.png?v=1">
+   XHR/VUE markers: []
+   P_COUNT=26 P_TEXT_LEN=1075
+
+### jingsai-detail.html  (50873 B)
+   CONT: <div class="content">
+   EMBED: <iframe scrolling="no" border="0" width="120" height="22" style="padding:1px 0 0 0" class="z" frameborder="0" allowtransparency="true"  src="http://widget.weibo.com/relationship/followbutton.php?language=zh_cn&amp;width=
+   IMG_COUNT=17
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="template/ituiz_qing/style/img/logo.jpg" alt="我爱竞赛网" border="0" />
+   IMG: <img src="static/image/common/qq_login.gif" class="vm" alt="QQ登录" />
+   IMG: <img src="template/ituiz_qing/style/img/time.png"/>
+   IMG: <img src="template/ituiz_qing/style/img/pinglun.png"/>
+   XHR/VUE markers: []
+   P_COUNT=11 P_TEXT_LEN=624
+
+### jingsai-detail2.html  (42506 B)
+   CONT: <div class="content">
+   EMBED: <iframe scrolling="no" border="0" width="120" height="22" style="padding:1px 0 0 0" class="z" frameborder="0" allowtransparency="true"  src="http://widget.weibo.com/relationship/followbutton.php?language=zh_cn&amp;width=
+   IMG_COUNT=18
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="template/ituiz_qing/style/img/logo.jpg" alt="我爱竞赛网" border="0" />
+   IMG: <img src="static/image/common/qq_login.gif" class="vm" alt="QQ登录" />
+   IMG: <img src="template/ituiz_qing/style/img/time.png"/>
+   IMG: <img src="template/ituiz_qing/style/img/pinglun.png"/>
+   XHR/VUE markers: []
+   P_COUNT=12 P_TEXT_LEN=624
+
+### fwwb-detail.html  (4527 B)
+   CONT: <div class="content">
+   PDF: /attached/file/20261120/20261120204900_532.pdf
+   IMG_COUNT=4
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="/static/images/logo.jpg"/>
+   IMG: <img src="/attached/image/20261120/20261120204717_669.jpeg" alt="" />
+   IMG: <img src="/static/images/logo2.jpg" alt="">
+   IMG: <img width="160" src="/static/images/weixin.png" alt="订阅号">
+   XHR/VUE markers: []
+   P_COUNT=2 P_TEXT_LEN=7
+
+### fwwb-detail2.html  (4452 B)
+   CONT: <div class="content">
+   PDF: /attached/file/20261120/20261120204253_476.pdf
+   IMG_COUNT=4
+   IMG_LAZY(data-*)=0  IMG_LAZY(class-ish)=0
+   IMG: <img src="/static/images/logo.jpg"/>
+   IMG: <img src="/attached/image/20261120/20261120204209_103.jpg" alt="" />
+   IMG: <img src="/static/images/logo2.jpg" alt="">
+   IMG: <img width="160" src="/static/images/weixin.png" alt="订阅号">
+   XHR/VUE markers: []
+   P_COUNT=2 P_TEXT_LEN=7
+

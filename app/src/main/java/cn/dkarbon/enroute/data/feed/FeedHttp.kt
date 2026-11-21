@@ -129,7 +129,9 @@ object FeedHttp {
         }
 
         val cs = runCatching { charsetOf(charset ?: "UTF-8") }.getOrDefault(Charsets.UTF_8)
-        return String(bytes, cs)
+        // 剥 UTF-8 BOM：2026-11-21 实测 7 个校内源里 6 个带 BOM（EF BB BF）。
+    // 不剥的话第一行变成 "\uFEFF<html…"，任何行首正则 / startsWith 判定都会整条失效。
+    return String(bytes, cs).removePrefix("\uFEFF")
     }
 
     private fun charsetOf(name: String): java.nio.charset.Charset = when (name.lowercase()) {

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>第一届辽宁省大学生外语综合技能创新挑战赛-省赛 - 沈阳农业大学创新创业管理平台</title>
+    <meta name="keywords" content=",第一届辽宁省大学生外语综合技能创新挑战赛-省赛"/>
+    <meta name="description" content="沈阳农业大学创新创业管理平台,请参赛选手认真填写报名信息，本平台报名截止时间2026年11月12日，省赛联系人朱伶俐电话13998829062..."/>
+
+    <script src="/static/js/jquery.js"></script>
+
+    <script src="/templates/system/default/static/lib/pagination/jquery.pagination.js"></script>
+    <script type="text/javascript" language="javascript" src="/static/layer/layer.js"></script>
+    <link rel="stylesheet" href="/templates/system/default/static/css/tml_main.css">
+    <link rel="stylesheet" href="/templates/system/default/static/css/tml_main_new.css">
+    <link rel="stylesheet" href="/templates/system/default/static/css/idangerous.swiper2.7.6.css">
+    <script src="/templates/system/default/static/js/idangerous.swiper2.7.6.js"></script>
+    <script src="/static/js/jquery.qrcode.min.js"></script>
+    <script src="/static/superSlider/jquery.SuperSlide.2.1.3.js"></script>
+    <style>
+        .layui-layer-btn .layui-layer-btn0 {
+            border-color: #043b72;
+            background-color: #043b72;
+            color: #fff;
+        }
+    </style>
+</head>
+<style>
+    .header a.login, .header a.user, .header a.SignOut {
+        color: #3980c6;
+    }
+
+    .header a.login:hover, .header a.user:hover, .header a.SignOut:hover {
+        color: #f00;
+    }
+.tml_header{
+
+   margin-bottom:0!important;
+}
+    .tml_header .header_top .top_left ul{
+        height:initial !important;
+    }
+</style>
+<body>
+<div class="tml_header" >
+    <div class="tml_header_new tml_headerB">
+        <div class="txt container">沈阳农业大学创新创业教育智能管控一体化平台</div>
+        <div class="top_right">
+            <script type="text/javascript" src="/static/js/ucssoclient.js?v=20190314"></script>  
+                    <style>
+                        .Warning {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            
+                            
+                        }
+                        .Warning span {
+                            background:url(/static/img/icon-warning.png) no-repeat;
+                            background-position:left 1px;
+                            padding-left:20px;
+                        }
+                        .Success {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            display:none;
+                        }
+                        .Success span {
+                            background:url(/static/img/icon-success.png) no-repeat;
+                            background-position:left 3px;
+                            padding-left:20px;
+                        }
+
+                        .TipInfo {
+                            width:520px;
+                            padding:10px 20px;
+                            line-height:24px;
+                            font-family:"微软雅黑";
+                            color:#fff;
+                            background:rgba(0,0,0,.5);
+                            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#7f000000,endColorstr=#7f000000);
+                            position:fixed;
+                            z-index: 999;
+                            top:200px;
+                            left:50%;
+                            margin-left:-280px;
+                            border-radius:5px;
+                            -moz-border-radius:5px;
+                            -webkit-border-radius:5px;
+                            text-align:center;
+                            display: none;
+                        }
+
+                        .TipInfo span {
+                            padding-left:20px;
+                        }
+                        .change_role_student_old_img{
+                            background:url(/static/changerole/img/page_old_btn_change_character_white.png) no-repeat;
+                            width: 14px;
+                            height: 14px;
+                            display: inline-block;
+                            margin-right: 5px;
+                            vertical-align: middle;
+                            margin-top: -2px;                 
+                        }
+                        .change_role_student_old:hover .change_role_student_old_img{
+                            background:url(/static/changerole/img/page_old_btn_change_character_yellow.png) no-repeat;
+                        }
+                    </style>
+                    <div class="Warning" style="display: none;">
+                        <span></span>
+                    </div>
+                    <div class="Success" style="display: none;z-index: 1000;">
+                        <span></span>
+                    </div>
+
+                    <div class="TipInfo" style="display: none;z-index: 1000;">
+                        <span></span>
+                    </div>
+                    <script>
+                      $(document).ready(function(){
+                        var outval = true;
+                        $(".SignOut").click(function () {
+                            if (outval) {
+                                outval=false;
+                                $(".Warning span").html("退出中...");
+                                $(".Warning").fadeIn(300);window.location.href = '/ucenter/index/signout';
+                                   return false;YC.ssoLoginOut(success,fail,error);
+                            } else{
+                                warning("请不要重复点击");
+                            }
+                        });
+                        function success () {
+                            setTimeout(function(){
+                                warning("退出登录成功");
+                                window.location.href="http://cxcy.syau.edu.cn";
+                            },5000);
+                        }
+                        function fail (data) {
+                            warning(data.message);
+                        }
+                        function error (data) {
+                            warning("退出登录失败");
+                        }
+                        //验证帐号信息
+                        function warning(msg){
+                            $(".Warning span").html(msg);
+                            $(".Warning").fadeIn(300).delay(3000).fadeOut(300);
+
+                        }
+                      });
+                        
+                    </script>
+                    <script type="text/javascript">
+                    //验证帐号信息
+                    function alertWarning(msg) {
+                        $(".Success").hide();
+                        $(".TipInfo").hide();
+                        $(".Warning span").html(msg);
+                        $(".Warning").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                    function alertSuccess(msg) {
+                        $(".Warning").hide();
+                        $(".TipInfo").hide();
+                        $(".Success span").html(msg);
+                        $(".Success").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                    function alertTipInfo(msg) {
+                        $(".Warning").hide();
+                        $(".Success").hide();
+                        $(".TipInfo span").html(msg);
+                        $(".TipInfo").fadeIn(300).delay(3000).fadeOut(300);
+                    }
+                </script>        </div>
+    </div>
+    <div class="tml_header_nav">
+        <div class="container">
+            <div class="logo" style="padding-top: 28px;">
+                <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn"><img style="" src="/static/uploads/site/20260724091656_2576.png"></a>
+            </div>
+            <div class="nav_list">
+                    <ul class="clearfix">
+                                                                            <li id="item1"  >
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/">首页</a>
+                                                                                            </li>
+                                                    <li id="item2"  class="this">
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/comp/front/comp/list">比赛信息</a>
+                                                                                            </li>
+                                                    <li id="item3"  >
+                                                                    <a rel="noopener noreferrer" href="http://cxcy.syau.edu.cn/dcplan/front/dcplan/list">大创项目</a>
+                                                                                            </li>
+                                                    <li id="item4"  >
+                                                                    <a rel="noopener noreferrer" href="https://job.syau.edu.cn/info/1025/3856.htm">建赛流程指导视频教程</a>
+                                                                                            </li>
+                                                    <li id="item5"  >
+                                                                    <a rel="noopener noreferrer" href="/ucenter/index/reg">跨校人员注册</a>
+                                                                                            </li>
+                                            </ul>
+                </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(".tml_header").slide({mainCell:".header_top ul",autoPage:true,effect:"topLoop",autoPlay:true,delayTime:1000});
+</script>
+
+                    <div class="tml_banner bannerB">
+    <img src="/templates/system/default/static/img/banner2.jpg" alt="">
+    <div class="second_menu container">
+        <div class="title">
+            <div class="zh"><span class="blue">双创</span>竞赛</div>
+            <div class="en"></div>
+            <div class="line"></div>
+        </div>
+        <div class="menu_item clearfix">
+            <a rel="noopener noreferrer" class="this" href="../comp/list">科技竞赛</a>
+            <a rel="noopener noreferrer" href="../comp/articlelist?cid=12">科技竞赛成果公示</a>
+        </div>
+    </div>
+</div>
+<div class="tml_body">
+    <div class="title container clearfix">
+        <div class="left">
+            <div class="zh"><span class="blue">科技</span>竞赛</div>
+            <div class="en"></div>
+            <div class="line"></div>
+        </div>
+        <div class="right">
+            <span><span class="icon position_icon"></span>当前位置：</span>
+            <a rel="noopener noreferrer" href="/">首页</a>
+            <span>. 双创竞赛</span>
+        </div>
+    </div>
+    <div class="body_box container clearfix">
+        <div class="body_left">
+            <div class="body_part body_part1">
+                <div class="title">第一届辽宁省大学生外语综合技能创新挑战赛-省赛</div>
+                <div class="msg"><span class="time_icon icon"></span>比赛时间：2026-11-06 00:00 至 2027-01-31 23:59</div>
+                <div class="msg"><span class="time_icon icon"></span>报名时间：2026-11-06 00:00 至 2027-01-31 23:59</div>
+                <div class="msg "><span class="people_icon icon"></span>主办方：学生创新创业与就业指导处（创新创业学院）</div>
+                <div class="msg"><span class="people_icon icon"></span>负责人：房冰</div>
+                <div class="msg org"><span class="people_icon icon"></span>负责人联系方式：13909880859</div>
+
+
+                <div class="btn_groups">
+                    <a class="btn" id="alertSub">我要报名</a>                </div>
+                <div class="img">
+                    <img src="/static/uploads/res/comp/202611/17939239554346.png" alt="">
+                </div>
+            </div>
+            <div class="body_part body_part2">
+                <div class="p_title">
+                    <span>竞赛简介</span>
+                </div>
+                <div class="content">
+                    <p>
+	<span>请参赛选手认真填写报名信息，本平台报名截止时间2026年11月12日，省赛联系人朱伶俐电话13998829062</span>
+</p>
+<p>
+	<br />
+</p>
+<p>
+	<span> </span> 
+</p>
+<p class="MsoListParagraph" style="text-indent:36pt;">
+	<br />
+</p>                </div>
+            </div>
+                                    <div class="page_turn">
+                                                <div class="page_item clearfix">
+                    <div class="name">
+                        上一篇
+                        <span class="line"></span>
+                    </div>
+                    <div class="txt">
+                        <a rel="noopener noreferrer" class="content" href="../comp/info?id=1582" title="第一届辽宁省大学生外语综合技能创新挑战赛——“早道杯”辽宁省大学生日语技能大赛（校园选拔赛）">第一届辽宁省大学生外语综合技能创新挑战赛——“早道杯”辽宁省大学生日语技能大赛（校园选拔赛）</a>
+                        <span class="time">2026.11.02</span>
+                    </div>
+                </div>
+                                                                                <div class="page_item clearfix">
+                    <div class="name">
+                        下一篇
+                        <span class="line"></span>
+                    </div>
+                    <div class="txt">
+                        <a rel="noopener noreferrer" href="../comp/info?id=1584" title="第一届辽宁省大学生外语综合技能创新挑战赛——“早道杯”辽宁省大学生日语技能大赛（省赛）" class="content">第一届辽宁省大学生外语综合技能创新挑战赛——“早道杯”辽宁省大学生日语技能大赛（省赛）</a>
+                        <span class="time">2026.11.06</span>
+                    </div>
+                </div>
+                                            </div>
+        </div>
+        <div class="body_right">
+            <div class="sign_msg">
+                <div class="top clearfix" style="margin-bottom: 0">
+                    <div class="item">
+                        <span class="icon t_groups_icon"></span> <span class="num">32</span>组
+                        <div class="tip">已报名组数</div>
+                    </div>
+                </div>
+            </div>
+            <div class="notice_list">
+                <div class="title clearfix">
+                    <span>比赛公告</span>
+                    <a rel="noopener noreferrer" href="../comp/notice?id=MTU4My0xYzY5NGE" target="_blank">more+</a>
+                </div>
+                                <div class="NoticeList_none" style="display:block;text-align: center;padding: 20px 0">暂无公告</div>
+                            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/js/dateformat.js"></script>
+<br clear="both"/>
+<!--选择分类弹出层-->
+<style>
+    .back{
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        z-index: 995;
+        background: rgba(0,0,0,0.5);
+    }
+    .cateAlert{
+        position: fixed;
+        z-index: 999;
+        top: 150px;
+        width: 449px;
+        left: 0px;
+        right: 0px;
+        margin-right: auto;
+        margin-left: auto;
+
+
+        max-height: 895px;
+    }
+    .close{
+        height: 40px;
+        background: url("/static/img/cateAlertClose.png") no-repeat right;
+        background-size:58px 19px;
+        width: 100%;
+    }
+    .cateAlert .alertBody{
+        border-radius: 4px;
+        background: #fff;
+    }
+    .cateAlert .alertBody .title{
+        height: 52px;
+        background-color: #439ff6;
+        color:#ffffff;
+        font-size: 16px;
+        font-family: "微软雅黑";
+        border-radius: 5px;
+        line-height: 52px;
+        text-align: center;
+
+    }
+    .cateAlert .alertBody .content{
+        max-height: 300px;
+        padding-top: 5px;
+        padding-left: 20px;
+        padding-right: 20px;
+        overflow: auto;
+    }
+    .cateAlert .alertBody  li{
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        padding-top: 20px;
+    }
+    .cateAlert .alertBody  li .catetitle{
+        font-size: 16px;
+        color: #439ff6;
+        line-height: 34px;
+    }
+    .cateAlert .alertBody  li .info{
+        font-size: 14px;
+        color: #888888;
+        line-height: 20px;
+        padding-right: 30px;
+
+    }
+
+</style>
+                    <div class="back" style="display: none"> </div>
+                    <div class="cateAlert" style="display: none">
+                        <div class="close"></div>
+                        <div class="alertBody">
+                            <div class="title"><span>请选择分类</span></div>
+                            <div class="content">
+                                <ul><li><a href="../enter/index?compId=1583&appId=10126&compSubId=1899"><div class="catetitle">本科组</div><div class="info">本科组</div></a></li><li><a href="../enter/index?compId=1583&appId=10129&compSubId=1900"><div class="catetitle">备用</div><div class="info">备用</div></a></li></ul>
+                            </div>
+                        </div>
+                    
+                    </div>
+                    <script>
+                        $('.close').click(function () {
+                                $('.back').hide();
+                                $('.cateAlert').hide();
+                        });
+                        $('.back').click(function () {
+                                $('.back').hide();
+                                $('.cateAlert').hide();
+                        });
+                        $("#alertSub").click(function() {
+                                $(".cateAlert").show();
+                                $('.back').show();
+                        });
+                    </script><!--选择分类弹出层结束-->
+<script type="text/javascript">
+    var shareTitle = "第一届辽宁省大学生外语综合技能创新挑战赛-省赛-沈阳农业大学创新创业管理平台";
+    var shareUrl = "http%3A%2F%2Fcxcy.syau.edu.cn%2Fcomp%2Ffront%2Fcomp%2Finfo%3Fid%3DMTU4My0xYzY5NGE";
+    var sharePicUrl = "http://cxcy.syau.edu.cn//static/uploads/res/comp/202611/17939239554346.png";
+    $('.share-02').click(function () {
+        QqShare(shareTitle,shareUrl,sharePicUrl);
+    });
+    //分享到QQ空间
+    function QqShare(title,url,picurl)
+    {
+        var shareqqzonestring='http://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?summary='+title+'&url='+url+'&pics='+picurl;
+        window.open(shareqqzonestring,'newwindow','height=400,width=400,top=100,left=100');
+    }
+    $(".share_btn").children(".share-01").hover(function(){
+        $(this).siblings(".wechat_QR_code").css({"display":"block"});
+    },function(){
+        $(this).siblings(".wechat_QR_code").css({"display":"none"});
+    });
+    var id="1583";
+    var page=2;
+    var size = "16";
+    function getMoreMember(){
+        // $("#getMoreBt").unbind();
+        $("#getMoreBt").text('加载中...');
+        var getMoreUrl = "getall";
+        $.post(getMoreUrl,{'id':id,'page':page},function(re){
+
+            if(re.status) {
+                console.log(re);
+                page++;
+                var html = '';
+                for(i in re.oridata){
+                    html += '<li>'
+                                +'<img src="'+(re.oridata[i].head?re.oridata[i].head:"/templates/system/default/static/img/defalt.png")+'" alt="">'
+                                +'<div class="name">'+re.oridata[i].name+'</div>'
+                                +'<div class="time">'+formatDate(re.oridata[i].createtime,'MM.dd')+'</div>'
+
+                        +'</li>';
+                }
+
+                $(".people_list").find('ul').append(re.data);
+                $("#getMoreBt").text('加载更多');
+                if (re.num < size) $("#getMoreBt").hide();
+            }
+        },'json');
+
+    }
+    $('.share-04').click(function () {
+        warning('暂不支持该功能。');
+    });
+
+</script>                
+
+<!-- 底部 开始 -->
+<div class="tml_footer_bg">
+    <div class="tml_footer container">
+        <div class="footer_bottom">
+            <div class="copyright" style="text-align: center">
+                <span>   <a rel="noopener noreferrer" style="color: #ffffff;" href="http://www.syau.edu.cn/#" target="_blank">辽ICP备18018285号-1</a></span><br>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 底部 结束 -->
+<script>
+    var listBodyheight = $(".list_body").height() - 80;
+    console.log(listBodyheight);
+    $(".nav_list").css({
+        "height": listBodyheight
+    })
+</script>
+</body>
+</html>
+    <script >
+
+    //滚动通知公告
+    // (function ($) {
+    //     $.fn.extend({
+    //         "slideW": function (value) {
+    //             var docthis = this;
+    //             //默认参数
+    //             value = $.extend({
+    //                 "li_h": "39",
+    //                 "time": 2000,
+    //                 "movetime": 1000,
+    //                 "yuansu": 1
+    //             }, value);
+    //
+    //             //向上滑动动画
+    //             function autoani() {
+    //                 $("li:lt(" + value.yuansu + ")", docthis).animate({"margin-top": -value.li_h}, value.movetime, function () {
+    //                     $(this).css("margin-top", 0).appendTo(".notice_link");
+    //                 })
+    //             }
+    //
+    //             //自动间隔时间向上滑动
+    //             var anifun = setInterval(autoani, value.time);
+    //             //悬停时停止滑动，离开时继续执行
+    //             $(docthis).children("li").hover(function () {
+    //                 clearInterval(anifun);			//清除自动滑动动画
+    //             }, function () {
+    //                 anifun = setInterval(autoani, value.time);	//继续执行动画
+    //             })
+    //         }
+    //     })
+    // })(jQuery);
+    // //执行通知动画
+    // $(".notice_link").slideW();
+    //$(".tml_header").slide({mainCell:".header_top ul",autoPage:true,effect:"topLoop",autoPlay:true,delayTime:1000});
+
+
+    $('.nav li').on('click', function (e) {
+        e.stopPropagation();
+        if ($(this).find('.down_box').css('display') == 'none') {
+            $(this).find('.down_box').slideDown(200);
+            $(this).siblings('li').find('.down_box').slideUp(200);
+        } else {
+            $(this).find('.down_box').slideUp(200);
+        }
+    });
+    $(document).on('click', function () {
+        $('.nav li').find('.down_box').hide()
+    })
+
+
+    $(function(){
+        function footerPosition(){
+            $(".tml_footer_bg").removeClass("fixed-bottom");
+            var contentHeight = document.body.scrollHeight,//网页正文全文高度
+                winHeight = window.innerHeight;//可视窗口高度，不包括浏览器顶部工具栏
+            console.log(contentHeight,winHeight)
+            if(contentHeight >= winHeight){
+                $(".tml_footer_bg").removeClass("fixed-bottom");
+            } else {
+                //当网页正文高度小于可视窗口高度时，为footer添加类fixed-bottom
+                $(".tml_footer_bg").addClass("fixed-bottom");
+
+            }
+        }
+        footerPosition();
+        $(window).resize(footerPosition);
+    });
+    if($('.tml_header').siblings('.tml_banner').length==''){
+        $('.tml_header').css({
+            'background': '#043b72',
+            'height':'150px',
+            'position':'unset',
+            'margin-bottom':'30px',
+        })
+    }
+    $(function () {
+        var winWidth=$(window).width();
+
+        var liwid=$('.nav li a');
+        if(winWidth<1300){
+            liwid.css({
+                'padding-left':'10px',
+                'padding-right':'10px',
+            })
+        }else if(winWidth<1400){
+            liwid.css({
+                'padding-left':'15px',
+                'padding-right':'15px',
+            })
+        }else if(winWidth<1500){
+            liwid.css({
+                'padding-left':'20px',
+                'padding-right':'20px',
+            })
+        }
+    })
+</script>

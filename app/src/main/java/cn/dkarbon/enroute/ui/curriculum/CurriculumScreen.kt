@@ -58,7 +58,7 @@ import cn.dkarbon.enroute.ui.theme.Stroke
  *
  * 三段式：身份头（年级 + 专业，可切换）→ 四个分区（介绍 / 目标与要求 / 学分结构 / 课程设置）→ 来源脚注。
  *
- * ⚠️ 信用纪律（`META.json` 原文）：**学分只认「学分结构表」**。
+ * ⚠️ 信用纪律（原文出处：资产里的 `学分结构表`；说明见 `docs/设计-资产瘦身-m38.md`）：**学分只认「学分结构表」**。
  * 课程行求和会虚高（实测 82 份有总学分行方案的求和全部高于总学分，最多高 52 学分），
  * 所以这一页**不显示任何课程学分合计**，学分结构表缺行时显示「暂缺」而不是推算值。
  */
@@ -66,6 +66,7 @@ import cn.dkarbon.enroute.ui.theme.Stroke
 @Composable
 fun CurriculumScreen(ui: AppState, vm: TimetableViewModel) {
     val t = InkTokens.current
+    val ctx = androidx.compose.ui.platform.LocalContext.current
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var pickingMajor by remember { mutableStateOf(false) }
 
@@ -221,7 +222,7 @@ fun CurriculumScreen(ui: AppState, vm: TimetableViewModel) {
                 item(key = "src") {
                     Spacer(Modifier.height(Space.s))
                     Text(
-                        CurriculumMeta.sourceLine(ui.planYear, plan),
+                        CurriculumMeta.sourceLine(ctx, ui.planYear, plan),
                         fontSize = 9.5.sp,
                         lineHeight = 14.sp,
                         color = t.inkFaint,
@@ -284,13 +285,21 @@ private fun androidx.compose.foundation.lazy.LazyListScope.introItems(plan: Curr
 
 private fun androidx.compose.foundation.lazy.LazyListScope.goalItems(plan: CurriculumPlan) {
     item(key = "goals") {
-        SectionCard("培养目标", plan.goals.ifBlank { "原文这一节为空" })
+        // 内置资产里这一节只留一句话，原 PDF 页码就写在这句话里（见 packed_meta 的「精简」）。
+        // 老资产没有页码字段时这句话退化成「原文这一节为空」，不补页号、不编页号。
+        val body = plan.goals.ifBlank { "原文这一节为空" }
+        SectionCard("培养目标", body)
     }
     items(plan.goalList, key = { "goal-" + it.no + it.content.take(10) }) { g ->
         Bullet(if (g.no.isNotBlank()) "${g.no}. ${g.content}" else g.content)
     }
     item(key = "req") {
-        SectionCard("毕业要求", plan.requirements.ifBlank { "原文这一节为空" })
+        // 精简后毕业要求正文已挪走：这时不能显示「原文这一节为空」（原文并不空），
+        // 改为指向同一句带页码的说明。
+        val body = plan.requirements.ifBlank {
+            if (plan.goalPages.isEmpty()) "原文这一节为空" else plan.goals
+        }
+        SectionCard("毕业要求", body)
     }
     items(plan.requirementList, key = { "req-" + it.no + it.text.take(10) }) { r ->
         RequirementBlock(r)

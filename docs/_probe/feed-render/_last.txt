@@ -1,0 +1,11 @@
+cxcy docx no-ref: 200 application/vnd.openxmlformats-officedocument.wordprocessingml.document bytes=748236
+cxcy jpg no-ref: 200 image/jpeg bytes=378913
+jingsai cdn http: 200 image/jpeg bytes=79793
+jingsai cdn https: 200 image/jpeg bytes=79793
+tzb img no-ref: 200 image/jpeg bytes=251189
+jingsai-list first bytes: b'\r\n<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dt'
+utf8 decode FAILED at byte 254: invalid start byte
+gb18030 head text:  <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> <html xmlns="http://www.w
+declared charset: gbk
+cxcycomp body: len=9651 has_<p>=4 has_script_in_body=True has_ajax=False
+cxcycomp body plaintext=5687 chars; sample: 我校项目管理员：王媛媛13898182096，项目管理QQ群：1125559634。在国家平台报名的同时，也务必要在我校平台报名，务必务必务必，谢谢。关于举办“

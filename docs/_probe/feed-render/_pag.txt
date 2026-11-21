@@ -1,0 +1,24 @@
+
+cahe pag div: <div class="page_content">
+        <!-- 面包屑导航区域 -->
+        <div class="breadnav">
+    您当前的位置：
+    <a href="/site/index.html">首页</a>
+                        <span>&gt;</span><a href="/site/term/373.html">业务公告</a>
+            </div>
+
+lnjyt PAG: le="true">关于公布2026年职业教育对口升学专升本专业综合课考试科目和技能考核要点的通知</a> <span class="l-gl-main-num">2026-01-29</span></li>    </ul>   </div>  </div>  <div class="page-nav">   <div class="easysite-total-page">    <span>共18页</span>   </div>   <div class="easysite-page-wrap">    <a tagname="[HOMEPAGE]" title="首页" class="">首页</a>    <a tagname="[PREVIOUSPAGE]" title="上一页" class="">上一页</a>    <font class="NormalRed">1</
+lnjyt PAG: ','/jyt/gk/zxtz/f797aa36-%1.shtml')">   </div>  </div>  <input type="hidden" name="article_paging_list_hidden" moduleid="f797aa36fbaa44e594ec7f4fbca67177" modulekey="f797aa36fbaa44e594ec7f4fbca67177" totalpage="18">  <style>      .l-gl-main li:nth-child(5){margin-bottom:40px;} .l-gl-main li:nth-child(10){margin-bottom:40px;} </style>   </div>  </div>        </div>       </div>      </div>     <
+
+fwwb 529: 
+fwwb 226: 
+fwwb 663: 第十七届中国大学生服务外包创新创业大赛全国赛获奖团队详细信息
+fwwb 662: 各获奖团队：第十七届服创大赛全国赛获奖证书为电子证书，现全国赛一、二等奖获奖证书已开放下载，请获奖团队于规定时间内登录报
+fwwb 661: 第十七届中国大学生服务外包创新创业大赛全国赛决赛获奖名单公告
+fwwb 666: 下载PDF文件
+fwwb 665: 下载PDF文件
+fwwb 664: 下载PDF版文件
+fwwb 595: 
+fwwb 594: 
+
+tzb article links: 56

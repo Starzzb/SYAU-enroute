@@ -225,14 +225,24 @@ class CurriculumParseTest {
 
     @Test
     fun `底部来源写明版本与页数`() {
-        val line = CurriculumMeta.sourceLine("2024", plan2024())
+        // 2026-11-21：Meta 改成「真读 packed_meta.json」，所以这里直接喂同一份内容，
+        // 不依赖 Android Context；顺手把「读不到就不能编」也锁上。
+        val meta = CurriculumMeta.parse(
+            """{"生成时间":"2026-11-21T10:06:00","源PDF页数":{"2023":689,"2024":695,"2025":693}}""",
+        )
+        assertEquals("2026-11-21", meta.generated)
+        val line = CurriculumMeta.sourceLine(meta, "2024", plan2024())
         assertTrue(line, line.contains("2024 级本科人才培养方案"))
         assertTrue(line, line.contains("共 695 页"))
         assertTrue(line, line.contains("第 223–234 页"))
         assertTrue(line, line.contains("93 门课程"))
-        assertTrue(line, line.contains(CurriculumMeta.GENERATED))
-        assertEquals(693, CurriculumMeta.totalPages("2025"))
+        assertTrue(line, line.contains("2026-11-21"))
+        assertEquals(693, meta.pages["2025"])
         // 年份未知时不能瞎编页数
-        assertFalse(CurriculumMeta.sourceLine("1999").contains("共"))
+        assertFalse(CurriculumMeta.sourceLine(meta, "1999").contains("共"))
+        // meta 缺失时既不编页数也不编日期
+        val empty = CurriculumMeta.sourceLine(null, "2024", plan2024())
+        assertFalse(empty, empty.contains("共 "))
+        assertFalse(empty, empty.contains("生成于"))
     }
 }

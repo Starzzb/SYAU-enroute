@@ -254,7 +254,16 @@ class FeedRepository(private val ctx: Context) {
             val payload = when {
                 // 我爱竞赛网：精确切 article_content，别让侧栏推荐混进正文
                 kind == "jingsai" -> FeedParser.parseBodyJingsai(resp.body, resp.finalUrl)
-                generic -> FeedParser.parseBodyGeneric(resp.body, resp.finalUrl)
+                generic -> {
+                    // 就业信息网正文藏在 base64→zlib→base64 里（2026-11-21 实测），
+                    // 先解包再当 HTML 解析；解不开自然退回普通提取。
+                    val decoded = if (item.sourceKey == "jy") FeedParser.decodeJyBody(resp.body) else ""
+                    if (decoded.isNotBlank()) {
+                        FeedParser.parseBodyGeneric(decoded, resp.finalUrl)
+                    } else {
+                        FeedParser.parseBodyGeneric(resp.body, resp.finalUrl)
+                    }
+                }
                 else -> FeedParser.parseBody(resp.body, resp.finalUrl)
             }
             if (payload.isEmpty) continue
