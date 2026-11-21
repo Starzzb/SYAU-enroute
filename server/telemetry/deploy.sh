@@ -11,7 +11,7 @@
 #   2. systemd 起一个只监听 127.0.0.1:18090 的 python 服务
 #   3. 在已有 18081 / 18082 两个 nginx 站点里各挂一段 /api/telemetry/ 反向代理
 #      （不开新端口 —— 阿里云安全组只放行了既有端口，新端口要人肉放行）
-#   4. 装一条 cron：每天 04:10 聚合 + 清 90 天前的原始记录
+#   4. cron：每小时聚合一次（公开页读 users.json / daily.json 快照，不实时）+ 每天 04:10 清 180 天前的原始记录
 set -euo pipefail
 
 APP_DIR=/opt/enroute/telemetry
@@ -140,9 +140,12 @@ fi
 nginx -t
 systemctl reload nginx
 
-# cron：聚合 + 清理
+# cron：每小时聚合 + 每天 04:10 聚合并清理
+# 公开页读的是 users.json / daily.json 快照，不是原始 ndjson —— 所以聚合要够勤，
+# 页面才不会一直停在几小时前的数字。清理（--prune）只跑一次，没必要每小时删一遍。
 CRON=/etc/cron.d/enroute-telemetry
 cat > "$CRON" <<EOF
+0 * * * * root cd $APP_DIR && /usr/bin/python3 server.py --aggregate --all >> /var/log/enroute-telemetry-cron.log 2>&1
 10 4 * * * root cd $APP_DIR && /usr/bin/python3 server.py --aggregate --all --prune --days 180 >> /var/log/enroute-telemetry-cron.log 2>&1
 EOF
 chmod 644 "$CRON"

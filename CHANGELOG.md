@@ -12,6 +12,7 @@ https://wb.dkarbon.cn/enroute/ —— 挂在已有 TLS 站点上：单文件页�
 
 - `server/telemetry/web/index.html`：12 KB 单文件，无外链、无图表库，纸墨配色，跟随系统深浅色。
 - `server/telemetry/server.py`：新增 `PUBLIC_TTL`、`build_public(days=30)`、`/api/telemetry/public` 路由。
+- cron 改成**每小时** `--aggregate --all`（公开页读的是聚合快照，不实时；每天 04:10 仍跑 `--prune --days 180`）。
 - `server/telemetry/deploy.sh`：装页面到 `/var/www/enroute/`；生成
   `/etc/nginx/snippets/enroute-telemetry-tls.conf`（用 `location ^~ /api/telemetry` 抢在
   `wb2api` 那条 `^/(v1|api)/` 正则之前）；幂等插入 include；完成后自查公开端点与页面。
