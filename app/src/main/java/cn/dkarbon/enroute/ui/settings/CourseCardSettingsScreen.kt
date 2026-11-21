@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.ui.AppState
@@ -59,36 +62,45 @@ fun CourseCardSettingsScreen(
         modifier.fillMaxSize().verticalScroll(rememberScrollState())
             .padding(horizontal = Space.l, vertical = Space.s),
     ) {
-        Section("卡片形态", PaperTex.GRID) {
+        Section("版式", PaperTex.GRID) {
             SegRow(
-                title = "版式",
-                detail = "纸卡：侵蚀质感，讲课名压在最上；账页：横线格 + 竖脊，字距更紧",
+                title = "课表主体",
+                detail = "纸卡：格子自绘；账页：横线格 + 竖脊的另一套主体，一屏多一节",
                 options = listOf("纸卡", "账页"),
                 selected = ui.ttCardLayout,
                 onSelect = vm::setTtCardLayout,
             )
-            SegRow(
-                title = "底色",
-                detail = "四色：按课程号固定分色；单墨：统一次级面；无色：与页面同底",
-                options = listOf("四色", "单墨", "无色"),
-                selected = ui.ttCardTint,
-                onSelect = vm::setTtCardTint,
-            )
-            SwitchRow(
-                title = "左侧竖脊",
-                detail = "2.5dp 满彩竖条，是卡片上唯一的高彩度面积",
-                checked = ui.ttCardSpine,
-                onChange = vm::setTtCardSpine,
-            )
+        }
+
+        Section("预设", PaperTex.CROSS) {
+            Column(Modifier.fillMaxWidth()) {
+                cn.dkarbon.enroute.ui.timetable.TtPresets.ALL.forEachIndexed { i, preset ->
+                    PresetRow(
+                        preset = preset,
+                        selected = ui.ttPreset == i,
+                        onClick = { vm.setTtPreset(i) },
+                    )
+                }
+            }
+        }
+
+        Section("逐条覆盖", PaperTex.DOTS) {
+            // 11 条轴各自可选「跟随预设」：换预设只松开这一次钉死的那几条，
+            // 其余仍听预设。轴的定义在 TtAxis —— 设置页、ViewModel、渲染层共用一份。
+            for (axis in 0 until cn.dkarbon.enroute.ui.timetable.TtAxis.sizes.size) {
+                val ov = overrideOf(ui, axis)
+                val options = listOf("跟随") + cn.dkarbon.enroute.ui.timetable.TtAxis.options[axis].toList()
+                SegRow(
+                    title = cn.dkarbon.enroute.ui.timetable.TtAxis.names[axis],
+                    detail = cn.dkarbon.enroute.ui.timetable.TtAxis.options[axis].joinToString(" / "),
+                    options = options,
+                    selected = ov + 1,
+                    onSelect = { vm.setTtOverride(axis, if (it == 0) -1 else it - 1) },
+                )
+            }
         }
 
         Section("随时间的效果", PaperTex.CROSS) {
-            SwitchRow(
-                title = "上课进度侵蚀",
-                detail = "一节课走完，卡片从顶部掉色；课名永远留在最上层、照样点得开",
-                checked = ui.ttCardErode,
-                onChange = vm::setTtCardErode,
-            )
             SwitchRow(
                 title = "小幽灵",
                 detail = "沿当前时刻推进，走过哪节课就吃掉哪个格子",
@@ -108,8 +120,104 @@ fun CourseCardSettingsScreen(
                 onChange = vm::setTtCardNowRing,
             )
         }
-
         Spacer(Modifier.height(Space.xxl))
+    }
+}
+
+/** 读某条轴的覆盖值（-1 = 跟随预设） */
+private fun overrideOf(ui: AppState, axis: Int): Int = when (axis) {
+    cn.dkarbon.enroute.ui.timetable.TtAxis.SHAPE -> ui.ttOvShape
+    cn.dkarbon.enroute.ui.timetable.TtAxis.DECOR -> ui.ttOvDecor
+    cn.dkarbon.enroute.ui.timetable.TtAxis.META -> ui.ttOvMeta
+    cn.dkarbon.enroute.ui.timetable.TtAxis.BADGE -> ui.ttOvBadge
+    cn.dkarbon.enroute.ui.timetable.TtAxis.EROSION -> ui.ttOvErosion
+    cn.dkarbon.enroute.ui.timetable.TtAxis.MOTION -> ui.ttOvMotion
+    cn.dkarbon.enroute.ui.timetable.TtAxis.TONE -> ui.ttOvTone
+    cn.dkarbon.enroute.ui.timetable.TtAxis.HEADER -> ui.ttOvHeader
+    cn.dkarbon.enroute.ui.timetable.TtAxis.GRID -> ui.ttOvGrid
+    cn.dkarbon.enroute.ui.timetable.TtAxis.BACKDROP -> ui.ttOvBackdrop
+    else -> ui.ttOvBgMotion
+}
+
+/**
+ * 预设行：左边一枚**真的按槽位画的**小样 —— 不是色块示意。
+ *
+ * 用真槽位画而不是截图：预设改了颜色/形状，这一行自动跟着变，
+ * 不会出现「设置页说纸卡、课表里是标签」这种自相矛盾。
+ */
+@Composable
+private fun PresetRow(
+    preset: cn.dkarbon.enroute.ui.timetable.TtPreset,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    val t = InkTokens.current
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .background(if (selected) t.primary.copy(alpha = 0.06f) else Color.Transparent)
+            .padding(horizontal = Space.m, vertical = Space.s),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        PresetSwatch(preset.slots)
+        Spacer(Modifier.width(Space.m))
+        Column(Modifier.weight(1f)) {
+            Text(preset.label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = t.ink)
+            Text(
+                preset.note,
+                fontSize = 10.sp,
+                lineHeight = 13.sp,
+                color = t.inkFaint,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
+        // 选中态不靠文字：一条墨色竖标
+        Box(
+            Modifier
+                .width(2.dp)
+                .height(28.dp)
+                .background(if (selected) t.primary else Color.Transparent),
+        )
+    }
+}
+
+/** 45×52 的小样：形状 / 装饰 / 字段 / 底色四条轴照真值画 */
+@Composable
+private fun PresetSwatch(slots: cn.dkarbon.enroute.ui.timetable.TtSlots) {
+    val t = InkTokens.current
+    val shape = cn.dkarbon.enroute.ui.timetable.shapeOf(slots.shape)
+    val fill = when (slots.tone) {
+        1 -> t.cardAlt
+        2 -> Color.Transparent
+        else -> t.primary.copy(alpha = 0.16f)
+    }
+    val ink = when (slots.tone) { 2 -> t.inkSoft; else -> t.ink }
+    Box(
+        Modifier
+            .width(45.dp)
+            .height(52.dp)
+            .clip(shape)
+            .background(fill)
+            .border(0.75.dp, if (slots.shape == 2 || slots.tone == 2) t.outline else t.primary.copy(alpha = 0.35f), shape),
+    ) {
+        if (slots.decor == 1) {
+            Box(Modifier.width(2.5.dp).fillMaxHeight().background(t.primary.copy(alpha = 0.7f)))
+        }
+        Column(Modifier.padding(start = if (slots.decor == 1) 5.dp else 5.dp, top = 4.dp, end = 3.dp)) {
+            // 三条字条代表字段行数：只课名就一条，三行就三条
+            val lines = when (slots.meta) { 3 -> 1; 1 -> 2; 2 -> 3; else -> 3 }
+            repeat(lines) { i ->
+                Box(
+                    Modifier
+                        .padding(top = if (i == 0) 0.dp else 2.5.dp)
+                        .fillMaxWidth(if (i == 0) 1f else 0.66f)
+                        .height(if (i == 0) 3.dp else 2.dp)
+                        .background(ink.copy(alpha = if (i == 0) 0.85f else 0.35f)),
+                )
+            }
+        }
     }
 }
 

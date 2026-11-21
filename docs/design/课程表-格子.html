@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>课程表 · 格子层原型（m41 · cell / accent / meta / badge / erosion / glyph）</title>
+<style>
+:root{
+  --font-ui:-apple-system,"PingFang SC","Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-lab:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  /* HardTokens（真值） */
+  --paper:#FAF7F1; --card:#FFFFFF; --cardAlt:#F1ECE1;
+  --ink:#16211B; --ink2:#3C4A42; --ink3:#5A6A60;
+  --pine:#1F4A3D; --brick:#8E2B1E;
+  --c1:#B4553C; --c2:#2E5266; --c3:#3E5C34; --c4:#7A5714;
+  --rule:rgba(22,33,27,.14); --hair:rgba(22,33,27,.22);
+  --onFill:#FFFFFF;
+  --hatchInk:rgba(22,33,27,.85);
+  --brickA:rgba(142,43,30,.55);
+  /* 画布（原型外壳，不是 App 配色） */
+  --canvas:#E7E2D8; --panel:#F3F0E9; --panel2:#EAE4D8;
+  --canvasInk:#16211B; --canvasInk2:#5A6A60; --canvasRule:rgba(22,33,27,.18);
+}
+html.dark{
+  --paper:#141A17; --card:#1B231F; --cardAlt:#141A17;
+  --ink:#F1EFE7; --ink2:rgba(241,239,231,.80); --ink3:rgba(241,239,231,.60);
+  --pine:#8FBFA6; --brick:#D9796A;
+  --c1:#C4776A; --c2:#7E9AA5; --c3:#93A57E; --c4:#B4956A;
+  --onFill:#141A17;
+  --hatchInk:rgba(241,239,231,.60);
+  --brickA:rgba(217,121,106,.62);
+  --canvas:#0E1210; --panel:#171D19; --panel2:#1E2621;
+  --canvasInk:#F1EFE7; --canvasInk2:rgba(241,239,231,.60); --canvasRule:rgba(241,239,231,.16);
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--canvas);color:var(--canvasInk);font-family:var(--font-ui);-webkit-font-smoothing:antialiased}
+.wrap{max-width:1440px;margin:0 auto;padding:26px 22px 80px}
+
+/* ── 页头 ───────────────────────────── */
+.topbar{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding-bottom:12px;border-bottom:1.5px solid var(--canvasInk)}
+h1{font:600 20px/1.2 var(--font-ui);margin:0;letter-spacing:.01em}
+.tb-sub{font:10.5px/1.6 var(--font-lab);color:var(--canvasInk2);margin-top:5px}
+.seg{display:flex;border:1px solid var(--canvasRule)}
+.seg button{font:11px var(--font-ui);padding:5px 13px;background:transparent;border:0;color:var(--canvasInk2);cursor:pointer}
+.seg button.on{background:var(--canvasInk);color:var(--canvas)}
+
+/* ── 口径条 ─────────────────────────── */
+.stance{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--canvasRule);border:1px solid var(--canvasRule);margin:14px 0 22px}
+.st-item{background:var(--panel);padding:11px 13px}
+.st-item b{display:block;font:600 15px/1.2 var(--font-ui);margin-bottom:4px}
+.st-item span{font:10px/1.5 var(--font-ui);color:var(--canvasInk2)}
+
+/* ── 分区 ───────────────────────────── */
+.sec{background:var(--panel);border:1px solid var(--canvasRule);margin-bottom:18px}
+.sec-h{display:flex;align-items:baseline;gap:10px;padding:9px 13px;border-bottom:1px solid var(--canvasRule);background:var(--panel2)}
+.sec-n{font:10px var(--font-lab);color:var(--canvasInk2)}
+.sec-t{font:600 13px var(--font-ui)}
+.sec-k{font:10px var(--font-lab);color:var(--canvasInk2);margin-left:auto}
+.sec-b{padding:16px 14px 18px}
+.sec-note{font:11px/1.75 var(--font-ui);color:var(--canvasInk2);margin:0 0 14px;max-width:1080px}
+.sec-note b{color:var(--canvasInk)}
+.sec-note code{font:10px var(--font-lab);background:var(--panel2);padding:0 3px}
+
+/* ── 分镜板 ─────────────────────────── */
+.board{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.vw{border:1px solid var(--canvasRule);background:var(--panel2);padding:11px 11px 12px}
+.vw-h{display:flex;align-items:baseline;gap:7px;margin-bottom:9px}
+.vw-k{font:600 10.5px var(--font-lab)}
+.vw-c{font:10px var(--font-ui);color:var(--canvasInk2)}
+.vw-h .sp{margin-left:auto;font:9px var(--font-lab);color:var(--canvasInk2);white-space:nowrap;flex:0 0 auto}
+.rowv{display:flex;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.fg{margin:0;display:flex;flex-direction:column;gap:5px;flex:0 0 auto}
+.fg figcaption{font:9px/1 var(--font-lab);color:var(--canvasInk2);letter-spacing:.02em;white-space:nowrap}
+.fg .fgc{display:flex}
+.zoombox{border:1px dashed var(--canvasInk2);background:var(--panel);padding:7px;width:104px;height:118px;overflow:hidden}
+.zoomwrap{position:relative;width:90px;height:104px}
+.zoomwrap .cell{position:absolute;left:0;top:0;transform:scale(2);transform-origin:0 0}
+.note{font:10.5px/1.7 var(--font-ui);color:var(--canvasInk2);margin-top:10px}
+.note b{color:var(--canvasInk);font-weight:600}
+.note .num{font:10px var(--font-lab);color:var(--canvasInk)}
+
+/* ── 格子本体（唯一的真东西） ─────────── */
+.cell{
+  position:relative;width:45px;height:52px;overflow:hidden;--p:0;
+  background:var(--card);color:var(--ink);font-family:var(--font-ui);
+  --accent:var(--c1); --on:var(--ink); --on2:var(--ink2); --on3:var(--ink3);
+  --footRule:var(--rule);
+}
+.cell.w90{width:90px}
+.cell.tall{height:104px}
+.cell.f1{--accent:var(--c1)} .cell.f2{--accent:var(--c2)}
+.cell.f3{--accent:var(--c3)} .cell.f4{--accent:var(--c4)}
+
+/* 装饰层：一切色都在这一层，文字层永远在它上面 */
+.deco{position:absolute;inset:0;z-index:0;border-radius:inherit;overflow:hidden}
+.deco>div{position:absolute;display:none}
+.deco .fill{inset:0;background:var(--accent)}
+.deco .wash{inset:0;background:var(--accent);opacity:0}
+.deco .spine{left:0;top:0;bottom:0;width:2.5px;background:var(--accent)}
+.deco .cap{left:0;right:0;top:0;height:3px;background:var(--accent)}
+.deco .dot{left:0;top:0;width:5px;height:5px;background:var(--accent)}
+
+/* cell 四型 */
+.c-paper{box-shadow:inset 0 0 0 .75px var(--hair)}
+.c-ledger{background:var(--card);border-radius:10px;box-shadow:0 1px 2px rgba(22,33,27,.14),0 3px 9px rgba(22,33,27,.07)}
+html.dark .c-ledger{box-shadow:0 1px 2px rgba(0,0,0,.55),0 3px 10px rgba(0,0,0,.40)}
+.c-rule{background:transparent;box-shadow:none;border-top:.75px solid var(--rule);border-bottom:.75px solid var(--rule)}
+.c-block{background:transparent;--on:var(--onFill);--on2:var(--onFill);--on3:var(--onFill);--footRule:rgba(255,255,255,.42)}
+html.dark .c-block{--footRule:rgba(0,0,0,.34)}
+.c-block .fill{display:block}
+
+/* accent 五型 */
+.a-spine .spine{display:block}
+.a-cap .cap{display:block}
+.a-dot .dot{display:block}
+.a-wash8 .wash{display:block;opacity:.08}
+.a-wash14 .wash{display:block;opacity:.14}
+.c-block.a-spine .spine{background:var(--on);opacity:.34}
+.c-block.a-cap .cap{background:var(--on);opacity:.30}
+.c-block.a-dot .dot{background:var(--on);opacity:.40}
+
+/* 文字层 */
+.body{position:absolute;inset:0;z-index:3;display:block;
+  padding:3px 1.5px 2px 4px;overflow:hidden}
+.a-spine .body{padding-left:6.5px}
+.a-spine .foot{left:6.5px}
+.b-stripe .foot{right:10px}
+.a-cap .body{padding-top:5px}
+.b-stripe .body{padding-right:10px}
+.nmrow{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;flex:0 0 auto;width:100%;
+  font-size:9px;line-height:10.5px}
+.cell.w90 .nmrow{font-size:9.5px;line-height:11px}
+.nm{font-size:9px;line-height:10.5px;font-weight:500;color:var(--on)}
+.inl{display:none}
+.sub{display:none;margin-top:0}
+.sub .p{display:block;font-size:8px;line-height:9.5px;color:var(--on2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub .t{display:block;font-size:7.5px;line-height:9px;color:var(--on3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foot{display:none;position:absolute;left:4px;right:1.5px;bottom:2px;padding-top:1px;border-top:.5px solid var(--footRule);
+  font-size:7px;line-height:9px;color:var(--on3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foot .p{color:var(--on2)}
+.cell.w90 .nm{font-size:9.5px;line-height:11px}
+.cell.w90 .sub .p{font-size:8px;line-height:10px}
+.cell.w90 .sub .t{font-size:7.5px;line-height:9.5px}
+.cell.tall .nmrow{-webkit-line-clamp:3}
+
+/* meta 四型 */
+.m-stacked .sub{display:block}
+.m-inline .inl{display:inline;font-size:7.5px;color:var(--on3);margin-left:2.5px}
+.m-footer .foot{display:block}
+.m-minimal .nmrow{-webkit-line-clamp:3;position:absolute;left:4px;right:1.5px;top:50%;transform:translateY(-50%);width:auto}
+.a-spine.m-minimal .nmrow{left:6.5px}
+
+/* badge */
+.badge{position:absolute;z-index:4;display:none}
+.b-corner .badge{display:block;top:0;right:1.5px;width:4.5px;height:4.5px;background:var(--brick)}
+.b-stripe .badge{display:block;top:0;right:0;width:10px;height:10px;
+  background:repeating-linear-gradient(135deg,var(--brickA) 0 1.3px,transparent 1.3px 3.8px);
+  clip-path:polygon(100% 0,0 0,100% 100%)}
+
+/* glyph */
+.glyph{position:absolute;z-index:1;display:none;color:var(--on)}
+.glyph svg{display:block;width:100%;height:100%}
+.g-ghost .glyph{display:block}
+.g-ghost .glyph.wm{left:50%;top:50%;width:22px;height:22px;margin:0;opacity:.13;
+  transform:translate(-50%,-50%);animation:drift 5s ease-in-out infinite}
+.g-ghost .glyph.corner{right:2px;bottom:2px;width:11px;height:11px;opacity:.34}
+.g-ghost .glyph.off,.g-food .glyph.off{display:none}
+.g-ghost .glyph.mid{left:50%;bottom:5px;width:15px;height:15px;transform:translateX(-50%);opacity:.30}
+.c-block .glyph{opacity:.42}
+@keyframes drift{0%{transform:translate(-50%,-50%) translateY(1.2px)}50%{transform:translate(-50%,-50%) translateY(-1.4px)}100%{transform:translate(-50%,-50%) translateY(1.2px)}}
+
+/* erosion —— 只动装饰层；卡面与文字层一律不动（m38 硬约束） */
+.erode{display:none;position:absolute;z-index:2;pointer-events:none}
+/* wipe：课程色从下往上退，退掉的地方露出卡本身，卡不会消失 */
+.e-wipe .deco{
+  -webkit-mask-image:linear-gradient(to top,transparent 0 calc(var(--p)*100%),#000 calc(var(--p)*100%));
+  mask-image:linear-gradient(to top,transparent 0 calc(var(--p)*100%),#000 calc(var(--p)*100%))}
+/* 退掉的部分留一道极淡的「用过」的横向压痕，只压 3% 墨，不碰文字对比 */
+.e-wipe .erode{display:block;inset:0;
+  background:linear-gradient(to top,rgba(22,33,27,.055) 0 calc(var(--p)*100% - 1px),transparent calc(var(--p)*100%))}
+html.dark .e-wipe .erode{background:linear-gradient(to top,rgba(0,0,0,.22) 0 calc(var(--p)*100% - 1px),transparent calc(var(--p)*100%))}
+.e-hatch .erode{display:block;inset:0;
+  background:repeating-linear-gradient(135deg,var(--hatchInk) 0 1px,transparent 1px 5px);
+  opacity:calc(var(--p)*0.55)}
+.e-fade .deco{opacity:calc(1 - var(--p)*0.88)}
+.e-fade .body{opacity:calc(1 - var(--p)*0.30)}
+
+/* ── 小件：48dp 图形盒 ───────────────── */
+.gbox{display:flex;align-items:flex-end;gap:10px}
+.gb{background:var(--card);border:.75px solid var(--hair);display:grid;place-items:center;color:var(--ink)}
+.gb.s48{width:48px;height:48px} .gb.s48 svg{width:44px;height:44px}
+.gb.s24{width:24px;height:24px} .gb.s24 svg{width:22px;height:22px}
+.gb.s13{width:13px;height:13px} .gb.s13 svg{width:13px;height:13px}
+.gb .lab{display:none}
+
+/* 带横线的底：为了公平看 rule */
+.onlines{background:
+  repeating-linear-gradient(to bottom, transparent 0 51px, var(--rule) 51px 52px);
+  padding:0 0 0 0}
+
+/* ── 表格 ───────────────────────────── */
+table.t{width:100%;border-collapse:collapse;font:10.5px/1.5 var(--font-ui)}
+table.t th{text-align:left;font:600 10px var(--font-lab);color:var(--canvasInk2);
+  border-bottom:1px solid var(--canvasRule);padding:5px 7px;white-space:nowrap}
+table.t td{border-bottom:1px solid var(--canvasRule);padding:5px 7px;vertical-align:top}
+table.t td.m{font:10px var(--font-lab)}
+table.t tr:last-child td{border-bottom:0}
+.ok{color:var(--pine);font-weight:600}
+.no{color:var(--brick);font-weight:600}
+
+/* ── 组合矩阵 ───────────────────────── */
+.mx{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.mxc{border:1px solid var(--canvasRule);background:var(--panel2);padding:10px}
+.mxgrid{display:grid;grid-template-columns:repeat(3,45px);gap:2px;justify-content:start;margin-bottom:8px}
+.mxk{font:600 10.5px var(--font-lab);margin-bottom:2px}
+.mxy{font:10px var(--font-ui);color:var(--canvasInk2);margin-bottom:9px}
+
+/* ── 演示台 ─────────────────────────── */
+.stage{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+.phone{width:393px;height:852px;background:var(--paper);border:1px solid var(--canvasRule);
+  position:relative;overflow:hidden;display:flex;flex-direction:column;flex:0 0 auto;color:var(--ink)}
+.p-status{height:44px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;font:600 12px var(--font-ui);color:var(--ink)}
+.p-status .r{display:flex;gap:4px;align-items:center;font:9px var(--font-lab);opacity:.7}
+.p-head{padding:2px 22px 10px}
+.p-week{font:600 18px/1.2 var(--font-ui)}
+.p-who{font:10px/1.6 var(--font-lab);color:var(--ink3);margin-top:3px}
+.p-days{display:grid;grid-template-columns:34px repeat(7,45px);padding:0 22px 0 18px;
+  border-bottom:1px solid var(--rule);height:24px;align-items:center;background:var(--cardAlt)}
+.p-days span{font:9.5px var(--font-ui);color:var(--ink3);text-align:center}
+.p-days span.axh{font:8px var(--font-lab);color:var(--ink3);text-align:left}
+.pgrid{display:grid;grid-template-columns:34px repeat(7,45px);grid-auto-rows:52px;
+  row-gap:2px;padding:6px 22px 0 18px;align-content:start;flex:1;min-height:0;background:var(--cardAlt)}
+.pgrid .cell{width:100%;height:100%}
+.pgrid .axl{display:flex;align-items:flex-start;justify-content:flex-start;
+  font:8px var(--font-lab);color:var(--ink3);padding-top:3px}
+.p-foot{margin-top:auto;height:26px;border-top:1px solid var(--rule);display:flex;
+  align-items:center;justify-content:space-between;padding:0 22px;
+  font:8px var(--font-lab);color:var(--ink3)}
+.homebar{position:absolute;bottom:7px;left:50%;transform:translateX(-50%);
+  width:126px;height:4px;background:var(--ink);opacity:.22}
+
+.ctl{flex:1;min-width:420px;border:1px solid var(--canvasRule);background:var(--panel2);padding:12px 14px}
+.ctl-h{font:600 11px var(--font-lab);margin-bottom:10px}
+.cl{display:flex;align-items:baseline;gap:8px;margin-bottom:7px;flex-wrap:wrap}
+.cl-k{font:10px var(--font-lab);color:var(--canvasInk2);width:52px;flex:0 0 auto}
+.chip{font:10px var(--font-ui);padding:3px 8px;border:1px solid var(--canvasRule);
+  background:transparent;color:var(--canvasInk2);cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--canvasInk);color:var(--canvas);border-color:var(--canvasInk)}
+.chip:hover{border-color:var(--canvasInk)}
+.readout{font:10px/1.8 var(--font-lab);color:var(--canvasInk);margin-top:10px;padding-top:9px;
+  border-top:1px solid var(--canvasRule);word-break:break-all}
+.presets{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;padding-bottom:10px;border-bottom:1px solid var(--canvasRule)}
+.presets .chip{border-style:dashed}
+input[type=range]{width:120px;accent-color:var(--canvasInk)}
+
+.fail{outline:1.5px dashed var(--brick);outline-offset:2px}
+.badlab{font:9.5px var(--font-lab);color:var(--brick);margin-top:4px}
+.footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--canvasRule);
+  font:10px/1.8 var(--font-ui);color:var(--canvasInk2)}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div>
+      <h1>课程表 · 格子层</h1>
+      <div class="tb-sub">cell / accent / meta / badge / erosion / glyph　·　45×52dp　·　393×852 视口　·　7 列</div>
+    </div>
+    <div class="seg" id="themeSeg">
+      <button data-theme="light" class="on">亮</button><button data-theme="dark">暗</button>
+    </div>
+  </div>
+
+  <div class="stance">
+    <div class="st-item"><b>45 × 52 dp</b><span>单格净尺寸。7 列 = 315dp，余 78 给轴与边距</span></div>
+    <div class="st-item"><b>37 dp 净宽</b><span>去掉左脊 2.5 与两侧内边距后的可用宽度</span></div>
+    <div class="st-item"><b>4 字 / 行</b><span>9px 时 37dp 正好 4 个汉字（中文字宽 = 字号）</span></div>
+    <div class="st-item"><b>只剩 0.5dp</b><span>4 字 = 36dp。第 5 个字必须换行，缩字号到 7.4px 才挤得下</span></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-h"><span class="sec-n">00</span><span class="sec-t">口径：这一页只证明一件事 —— 装饰不能挤掉字</span><span class="sec-k">stance</span></div>
+    <div class="sec-b">
+      <p class="sec-note">
+        格子层六个槽位的取值一共 <b>4×5×4×2×4×2 = 1280 种字面组合</b>，能成立的远少于这个数。
+        下面每一格都按 <b>45×52</b> 画，1× 与 2× 并排（2× 是放大镜检查，不改设计）。
+        说明文字全部在画布外 —— 格子里只有课名、地点、教师、状态。
+      </p>
+      <p class="sec-note" style="margin-bottom:0">
+        两类证据贯穿全页：<b>字数账</b>（37dp ÷ 字号 = 每行几个字）与<b>对比度账</b>（文字压在哪个底色上，几比几）。
+        任何装饰只要从这两本账里扣钱，就会被标出来。
+      </p>
+    </div>
+  </div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">01</span><span class="sec-t">cell · 四选</span><span class="sec-k">cell = paper | ledger | rule | block</span></div>
+    <div class="sec-b"><div class="board" id="b1"></div></div></div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">02</span><span class="sec-t">accent · 五选</span><span class="sec-k">accent = spine | cap | dot | wash8 | wash14 | none</span></div>
+    <div class="sec-b"><div class="board" id="b2"></div></div></div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">03</span><span class="sec-t">meta · 四选 + 长课名</span><span class="sec-k">meta = stacked | inline | footer | minimal</span></div>
+    <div class="sec-b">
+      <div class="board" id="b3" style="margin-bottom:18px"></div>
+      <div id="ruler"></div>
+    </div></div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">04</span><span class="sec-t">badge · 两选，且要与 cap 共存</span><span class="sec-k">badge = corner | stripe | none</span></div>
+    <div class="sec-b"><div class="board" id="b4"></div></div></div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">05</span><span class="sec-t">erosion · 四选 × 三个进度</span><span class="sec-k">erosion = wipe | hatch | fade | off　·　p = 25% / 60% / 95%</span></div>
+    <div class="sec-b">
+      <p class="sec-note">硬约束：<b>侵蚀只褪色，不删卡、不压字</b>。填色层可以被抽掉、露出卡面，文字层不参与任何渐变 —— 课名永远是最后消失的东西，实际上从不消失。</p>
+      <div class="board" id="b5"></div>
+    </div></div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">06</span><span class="sec-t">glyph · 两选</span><span class="sec-k">glyph = ghost | food | none　·　48dp 内可辨认</span></div>
+    <div class="sec-b"><div class="board" id="b6"></div></div></div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">07</span><span class="sec-t">组合矩阵：6 组可行的，和不该同时出现的</span><span class="sec-k">cell × accent × meta</span></div>
+    <div class="sec-b">
+      <div class="mx" id="b7" style="margin-bottom:18px"></div>
+      <div id="conflict"></div>
+    </div></div>
+
+  <div class="sec"><div class="sec-h"><span class="sec-n">08</span><span class="sec-t">动态演示：393 × 852 真视口，7 列</span><span class="sec-k">纯 class 切换</span></div>
+    <div class="sec-b">
+      <div class="stage">
+        <div class="phone" id="demoPhone">
+          <div class="p-status"><span>9:41</span><span class="r">4G ▮▮▮</span></div>
+          <div class="p-head">
+            <div class="p-week">第 12 周</div>
+            <div class="p-who">张三 · 2024000000 · 2024 级农学</div>
+          </div>
+          <div class="p-days" id="demoDays"></div>
+          <div class="pgrid" id="demoGrid"></div>
+          <div class="p-foot"><span>秋季学期 · 11 节</span><span>12/26</span></div>
+          <div class="homebar"></div>
+        </div>
+        <div class="ctl">
+          <div class="presets" id="presets"></div>
+          <div id="chips"></div>
+          <div class="readout" id="readout"></div>
+        </div>
+      </div>
+    </div></div>
+
+  <div class="footer">
+    假数据：张三 / 2024000000；课名取自真实开课：高等数学A、大学物理实验、有机化学、马克思主义基本原理、体育、作物栽培学。<br>
+    色值全部来自 HardTokens（纸 #FAF7F1、卡 #FFFFFF、卡底 #F1ECE1、墨 #16211B、次级墨 #3C4A42、淡墨 #5A6A60、松针 #1F4A3D、陶土 #B4553C、靛 #2E5266、橄榄 #3E5C34、赭 #7A5714、砖红 #8E2B1E）与暗档（纸 #141A17、卡 #1B231F、墨 #F1EFE7、松针 #8FBFA6、靛 #7FB4D2）；四色课程取 TimetableTokens 的 Fam/spineDark 真值。暗档的次级墨/淡墨为「墨」同色降 alpha，未新增色相。
+  </div>
+</div>
+
+<pre id="audit" style="display:none"></pre>
+<script>
+/* ══ 造格子 ═══════════════════════════════════════════════ */
+var SVG = {
+  ghost:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.1c-3.9 0-7 3.2-7 7.1v11.6l2.2-2.1 2.3 2.1 2.5-2.1 2.5 2.1 2.3-2.1 2.2 2.1V9.2c0-3.9-3.1-7.1-7-7.1z" fill="currentColor"/><circle cx="9.3" cy="9.1" r="1.55" fill="var(--card)"/><circle cx="14.7" cy="9.1" r="1.55" fill="var(--card)"/></svg>',
+  bowl:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.1 11.2h17.8c0 4.6-3.9 7.8-8.9 7.8s-8.9-3.2-8.9-7.8z" fill="currentColor"/><path d="M2.4 20.6h19.2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M9.4 2.9c.9 1.4.3 2.4-.5 3.5M14.6 2.9c.9 1.4.3 2.4-.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>'
+};
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');}
+function C(o){
+  o = o || {};
+  var c=o.c||'paper', a=o.a||'spine', m=o.m||'stacked', b=o.b||'none', e=o.e||'off', g=o.g||'none';
+  var cls=['cell','c-'+c,'a-'+a,'m-'+m,'b-'+b,'e-'+e,'g-'+g,'f'+(o.fam||1)];
+  if(o.w===90) cls.push('w90');
+  if(o.h===104) cls.push('tall');
+  var st = (o.p===undefined||o.p===null) ? '' : '--p:'+o.p;
+  var nm=esc(o.name||'高等数学A'), pl=esc(o.place||'理-201'), te=esc(o.teach||'张志远');
+  var gh='';
+  if(g==='ghost') gh='<div class="glyph '+(o.gp||'wm')+'">'+SVG.ghost+'</div>';
+  if(g==='food')  gh='<div class="glyph '+(o.gp||'mid')+'">'+SVG.bowl+'</div>';
+  var body='<div class="body">'+
+    '<div class="nmrow"><span class="nm">'+nm+'</span><span class="inl">'+pl+'</span></div>'+
+    '<div class="sub"><span class="p">'+pl+'</span><span class="t">'+te+'</span></div>'+
+    '<div class="foot"><span class="p">'+pl+'</span><span class="t">· '+te+'</span></div>'+
+    '</div>';
+  return '<div class="'+cls.join(' ')+'"'+(st?' style="'+st+'"':'')+' data-a="'+(o.tag||'')+'">'+
+    '<div class="deco"><div class="fill"></div><div class="wash"></div><div class="spine"></div><div class="cap"></div><div class="dot"></div></div>'+
+    '<div class="erode"></div>'+gh+body+'<div class="badge"></div></div>';
+}
+function vw(key,cap,inner,note,sp){
+  return '<div class="vw"><div class="vw-h"><span class="vw-k">'+key+'</span><span class="vw-c">'+cap+'</span>'+
+    (sp?'<span class="sp">'+sp+'</span>':'')+'</div>'+inner+(note?'<div class="note">'+note+'</div>':'')+'</div>';
+}
+function fig(cell,cap){return '<figure class="fg"><figcaption>'+cap+'</figcaption><div class="fgc">'+cell+'</div></figure>';}
+function figs(list){return '<div class="rowv">'+list.map(function(x){return fig(x[0],x[1]);}).join('')+'</div>';}
+
+/* ══ 01 cell ══════════════════════════════════════════════ */
+var S1=[
+ {c:'paper',cap:'方卡 · 0 圆角 + 左脊',fam:1,
+  note:'<b>净宽 37dp</b>，9px 下 4 字/行。0.75dp 内描边当卡边，格子间不留缝也认得出边界。<br>代价：没有圆角就没有「浮起」，和 grid=bands 一起用会显平。'},
+ {c:'ledger',cap:'便签 · 10dp 圆角 + 投影',fam:2,
+  note:'10dp 圆角在 45 宽上占 22%。首字落在 (6.5, 5)，圆角圆心 (10,10)，距离 6.4 &lt; 10，<b>首字在安全区内</b>。<br>代价：投影需要 2dp 行距才不被邻格吃掉（网格 row-gap 必须 ≥ 2）。'},
+ {c:'rule',cap:'报表细线 · 无底',fam:3,
+  note:'只有上下 0.75dp 细线 + 左对齐文本，<b>零装饰面积</b>，是最不可能挤掉文字的形态。<br>代价：它要求底下本来就有横线（grid=lines）。铺在 bands 上会浮空。'},
+ {c:'block',cap:'纯色块 · 整块课程色 + 白字',fam:4,
+  note:'白字对比 <b>4.9:1</b>（陶土）。地点/教师<b>不能降透明度</b>：0.8 alpha 掉到 3.7:1。<br>代价：三行字只能靠字号分级区分主次，靠灰阶区分会直接不达标。'}
+];
+document.getElementById('b1').innerHTML = S1.map(function(s){
+  var b={c:s.c,fam:s.fam,name:'高等数学A',place:'理-201',teach:'张志远'};
+  var w={c:s.c,fam:s.fam,w:90,name:'马克思主义基本原理',place:'文-204',teach:'刘建国'};
+  return vw('cell='+s.c,s.cap,figs([
+    [C(Object.assign({},b,{tag:'s1-'+s.c+'-45'})),'45×52 窄格'],
+    [C(Object.assign({},b,{h:104,tag:'s1-'+s.c+'-tall'})),'45×104 连堂'],
+    [C(Object.assign({},w,{tag:'s1-'+s.c+'-90'})),'90×52 并排']
+  ]),s.note,'三种格形，全部 1:1');
+}).join('') + vw('2× 放大镜','把 45×52 放到两倍看 9px 字',
+  '<div class="zoombox"><div class="zoomwrap">'+
+  C({c:'paper',fam:1,name:'高等数学A',place:'理-201',teach:'张志远',tag:'s1-loupe'})+'</div></div>',
+  '这张是放大件，<b>不是真实尺寸</b>。9px 在 2× 下等于 18px：三行都清楚、没有半像素糊。<br>'+
+  '真实设备 3× 屏上 9px = 27 物理像素，比这张还清楚。<b>9px 是可读的，9.5px 才挤不下 4 字</b>。','×2');
+
+/* ══ 02 accent ════════════════════════════════════════════ */
+var S2=[
+ {a:'spine',cap:'左脊 2.5dp',note:'高彩面积 2.5×52 = <b>130dp²</b>（占格 8%），只在左侧，课名右边 37dp 全是留白。现状默认，最难出错。'},
+ {a:'cap',cap:'顶帽 3dp',note:'3×45 = 135dp²，横向一条。与 spine 视觉重量相同但<b>吃掉顶部 1.5dp 行距</b>：课名起点从 y=3 降到 y=5。'},
+ {a:'dot',cap:'角点 5dp',note:'5×5 = 25dp²，最轻。<b>放在左上角</b>而不是右上 —— 右上角要留给 badge，两个点会在同一个角打架。'},
+ {a:'wash8',cap:'整底 8%',note:'陶土 8% → #F8EFEB。墨 15.9:1、次级墨 9.2:1、淡墨 <b>4.9:1</b>：7.5px 的教师行刚好卡在及格线上。'},
+ {a:'wash14',cap:'整底 14%',note:'陶土 14% → #F5E7E4。淡墨掉到 <b>4.6:1</b>：纸面计算过关，7.5px 下没有余量，真机 AMOLED 上会糊。<b>wash 档请把教师行改用次级墨（9.1:1）</b>。'},
+ {a:'none',cap:'无',note:'零装饰。卡靠描边/投影立住，文字占满 39.5dp 净宽（比带脊宽 2.5dp）。<b>最宽的文字容器的确是 none</b>。'}
+];
+document.getElementById('b2').innerHTML = S2.map(function(s){
+  var b={c:'paper',a:s.a,fam:1,name:'高等数学A',place:'理-201',teach:'张志远'};
+  var w={c:'paper',a:s.a,fam:2,w:90,name:'马克思主义基本原理',place:'文-204',teach:'刘建国'};
+  return vw('accent='+s.a,s.cap,figs([
+    [C(Object.assign({},b,{tag:'s2-'+s.a+'-45'})),'45×52'],
+    [C(Object.assign({},b,{h:104,tag:'s2-'+s.a+'-tall'})),'45×104'],
+    [C(Object.assign({},w,{tag:'s2-'+s.a+'-90'})),'90×52']
+  ]),s.note,'同 accent，三种格形');
+}).join('');
+
+/* ══ 03 meta ══════════════════════════════════════════════ */
+var S3=[
+ {m:'stacked',cells:[
+   {w:45,name:'高等数学A',tag:'s3-st-5',cap:'45×52 5字'},
+   {w:45,name:'马克思主义基本原理',tag:'s3-st-9',cap:'45×52 9字'},
+   {w:90,name:'马克思主义基本原理',tag:'s3-st-90',cap:'90×52 9字'}],
+  note:'45×52 可用高 50.5dp。课名 2 行(21) + 地点(9.5) + 教师(9) + 内边距(5) = <b>44.5</b>，余 6dp。<b>这就是窄格 stacked 的全部额度</b>：课名 2 行 + 两行 meta，行距已经贴到 0，再多一行就是裁字。<br>于是 9 字课名只显示「马克思主 / 义基本…」共 7 字，<b>第 8 字起进省略号</b>。要完整 9 字只有三条路：meta=minimal（让出 meta 的高度）、并成 45×104 连堂格、或用 90dp 宽格。'},
+ {m:'inline',cells:[
+   {w:45,name:'高等数学A',tag:'s3-in-5',cap:'45×52 5字'},
+   {w:90,name:'有机化学',tag:'s3-in-90',cap:'90×52 4字'}],
+  note:'45 上 inline <b>必然断行</b>：课名 5 字 = 45dp &gt; 37dp 净宽，地点被挤到第二行再截断。<br>90 上成立（8 字 + 地点一行）。<b>inline 是 90dp 和横排版的方言，不属于 45dp</b>。'},
+ {m:'footer',cells:[
+   {w:45,name:'作物栽培学',tag:'s3-ft-45',cap:'45×52 5字'},
+   {w:45,name:'大学物理实验',tag:'s3-ft-6',cap:'45×52 6字'},
+   {w:90,name:'大学物理实验',tag:'s3-ft-90',cap:'90×52 6字'}],
+  note:'底栏 7px：45 里只放得下「理-201·…」，教师名被截。<b>底栏吃 10dp 高度</b>，课名只剩 2 行（21dp）。<br>好处：主次最清 —— 地点是次要信息，缩小是合理的。'},
+ {m:'minimal',cells:[
+   {w:45,name:'马克思主义基本原理',tag:'s3-mn-9',cap:'45×52 9字'},
+   {w:45,name:'体育',tag:'s3-mn-2',cap:'45×52 2字'},
+   {w:90,name:'马克思主义基本原理',tag:'s3-mn-90',cap:'90×52 9字'}],
+  note:'砍掉 meta 后课名可以放 <b>3 行 = 31.5dp</b>，9 字课名在 45 里第一次完整显示。<br>代价：地点/教师全部让步。<b>这是 9 字课名在窄格里唯一的正交解</b>。'}
+];
+document.getElementById('b3').innerHTML = S3.map(function(s){
+  var inner = s.cells.map(function(x){
+    return [C({c:'paper',a:'spine',m:s.m,w:x.w,fam:1,name:x.name,place:'文-204',teach:'刘建国',tag:x.tag}),
+      x.cap || (x.w+'×52')];
+  });
+  return vw('meta='+s.m, s.m, figs(inner), s.note, '同一门课的三次排版');
+}).join('');
+
+/* 字数账 */
+var rows=[
+ ['9.5px（现状）',3,3,8,'8 字课名折 3 行 → 21dp 变 31.5dp，直接把教师行顶出格'],
+ ['9px',4,3,9,'窄格推荐值：4 字/行，8 字正好 2 行'],
+ ['8.5px',4,3,9,'与 9px 同字数，白缩 0.5px，收益为零'],
+ ['8px',4,3,10,'开始糊，且字数没变 —— 纯亏'],
+ ['7.5px',4,3,10,'仍 4 字/行（5 字要 7.4px），7.5px 在 3× 屏上是 22.5 物理像素，读起来累']
+];
+document.getElementById('ruler').innerHTML =
+ '<div class="vw-h" style="margin-bottom:8px"><span class="vw-k">字数账</span><span class="vw-c">37dp 净宽下，字号换不换得来一个字</span></div>'+
+ '<table class="t"><thead><tr><th>字号</th><th>45dp 每行字数</th><th>9 字课名需几行</th><th>90dp 每行字数</th><th>结论</th></tr></thead><tbody>'+
+ rows.map(function(r){
+   var k = r[0].indexOf('现状')>=0 ? ' class="m no"' : ' class="m"';
+   return '<tr><td'+k+'>'+r[0]+'</td><td class="m">'+r[1]+'</td><td class="m">'+r[2]+'</td><td class="m">'+r[3]+'</td><td>'+r[4]+'</td></tr>';
+ }).join('')+'</tbody></table>'+
+ '<div class="note" style="margin-top:10px">'+
+ '<b>结论（8 个字怎么办）：</b>折两行是唯一解，但它要求字号 ≤ 9px（现状 9.5px 只能 3 字/行）。<br>'+
+ '<b>9 个字呢：</b>45dp 里 2 行最多装 8 个字，第 9 个字无解 —— 除非 (a) meta=minimal 让出第 3 行，'+
+ '(b) 并成 45×104 的连堂格，(c) 用 90dp 宽格。<b>缩字号救不了：要 5 字/行得 7.4px。</b></div>';
+
+/* ══ 04 badge ═════════════════════════════════════════════ */
+var S4=[
+ {b:'corner',a:'none',cap:'右上角点 · 4.5dp',fam:1,note:'4.5×4.5 方点压右上顶边（右留 1.5dp），落在课名<b>字身之上</b>，不吃字。自标记用小砖红，和课程色分得开。'},
+ {b:'corner',a:'cap',cap:'角点 + 顶帽共存',fam:1,note:'角点比顶帽高 1.5dp，两件同在顶边、颜色错开，读成「帽上有个缺口」。<b>这是推荐的 coexist 写法</b>。'},
+ {b:'stripe',a:'none',cap:'右上斜纹 · 11×11 三角',fam:2,note:'斜纹要 9dp 右内边距（净宽 37 → 28dp），<b>每行少 1 个字</b>：5 字课名从 2 行变 2 行（临界），8 字从 2 行变 3 行。'},
+ {b:'stripe',a:'cap',cap:'斜纹 + 顶帽共存',fam:2,note:'三角与顶帽同色时会在角上接成一片，读起来像「卡角缺了」。共存时必须换色（这里用砖红 vs 课程色）。'}
+];
+document.getElementById('b4').innerHTML = S4.map(function(s){
+  var k='s4-'+s.b+'-'+s.a;
+  return vw('badge='+s.b+' · accent='+s.a,s.cap,figs([
+    [C({c:'paper',a:s.a,b:s.b,fam:s.fam,name:'高等数学A',tag:k}),'45×52 5字'],
+    [C({c:'paper',a:s.a,b:s.b,fam:s.fam,name:'马克思主义基本原理',tag:k+'-9'}),'45×52 9字'],
+    [C({c:'paper',a:s.a,b:s.b,fam:s.fam,w:90,name:'马克思主义基本原理',tag:k+'-90'}),'90×52']
+  ]),s.note,'同一 badge 在三种格形里');
+}).join('');
+
+/* ══ 05 erosion ═══════════════════════════════════════════ */
+var ER=[
+ {e:'wipe',cap:'自下而上褪色',note:'遮罩只盖装饰层，从下往上把课程色抽走、露出卡本身，文字在 z=3 从不参与遮罩。p=95 时只剩顶部一线课程色 + 完整课名。<br>可用的前提：cell 是 paper / ledger / rule —— 这三种的文字本来就是墨色，褪到纸上反而更清楚（16.1:1）。'},
+ {e:'hatch',cap:'斜线覆盖',note:'斜线画在填色层与文字层之间，密度不随 p 变、透明度随 p 变（p×0.55）。<br><b>唯一对 block 也安全的侵蚀</b>：斜线只会把底色压深，白字对比从 4.9 升到 6+。'},
+ {e:'fade',cap:'整块淡化',note:'装饰层 1−0.88p，文字层 1−0.30p（有下限 0.72）。p=95 时课名 6.3:1 —— <b>仍在 4.5 之上</b>。<br>关键：文字不能跟着装饰一起淡到 0.2，那是 m38 返工的原因。'}
+];
+document.getElementById('b5').innerHTML = ER.map(function(s){
+  var inner=[[.25,'p=25% 已上'],[.6,'p=60% 已上'],[.95,'p=95% 已上']].map(function(x){
+    return [C({c:'paper',a:(s.e==='wipe'?'wash14':'spine'),e:s.e,fam:1,p:x[0],name:'高等数学A',place:'理-201',teach:'张志远',tag:'s5-'+s.e+'-'+Math.round(x[0]*100)}),x[1]];
+  });
+  inner.push([C({c:'paper',a:(s.e==='wipe'?'wash14':'spine'),e:s.e,fam:1,p:.6,w:90,name:'马克思主义基本原理',place:'文-204',teach:'刘建国',tag:'s5-'+s.e+'-90'}),'90×52 · p=60%']);
+  return vw('erosion='+s.e,s.cap,figs(inner),s.note,'三个进度 + 宽格');
+}).join('') + vw('erosion=off','不侵蚀', figs([
+  [C({c:'paper',a:'spine',e:'off',fam:1,name:'高等数学A',place:'理-201',teach:'张志远',tag:'s5-off'}),'45×52 · p=0'],
+  [C({c:'paper',a:'spine',e:'off',fam:1,w:90,name:'马克思主义基本原理',place:'文-204',teach:'刘建国',tag:'s5-off-90'}),'90×52 · p=0']
+]),'没上过的课：p=0 与 off 长得一样，<b>只有 p 才是数据</b>。上完的课即使 p=95 也保留课名，这是数据诚实。','未开始')
+ + vw('⚠ 反例','block + wipe','<div class="rowv">'+
+  '<div class="fail">'+C({c:'block',a:'none',e:'wipe',fam:1,p:.6,name:'高等数学A',place:'理-201',teach:'张志远',tag:'s5-bad'})+'</div>'+
+  '<div class="fail">'+C({c:'block',a:'none',e:'fade',fam:1,p:.95,name:'高等数学A',place:'理-201',teach:'张志远',tag:'s5-bad2'})+'</div>'+
+  '</div><div class="badlab">✕ 不可用</div>',
+  '<b>块 + wipe 是死路</b>：填色被抽走、字还是白，p=60 时白字压白卡 <b>1.0:1</b>——这不是褪色，是删字。<br>'+
+  '<b>块 + fade 也要带翻转</b>：p&gt;0.45 后把字改成墨色才成立（这里故意没翻，显示失败形态）。<br>'+
+  '规矩改成：block 只允许 hatch（或 fade + 字色翻转），wipe 仅限浅底卡。','失败形态')
+
+/* ══ 06 glyph ═════════════════════════════════════════════ */
+document.getElementById('b6').innerHTML =
+ vw('glyph=ghost','幽灵 · 48 / 24 / 13dp','<div class="gbox">'+
+   '<div class="gb s48">'+SVG.ghost+'</div><div class="gb s24">'+SVG.ghost+'</div><div class="gb s13">'+SVG.ghost+'</div></div>',
+   '48dp 眼睛清楚；24dp 眼睛开始糊；13dp 只剩轮廓。<b>格内只要轮廓，不要眼睛</b> —— 眼睛在 13dp 以下就是噪点。','48 / 24 / 13')
+ + vw('幽灵进格','能放的三处 · 与放不了的一处','<div class="rowv">'+
+     fig('<div class="fail">'+C({c:'paper',a:'spine',g:'ghost',gp:'wm',fam:1,p:.95,name:'高等数学A',place:'理-201',teach:'张志远',tag:'s6-g-wm'})+'</div>','45×52 stacked · 压字 ✕')+
+     fig(C({c:'paper',a:'spine',g:'ghost',gp:'corner',fam:1,p:.95,h:104,name:'高等数学A',place:'理-201',teach:'张志远',tag:'s6-g-tall'}),'45×104 · 右下 11dp ✓')+
+     fig(C({c:'paper',a:'spine',m:'minimal',g:'ghost',gp:'corner',fam:3,p:.95,name:'马克思主义基本原理',tag:'s6-g-min'}),'45×52 minimal ✓')+
+     fig(C({c:'paper',a:'spine',m:'inline',g:'ghost',gp:'corner',fam:2,w:90,p:.95,name:'有机化学',place:'化-105',teach:'李慧',tag:'s6-g-90'}),'90×52 inline ✓')+
+     '</div>',
+     '<b>45×52 + stacked 里没有幽灵的位置</b>：三行文字吃掉 45.5/52，右下角 11dp 正好压在教师行上。'+
+     '这种格子只靠 erosion 说「上完」，不再加图形。<br>能放的三处：连堂格的下半、minimal 格的空白下半、90dp 宽格的行尾 —— '+
+     '<b>共同点都是文字已经结束的地方</b>。幽灵在文字下层（z=1），但它同时是「脏」，所以位置比透明度重要。','✓ 三处 / ✕ 一处')
+ + vw('glyph=food','食物 · 48 / 24 / 13dp','<div class="gbox">'+
+   '<div class="gb s48">'+SVG.bowl+'</div><div class="gb s24">'+SVG.bowl+'</div><div class="gb s13">'+SVG.bowl+'</div></div>',
+   '碗在 13dp 还认得出（圆底 + 两缕热气），比幽灵抗缩。<b>食物标记属于空档</b>：它标「这个时段是吃饭时间」，不是某门课。','48 / 24 / 13')
+ + vw('食物进格','空档专用 · 进有课的格子就是错的','<div class="rowv">'+
+     fig(C({c:'rule',a:'none',m:'minimal',e:'off',g:'food',gp:'mid',fam:4,name:'午休',place:'',teach:'',tag:'s6-f-empty'}),'空格 · 正解 ✓')+
+     fig(C({c:'paper',a:'spine',m:'minimal',e:'off',g:'food',gp:'corner',fam:4,h:104,name:'作物栽培学',place:'农-301',teach:'赵明',tag:'s6-f-tall'}),'连堂格尾 · ✓')+
+     fig('<div class="fail">'+C({c:'paper',a:'spine',g:'food',gp:'corner',fam:3,name:'体育',place:'场-1',teach:'陈涛',tag:'s6-f-cell'})+'</div>','有课 · 误用 ✕')+
+     '</div>',
+     '放进有课的格子，它就成了第二个角标，和 badge 抢同一个右下角；13dp 的碗直接压住「场-1 · 陈涛」。'+
+     '右边这个是故意放错的，虚线框标出来。<b>空档里的图形永远不会和任何元素打架</b>，这是它唯一的正确位置。','✓ / ✕');
+
+/* ══ 07 组合矩阵 ══════════════════════════════════════════ */
+var MX=[
+ {k:'现状 · paper',y:'paper · spine · stacked',c:'paper',a:'spine',m:'stacked',b:'none',note:'最稳的一组。130dp² 装饰，文字满配。'},
+ {k:'账页 · ledger',y:'ledger · cap · stacked',c:'ledger',a:'cap',m:'stacked',b:'corner',note:'便签浮起 + 顶帽 + 自标记。需要 2dp 行距托住投影。'},
+ {k:'密排 · rule',y:'rule · none · inline',c:'rule',a:'none',m:'inline',b:'none',note:'零底色、零装饰。只成立在 grid=lines 上，且课名 ≤ 4 字。'},
+ {k:'周历 · block',y:'block · none · footer',c:'block',a:'none',m:'footer',b:'corner',note:'色块 + 底栏。白字不降透明度，底栏与角点都在右下一线，需错开。'},
+ {k:'极简 · quiet',y:'paper · wash14 · minimal',c:'paper',a:'wash14',m:'minimal',b:'none',note:'规范原写 block + wash（wash 在色块上不生效），这里改为 paper + wash14。'},
+ {k:'账页 + 自标记',y:'ledger · dot · footer',c:'ledger',a:'dot',m:'footer',b:'corner',note:'两处角标：左上 5dp 课程点 + 右上 4.5dp 自标记点，不同角落不打架。'}
+];
+document.getElementById('b7').innerHTML = MX.map(function(x){
+  var g='';
+  for(var i=0;i<3;i++){
+    g += C({c:x.c,a:x.a,m:x.m,b:x.b,fam:(i%2)+1,name:['高等数学A','有机化学','体育'][i],place:'理-201',teach:'张志远',tag:'mx-'+x.k+'-'+i});
+  }
+  return '<div class="mxc"><div class="mxk">'+x.k+'</div><div class="mxy">'+x.y+'</div>'+
+    '<div class="mxgrid">'+g+'</div><div class="note">'+x.note+'</div></div>';
+}).join('');
+
+document.getElementById('conflict').innerHTML =
+ '<div class="vw-h" style="margin-bottom:8px"><span class="vw-k">不该同时出现的组合</span><span class="vw-c">每条都给出理由，不是口味</span></div>'+
+ '<table class="t"><thead><tr><th>冲突</th><th>为什么不行</th><th>判定</th></tr></thead><tbody>'+
+ [
+  ['block + wash8/14','色块已经铺满整格，wash 是同一种颜色再上一层 → 不可见；想改浓度就直接改 wash 的 alpha，别叠两层。','<span class="no">禁止</span>'],
+  ['block + wipe','填色被抽掉、白字压白卡 = 1.0:1，字直接没了。要保留色块就只能用 hatch，或 fade 且字色翻转。','<span class="no">禁止</span>'],
+  ['spine + cap','同一张卡上两个方向的高彩面（130 + 135dp²），在 45dp 里互相抢；而且两条边各吃一次内边距，净宽掉到 34.5dp。','<span class="no">禁止</span>'],
+  ['dot + corner badge','都想要右上角：5dp 课程点 + 4.5dp 自标记点在 9dp 的角里叠成一块脏斑。这也是 dot 被移到左上角的原因。','<span class="no">禁止</span>'],
+  ['rule + wash / block','rule 的定义就是「无底，只有上下细线」。给它铺底色就不再是 rule，直接换 cell=paper。','<span class="no">禁止</span>'],
+  ['stripe + stacked @45dp','斜纹要 9dp 右内边距，净宽 37 → 28dp，每行少 1 个字；8 字课名从 2 行涨到 3 行，教师行被顶出格。','<span class="no">窄格禁止</span>'],
+  ['glyph(corner) + footer @45dp','底栏和角标都要右下角，13dp 的碗/幽灵一定压在「· 张志远」上。','<span class="no">窄格禁止</span>'],
+  ['inline + 45dp','课名 5 字就 45dp &gt; 37dp 净宽，地点必被挤到第二行再截断 —— 这不是 inline，是坏的 stacked。','<span class="no">窄格禁止</span>'],
+  ['fade + block（不翻转字色）','装饰层淡到 0.16 时底色接近卡面，白字只剩 1.2:1。必须在 p&gt;0.45 把字翻成墨色。','<span class="no">需改写</span>'],
+  ['ghost + food','两个图形都放右下角，13dp 见方里挤两个轮廓，谁也认不出。','<span class="no">禁止</span>']
+ ].map(function(r){return '<tr><td class="m">'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td></tr>';}).join('')+
+ '</tbody></table>';
+
+/* ══ 08 演示台 ════════════════════════════════════════════ */
+var SLOT = {
+  cell:['paper','ledger','rule','block'],
+  accent:['spine','cap','dot','wash8','wash14','none'],
+  meta:['stacked','inline','footer','minimal'],
+  badge:['corner','stripe','none'],
+  erosion:['wipe','hatch','fade','off'],
+  glyph:['ghost','food','none']
+};
+var CLS = {cell:'c-',accent:'a-',meta:'m-',badge:'b-',erosion:'e-',glyph:'g-'};
+var ST = {cell:'paper',accent:'spine',meta:'stacked',badge:'none',erosion:'wipe',glyph:'ghost'};
+var PRE = {
+  '纸卡':{cell:'paper',accent:'spine',meta:'stacked',badge:'none',erosion:'wipe',glyph:'ghost'},
+  '账页':{cell:'ledger',accent:'cap',meta:'stacked',badge:'corner',erosion:'wipe',glyph:'ghost'},
+  '密排':{cell:'rule',accent:'none',meta:'inline',badge:'none',erosion:'off',glyph:'none'},
+  '周历':{cell:'block',accent:'none',meta:'footer',badge:'corner',erosion:'hatch',glyph:'ghost'},
+  '极简':{cell:'paper',accent:'wash14',meta:'minimal',badge:'none',erosion:'off',glyph:'none'}
+};
+var LESSONS = [
+ {d:1,r:1,s:2,fam:1,name:'高等数学A',place:'理-201',teach:'张志远',p:1},
+ {d:1,r:3,s:1,fam:3,name:'体育',place:'场-1',teach:'陈涛',p:0},
+ {d:1,r:4,s:2,fam:4,name:'作物栽培学',place:'农-301',teach:'赵明',p:.35},
+ {d:2,r:1,s:2,fam:3,name:'有机化学',place:'化-105',teach:'李慧',p:1},
+ {d:2,r:3,s:2,fam:2,name:'大学物理实验',place:'理-312',teach:'王志国',p:.6},
+ {d:2,r:5,s:2,fam:1,name:'马克思主义基本原理',place:'文-204',teach:'刘建国',p:0},
+ {d:3,r:1,s:2,fam:1,name:'高等数学A',place:'理-201',teach:'张志远',p:1},
+ {d:3,r:4,s:1,fam:3,name:'体育',place:'场-1',teach:'陈涛',p:.25},
+ {d:3,r:5,s:2,fam:3,name:'有机化学',place:'化-105',teach:'李慧',p:0},
+ {d:4,r:2,s:1,fam:2,name:'大学物理实验',place:'理-312',teach:'王志国',p:.95},
+ {d:4,r:3,s:2,fam:4,name:'作物栽培学',place:'农-301',teach:'赵明',p:.6},
+ {d:4,r:6,s:1,fam:3,name:'体育',place:'场-1',teach:'陈涛',p:0},
+ {d:5,r:1,s:2,fam:1,name:'马克思主义基本原理',place:'文-204',teach:'刘建国',p:.6},
+ {d:5,r:4,s:1,fam:3,name:'有机化学',place:'化-105',teach:'李慧',p:0},
+ {d:5,r:5,s:2,fam:2,name:'大学物理实验',place:'理-312',teach:'王志国',p:0},
+ {d:6,r:2,s:2,fam:4,name:'作物栽培学',place:'农-301',teach:'赵明',p:0}
+];
+(function buildPhone(){
+  var days=document.getElementById('demoDays');
+  days.innerHTML='<span class="axh">节</span>'+['一','二','三','四','五','六','日']
+    .map(function(d){return '<span>'+d+'</span>';}).join('');
+  var g=document.getElementById('demoGrid'), html='';
+  for(var r=1;r<=11;r++){
+    html += '<div class="axl" style="grid-column:1;grid-row:'+r+'">'+r+'</div>';
+  }
+  LESSONS.forEach(function(l){
+    html += '<div style="grid-column:'+(l.d+1)+';grid-row:'+l.r+' / span '+l.s+'">'+
+      C({c:ST.cell,a:ST.accent,m:ST.meta,b:ST.badge,e:ST.erosion,g:ST.glyph,
+         fam:l.fam,name:l.name,place:l.place,teach:l.teach,p:l.p,gp:((l.s>=2&&l.p>=0.95)?'corner':'off'),tag:'live'})+'</div>';
+  });
+  // 空档里的午休
+  html += '<div id="foodCell" style="grid-column:8;grid-row:4 / span 1">'+
+    C({c:'rule',a:'none',m:'minimal',e:'off',g:'food',gp:'mid',fam:4,name:'午休',place:'',teach:'',tag:'live-food'})+'</div>';
+  g.innerHTML=html;
+})();
+
+(function buildCtl(){
+  var chips=document.getElementById('chips'), h='';
+  Object.keys(SLOT).forEach(function(k){
+    h += '<div class="cl"><span class="cl-k">'+k+'</span>';
+    SLOT[k].forEach(function(v){
+      h += '<button class="chip'+(ST[k]===v?' on':'')+'" data-slot="'+k+'" data-val="'+v+'">'+v+'</button>';
+    });
+    if(k==='erosion') h += '<input type="range" id="pRange" min="0" max="100" value="60">';
+    h += '</div>';
+  });
+  chips.innerHTML=h;
+  var pre=document.getElementById('presets'), p='<span class="cl-k">预设</span>';
+  Object.keys(PRE).forEach(function(k){
+    p += '<button class="chip" data-preset="'+k+'">'+k+'</button>';
+  });
+  pre.innerHTML=p;
+})();
+
+function apply(){
+  var cells=document.querySelectorAll('#demoGrid .cell');
+  for(var i=0;i<cells.length;i++){
+    var el=cells[i];
+    if(el.closest('#foodCell')) continue;
+    for(var k in ST){
+      el.classList.remove(CLS[k]+(el.dataset['was'+k]||''));
+      el.classList.add(CLS[k]+ST[k]);
+      el.dataset['was'+k]=ST[k];
+    }
+  }
+  document.getElementById('readout').textContent =
+    'cell='+ST.cell+' · accent='+ST.accent+' · meta='+ST.meta+' · badge='+ST.badge+
+    ' · erosion='+ST.erosion+' · glyph='+ST.glyph;
+  document.querySelectorAll('.chip[data-slot]').forEach(function(b){
+    b.classList.toggle('on', ST[b.dataset.slot]===b.dataset.val);
+  });
+}
+document.getElementById('chips').addEventListener('click',function(e){
+  var b=e.target.closest('.chip'); if(!b||!b.dataset.slot) return;
+  ST[b.dataset.slot]=b.dataset.val; apply();
+});
+document.getElementById('presets').addEventListener('click',function(e){
+  var b=e.target.closest('.chip'); if(!b||!b.dataset.preset) return;
+  var p=PRE[b.dataset.preset];
+  for(var k in p) ST[k]=p[k];
+  document.getElementById('demoPhone').style.setProperty('--p','0.6');
+  document.getElementById('pRange').value=60;
+  apply();
+});
+document.getElementById('chips').addEventListener('input',function(e){
+  if(e.target.id==='pRange') document.getElementById('demoPhone').style.setProperty('--p', (e.target.value/100));
+});
+apply();
+
+/* ══ 主题 ═════════════════════════════════════════════════ */
+function setTheme(t){
+  document.documentElement.classList.toggle('dark', t==='dark');
+  document.querySelectorAll('#themeSeg button').forEach(function(b){
+    b.classList.toggle('on', b.dataset.theme===t);
+  });
+}
+document.getElementById('themeSeg').addEventListener('click',function(e){
+  var b=e.target.closest('button'); if(!b) return; setTheme(b.dataset.theme);
+});
+setTheme(location.hash==='#dark'?'dark':'light');
+
+/* ══ 自查 ═════════════════════════════════════════════════ */
+(function audit(){
+  var out=[];
+  document.querySelectorAll('.cell').forEach(function(c){
+    var tag=c.dataset.a||'?';
+    var body=c.querySelector('.body');
+    var bc=body.getBoundingClientRect(), padB=parseFloat(getComputedStyle(body).paddingBottom)||0;
+    var limit=bc.bottom-padB+0.6;
+    var nrow=c.querySelector('.nmrow');
+    var clamped=nrow?(nrow.style.webkitLineClamp||getComputedStyle(nrow).webkitLineClamp):'none';
+    if((clamped==='none'||!clamped) && body.scrollHeight>body.clientHeight+1) out.push('CLIP '+tag+' '+body.scrollHeight+'>'+body.clientHeight);
+    c.querySelectorAll('.nm,.sub .p,.sub .t,.foot').forEach(function(el){
+      if(!el.getClientRects().length || getComputedStyle(el).display==='none') return;
+      var r=el.getBoundingClientRect();
+      if(r.height>0 && r.bottom>limit) out.push('OVF '+tag+' +'+Math.round(r.bottom-limit));
+      if(r.width>0 && r.right>bc.right+0.8) out.push('BLEED '+tag);
+    });
+    var bd=c.querySelector('.badge');
+    if(bd&&getComputedStyle(bd).display!=='none'){
+      var nm=c.querySelector('.nm'), b=bd.getBoundingClientRect(), hit=false;
+      if(nm && nm.firstChild){
+        var rg=document.createRange(); rg.selectNodeContents(nm);
+        [].forEach.call(rg.getClientRects(), function(r){
+          if(r.width<=0) return;
+          if(b.left < r.right-0.5 && b.bottom > r.top+3.5 && b.top < r.bottom) hit=true;
+        });
+      }
+      if(hit) out.push('OCCLUDE '+tag+' badge');
+    }
+  });
+  var seen={}, list=[];
+  out.forEach(function(v){ if(!seen[v]){seen[v]=1;list.push(v);} });
+  var s=list.join(' | ');
+  document.getElementById('audit').textContent='AUDIT:'+(s||'CLEAN')+' (#cells='+document.querySelectorAll('.cell').length+')';
+  document.documentElement.setAttribute('data-audit', s||'CLEAN');
+})();
+</script>
+</body>
+</html>

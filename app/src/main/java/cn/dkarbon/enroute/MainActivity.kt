@@ -99,6 +99,17 @@ class MainActivity : ComponentActivity() {
             // ── 首帧之后才做的事（不挡启动）──
             LaunchedEffect(Unit) {
                 withFrameNanos { }   // 等第一帧真的画出来
+                // 首帧耗时（m40）：只在内存里排一条，不碰磁盘也不联网
+                runCatching {
+                    cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                        "perf.first_frame",
+                        mapOf(
+                            "ms" to cn.dkarbon.enroute.data.telemetry.Telemetry.bucketMs(
+                                cn.dkarbon.enroute.data.telemetry.Telemetry.msSinceStart(),
+                            ),
+                        ),
+                    )
+                }
                 withContext(Dispatchers.IO) {
                     Reminders.ensureChannel(this@MainActivity)
                     DebugLog.log(
@@ -144,5 +155,16 @@ class MainActivity : ComponentActivity() {
                 EnRouteRoot(ui = ui, vm = vm)
             }
         }
+    }
+
+    /**
+     * 进后台时记一笔会话时长并顺手 flush（m40）。
+     *
+     * 放 onStop 而不是 onPause：切到别的 App 再回来只算一次，
+     * 也不跟对话框、权限弹窗这些短暂遮挡混在一起。
+     */
+    override fun onStop() {
+        super.onStop()
+        runCatching { cn.dkarbon.enroute.data.telemetry.Telemetry.recordBackground() }
     }
 }

@@ -262,6 +262,21 @@ data class AppState(
     val ttCardGhost: Boolean = true,
     val ttCardFood: Boolean = true,
     val ttCardNowRing: Boolean = true,
+    // ── 课表槽位化（m41）──
+    /** 选中的预设下标 */
+    val ttPreset: Int = 0,
+    /** 覆盖位：-1 跟随预设（顺序同 TtOverrides） */
+    val ttOvShape: Int = -1,
+    val ttOvDecor: Int = -1,
+    val ttOvMeta: Int = -1,
+    val ttOvBadge: Int = -1,
+    val ttOvErosion: Int = -1,
+    val ttOvMotion: Int = -1,
+    val ttOvTone: Int = -1,
+    val ttOvHeader: Int = -1,
+    val ttOvGrid: Int = -1,
+    val ttOvBackdrop: Int = -1,
+    val ttOvBgMotion: Int = -1,
     /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效）/ 2 自定义配色 */
     val colorSource: Int = 0,
     /** 自定义配色的四个槽（票 25）：浅色/深色各自独立，0 = 该槽未设置 */

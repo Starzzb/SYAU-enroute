@@ -208,6 +208,18 @@ fun SyllabusSearchScreen(ui: AppState, vm: TimetableViewModel) {
                     (!onlyWithPage || e.pageRangeLabel.isNotBlank())
             }
         }
+        // 打成一片的逐键筛选：停手 600 ms 才记一条，否则一次搜索会发十几次
+        LaunchedEffect(ui.syllabusQuery, rows.size) {
+            if (ui.syllabusQuery.isBlank()) return@LaunchedEffect
+            kotlinx.coroutines.delay(600)
+            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                "syllabus.search",
+                mapOf(
+                    "qlen" to cn.dkarbon.enroute.data.telemetry.Telemetry.bucketQueryLength(ui.syllabusQuery.length),
+                    "results" to cn.dkarbon.enroute.data.telemetry.Telemetry.bucketResults(rows.size),
+                ),
+            )
+        }
         if (rows.isEmpty() && !ui.syllabusIndexLoading && ui.syllabusIndexMsg.isBlank()) {
             Box(Modifier.fillMaxSize().padding(Space.xxl), contentAlignment = Alignment.Center) {
                 Text(

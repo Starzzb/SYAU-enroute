@@ -1,9 +1,9 @@
 {
-  "versionCode": 470,
-  "versionName": "0.9.1+m39",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m39/SYAU-enroute-m39.apk",
-  "sha256": "b0a4f1f5de2a41290ff83d2ee52ccd6cba62ade2283ae61416e5df8b3a7a01ec",
-  "size": 8028840,
-  "notes": "课程表卡片新增可换版式，深色下所有卡片重做对比度，资讯页面内容解析器重构。",
+  "versionCode": 490,
+  "versionName": "0.10.0+m41",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m41/SYAU-enroute-m41.apk",
+  "sha256": "c51fd4aee967f2bfce652bc0681bd60b3d10c3022d7766904917b28c2c8f7abf",
+  "size": 8045224,
+  "notes": "课表现在可以整套换样子：先挑纸卡、账页、密排、日程、安静中的一套，再单独调格子形状、装饰、字段排布、折角、侵蚀和底色，底纹动画也能关掉换成纯色。顺手修掉了使用统计一直没上报的问题。",
   "minSupported": 0
 }

@@ -253,6 +253,30 @@ fun SettingsScreen(
 
         Spacer(Modifier.height(10.dp))
 
+        // ── 匿名使用统计（m40）：默认开，关掉即清空本机未发出的队列；不弹框、不二次确认 ──
+        var telemetryOn by remember {
+            mutableStateOf(cn.dkarbon.enroute.data.telemetry.Telemetry.isEnabled())
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(Modifier.weight(1f)) {
+                Text("匿名使用统计", fontSize = 13.sp, color = t.ink)
+                Spacer(Modifier.height(2.dp))
+                Text(
+                    "只记功能用了多少次、失败了多少次。不带课程名、学号、搜索词、坐标。",
+                    fontSize = 10.5.sp,
+                    lineHeight = 15.sp,
+                    color = t.inkFaint,
+                )
+            }
+            Switch(
+                checked = telemetryOn,
+                onCheckedChange = { on ->
+                    telemetryOn = on
+                    cn.dkarbon.enroute.data.telemetry.Telemetry.setEnabled(on)
+                },
+            )
+        }
+
         // ── 保持登录（票 14）──
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {

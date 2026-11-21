@@ -15,6 +15,9 @@ import cn.dkarbon.enroute.data.Timetable
 import cn.dkarbon.enroute.data.TimetableStore
 import cn.dkarbon.enroute.data.UrpClient
 import cn.dkarbon.enroute.ui.timetable.TermCalendar
+import cn.dkarbon.enroute.ui.timetable.TtAxis
+import cn.dkarbon.enroute.ui.timetable.TtDecorSpine
+import cn.dkarbon.enroute.ui.timetable.TtPresetCount
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -142,6 +145,22 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 customCourses = saved.custom,
                 remindersEnabled = saved.remind,
                 timetableMsg = if (saved.tt == null) "" else "已载入 ${saved.tt.courses.size} 门课",
+            )
+            // 槽位化（m41）：老 tint/spine/erode 搬进覆盖位，再读齐预设与覆盖。
+            migrateSlotsIfNeeded()
+            _ui.value = _ui.value.copy(
+                ttPreset = prefs.ttPreset,
+                ttOvShape = prefs.ttOvShape,
+                ttOvDecor = prefs.ttOvDecor,
+                ttOvMeta = prefs.ttOvMeta,
+                ttOvBadge = prefs.ttOvBadge,
+                ttOvErosion = prefs.ttOvErosion,
+                ttOvMotion = prefs.ttOvMotion,
+                ttOvTone = prefs.ttOvTone,
+                ttOvHeader = prefs.ttOvHeader,
+                ttOvGrid = prefs.ttOvGrid,
+                ttOvBackdrop = prefs.ttOvBackdrop,
+                ttOvBgMotion = prefs.ttOvBgMotion,
             )
             // 读盘后立刻把卡片配置推给绘制层（否则冷启动第一帧还是默认值）
             // ①a 票 24：先把教务数据的三档缓存灌进界面 —— **这一步不发任何网络请求**，
@@ -778,7 +797,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         loadPlan(_ui.value.planYear, entry.id, entry.major)
     }
 
-    private fun loadPlan(year: String, entryId: String, major: String) {
+    private fun loadPlan(year: String, entryId: String, major: String, from: String = "curriculum") {
         if (year.isBlank() || entryId.isBlank()) return
         _ui.value = _ui.value.copy(planLoading = true, planMsg = "正在读培养方案…")
         viewModelScope.launch {
@@ -792,6 +811,13 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 planLoading = false,
                 planMsg = if (plan == null) "读「$year 级 $major」的方案失败（资产缺失或损坏）" else "",
             )
+            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                "plan.open",
+                mapOf(
+                    "year" to year.takeIf { it in setOf("2023", "2024", "2025") }.orEmpty(),
+                    "from" to from,
+                ),
+            )
         }
     }
 
@@ -801,7 +827,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
      * 匹配优先级：课程代码精确 → 归一课程名精确 → 名称包含；命中多条**不猜**，把候选摆出来。
      * 匹配不上照实说「这本院级大纲册子里没有这门课」——**不空卡片、不转圈**（票 10 的硬要求）。
      */
-    fun openSyllabus(code: String, name: String) {
+    fun openSyllabus(code: String, name: String, from: String = "timetable") {
         _ui.value = _ui.value.copy(
             syllabusOpenId = "…",     // 占位：浮层立刻出现并显示「正在查」
             syllabusDetail = null,
@@ -823,6 +849,14 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 "查大纲 代码=${cn.dkarbon.enroute.data.curriculum.SyllabusParse.codeOf(code)} 命中方式=${match.by} " +
                     "候选=${match.candidates.size} 读到大纲=${detail != null}（册内 $count 门）",
             )
+            // 「查得到吗」是这个功能唯一想知道的指标：命中/未命中各记一条，只带布尔与枚举来源
+            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                "syllabus.open",
+                mapOf("from" to from, "hit" to (detail != null).toString()),
+            )
+            if (detail == null) {
+                cn.dkarbon.enroute.data.telemetry.Telemetry.record("syllabus.miss", mapOf("has_code" to code.isNotBlank().toString()))
+            }
             _ui.value = _ui.value.copy(
                 syllabusOpenId = entry?.id.orEmpty(),
                 syllabusDetail = detail,
@@ -854,6 +888,10 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         )
         viewModelScope.launch {
             val detail = withContext(Dispatchers.IO) { curriculum.syllabus(entry.id) }
+            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                "syllabus.open",
+                mapOf("from" to "search", "hit" to (detail != null).toString()),
+            )
             _ui.value = _ui.value.copy(
                 syllabusDetail = detail,
                 syllabusDetailLoading = false,
@@ -1417,6 +1455,58 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
     fun setTtCardNowRing(on: Boolean) {
         prefs.ttCardNowRing = on
         _ui.value = _ui.value.copy(ttCardNowRing = on)
+    }
+
+    // ── 槽位化（m41）──────────────────────────────────────
+
+    /**
+     * 老数据的 tint / spine / erode → 覆盖位，只跑一次。
+     *
+     * 不搬的话，老用户升级后预设是「纸卡」，覆盖全是 -1，于是自定义过的
+     * 单墨底色 / 关掉的竖脊全被预设盖回去 —— 那是视觉回退，不是升级。
+     */
+    private fun migrateSlotsIfNeeded() {
+        if (prefs.ttSlotsVersion >= 1) return
+        prefs.ttOvTone = prefs.ttCardTint.coerceIn(0, 2)
+        prefs.ttOvDecor = if (prefs.ttCardSpine) TtDecorSpine else 0
+        prefs.ttOvErosion = if (prefs.ttCardErode) 1 else 0
+        prefs.ttSlotsVersion = 1
+    }
+
+    /** 换预设：把已钉死的覆盖位全部松开，否则「换了预设没变化」 */
+    fun setTtPreset(v: Int) {
+        val s = v.coerceIn(0, TtPresetCount - 1)
+        prefs.ttPreset = s
+        prefs.ttOvShape = -1; prefs.ttOvDecor = -1; prefs.ttOvMeta = -1; prefs.ttOvBadge = -1
+        prefs.ttOvErosion = -1; prefs.ttOvMotion = -1; prefs.ttOvTone = -1
+        prefs.ttOvHeader = -1; prefs.ttOvGrid = -1; prefs.ttOvBackdrop = -1; prefs.ttOvBgMotion = -1
+        _ui.value = _ui.value.copy(
+            ttPreset = s,
+            ttOvShape = -1, ttOvDecor = -1, ttOvMeta = -1, ttOvBadge = -1,
+            ttOvErosion = -1, ttOvMotion = -1, ttOvTone = -1,
+            ttOvHeader = -1, ttOvGrid = -1, ttOvBackdrop = -1, ttOvBgMotion = -1,
+        )
+    }
+
+    /**
+     * 改一条覆盖位。[axis] 用 [TtAxis] 里的序号，[value] = -1 表示「跟随预设」。
+     * 逐条写而不是循环反射：这里是热路径上的手写代码，宁可多十行。
+     */
+    fun setTtOverride(axis: Int, value: Int) {
+        val v = value
+        when (axis) {
+            TtAxis.SHAPE -> { prefs.ttOvShape = v; _ui.value = _ui.value.copy(ttOvShape = v) }
+            TtAxis.DECOR -> { prefs.ttOvDecor = v; _ui.value = _ui.value.copy(ttOvDecor = v) }
+            TtAxis.META -> { prefs.ttOvMeta = v; _ui.value = _ui.value.copy(ttOvMeta = v) }
+            TtAxis.BADGE -> { prefs.ttOvBadge = v; _ui.value = _ui.value.copy(ttOvBadge = v) }
+            TtAxis.EROSION -> { prefs.ttOvErosion = v; _ui.value = _ui.value.copy(ttOvErosion = v) }
+            TtAxis.MOTION -> { prefs.ttOvMotion = v; _ui.value = _ui.value.copy(ttOvMotion = v) }
+            TtAxis.TONE -> { prefs.ttOvTone = v; _ui.value = _ui.value.copy(ttOvTone = v) }
+            TtAxis.HEADER -> { prefs.ttOvHeader = v; _ui.value = _ui.value.copy(ttOvHeader = v) }
+            TtAxis.GRID -> { prefs.ttOvGrid = v; _ui.value = _ui.value.copy(ttOvGrid = v) }
+            TtAxis.BACKDROP -> { prefs.ttOvBackdrop = v; _ui.value = _ui.value.copy(ttOvBackdrop = v) }
+            TtAxis.BG_MOTION -> { prefs.ttOvBgMotion = v; _ui.value = _ui.value.copy(ttOvBgMotion = v) }
+        }
     }
 
 
@@ -2195,6 +2285,21 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         viewModelScope.launch {
             val msg = withContext(Dispatchers.IO) { parseAndSave(text) }
             _ui.value = _ui.value.copy(timetableMsg = msg)
+            // 导入成功率是这个功能唯一的健康指标。只记成败与行数档，课表原文一个字都不传。
+            val rows = _ui.value.timetable?.courses?.size ?: 0
+            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                "import.json.try",
+                mapOf(
+                    "ok" to (rows > 0).toString(),
+                    "rows" to when {
+                        rows <= 0 -> "0"
+                        rows <= 50 -> "1-50"
+                        rows <= 500 -> "51-500"
+                        else -> "500+"
+                    },
+                    "err" to if (rows > 0) "" else "other",
+                ),
+            )
         }
     }
 

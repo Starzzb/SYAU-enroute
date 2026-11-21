@@ -14,6 +14,10 @@ import cn.dkarbon.enroute.ui.theme.FormSpec
 data class TtCardConfig(
     /** 版式：0 = 侵蚀纸卡 / 1 = 账页格 */
     val layout: Int = 0,
+    /** 七轴槽位（m41）：最终取值，预设与覆盖已在 ViewModel 侧合并完 */
+    val slots: TtSlots = TtSlots(),
+    /** 当前预设下标（设置页显示选中态用） */
+    val preset: Int = 0,
     /** 底色来源：0 = 四色系 / 1 = 单墨 / 2 = 无色 */
     val tint: Int = 0,
     val spine: Boolean = true,

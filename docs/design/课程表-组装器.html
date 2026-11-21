@@ -1,0 +1,219 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><title>课程表 · 组装器</title>
+<style>
+:root{--paper:#FAF7F1;--card:#FFFFFF;--cardAlt:#F1ECE1;--ink:#16211B;--ink2:#3C4A42;--faint:#5A6A60;
+--pine:#1F4A3D;--clay:#B4553C;--indigo:#2E5266;--olive:#3E5C34;--ochre:#7A5714;--brick:#8E2B1E;--line:#E2DBCC}
+*{box-sizing:border-box}
+body{margin:0;background:#EFEBE2;color:var(--ink);font:13px/1.6 -apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;padding:26px 30px 60px}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:.01em}
+h2{font-size:14px;margin:34px 0 10px;letter-spacing:.02em;border-top:1px solid #D8D1C1;padding-top:16px}
+p.lead{margin:0 0 16px;color:#4A554E;max-width:900px}
+.mono{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:11.5px}
+.stage{display:flex;gap:26px;align-items:flex-start}
+.panel{width:330px;flex:0 0 auto;background:#FBF9F4;border:1px solid #DED7C7;border-radius:10px;padding:14px 14px 8px}
+.rowc{margin-bottom:11px}
+.lb{font-size:11px;color:#6B756D;letter-spacing:.06em;margin-bottom:5px;display:flex;justify-content:space-between}
+.lb b{color:var(--pine);font-weight:600;letter-spacing:0}
+.opts{display:flex;flex-wrap:wrap;gap:5px;align-items:center;line-height:1}
+.opt{flex:0 0 auto;line-height:1.3;font-size:11.5px;padding:4px 9px;border:1px solid #DCD5C4;border-radius:999px;background:#fff;color:#3C4A42;cursor:pointer;user-select:none}
+.opt:hover{border-color:#B9B29F}
+.opt.on{background:var(--pine);border-color:var(--pine);color:#F3F0E7}
+.count{margin-top:6px;font-size:11px;color:#6B756D}
+.count b{color:var(--clay)}
+.ph{width:393px;height:852px;flex:0 0 auto;background:var(--paper);display:flex;flex-direction:column;border:1px solid #CFC7B4;border-radius:16px;overflow:hidden;position:relative;box-shadow:0 10px 30px rgba(60,50,30,.16)}
+.hd{display:flex;align-items:center;gap:8px;padding:12px 14px 8px;position:relative;z-index:3}
+.hd .ic{width:24px;height:24px;display:grid;place-items:center;color:var(--ink2);font-size:16px}
+.hd .ttl{font-size:16px;font-weight:650;letter-spacing:.02em}
+.hd .who{margin-left:auto;font-size:11px;color:var(--faint)}
+.strip{padding:0 14px 8px;position:relative;z-index:3}
+.chips{display:flex;gap:6px}.chip{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid #DCD5C4;color:var(--ink2)}
+.chip.on{background:var(--pine);border-color:var(--pine);color:#F5F2E9}
+.days{display:grid;grid-template-columns:var(--ax,22px) repeat(7,1fr);padding:0 14px 4px;position:relative;z-index:3}
+.days span{font-size:10.5px;text-align:center;color:var(--faint);padding-bottom:3px}
+.days span.today{color:var(--clay);font-weight:700}
+.body{flex:1;position:relative;padding:0 14px 14px;min-height:0}
+.grid{position:relative;height:100%;display:grid;grid-template-columns:var(--ax,22px) repeat(7,1fr);grid-template-rows:repeat(10,minmax(0,1fr));z-index:2}
+.ax{grid-column:1;grid-row:1/span 10;display:grid;grid-template-rows:repeat(10,minmax(0,1fr));font-size:9px;color:#8A9189;text-align:right;padding-right:4px}
+.ax i{font-style:normal;display:flex;flex-direction:column;justify-content:center;line-height:1.1}
+.ax i b{font-weight:600;color:#6B756D;font-size:9px}
+.cell{position:relative;overflow:hidden;margin:1.5px;padding:5px 5px 4px;color:var(--ink);font-size:10px;line-height:1.22}
+.cell .nm{font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;letter-spacing:-.01em}
+.cell .mt{font-size:8.5px;color:#5A6A60;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .tm{position:absolute;right:3px;bottom:2px;font-size:8px;color:#8A9189}
+.cell .gh{position:absolute;right:2px;bottom:0;font-size:20px;opacity:.09;line-height:1}
+/* shapes */
+.sh-paper{background:var(--card);border-radius:9px;box-shadow:0 1px 2px rgba(40,35,20,.10),0 6px 12px -8px rgba(40,35,20,.22)}
+.sh-ledger{background:#FFFDF6;border-radius:3px;box-shadow:0 2px 0 rgba(40,35,20,.07),0 8px 14px -10px rgba(40,35,20,.35)}
+.sh-rule{background:transparent;border-radius:0;border-bottom:1px solid rgba(22,33,27,.22);padding-bottom:6px}
+.sh-block{background:var(--tone);border-radius:5px;color:#FBF9F2}
+.sh-block .mt{color:rgba(255,255,255,.82)}
+.sh-tag{background:var(--card);border-radius:4px 4px 8px 4px;box-shadow:0 1px 3px rgba(40,35,20,.14)}
+/* decor */
+.dc-spine::before{content:"";position:absolute;left:0;top:6px;bottom:6px;width:2.5px;border-radius:2px;background:var(--tone)}
+.sh-block.dc-spine::before{background:rgba(255,255,255,.85)}
+.dc-cap::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tone)}
+.sh-block.dc-cap::after{background:rgba(255,255,255,.85)}
+.dc-dot::after{content:"";position:absolute;right:5px;top:5px;width:5px;height:5px;border-radius:50%;background:var(--tone)}
+.dc-hline::after{content:"";position:absolute;left:4px;right:4px;bottom:2px;height:2px;border-radius:1px;background:var(--tone);opacity:.75}
+.dc-wash{background-image:linear-gradient(var(--wash),var(--wash))}
+.dc-hatch::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,var(--tone) 0 1px,transparent 1px 6px);opacity:.13;pointer-events:none}
+/* meta */
+.mt-stacked .mt{display:block}
+.mt-inline .mt{display:inline-block;margin-right:4px}
+.mt-footer{display:flex;flex-direction:column}
+.mt-footer .mt:first-of-type{margin-top:auto;text-align:right;font-size:8px}
+.mt-minimal .mt{display:none}
+/* badge */
+.bgd-corner::before{content:"";position:absolute;top:0;right:0;width:0;height:0;border-top:9px solid var(--tone);border-left:9px solid transparent;opacity:.9}
+.bgd-stripe{background-image:repeating-linear-gradient(135deg,var(--tone) 0 2px,transparent 2px 7px);background-size:100% 100%}
+/* erosion */
+.er-wipe{-webkit-mask-image:linear-gradient(to top,#000 0%,#000 55%,rgba(0,0,0,.35) 100%)}
+.er-hatch::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-45deg,var(--paper) 0 2px,transparent 2px 5px);opacity:.55;pointer-events:none}
+.er-fade{opacity:.52}
+/* motion */
+@keyframes breath{0%,100%{opacity:1}50%{opacity:.72}}
+.mo-pulse{animation:breath 3.4s ease-in-out infinite}
+@keyframes drift{from{background-position:0 0}to{background-position:140px 0}}
+/* backdrop */
+.bd{position:absolute;inset:0;z-index:0;pointer-events:none}
+.bd-ruled{background:repeating-linear-gradient(to bottom,transparent 0 calc(10% - 1px),rgba(22,33,27,.10) calc(10% - 1px) 10%)}
+.bd-ridge{background:repeating-linear-gradient(90deg,rgba(31,74,61,.07) 0 1px,transparent 1px 14px)}
+.bd-math{background:radial-gradient(circle at 20% 30%,rgba(122,87,20,.10),transparent 42%),radial-gradient(circle at 78% 72%,rgba(46,82,102,.10),transparent 40%)}
+.bd-flat{background:#F5F1E6}
+.g-lines{background:repeating-linear-gradient(to bottom,transparent 0 calc(10% - 1px),rgba(22,33,27,.09) calc(10% - 1px) 10%)}
+.g-bands{background:repeating-linear-gradient(to bottom,rgba(22,33,27,.035) 0 10%,transparent 10% 20%)}
+.g-cells{outline:1px solid rgba(22,33,27,.07);outline-offset:-1px}
+.g-air{background:transparent}
+/* gallery */
+.gal{display:flex;flex-wrap:wrap;gap:14px;margin-top:8px}
+.gcard{width:150px;background:var(--paper);border:1px solid #DED7C7;border-radius:10px;padding:10px;position:relative}
+.gcard .mini{position:relative;height:104px;background:var(--paper);border-radius:6px;overflow:hidden}
+.gcard .mini .cell{position:absolute;left:4px;right:4px;top:4px;bottom:4px;margin:0}
+.gcard .cap{font-size:11px;color:#5A6A60;margin-top:7px;line-height:1.35}
+.gcard .cap b{color:var(--ink);display:block;font-size:11.5px}
+.spec{max-width:980px;color:#3C4A42}
+.spec table{border-collapse:collapse;width:100%;font-size:11.5px;margin-top:6px}
+.spec td,.spec th{border-bottom:1px solid #DCD5C4;padding:5px 8px;text-align:left;vertical-align:top}
+.spec th{color:#6B756D;font-weight:600;font-size:11px;letter-spacing:.04em}
+.spec code{font-family:ui-monospace,Consolas,monospace;font-size:11px;background:#E8E3D6;padding:0 4px;border-radius:3px}
+</style></head><body>
+<h1>课程表 · 组装器</h1>
+<p class="lead">左边每一行是一个<b>独立可换的槽位</b>。形状、装饰、内容编排、角标、侵蚀、动效、底色是<b>各自独立的轴</b>——换形状不动装饰，换装饰不动内容，任意两轴可以叠。右边那台手机是实时拼出来的。</p>
+<div class="stage">
+<div class="panel" id="panel">
+  <div class="rowc"><div class="lb">形状 <b>shape</b></div><div class="opts" data-k="shape">
+    <div class="opt" data-v="paper">方卡</div><div class="opt" data-v="ledger">便签</div><div class="opt" data-v="rule">细线</div><div class="opt" data-v="block">色块</div><div class="opt" data-v="tag">标签</div></div></div>
+  <div class="rowc"><div class="lb">装饰 <b>decor</b></div><div class="opts" data-k="decor">
+    <div class="opt" data-v="none">无</div><div class="opt" data-v="spine">左脊</div><div class="opt" data-v="cap">顶帽</div><div class="opt" data-v="dot">角点</div><div class="opt" data-v="hline">底线</div><div class="opt" data-v="wash">淡底</div><div class="opt" data-v="hatch">斜纹</div></div></div>
+  <div class="rowc"><div class="lb">内容编排 <b>meta</b></div><div class="opts" data-k="meta">
+    <div class="opt" data-v="stacked">三行</div><div class="opt" data-v="inline">同行</div><div class="opt" data-v="footer">底栏</div><div class="opt" data-v="minimal">只课名</div></div></div>
+  <div class="rowc"><div class="lb">角标 <b>badge</b></div><div class="opts" data-k="badge">
+    <div class="opt" data-v="none">无</div><div class="opt" data-v="corner">折角</div><div class="opt" data-v="stripe">斜纹带</div></div></div>
+  <div class="rowc"><div class="lb">上完课的侵蚀 <b>erosion</b></div><div class="opts" data-k="erosion">
+    <div class="opt" data-v="off">不褪</div><div class="opt" data-v="wipe">上褪</div><div class="opt" data-v="hatch">斜线</div><div class="opt" data-v="fade">整块淡</div></div></div>
+  <div class="rowc"><div class="lb">动效 <b>motion</b></div><div class="opts" data-k="motion">
+    <div class="opt" data-v="none">关</div><div class="opt" data-v="pulse">呼吸</div><div class="opt" data-v="wipepulse">褪色呼吸</div></div></div>
+  <div class="rowc"><div class="lb">底色 <b>tone</b></div><div class="opts" data-k="tone">
+    <div class="opt" data-v="four">四色</div><div class="opt" data-v="mono">单墨</div><div class="opt" data-v="plain">无色</div></div></div>
+  <div class="rowc"><div class="lb">节次轴 <b>axis</b></div><div class="opts" data-k="axis">
+    <div class="opt" data-v="rail">竖轴</div><div class="opt" data-v="gutter">时间块</div><div class="opt" data-v="none">无</div></div></div>
+  <div class="rowc"><div class="lb">日头 <b>dayHeader</b></div><div class="opts" data-k="dayHeader">
+    <div class="opt" data-v="tabs">等宽</div><div class="opt" data-v="ribbon">通栏</div><div class="opt" data-v="stack">两行</div></div></div>
+  <div class="rowc"><div class="lb">格线 <b>grid</b></div><div class="opts" data-k="grid">
+    <div class="opt" data-v="lines">横线</div><div class="opt" data-v="bands">行带</div><div class="opt" data-v="cells">格框</div><div class="opt" data-v="air">留白</div></div></div>
+  <div class="rowc"><div class="lb">底纹 <b>backdrop</b></div><div class="opts" data-k="backdrop">
+    <div class="opt" data-v="none">无</div><div class="opt" data-v="ruled">横线</div><div class="opt" data-v="ridge">田垄</div><div class="opt" data-v="math">复相</div><div class="opt" data-v="flat">纯色</div></div></div>
+  <div class="rowc"><div class="lb">底纹动效 <b>bgMotion</b></div><div class="opts" data-k="bgMotion">
+    <div class="opt" data-v="off">关</div><div class="opt" data-v="drift">缓移</div></div></div>
+  <div class="count" id="count"></div>
+</div>
+<div class="ph" id="ph"></div>
+</div>
+<h2>二 · 同一批课程，只换轴</h2>
+<div class="gal" id="gal"></div>
+<h2>三 · 槽位与取值（这是「够不够细」的账）</h2>
+<div class="spec"><table><thead><tr><th>轴</th><th>取值</th><th>管什么</th><th>互斥</th></tr></thead><tbody>
+<tr><td><code>shape</code></td><td>方卡 / 便签 / 细线 / 色块 / 标签</td><td>卡片的骨架：圆角、投影、底色、内边距</td><td>细线不叠投影</td></tr>
+<tr><td><code>decor</code></td><td>无 / 左脊 / 顶帽 / 角点 / 底线 / 淡底 / 斜纹</td><td>骨架之上的装饰，任何形状都能叠</td><td>角点与 <code>badge=corner</code> 占同一角落</td></tr>
+<tr><td><code>meta</code></td><td>三行 / 同行 / 底栏 / 只课名</td><td>课名与地点教师怎么排</td><td>只课名时不显示角标文字</td></tr>
+<tr><td><code>badge</code></td><td>无 / 折角 / 斜纹带</td><td>自标/未读这类状态标记</td><td>斜纹带只在只课名时用（否则吃字）</td></tr>
+<tr><td><code>erosion</code></td><td>不褪 / 上褪 / 斜线 / 整块淡</td><td>上完课的褪色方式，<b>只褪色不删卡</b></td><td>无</td></tr>
+<tr><td><code>motion</code></td><td>关 / 呼吸 / 褪色呼吸</td><td>格子的微动效，可整页关</td><td>关掉后与静态完全一致</td></tr>
+<tr><td><code>tone</code></td><td>四色 / 单墨 / 无色</td><td>色从哪来：科类四色、统一墨色、完全无色</td><td>无色时色块形状退化为描边</td></tr>
+<tr><td><code>backdrop</code>+<code>bgMotion</code></td><td>无 / 横线 / 田垄 / 复相 / 纯色 × 关/缓移</td><td>页底纹理，可一键换纯色、可关动效</td><td>纯色与纹理解释互斥</td></tr>
+</tbody></table>
+<p class="mono" style="margin-top:10px">单格组合 = 形状 5 × 装饰 7 × 编排 4 × 角标 3 × 侵蚀 4 × 动效 3 × 配色 3 = 15120；扣掉互斥约 1.2 万。</p>
+</div>
+<script>
+const COLORS=["#1F4A3D","#B4553C","#2E5266","#3E5C34","#7A5714","#8E2B1E","#2E5266"];
+const NAMES=["高等数学A","大学物理实验","有机化学","马克思主义基本原理","体育","作物栽培学","概率论与数理统计"];
+const PLACES=["A101","实验楼B302","化学楼204","教一楼101","体育馆","农学楼212","A203"];
+const TEACH=["王","李","赵","孙","周","吴","郑"];
+const CELLS=[{d:0,s:0,span:2,i:0},{d:0,s:3,span:2,i:2},{d:1,s:1,span:2,i:1},{d:1,s:4,span:1,i:3},{d:2,s:0,span:2,i:2},{d:2,s:3,span:2,i:6},{d:3,s:0,span:2,i:0},{d:3,s:2,span:2,i:2},{d:4,s:1,span:2,i:6},{d:4,s:3,span:2,i:1},{d:5,s:0,span:1,i:3},{d:5,s:2,span:2,i:5},{d:6,s:1,span:1,i:4},{d:1,s:6,span:1,i:5},{d:3,s:5,span:2,i:1},{d:4,s:7,span:2,i:3}];
+const SESS=["1","2","3","4","5","6","7","8","9","10"];
+const DAY=["一","二","三","四","五","六","日"];
+const DEF={shape:"paper",decor:"spine",meta:"stacked",badge:"none",erosion:"wipe",motion:"none",tone:"four",axis:"rail",dayHeader:"tabs",grid:"lines",backdrop:"ridge",bgMotion:"off"};
+let S=Object.assign({},DEF);
+function toneOf(i){ if(S.tone==="plain") return "transparent"; if(S.tone==="mono") return "#3C4A42"; return COLORS[i]; }
+function cellHTML(c){
+  const cls=["cell","sh-"+S.shape,"dc-"+S.decor,"mt-"+S.meta,"bgd-"+S.badge,"er-"+S.erosion];
+  if(S.motion==="pulse"||S.motion==="wipepulse") cls.push("mo-pulse");
+  if(S.decor==="wash") cls.push("dc-wash");
+  const t=toneOf(c.i);
+  const style="grid-column:"+(c.d+2)+";grid-row:"+(c.s+1)+"/span "+c.span+";--tone:"+t+";--wash:"+(S.tone==="plain"?"transparent":t+"1a")+";";
+  let inner="";
+  if(S.meta==="minimal") inner="<div class=\"nm\">"+NAMES[c.i]+"</div>";
+  else if(S.meta==="inline") inner="<div class=\"nm\">"+NAMES[c.i]+"</div><div class=\"mt\">"+PLACES[c.i]+"</div>";
+  else if(S.meta==="footer") inner="<div class=\"nm\">"+NAMES[c.i]+"</div><div class=\"mt\">"+PLACES[c.i]+"</div>";
+  else inner="<div class=\"nm\">"+NAMES[c.i]+"</div><div class=\"mt\">"+PLACES[c.i]+"</div><div class=\"mt\">张三·"+TEACH[c.i]+"</div>";
+  if(S.axis==="gutter") inner+="<div class=\"tm\">4-5 节</div>";
+  return "<div class=\""+cls.join(" ")+"\" style=\""+style+"\">"+inner+"</div>";
+}
+function axHTML(){ if(S.axis==="none") return ""; return "<div class=\"ax\">"+SESS.map(n=>"<i><b>"+n+"</b></i>").join("")+"</div>"; }
+function daysHTML(){
+  if(S.dayHeader==="stack") return "<div class=\"days\" style=\"--ax:"+(S.axis==="none"?"0px":"22px")+"\"><span></span>"+DAY.map((d,i)=>"<span"+(i===2?" class=\"today\"":"")+">"+d+"<br>09-0"+(i+1)+"</span>").join("")+"</div>";
+  if(S.dayHeader==="ribbon") return "<div class=\"days\" style=\"--ax:"+(S.axis==="none"?"0px":"22px")+";border-bottom:2px solid var(--pine)\"><span></span>"+DAY.map((d,i)=>"<span"+(i===2?" class=\"today\"":"")+">"+d+"</span>").join("")+"</div>";
+  return "<div class=\"days\" style=\"--ax:"+(S.axis==="none"?"0px":"22px")+"\"><span></span>"+DAY.map((d,i)=>"<span"+(i===2?" class=\"today\"":"")+">"+d+"</span>").join("")+"</div>";
+}
+function bdHTML(){ if(S.backdrop==="none") return ""; const c=S.backdrop==="flat"?"bd-flat":S.backdrop==="ruled"?"bd-ruled":S.backdrop==="ridge"?"bd-ridge":"bd-math"; return "<div class=\"bd "+c+"\" style=\""+(S.bgMotion==="drift"?"animation:drift 18s linear infinite":"")+"\"></div>"; }
+function paint(){
+  const ax=S.axis==="none"?"0px":"22px";
+  document.getElementById("ph").innerHTML=
+    "<div class=\"hd\"><div class=\"ic\">\u2039</div><div class=\"ttl\">课表</div><div class=\"who\">第 3 周 · 张三</div><div class=\"ic\">\u22ef</div></div>"+
+    "<div class=\"strip\"><div class=\"chips\"><div class=\"chip\">第1周</div><div class=\"chip\">第2周</div><div class=\"chip on\">第3周</div><div class=\"chip\">第4周</div></div></div>"+
+    daysHTML()+
+    "<div class=\"body\">"+bdHTML()+"<div class=\"grid g-"+S.grid+"\" style=\"--ax:"+ax+"\">"+axHTML()+CELLS.map(cellHTML).join("")+"</div></div>";
+  document.querySelectorAll(".opt").forEach(el=>{
+    const k=el.parentElement.dataset.k; el.classList.toggle("on", S[k]===el.dataset.v);
+  });
+  const n=5*7*4*3*4*3*3;
+  document.getElementById("count").innerHTML="当前组合来自 "+n+" 种单格外观中的一种；换任一轴都会保留其余选择。";
+}
+function gallery(){
+  const combos=[
+    {shape:"paper",decor:"spine",meta:"stacked",badge:"none",erosion:"wipe"},
+    {shape:"ledger",decor:"cap",meta:"footer",badge:"none",erosion:"wipe"},
+    {shape:"rule",decor:"hline",meta:"inline",badge:"none",erosion:"off"},
+    {shape:"block",decor:"none",meta:"minimal",badge:"none",erosion:"fade"},
+    {shape:"tag",decor:"dot",meta:"minimal",badge:"none",erosion:"off"},
+    {shape:"paper",decor:"hatch",meta:"inline",badge:"none",erosion:"hatch"},
+    {shape:"ledger",decor:"wash",meta:"minimal",badge:"stripe",erosion:"off"},
+    {shape:"rule",decor:"spine",meta:"minimal",badge:"none",erosion:"off"},
+  ];
+  const host=document.getElementById("gal");
+  combos.forEach((cm,idx)=>{
+    const t=COLORS[idx%COLORS.length];
+    const cls=["cell","sh-"+cm.shape,"dc-"+cm.decor,"mt-"+cm.meta,"bgd-"+cm.badge,"er-"+cm.erosion].join(" ");
+    const st="--tone:"+t+";--wash:"+t+"1a;position:absolute;left:4px;right:4px;top:6px;height:92px";
+    const inner= cm.meta==="minimal" ? "<div class=\"nm\">高等数学A</div>" : "<div class=\"nm\">高等数学A</div><div class=\"mt\">A101</div>"+(cm.meta==="stacked"?"<div class=\"mt\">张三·王</div>":"")+"</div>";
+    const box=document.createElement("div"); box.className="gcard";
+    box.innerHTML="<div class=\"mini\"><div class=\""+cls+"\" style=\""+st+"\">"+inner+"</div></div>"+
+      "<div class=\"cap\"><b>"+cm.shape+" + "+cm.decor+"</b>"+cm.meta+" / "+cm.erosion+"</div>";
+    host.appendChild(box);
+  });
+}
+document.getElementById("panel").addEventListener("click",e=>{
+  const el=e.target.closest(".opt"); if(!el) return;
+  S[el.parentElement.dataset.k]=el.dataset.v; paint();
+});
+paint(); gallery();
+</script></body></html>

@@ -369,7 +369,14 @@ private fun androidx.compose.foundation.lazy.LazyListScope.courseItems(
         }
         items(list, key = { term + "|" + it.code + "|" + it.name }) { c ->
             // 点某门课 → 打开课程大纲浮层（票 10）。有无大纲、命中多条都在浮层里如实说
-            CourseRow(c) { vm.openSyllabus(c.code, c.name) }
+            CourseRow(c) {
+                // 有没有大纲：课程行点进去的目的就是看大纲，这个比例决定大纲资产的取舍
+                cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                    "plan.course_tap",
+                    mapOf("has_syllabus" to ui.syllabusIndex.any { it.code == c.code }.toString()),
+                )
+                vm.openSyllabus(c.code, c.name)
+            }
         }
     }
     if (plan.courses.isEmpty()) {

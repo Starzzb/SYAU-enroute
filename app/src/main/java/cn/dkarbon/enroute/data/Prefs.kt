@@ -78,6 +78,57 @@ class Prefs(ctx: Context) {
         get() = sp.getBoolean("tt_card_now_ring", true)
         set(v) = sp.edit().putBoolean("tt_card_now_ring", v).apply()
 
+    // ── 课表槽位化（m41，2026-11-21）──────────────────────
+    //
+    // 预设只是「一次改很多条轴」的快捷方式；覆盖位 -1 = 跟随预设。
+    // 老数据的 tint / spine / erode 在首次启动时由 [sliceVersion] 搬迁成覆盖值，
+    // 所以升级后画面仍然一致，不需要用户重选。
+
+    /** 选中的预设下标（0 纸卡 / 1 账页 / 2 密排 / 3 日程 / 4 安静） */
+    var ttPreset: Int
+        get() = sp.getInt("tt_preset", 0)
+        set(v) = sp.edit().putInt("tt_preset", v).apply()
+
+    /** 槽位搬迁版本：< 1 表示老数据，需要从 tt_card_* 生成覆盖位 */
+    var ttSlotsVersion: Int
+        get() = sp.getInt("tt_slots_v", 0)
+        set(v) = sp.edit().putInt("tt_slots_v", v).apply()
+
+    /** 覆盖位：-1 跟随预设。顺序与 [cn.dkarbon.enroute.ui.timetable.TtOverrides] 一致 */
+    var ttOvShape: Int
+        get() = sp.getInt("tt_ov_shape", -1)
+        set(v) = sp.edit().putInt("tt_ov_shape", v).apply()
+    var ttOvDecor: Int
+        get() = sp.getInt("tt_ov_decor", -1)
+        set(v) = sp.edit().putInt("tt_ov_decor", v).apply()
+    var ttOvMeta: Int
+        get() = sp.getInt("tt_ov_meta", -1)
+        set(v) = sp.edit().putInt("tt_ov_meta", v).apply()
+    var ttOvBadge: Int
+        get() = sp.getInt("tt_ov_badge", -1)
+        set(v) = sp.edit().putInt("tt_ov_badge", v).apply()
+    var ttOvErosion: Int
+        get() = sp.getInt("tt_ov_erosion", -1)
+        set(v) = sp.edit().putInt("tt_ov_erosion", v).apply()
+    var ttOvMotion: Int
+        get() = sp.getInt("tt_ov_motion", -1)
+        set(v) = sp.edit().putInt("tt_ov_motion", v).apply()
+    var ttOvTone: Int
+        get() = sp.getInt("tt_ov_tone", -1)
+        set(v) = sp.edit().putInt("tt_ov_tone", v).apply()
+    var ttOvHeader: Int
+        get() = sp.getInt("tt_ov_header", -1)
+        set(v) = sp.edit().putInt("tt_ov_header", v).apply()
+    var ttOvGrid: Int
+        get() = sp.getInt("tt_ov_grid", -1)
+        set(v) = sp.edit().putInt("tt_ov_grid", v).apply()
+    var ttOvBackdrop: Int
+        get() = sp.getInt("tt_ov_backdrop", -1)
+        set(v) = sp.edit().putInt("tt_ov_backdrop", v).apply()
+    var ttOvBgMotion: Int
+        get() = sp.getInt("tt_ov_bg_motion", -1)
+        set(v) = sp.edit().putInt("tt_ov_bg_motion", v).apply()
+
     /**
      * 取色来源（票 16 追加项②）：0 = 固定农业色板；1 = 跟随壁纸取色（仅 Android 12+ 生效）。
      *
@@ -277,6 +328,28 @@ class Prefs(ctx: Context) {
     var credFailCount: Int
         get() = sp.getInt("cred_fail_count", 0)
         set(v) = sp.edit().putInt("cred_fail_count", v).apply()
+
+    // ── 静默使用统计（m40，见 docs/规划-使用数据采集.md）────────────
+    //
+    // 三个键各司其职，**都不含任何身份信息**：
+    //   ① 开关（默认开 —— 规划里的立场是「采发生了什么，不采是谁发生的」）
+    //   ② install_id：本机随机 16 字节 hex，**永不上传**，只用来算当日标识 d 的盐
+    //   ③ 首次安装时间：只用来算「安装后第几天」的档位
+
+    /** 匿名使用统计开关；默认**开**（关于页有一句义务告知） */
+    var telemetryEnabled: Boolean
+        get() = sp.getBoolean("telemetry_on", true)
+        set(v) = sp.edit().putBoolean("telemetry_on", v).apply()
+
+    /** 本机安装标识（32 位 hex；空串 = 还没生成）。**不上传**，只作当日标识的盐 */
+    var telemetryInstallId: String
+        get() = sp.getString("telemetry_install_id", "").orEmpty()
+        set(v) = sp.edit().putString("telemetry_install_id", v).apply()
+
+    /** 首次见到本机的时间（epoch ms；0 = 还没记过） */
+    var telemetryFirstSeenAt: Long
+        get() = sp.getLong("telemetry_first_seen", 0L)
+        set(v) = sp.edit().putLong("telemetry_first_seen", v).apply()
 
     /** 清空本文件里的所有偏好（供 [DataWiper] 用；会话密文也在本文件里，一并清掉） */
     fun clearAll() {

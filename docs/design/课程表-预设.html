@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>课程表 · 预设拼装</title>
+<style>
+:root{
+  --paper:#FAF7F1; --card:#FFFFFF; --cardalt:#F1ECE1; --ink:#16211B; --inksoft:#3C4A42; --inkfaint:#5A6A60;
+  --rule:#91825F; --outline:#7B897F; --pine:#1F4A3D; --clay:#B4553C; --indigo:#2E5266; --olive:#3E5C34; --ochre:#7A5714; --brick:#8E2B1E;
+  --page:#E8E4DA; --chrome:#101613;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--page);color:var(--ink);
+  font-family:system-ui,-apple-system,"PingFang SC","Source Han Sans SC","Noto Sans CJK SC","Microsoft YaHei",sans-serif}
+body{padding:34px 40px 80px}
+.kitnav{display:flex;gap:8px;margin:-2px 0 12px;flex-wrap:wrap}
+.kitnav a{font-size:12px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--ink);opacity:.78;text-decoration:none}
+.kitnav a:hover{opacity:1}
+h1{font-size:22px;letter-spacing:.01em;margin:0 0 6px}
+.sub{color:var(--inkfaint);font-size:12.5px;line-height:1.7;max-width:920px}
+.sub code{font-family:ui-monospace,Menlo,Consolas,monospace;background:#00000008;padding:1px 4px;border-radius:3px}
+h2{font-size:14px;letter-spacing:.14em;margin:44px 0 14px;color:var(--inksoft);font-weight:600}
+h2::after{content:"";display:block;width:46px;height:2px;background:var(--pine);margin-top:8px}
+.row{display:flex;gap:26px;align-items:flex-start;flex-wrap:wrap}
+
+/* ── 手机外框 ───────────────────────── */
+.phone{width:430px;height:772px;background:var(--paper);border-radius:26px;overflow:hidden;
+  border:1px solid #00000022;box-shadow:0 18px 40px -22px #00000066,0 2px 0 #ffffff88 inset;
+  display:flex;flex-direction:column;position:relative}
+.phone.dark{--paper:#141A17;--card:#1B231F;--cardalt:#232C27;--ink:#F1EFE7;--inksoft:#C6CDC6;--inkfaint:#9AA69D;
+  --rule:#647D71;--outline:#6E7B72;--pine:#8FBFA6;--clay:#E0937A;--indigo:#A8C2CF;--olive:#A9C496;--ochre:#D9B96E;--brick:#E5A08F}
+.phone .cap{position:absolute;top:-26px;left:0;font-size:11px;letter-spacing:.1em;color:#00000088}
+.wrap-ph{position:relative;margin-top:26px;flex:0 0 auto}
+
+/* 页头 */
+.hd{display:flex;align-items:center;gap:10px;padding:14px 14px 8px;flex:0 0 auto}
+.hd .ttl{font-size:15px;font-weight:600;letter-spacing:.02em}
+.hd .who{font-size:10.5px;color:var(--inkfaint);margin-left:auto;font-variant-numeric:tabular-nums}
+.hd .ic{width:22px;height:22px;border:1px solid var(--outline);border-radius:50%;display:grid;place-items:center;font-size:11px;color:var(--inksoft)}
+.masthead{padding:16px 16px 6px;border-bottom:2px solid var(--ink)}
+.masthead .big{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.masthead .meta{display:flex;justify-content:space-between;font-size:10px;color:var(--inkfaint);margin-top:4px;font-variant-numeric:tabular-nums}
+
+/* 周条 */
+.strip{padding:8px 14px;display:flex;align-items:center;gap:8px;flex:0 0 auto}
+.chips{display:flex;gap:6px;overflow:hidden}
+.chip{font-size:11px;padding:4px 9px;border:1px solid var(--outline);border-radius:999px;color:var(--inksoft);white-space:nowrap}
+.chip.on{background:var(--pine);border-color:var(--pine);color:#fff}
+.slider{flex:1;height:2px;background:var(--rule);position:relative;margin:0 6px}
+.slider i{position:absolute;left:38%;top:-5px;width:12px;height:12px;border-radius:50%;background:var(--pine)}
+.stepper{display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--inksoft);font-variant-numeric:tabular-nums}
+.stepper b{font-size:13px;color:var(--ink)}
+.stepper .arrow{opacity:.45}
+.stepper .arrow.live{opacity:1}
+
+/* 隔日页签 */
+.days{display:grid;grid-template-columns:var(--axisw,0) repeat(7,1fr);flex:0 0 auto;padding:0 14px}
+.days.tabs{border-bottom:1px solid var(--rule)}
+.days.ribbon{border-bottom:2px solid var(--ink)}
+.days>div{text-align:center;font-size:10.5px;color:var(--inkfaint);padding:6px 0 5px}
+.days>div.today{color:var(--pine);font-weight:700}
+.days.ribbon>div.today{box-shadow:inset 0 -2px 0 var(--pine)}
+.days.stack>div{line-height:1.25}
+.days.stack>div b{display:block;font-size:11px;color:var(--ink)}
+.days.stack>div.today b{color:var(--pine)}
+
+/* 格阵 */
+.body{flex:1 1 auto;min-height:0;display:flex;flex-direction:column;overflow:hidden;padding:0 14px 10px;position:relative}
+.grid{display:grid;grid-template-columns:var(--axisw,0) repeat(7,1fr);grid-template-rows:repeat(10,minmax(0,1fr));position:relative;flex:1 1 auto;min-height:0}
+.grid.lines{background-image:linear-gradient(to bottom,var(--rule) 1px,transparent 1px);background-size:100% 52px}
+.grid.bands .bandrow:nth-child(odd){background:#00000005}
+.grid.cells{gap:2px}
+.grid.air{background:none}
+.axis{display:grid;grid-template-rows:repeat(10,minmax(0,1fr));font-size:9.5px;color:var(--inkfaint);text-align:right;padding-right:5px}
+.axis .s{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;gap:1px}
+.axis.rail .s{font-weight:700;color:var(--inkfaint)}
+.axis.rail .s b{display:grid;place-items:center;width:15px;height:15px;border-radius:50%;border:1px solid var(--outline);font-size:9px;color:var(--inksoft);font-weight:600}
+.axis.gutter .s span{font-variant-numeric:tabular-nums}
+
+/* 课程格 */
+.cell{position:relative;margin:2px;border-radius:0;overflow:hidden;padding:4px 4px 3px;
+  display:flex;flex-direction:column;gap:1px;background:var(--card);border:1px solid var(--outline)}
+.cell .nm{font-size:10px;line-height:1.16;font-weight:600;color:var(--ink);letter-spacing:-.01em;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cell .mt{font-size:8.5px;line-height:1.2;color:var(--inkfaint)}
+.cell .tm{position:absolute;right:3px;bottom:2px;font-size:7.5px;color:var(--inkfaint);font-variant-numeric:tabular-nums}
+
+/* cell=paper */
+.cell.paper{border-radius:0;border:1px solid var(--outline)}
+/* cell=ledger */
+.cell.ledger{border-radius:9px;border:1px solid #00000014;box-shadow:0 3px 7px -4px #00000055;padding-top:6px}
+/* cell=rule */
+.cell.rule{background:transparent;border:0;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);border-radius:0;box-shadow:none}
+/* cell=block */
+.cell.block{background:var(--pine);border-color:transparent;color:#fff}
+.cell.block .nm{color:#fff}
+.cell.block .mt{color:#ffffffcc}
+
+/* 色带 accent */
+.acc-spine::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.5px;background:var(--pine)}
+.acc-cap::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--pine)}
+.acc-dot::before{content:"";position:absolute;left:3px;top:3px;width:5px;height:5px;border-radius:50%;background:var(--clay)}
+.acc-wash{background:color-mix(in srgb, var(--pine) 12%, var(--card))!important}
+.acc-wash.acc-wash-strong{background:color-mix(in srgb, var(--pine) 20%, var(--card))!important}
+.cell.acc-wash .nm{color:var(--ink)}
+.cell.acc-wash .mt{color:var(--inkfaint)}
+
+/* meta 排布 */
+.meta-inline .mt{display:flex;justify-content:space-between;gap:4px}
+.meta-footer .mt{position:absolute;left:4px;bottom:3px;right:4px;font-size:8px}
+.meta-minimal .mt{display:none}
+
+/* 侵蚀（只褪色不删卡） */
+.er-wipe::after{content:"";position:absolute;left:0;right:0;bottom:0;height:var(--p,40%);
+  background:linear-gradient(to top,color-mix(in srgb,var(--card) 92%,var(--paper)),transparent)}
+.er-hatch::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,#00000000 0 4px,color-mix(in srgb,var(--card) 70%,transparent) 4px 7px)}
+.er-fade{opacity:.58}
+.cell .nm,.cell .mt{position:relative;z-index:3}
+.cell.er-fade .nm{opacity:1}
+
+/* 角标 */
+.bdg-corner::after{content:"";position:absolute;right:0;top:0;border:7px solid transparent;border-top-color:var(--clay);border-right-color:var(--clay);z-index:4}
+.bdg-stripe::after{content:"";position:absolute;right:0;top:0;width:14px;height:14px;
+  background:repeating-linear-gradient(45deg,var(--clay) 0 1.5px,transparent 1.5px 4px);z-index:4}
+
+/* 小图形 */
+.ghost{position:absolute;right:3px;top:2px;font-size:9px;opacity:.55;z-index:2}
+.food{position:absolute;right:3px;bottom:2px;font-size:8.5px;opacity:.7;z-index:2}
+
+/* nowLine */
+.nowrule{position:absolute;left:0;right:0;height:0;border-top:1.5px solid var(--clay);z-index:6;pointer-events:none}
+.nowrule i{position:absolute;left:-4px;top:-6px;width:8px;height:8px;border-radius:50%;background:var(--clay)}
+.nowrule span{position:absolute;right:0;top:-9px;font-size:8px;color:var(--clay);background:var(--paper);padding:0 3px;font-variant-numeric:tabular-nums}
+.nowband{position:absolute;left:0;right:0;background:color-mix(in srgb,var(--clay) 8%,transparent);z-index:0;pointer-events:none}
+.nowring{outline:1.5px solid var(--clay);outline-offset:-1.5px;box-shadow:0 0 0 2px color-mix(in srgb,var(--clay) 16%,transparent)}
+
+/* 底纹 */
+.bd-ruled{background-image:linear-gradient(to bottom,var(--rule) 1px,transparent 1px);background-size:100% 26px;opacity:.14;position:absolute;inset:0;pointer-events:none}
+.bd-ridge{position:absolute;inset:0;pointer-events:none;opacity:.10;
+  background-image:repeating-linear-gradient(90deg,var(--pine) 0 1px,transparent 1px 14px)}
+.bd-math{position:absolute;inset:0;pointer-events:none;opacity:.09;
+  background-image:repeating-linear-gradient(63deg,var(--indigo) 0 1px,transparent 1px 26px),repeating-linear-gradient(-63deg,var(--indigo) 0 1px,transparent 1px 26px)}
+
+/* 页脚 */
+.ft{flex:0 0 auto;padding:7px 14px 10px;font-size:9.5px;color:var(--inkfaint);display:flex;justify-content:space-between;border-top:1px solid var(--rule)}
+
+/* 说明条与表格 */
+.note{font-size:11.5px;color:var(--inksoft);line-height:1.75;max-width:760px}
+table{border-collapse:collapse;font-size:11px;margin-top:12px}
+th,td{border:1px solid #00000020;padding:5px 9px;text-align:left;vertical-align:top}
+th{background:#00000007;font-weight:600;color:var(--ink)}
+td code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:10.5px}
+.pick{display:flex;gap:8px;margin:14px 0 0;flex-wrap:wrap}
+.pick button{font:inherit;font-size:12px;padding:6px 14px;border-radius:999px;border:1px solid var(--outline);
+  background:transparent;color:var(--ink);cursor:pointer}
+.pick button.on{background:var(--pine);border-color:var(--pine);color:#fff}
+</style>
+</head>
+<body>
+
+<h1>课程表 · 预设拼装</h1>
+<div class="kitnav">
+  <a href="课程表-骨架.html">骨架层 kit ↗</a>
+  <a href="课程表-格子.html">格子层 kit ↗</a>
+  <a href="课程表-浮层.html">浮层层 kit ↗</a>
+</div>
+<p class="sub">五套预设由同一套槽位拼出来 —— 换预设就是换一组字符串，没有第二份布局代码。
+每个槽位取值见 <code>docs/设计-课程表组件化-m41.md</code> §2；本页只演示「拼完长什么样」。
+数据是张三 / 2024000000 / 第 3 周 / 周三 10:24。</p>
+
+<h2>一 · 同一台机器换预设</h2>
+<div class="pick" id="pick"></div>
+<div class="row"><div class="wrap-ph"><div id="livehost"></div><div class="cap" id="livecap"></div></div>
+<div class="note" id="livedesc" style="max-width:420px;padding-top:8px"></div></div>
+
+<h2>二 · 五套并排</h2>
+<div class="row" id="allp"></div>
+
+<h2>三 · 暗色档</h2>
+<div class="row" id="darkrow"></div>
+
+<h2>四 · 槽位对照</h2>
+<div id="table"></div>
+
+<script>
+const PRESETS = [
+  {id:"paper",  name:"纸卡",  shell:"editorial", header:"toolbar", weekStrip:"chips",   axis:"rail",   dayHeader:"tabs",   grid:"lines", cell:"paper",  accent:"spine", meta:"stacked", badge:"corner", erosion:"wipe",  glyph:"ghost", nowLine:"ring",  backdrop:"ridge",
+   desc:"现状默认。方卡 0 圆角 + 左侧 2.5dp 竖脊，靠横线分节，田垄底纹作参照。信息最全，代价是线条多、窄格里少一个字。"},
+  {id:"ledger", name:"账页",  shell:"ledger",    header:"toolbar", weekStrip:"chips",   axis:"gutter", dayHeader:"ribbon", grid:"bands", cell:"ledger", accent:"cap",   meta:"stacked", badge:"corner", erosion:"wipe",  glyph:"ghost", nowLine:"ring",  backdrop:"none",
+   desc:"便签浮起。零横线，靠交错行带与分节色带定位；色带放高度方向（顶帽），把宽度全留给课名。"},
+  {id:"dense",  name:"密排",  shell:"dense",     header:"toolbar", weekStrip:"stepper", axis:"inline", dayHeader:"tabs",   grid:"cells", cell:"rule",   accent:"none",  meta:"inline",  badge:"corner", erosion:"hatch", glyph:"none",  nowLine:"band",  backdrop:"none",
+   desc:"一屏塞下整周。细线报表格 + 课名与地点同行，时刻挪进格内右下角；当前节整行高亮代替游标。"},
+  {id:"agenda", name:"周历",  shell:"dense",     header:"masthead",weekStrip:"stepper", axis:"gutter", dayHeader:"stack",  grid:"air",   cell:"block",  accent:"none",  meta:"footer",  badge:"stripe", erosion:"fade",  glyph:"food",  nowLine:"rule",  backdrop:"ruled",
+   desc:"像一本周历。整天只有留白与色块，课名压在色块上白字；日期两行（星期 / 当日）。"},
+  {id:"quiet",  name:"极简",  shell:"quiet",     header:"bare",    weekStrip:"slider", axis:"none",   dayHeader:"tabs",   grid:"air",   cell:"block",  accent:"wash",  meta:"minimal", badge:"corner", erosion:"fade",  glyph:"none",  nowLine:"rule",  backdrop:"none",
+   desc:"只有课名与留白。整底 12% 淡色代替描边，无页头（靠边缘留白与手势），周次用一条可拖的细线。"},
+];
+
+// 假数据：7 列 × 5 大节
+const NAMES = ["高等数学A","大学物理实验","有机化学","马克思主义基本原理","体育","作物栽培学","概率论与数理统计"];
+const PLACES = ["A101","实验楼B302","化学楼204","教一楼101","体育馆","农学楼212","A203"];
+const TEACH = ["王","李","赵","孙","周","吴","郑"];
+const CELLS = [
+  {d:0,s:0,span:2,i:0}, {d:0,s:3,span:2,i:2},
+  {d:1,s:1,span:2,i:1}, {d:1,s:4,span:1,i:3},
+  {d:2,s:0,span:2,i:2}, {d:2,s:2,span:1,i:4}, {d:2,s:3,span:2,i:6},
+  {d:3,s:0,span:2,i:0}, {d:3,s:2,span:2,i:2}, {d:3,s:4,span:1,i:5},
+  {d:4,s:1,span:2,i:6}, {d:4,s:3,span:2,i:1},
+  {d:5,s:0,span:1,i:3}, {d:5,s:2,span:2,i:5},
+  {d:6,s:1,span:1,i:4},
+  {d:1,s:6,span:1,i:5}, {d:3,s:5,span:2,i:1},
+  {d:4,s:7,span:2,i:3}, {d:0,s:8,span:1,i:0},
+];
+const SESS = [["1","08:00"],["2","08:55"],["3","10:00"],["4","10:55"],["5","13:30"],["6","14:25"],["7","15:30"],["8","16:25"],["9","18:30"],["10","19:25"]];
+const DAYN = ["一","二","三","四","五","六","日"];
+const DAYD = ["09-01","09-02","09-03","09-04","09-05","09-06","09-07"];
+
+function cellHTML(c, p){
+  const cls = ["cell", p.cell, "acc-"+p.accent, "meta-"+p.meta, "er-"+p.erosion, "bdg-"+p.badge];
+  if (p.nowLine==="ring" && c.d===2 && c.s===3) cls.push("nowring");
+  if (p.accent==="wash") cls.push("acc-wash");
+  if (p.cell==="block") cls.length = cls.length; // block 保留
+  let style = "grid-column:"+(c.d+2)+" / span 1;grid-row:"+(c.s+1)+" / span "+c.span+";";
+  let inner = "";
+  const nm = NAMES[c.i], pl = PLACES[c.i];
+  if (p.meta==="minimal") inner = '<div class="nm">'+nm.slice(0,5)+'</div>';
+  else if (p.meta==="inline") inner = '<div class="nm">'+nm.slice(0,4)+'</div><div class="mt"><span>'+pl+'</span></div>';
+  else if (p.meta==="footer") inner = '<div class="nm">'+nm+'</div><div class="mt">'+pl+'</div>';
+  else inner = '<div class="nm">'+nm+'</div><div class="mt">'+pl+'</div><div class="mt">'+"张三·"+TEACH[c.i]+'</div>';
+  if (p.glyph==="ghost" && c.span===2) inner += '<div class="ghost">◌</div>';
+  if (p.glyph==="food" && c.s===2) inner += '<div class="food">▣</div>';
+  if (p.axis==="inline") inner += '<div class="tm">08:00</div>';
+  const prog = (c.d<2 && c.s<3) ? "60%" : "0%";
+  style += "--p:"+prog+";";
+  return '<div class="'+cls.join(" ")+'" style="'+style+'">'+inner+'</div>';
+}
+
+function headerHTML(p){
+  if (p.header==="bare") return '';
+  if (p.header==="masthead") return '<div class="masthead"><div class="big">本周课表</div>'+
+    '<div class="meta"><span>2026 秋季学期 · 第 3 周</span><span>张三 · 2024000000</span></div></div>';
+  return '<div class="hd"><div class="ic">‹</div><div class="ttl">课表</div><div class="who">第 3 周 · 张三</div><div class="ic">⋯</div></div>';
+}
+
+function stripHTML(p){
+  if (p.weekStrip==="chips") return '<div class="strip"><div class="chips">'+
+    [1,2,3,4,5].map(w=>'<div class="chip'+(w===3?' on':'')+'">第'+w+'周</div>').join('')+'</div></div>';
+  if (p.weekStrip==="slider") return '<div class="strip"><div class="slider"><i></i></div><span style="font-size:11px;color:var(--inkfaint)">3/20</span></div>';
+  return '<div class="strip"><div class="stepper"><span class="arrow live">‹</span><b>第 3 周</b><span class="arrow">›</span>'+
+    '<span style="margin-left:auto;font-size:10px;color:var(--inkfaint)">共 20 周</span></div></div>';
+}
+
+function axisHTML(p, w){
+  if (p.axis==="none") return '';
+  return '<div class="axis '+p.axis+'" style="grid-row:1 / span 10;grid-column:1;">'+
+    SESS.map(s=>'<div class="s"><b>'+s[0]+'</b><span>'+s[1]+'</span></div>').join('')+'</div>';
+}
+
+function daysHTML(p){
+  if (p.dayHeader==="stack") return '<div class="days stack"><div style="width:0"></div>'+
+    DAYN.map((d,i)=>'<div'+(i===2?' class="today"':'')+'><b>'+d+'</b>'+DAYD[i]+'</div>').join('')+'</div>';
+  return '<div class="days '+p.dayHeader+'"><div style="width:0"></div>'+
+    DAYN.map((d,i)=>'<div'+(i===2?' class="today"':'')+'>'+d+'</div>').join('')+'</div>';
+}
+
+function render(p, dark){
+  const axisw = (p.axis==="none") ? "0px" : (p.axis==="rail" ? "22px" : "32px");
+  const bd = p.backdrop!=="none" ? '<div class="bd-'+p.backdrop+'"></div>' : '';
+  const nowTop = "calc(4.5 * (100% / 10))";
+  const now = p.nowLine==="rule" ? '<div class="nowrule" style="top:'+nowTop+'"><i></i><span>10:24</span></div>'
+            : p.nowLine==="band" ? '<div class="nowband" style="top:calc(4 * (100% / 10));height:calc(100% / 10)"></div>' : '';
+  const grid = '<div class="grid '+p.grid+'" style="--axisw:'+axisw+'">'+bd+axisHTML(p)+
+    CELLS.map(c=>cellHTML(c,p)).join('')+now+'</div>';
+  return '<div class="phone'+(dark?' dark':'')+'" style="--axisw:'+axisw+'">'+
+    headerHTML(p)+stripHTML(p)+daysHTML(p)+
+    '<div class="body">'+grid+'</div>'+
+    '<div class="ft"><span>第 3 周 · 12 门课</span><span>共 20 周</span></div></div>';
+}
+
+// 一 · 切换演示
+const pick = document.getElementById("pick");
+const host = document.getElementById("livehost");
+const cap = document.getElementById("livecap");
+const desc = document.getElementById("livedesc");
+let cur = 0, darkLive = false;
+function paint(){
+  const p = PRESETS[cur];
+  host.innerHTML = render(p, darkLive);
+  cap.textContent = "preset = "+p.id+"　·　点上面的按钮换";
+  desc.innerHTML = "<b>"+p.name+"</b>　"+p.desc+"<br><br>"+
+    "<span style='font-family:ui-monospace,monospace;font-size:10.5px;color:var(--inkfaint)'>"+
+    ['shell','header','weekStrip','axis','dayHeader','grid','cell','accent','meta','badge','erosion','glyph','nowLine','backdrop']
+    .map(k=>k+"="+p[k]).join("  ")+"</span>";
+}
+PRESETS.forEach((p,i)=>{
+  const b=document.createElement("button");
+  b.textContent=p.name; b.onclick=()=>{cur=i;paint();}; pick.appendChild(b);
+});
+const db=document.createElement("button"); db.textContent="暗色档";
+db.onclick=()=>{darkLive=!darkLive;db.classList.toggle("on",darkLive);paint();}; pick.appendChild(db);
+
+// 二 · 五套并排（每套两档）
+const allp = document.getElementById("allp");
+PRESETS.forEach(p=>{
+  allp.insertAdjacentHTML("beforeend",
+    '<div class="wrap-ph" style="margin-top:26px"><div class="cap">'+p.id+'</div>'+render(p,false)+'</div>');
+});
+// 三 · 槽位表
+const keys=["shell","header","weekStrip","axis","dayHeader","grid","cell","accent","meta","badge","erosion","glyph","nowLine","backdrop"];
+let t='<table><tr><th>槽位</th>'+PRESETS.map(p=>'<th>'+p.name+'</th>').join('')+'</tr>';
+keys.forEach(k=>{ t+='<tr><td><code>'+k+'</code></td>'+PRESETS.map(p=>'<td><code>'+p[k]+'</code></td>').join('')+'</tr>'; });
+t+='</table>';
+document.getElementById("table").innerHTML=t;
+
+// 三 · 暗色档：取三套代表
+const darkrow = document.getElementById("darkrow");
+["paper","ledger","quiet"].forEach(id=>{
+  const q = PRESETS.find(x=>x.id===id);
+  darkrow.insertAdjacentHTML("beforeend",
+    '<div class="wrap-ph" style="margin-top:26px"><div class="cap">'+q.id+' · dark</div>'+render(q,true)+'</div>');
+});
+
+paint();
+</script>
+</body>
+</html>

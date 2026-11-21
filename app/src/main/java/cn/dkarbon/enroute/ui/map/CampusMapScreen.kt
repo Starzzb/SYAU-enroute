@@ -217,6 +217,7 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 exportHint = "这个文件读不出来（没权限或不是文本）"
             } else {
                 vm.importMapAnnotations(text)
+                cn.dkarbon.enroute.data.telemetry.Telemetry.record("map.edit.import", mapOf("ok" to "true"))
             }
         }
     }
@@ -249,6 +250,13 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                         is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Failed -> r.message
                         cn.dkarbon.enroute.data.map.MapUploader.Outcome.NothingToDo -> "没有可上传的标注"
                     }
+                    cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                        "map.edit.export",
+                        mapOf("format" to "geojson", "faces" to cn.dkarbon.enroute.data.telemetry.Telemetry.bucketCount(ui.mapEdits.features.size)),
+                    )
+                    if (r is cn.dkarbon.enroute.data.map.MapUploader.Outcome.Failed) {
+                        cn.dkarbon.enroute.data.telemetry.Telemetry.record("net.fail", mapOf("where" to "map", "kind" to "server"))
+                    }
                 }
             }
         }
@@ -265,6 +273,27 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
                 editsStore.write(batch)
             }
             if (ok) {
+                // 标注是用户真花时间画的东西：只记规模（面数/字段数/自定义类别数），坐标与文字一概不出门
+                // features 是 Map<id, MapEdit>：kind 是标注类别，fields 是用户自己填的键值对
+                val edits = batch.features.values
+                val kinds = edits.map { it.kind }.filter { it.isNotBlank() }.distinct().size
+                val fields = edits.flatMap { it.fields.keys }.distinct().size
+                cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                    "map.edit.save",
+                    mapOf(
+                        "faces" to cn.dkarbon.enroute.data.telemetry.Telemetry.bucketCount(batch.features.size),
+                        "fields" to when {
+                            fields <= 1 -> "1"
+                            fields <= 5 -> "2-5"
+                            else -> "6+"
+                        },
+                        "custom_kinds" to when {
+                            kinds <= 0 -> "0"
+                            kinds <= 2 -> "1-2"
+                            else -> "3+"
+                        },
+                    ),
+                )
                 savedAt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.CHINA)
                     .format(java.util.Date())
             }
@@ -322,6 +351,10 @@ fun CampusMapScreen(ui: AppState, vm: TimetableViewModel) {
         val onSheetDragStop: () -> Unit = {
             sheetDetent = MapSheet.nearest(sheetDragFraction)
             sheetDragging = false
+            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                "map.sheet.detent",
+                mapOf("detent" to "%.2f".format(MapSheet.DETENTS[sheetDetent])),
+            )
         }
 
         // 底部预留操作条的高度：地图/提示都落在操作条之上，不会被压住

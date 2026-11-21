@@ -77,6 +77,8 @@ build-verify-done.txt
 在途/curriculum/_collect/zoom_*.png
 在途/curriculum/_collect/.tmp_*
 在途/curriculum/_collect/__pycache__/
+server/telemetry/__pycache__/
+server/telemetry/data/
 在途/curriculum/_collect/_probe_raw*.json
 在途/.tmp_*
 

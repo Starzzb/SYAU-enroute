@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import androidx.core.content.FileProvider
 import cn.dkarbon.enroute.BuildConfig
+import cn.dkarbon.enroute.data.telemetry.Telemetry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -99,6 +100,8 @@ class UpdateCenter(private val ctx: Context) {
             return@withContext when (val parsed = UpdateParse.latest(text)) {
                 is LatestResult.Fail -> {
                     _available.value = null
+                    // latest.json 在，但读不懂 —— 这是「发版填错了」，不是网络问题，单独记 parse
+                    cn.dkarbon.enroute.data.telemetry.Telemetry.record("net.fail", mapOf("where" to "update", "kind" to "parse"))
                     CheckResult.Failed(parsed.reason)
                 }
                 is LatestResult.Ok -> {
@@ -111,15 +114,31 @@ class UpdateCenter(private val ctx: Context) {
                                 .putString(KEY_AVAILABLE_INFO, serializeInfo(info))
                                 .apply()
                             _available.value = info
-                            CheckResult.Available(info, UpdateVersions.isMandatory(info, localCode))
+                            val mandatory = UpdateVersions.isMandatory(info, localCode)
+                            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                                "update.check",
+                                mapOf(
+                                    "result" to if (mandatory) "mandatory" else "has",
+                                    "channel" to (MANIFEST_URLS.indexOf(raw) + 1).toString(),
+                                ),
+                            )
+                            CheckResult.Available(info, mandatory)
                         }
                         UpdateRelation.SAME -> {
                             clearAvailable()
+                            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                                "update.check",
+                                mapOf("result" to "none", "channel" to (MANIFEST_URLS.indexOf(raw) + 1).toString()),
+                            )
                             CheckResult.Latest(localName)
                         }
                         UpdateRelation.OLDER -> {
                             // 服务器版本比本机旧（回滚/灰度）：**不提示更新**，但如实说明
                             clearAvailable()
+                            cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+                                "update.check",
+                                mapOf("result" to "none", "channel" to (MANIFEST_URLS.indexOf(raw) + 1).toString()),
+                            )
                             CheckResult.Latest(localName, note = "服务器上最新是 ${info.versionName}，比本机旧")
                         }
                     }
@@ -127,6 +146,12 @@ class UpdateCenter(private val ctx: Context) {
             }
         }
         if (silent) DebugLog.log("UPDATE", "静默检查失败：$lastErr")
+        // 五条候选全连不上：记「哪一张网没通」，不带 URL 原文
+        cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+            "update.check",
+            mapOf("result" to "none", "channel" to "(none)"),
+        )
+        cn.dkarbon.enroute.data.telemetry.Telemetry.record("net.fail", mapOf("where" to "update", "kind" to "unreachable"))
         _available.value = null
         CheckResult.Failed(lastErr)
     }
@@ -182,15 +207,29 @@ class UpdateCenter(private val ctx: Context) {
         onProgress: (Long, Long) -> Unit = { _, _ -> },
     ): DownloadResult {
         val candidates = UpdatePolicy.mirrorsOf(info.url)
+        val startedAt = System.currentTimeMillis()
         var last: DownloadResult.Failed? = null
         for ((i, url) in candidates.withIndex()) {
             val r = downloadOnce(url, info, onProgress)
-            if (r is DownloadResult.Ready) return r
+            if (r is DownloadResult.Ready) {
+                recordDownload(true, startedAt)
+                return r
+            }
             if (r is DownloadResult.Cancelled) return r
             last = r as? DownloadResult.Failed
             DebugLog.log("UPDATE", "下载候选 ${i + 1}/${candidates.size} 失败（${hostOf(url)}）：${last?.message}")
         }
+        recordDownload(false, startedAt)
         return last ?: DownloadResult.Failed("没有可用的下载地址")
+    }
+
+    /** 下载成败 + 耗时档位（只报档位：具体毫秒数能和别的数据对上号） */
+    private fun recordDownload(ok: Boolean, startedAt: Long) {
+        val sec = (System.currentTimeMillis() - startedAt) / 1000
+        Telemetry.record(
+            "update.download",
+            mapOf("ok" to ok.toString(), "ms" to Telemetry.bucketSeconds(sec)),
+        )
     }
 
     private suspend fun downloadOnce(

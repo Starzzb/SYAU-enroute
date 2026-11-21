@@ -13,7 +13,7 @@
 | 语言与工具链  | Kotlin 2.0.21、AGP 8.7.3、Gradle 8.11.1、JDK 17                       |
 | 界面      | Jetpack Compose（BOM 2024.10.01）、Material 3、material-icons-core |
 | 最低与目标版本 | minSdk 26、targetSdk 35                                             |
-| 版本      | `0.9.1+m39`／versionCode 470                                            |
+| 版本      | `0.10.0+m41`／versionCode 490                                            |
 | 协程与并发   | kotlinx-coroutines 1.9.0                                           |
 | 序列化     | kotlinx-serialization-json 1.7.3                                   |
 | 生命周期    | lifecycle 2.8.7（runtime／viewmodel-compose／runtime-compose）         |
@@ -63,7 +63,7 @@ app/src/main/java/cn/dkarbon/enroute/
 
 ## 规模
 
-Kotlin 主代码 38,000+ 行，650 个用例分布在 58 个测试类里。R8 之后的 release 包 7.66 MiB（8,028,840 B），分布：内置资产 4.15 MiB（大纲 14 个学院包 3.99 MiB + 培养方案池与年包 0.16 MiB）、dex 4.09 MiB、res 1.16 MiB、resources.arsc 0.54 MiB、lib 37 KB。
+Kotlin 主代码 38,000+ 行，672 个用例分布在 60 个测试类里。R8 之后的 release 包 7.67 MiB（8,045,224 B），分布：内置资产 4.15 MiB（大纲 14 个学院包 3.99 MiB + 培养方案池与年包 0.16 MiB）、dex 4.18 MiB、res 1.16 MiB、resources.arsc 0.54 MiB、lib 37 KB。
 
 资产是体积第一大头（`curriculum/packed_meta.json` 记录：大纲 2066 门 4,185,043 B、培养方案 168 份 171,417 B，数据资产 4,356,460 B，加上元数据 1,071 B 共 4,357,531 B），2026-11-21 做过一轮瘦身：大纲「简介」只留中文、培养方案「培养目标/毕业要求」压成一句话并标原 PDF 页码，资产 4.87 → 4.35 MB，APK 省 505 KB（见 `docs/设计-资产瘦身-m38.md`）。m39 给大纲索引补了 `pages` 页码范围（+6,872 B）。debug 包没裁剪，体积更大。
 

@@ -150,6 +150,27 @@ fun AboutScreen() {
             KvRow("构建日期", BuildConfig.BUILD_TIME.takeIf { it.isNotBlank() } ?: "—")
         }
 
+        // ── 隐私（义务告知，不是说明书：这里必须把「传了什么、没传什么」说清楚）──
+        CardGap()
+        SectionLabel("隐私")
+        AboutCard {
+            Text(
+                "没有账号体系，课表、成绩、登录凭据都只存在这台手机上。",
+                fontSize = 11.5.sp,
+                lineHeight = 18.sp,
+                color = t.inkFaint,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "匿名使用统计默认开启：只上传功能被用了多少次、失败了多少次，以及版本号与机型 ABI。" +
+                    "不含学号、姓名、课程名、搜索词、坐标，也不含可长期追踪的设备标识。" +
+                    "可在「设置 → 数据」里随时关掉，关掉即清空本机排队的记录。",
+                fontSize = 11.5.sp,
+                lineHeight = 18.sp,
+                color = t.inkFaint,
+            )
+        }
+
         // ── 更新（复用设置页那个自带状态机的区块：查 → 下载 → 校验 → 交系统安装器）──
         CardGap()
         SectionLabel("更新")

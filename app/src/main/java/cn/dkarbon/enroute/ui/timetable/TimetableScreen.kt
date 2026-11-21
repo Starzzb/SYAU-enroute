@@ -506,6 +506,11 @@ internal fun GridArea(
     val f = TtCardForm
     val ed = f.editorial
     val accentText = primaryInk()
+    // 槽位（m41）：页头 / 行距 / 底纹 / 底纹动效四条布局轴
+    val slots = cn.dkarbon.enroute.ui.timetable.TtCardPrefs.slots
+    val headerPad = when (slots.header) { 0 -> 3.dp; 1 -> 5.dp; else -> 9.dp }
+    val daySize = if (ed) 13.sp else when (slots.header) { 0 -> 11.5.sp; 1 -> 12.sp; else -> 13.sp }
+    val drift = cn.dkarbon.enroute.ui.timetable.backdropDrift(slots.bgMotion)
     val allBigs = BigSession.entries
 
     // 网格是「固定列宽 + 固定字宽」的表格，字号放到 1.3 会把 8 字课名挤成省略号。
@@ -527,12 +532,12 @@ internal fun GridArea(
                 (1..7).forEach { day ->
                     val isToday = day == todayWeekday && isThisWeek
                     Column(
-                        Modifier.weight(1f).padding(vertical = 5.dp),
+                        Modifier.weight(1f).padding(vertical = headerPad),
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             listOf("", "一", "二", "三", "四", "五", "六", "日")[day],
-                            fontSize = if (ed) 13.sp else 12.sp,
+                            fontSize = daySize,
                             lineHeight = if (ed) 17.sp else 15.sp,
                             letterSpacing = if (ed) 0.5.sp else 0.sp,
                             fontFamily = if (ed) f.displayFamily else null,
@@ -594,7 +599,9 @@ internal fun GridArea(
             // 时段条 14dp + 显式行高：9sp 的「上午/下午」需要约 13dp，
             // 压到 12dp 文字会被裁成一条（CET6 2026-10-27 实测，这里沿用结论）。
             val bandH = 14.dp
-            val rowH = ((availH - bandH * 3) / 6).coerceAtLeast(64.dp)
+            // 行距轴：紧凑 0.88 / 标准 1.0 / 宽松 1.12，下限仍是 64dp
+            val rowScale = when (slots.grid) { 0 -> 0.88f; 1 -> 1f; else -> 1.12f }
+            val rowH = (((availH - bandH * 3) / 6) * rowScale).coerceAtLeast(64.dp)
             val metrics = GridMetrics(maxWidth, rowH = rowH, bandH = bandH)
 
             // 矮屏兜底：网格比可视区高时纵向滚动，而不是把卡片压扁
@@ -623,6 +630,18 @@ internal fun GridArea(
                     val vStroke = 0.75.dp.toPx()
                     val washColor = if (ed) t.primary.copy(alpha = 0.045f) else Tt.todayWash(t.isDark)
                     val todayColor = if (ed) t.primary else Tt.todayRule(t.isDark)
+
+                    // 底纹先铺（在今日竖带与格线之下）
+                    drawTtBackdrop(
+                        style = slots.backdrop,
+                        drift = drift,
+                        axisW = axisW,
+                        colW = colW,
+                        rowH = metrics.rowH.toPx(),
+                        bandH = metrics.bandH.toPx(),
+                        rule = ruleColor,
+                        band = if (t.isDark) t.cardAlt.copy(alpha = 0.34f) else t.cardAlt.copy(alpha = 0.55f),
+                    )
 
                     if (isThisWeek) {
                         val x = axisW + colW * (todayWeekday - 1)
@@ -867,24 +886,17 @@ private fun CourseCard(
 ) {
     val t = InkTokens.current
     val f = TtCardForm
-    val key = course.courseNo.ifBlank { course.name }
-    val fam = Tt.famOf(key)
-    // 配置开关（m39）：默认值与改造前完全一致，所以不开设置页时渲染不变。
-    val tint = cn.dkarbon.enroute.ui.timetable.TtCardPrefs.tint
-    val wash = when (tint) {
-        1 -> if (t.isDark) t.cardAlt else t.cardAlt   // 单墨：不按课程分色
-        2 -> if (t.isDark) t.card else t.card         // 无色：就是卡片底色
-        else -> Tt.washOf(fam, t.isDark)
-    }
-    val spine = Tt.spineOf(fam, t.isDark)
-    val showSpine = cn.dkarbon.enroute.ui.timetable.TtCardPrefs.spine
+    // 槽位（m41）：七轴最终取值已由 ViewModel 合并好，这里只负责喂给渲染器。
+    val slots = cn.dkarbon.enroute.ui.timetable.TtCardPrefs.slots
     val haptic = LocalHapticFeedback.current
 
     Box(Modifier.fillMaxSize()) {
-        ErodedCard(
-            wash = wash,
-            spine = spine,
+        TtCourseCell(
+            course = course,
             progress = progress,
+            slots = slots,
+            tint = slots.tone,
+            onClickLabel = "查看 ${course.name} 详情",
             modifier = Modifier
                 .fillMaxSize()
                 .combinedClickable(
@@ -898,43 +910,7 @@ private fun CourseCard(
                     },
                     onClick = onClick,
                 ),
-        ) {
-            Row(Modifier.fillMaxSize()) {
-                if (showSpine) Box(Modifier.width(2.5.dp).fillMaxHeight().background(spine))
-                Column(Modifier.padding(start = 4.dp, top = 2.5.dp, end = 2.dp, bottom = 2.dp)) {
-                    Text(
-                        course.name,
-                        fontSize = 9.5.sp,
-                        lineHeight = 11.sp,
-                        fontWeight = FontWeight.Medium,
-                        maxLines = 3,
-                        overflow = TextOverflow.Ellipsis,
-                        color = t.ink,
-                    )
-                    Spacer(Modifier.height(1.dp))
-                    if (course.roomShort.isNotBlank()) {
-                        Text(
-                            CourseFacts.shortPlace(course.roomShort),
-                            fontSize = 8.sp,
-                            lineHeight = 9.5.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = t.inkSoft,
-                        )
-                    }
-                    if (course.teacher.isNotBlank()) {
-                        Text(
-                            course.teacher,
-                            fontSize = 7.5.sp,
-                            lineHeight = 9.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            color = t.inkFaint,
-                        )
-                    }
-                }
-            }
-        }
+        )
 
         // 正在上：2dp 主色描边（「当前」档）；可在设置里关掉
         if (isNow && cn.dkarbon.enroute.ui.timetable.TtCardPrefs.nowRing) {

@@ -2,6 +2,7 @@ package cn.dkarbon.enroute.ui.timetable
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -47,6 +48,56 @@ private fun blend(a: Color, b: Color, t: Float): Color = Color(
     alpha = 1f,
 )
 
+/**
+ * 侵蚀洗色（m41 抽出）。
+ *
+ * 原来这段写死在 [ErodedCard] 的 `drawWithContent` 里；槽位化之后格子有五种形状、
+ * 四种侵蚀档，都要同一套咬痕，于是抽成 Modifier。
+ * **用 `drawBehind` 而不是 `drawWithContent`**：洗色永远在正文之下，
+ * 课名不会被吃掉 —— 这正是 2026-11-17 主人改的那一处。
+ */
+@Composable
+fun erosionBrush(progress: Float, isDark: Boolean): Modifier {
+    val t = InkTokens.current
+    val paper = if (isDark) Color(0xFF17150F) else Color(0xFFF7F3EA)
+    val faded = blend(t.paper, t.cardAlt, 0.62f)
+    val gone = blend(t.paper, t.inkFaint, 0.10f)
+    return Modifier.drawBehind {
+        val p = progress.coerceIn(0f, 1f)
+        val cut = size.height * p
+        if (p <= 0f) return@drawBehind
+        drawRect(
+            brush = Brush.verticalGradient(
+                colors = listOf(gone, faded.copy(alpha = 0.55f), faded.copy(alpha = 0.18f)),
+                startY = 0f,
+                endY = cut.coerceAtLeast(1f),
+            ),
+            topLeft = Offset(0f, 0f),
+            size = Size(size.width, cut),
+        )
+        if (p > 0.05f) {
+            val teeth = 7
+            val step = size.width / teeth
+            for (i in 0 until teeth) {
+                val wobble = sin((p * 40f + i * 1.7f)) * size.height * 0.02f
+                val r = step * (0.18f + (i % 3) * 0.03f)
+                drawCircle(paper, r, Offset(step * (i + 0.5f), cut + wobble))
+            }
+        }
+        val cracks = (p * 6).toInt().coerceAtMost(4)
+        repeat(cracks) { i ->
+            val cx = size.width * (0.12f + i * 0.22f)
+            val cy = cut * (0.35f + (i % 3) * 0.18f)
+            drawLine(
+                color = (if (isDark) Color(0xFF6E675C) else Color(0xFF9C948A)).copy(alpha = 0.18f),
+                start = Offset(cx, cy),
+                end = Offset(cx + size.width * 0.03f, cy + cut * 0.08f),
+                strokeWidth = 0.6.dp.toPx(),
+            )
+        }
+    }
+}
+
 @Composable
 fun ErodedCard(
     wash: Color,          // 卡片原色（暖纸洗色）
@@ -62,10 +113,6 @@ fun ErodedCard(
     // 这三个色以前是硬编码的（#17150F / #3A362E / #211E18），与 token 体系脱钩 ——
     // 换 washDark 或换主题时会露馅（背景是新洗色、侵蚀层还是旧黑）。
     // m39 改成从当前 token 派生：取 paper 与 cardAlt 的混合，跟着主题走。
-    val paper = if (isDark) Color(0xFF17150F) else Color(0xFFF7F3EA)
-    val faded = blend(t.paper, t.cardAlt, 0.62f)          // 掉色后的灰
-    val gone = blend(t.paper, t.inkFaint, 0.10f)          // 完全侵蚀后的底
-
     // 2026-11-13 回退 CET6 普通样式：卡片允许小圆角（主人点名「和 cet6 一样」）。
     // 票 31：改走形状 token —— HARD 下仍是 4dp（`ShapeSet.Hard.courseCard`），零变化；
     // 若将来这张侵蚀卡也进账页，会自动取账页的 10dp。
@@ -77,56 +124,7 @@ fun ErodedCard(
             // 描边跟着 spine 走：亮档 0.30 够用；暗档如果还是 0.30，四块深色卡会糊成一片，
             // 提亮到 0.55 —— 2026-11-21 深色复核（主人要求「所有卡片都要看清楚」）。
             .border(0.75.dp, spine.copy(alpha = if (t.isDark) 0.55f else 0.30f), shape)
-            .drawWithContent {
-                val p = progress.coerceIn(0f, 1f)
-                val cut = size.height * p
-
-                // 1) 先洗纸底：被吃掉的高度里，卡片色洗成旧纸色（只动背景，不动字）
-                if (p > 0f) {
-                    drawRect(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(gone, faded.copy(alpha = 0.55f), faded.copy(alpha = 0.18f)),
-                            startY = 0f,
-                            endY = cut.coerceAtLeast(1f),
-                        ),
-                        topLeft = Offset(0f, 0f),
-                        size = Size(size.width, cut),
-                    )
-
-                    // 2) 咬痕：一排纸色半圆压在洗色层的下缘，形成不规则缺口（CET6 同款）。
-                    //    2026-11-17 收小到 0.18–0.24 步宽，避免啃到课名。
-                    if (p > 0.05f) {
-                        val teeth = 7
-                        val step = size.width / teeth
-                        for (i in 0 until teeth) {
-                            val wobble = sin((p * 40f + i * 1.7f)) * size.height * 0.02f
-                            val r = step * (0.18f + (i % 3) * 0.03f)
-                            drawCircle(
-                                color = paper,
-                                radius = r,
-                                center = Offset(step * (i + 0.5f), cut + wobble),
-                            )
-                        }
-                    }
-
-                    // 3) 侵蚀区里的细小裂纹：只到 4 条、透明度减半，落在字的缝隙里
-                    val cracks = (p * 6).toInt().coerceAtMost(4)
-                    repeat(cracks) { i ->
-                        val cx = size.width * (0.12f + i * 0.22f)
-                        val cy = cut * (0.35f + (i % 3) * 0.18f)
-                        drawLine(
-                            color = (if (isDark) Color(0xFF6E675C) else Color(0xFF9C948A))
-                                .copy(alpha = 0.18f),
-                            start = Offset(cx, cy),
-                            end = Offset(cx + size.width * 0.03f, cy + cut * 0.08f),
-                            strokeWidth = 0.6.dp.toPx(),
-                        )
-                    }
-                }
-
-                // 4) 正文最后画：整块，永不裁切 —— 进度条过去之后课名照样在、照样点得开
-                this@drawWithContent.drawContent()
-            },
+            .then(erosionBrush(progress, isDark)),
     ) {
         content()
     }

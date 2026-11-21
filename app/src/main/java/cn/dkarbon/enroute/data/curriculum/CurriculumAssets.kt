@@ -198,7 +198,8 @@ class CurriculumAssets(private val ctx: Context) {
             DebugLog.error("CURRICULUM", "在主线程读资产 $name —— 已拒绝（必须在 IO 线程）")
             return null
         }
-        return runCatching {
+        val startedAt = System.currentTimeMillis()
+        val text = runCatching {
             appCtx.assets.open("$dir/$name").use { input ->
                 BrotliInputStream(input).use { br ->
                     br.readBytes().toString(Charsets.UTF_8)
@@ -207,5 +208,22 @@ class CurriculumAssets(private val ctx: Context) {
         }.onFailure {
             DebugLog.error("CURRICULUM", "读资产失败 $name：${it.javaClass.simpleName} ${it.message}")
         }.getOrNull()
+        // 粗粒度耗时：只报档位，不报毫秒数（毫秒数能和别的数据对上号）
+        cn.dkarbon.enroute.data.telemetry.Telemetry.record(
+            "perf.asset_read",
+            mapOf(
+                "asset" to assetBucket(name),
+                "ms" to cn.dkarbon.enroute.data.telemetry.Telemetry.bucketAssetMs(
+                    System.currentTimeMillis() - startedAt,
+                ),
+            ),
+        )
+        return text
+    }
+
+    private fun assetBucket(name: String): String = when {
+        name.contains("pool") -> "pool"
+        name.startsWith("plans") -> "plan"
+        else -> "syllabus"
     }
 }

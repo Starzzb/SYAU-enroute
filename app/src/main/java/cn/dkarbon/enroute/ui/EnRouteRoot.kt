@@ -130,11 +130,31 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
 
     // 课表卡片配置（m39）：配置真身在 AppState，这里 provide 给整棵树。
     // 绝对不能改成全局单例 —— 那样设置改了画面不动（真机踩过三次，见 TtCardPrefs 注释）。
+    // 槽位（m41）：预设 + 覆盖在这里合并一次，绘制层只读最终值。
+    val ttSlots = cn.dkarbon.enroute.ui.timetable.TtPresets.resolve(
+        ui.ttPreset,
+        cn.dkarbon.enroute.ui.timetable.TtOverrides(
+            shape = ui.ttOvShape,
+            decor = ui.ttOvDecor,
+            meta = ui.ttOvMeta,
+            badge = ui.ttOvBadge,
+            erosion = ui.ttOvErosion,
+            motion = ui.ttOvMotion,
+            tone = ui.ttOvTone,
+            header = ui.ttOvHeader,
+            grid = ui.ttOvGrid,
+            backdrop = ui.ttOvBackdrop,
+            bgMotion = ui.ttOvBgMotion,
+        ),
+    )
     val cardConfig = cn.dkarbon.enroute.ui.timetable.TtCardConfig(
         layout = ui.ttCardLayout,
+        slots = ttSlots,
+        preset = ui.ttPreset,
         tint = ui.ttCardTint,
-        spine = ui.ttCardSpine,
-        erode = ui.ttCardErode,
+        // 老布尔位仍被账页那套组件读着，这里从槽位派生，避免两套真相。
+        spine = ttSlots.decor == 1,
+        erode = ttSlots.erosion != 0,
         ghost = ui.ttCardGhost,
         food = ui.ttCardFood,
         nowRing = ui.ttCardNowRing,
