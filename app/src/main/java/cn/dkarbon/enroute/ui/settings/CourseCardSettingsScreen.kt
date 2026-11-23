@@ -3,53 +3,63 @@ package cn.dkarbon.enroute.ui.settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import cn.dkarbon.enroute.ui.AppState
 import cn.dkarbon.enroute.ui.TimetableViewModel
-import cn.dkarbon.enroute.ui.kit.PaperTex
 import cn.dkarbon.enroute.ui.theme.InkTokens
 import cn.dkarbon.enroute.ui.theme.Space
 import cn.dkarbon.enroute.ui.theme.Stroke
+import cn.dkarbon.enroute.ui.timetable.TtAxis
+import cn.dkarbon.enroute.ui.timetable.TtOverrides
+import cn.dkarbon.enroute.ui.timetable.TtPresets
+import cn.dkarbon.enroute.ui.timetable.TtSlots
 
 /**
  * 设置 →「课程表卡片」。
  *
- * ## 这一页为什么存在（m39，2026-11-21）
+ * ## 版面口径（m41 v5，2026-11-23 重做）
  *
- * m34 把「主题风格」开关拔掉之后，`Form.current.editorial` 那条分支**还在编进包里跑**：
- * `LedgerCourseCell / LedgerAxisRow / LedgerBand / LedgerWeekStamp / LedgerUnscheduledRow`
- * 五个组件（`ui/timetable/LedgerTimetable.kt`，326 行）从来没被删除，课表卡片也照常加载，
- * 只是**没有任何入口能切过去**。这一页把那套设计接回界面，顺手把原本写死的四种效果也做成开关。
+ * 主人拿 `docs/design/tt-settings-merged.html` 逐屏对照后判定「下方配置页面一点没变」。
+ * 那一版把每条轴压成一行文字药丸，读得到名词读不到差别。现在照原型重排：
  *
- * ## 默认值口径
+ *   预览（与主课表同几何）→ 预设 rail（五枚真格子样 + 名字）→ 13 格刻度 →
+ *   主体切换 → 逐条设置（点开才展开胶片，每枚取值一枚实样）→ 三个效果药丸
  *
- * 每一项的默认值都等于改造前的实际行为 —— 老用户升级后进来什么都不点，课表一个像素不变。
- * 设置在 `Prefs`（`tt_card_*`），改动即时推给 `TtCardPrefs` 让网格重绘。
+ * 行头只写「名字 + 当前值」，被钉死的那条在值前面点一枚红点；
+ * 展开后的胶片第一枚是「跟随」，其后每个取值都是按真实渲染路径画出来的实样 ——
+ * 见 [TtAxisSample]。
+ *
+ * 默认值口径不变：老用户升级后什么都不点，课表一个像素不变。
  */
 @Composable
 fun CourseCardSettingsScreen(
@@ -58,226 +68,217 @@ fun CourseCardSettingsScreen(
     modifier: Modifier = Modifier,
 ) {
     val t = InkTokens.current
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState())
-            .padding(horizontal = Space.l, vertical = Space.s),
-    ) {
-        Section("版式", PaperTex.GRID) {
-            SegRow(
-                title = "课表主体",
-                detail = "纸卡：格子自绘；账页：横线格 + 竖脊的另一套主体，一屏多一节",
-                options = listOf("纸卡", "账页"),
-                selected = ui.ttCardLayout,
-                onSelect = vm::setTtCardLayout,
-            )
-        }
+    val slots = TtPresets.resolve(ui.ttPreset, overridesOf(ui))
+    // 同一时刻只展开一条：十三条全摊开时一屏放不下，滚动位置也会丢
+    var openAxis by remember { mutableStateOf(-1) }
 
-        Section("预设", PaperTex.CROSS) {
-            Column(Modifier.fillMaxWidth()) {
-                cn.dkarbon.enroute.ui.timetable.TtPresets.ALL.forEachIndexed { i, preset ->
-                    PresetRow(
-                        preset = preset,
-                        selected = ui.ttPreset == i,
-                        onClick = { vm.setTtPreset(i) },
-                    )
-                }
-            }
-        }
+    Column(modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        TtPreview(
+            slots = slots,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = Space.l, vertical = Space.m),
+        )
 
-        Section("逐条覆盖", PaperTex.DOTS) {
-            // 11 条轴各自可选「跟随预设」：换预设只松开这一次钉死的那几条，
-            // 其余仍听预设。轴的定义在 TtAxis —— 设置页、ViewModel、渲染层共用一份。
-            for (axis in 0 until cn.dkarbon.enroute.ui.timetable.TtAxis.sizes.size) {
-                val ov = overrideOf(ui, axis)
-                val options = listOf("跟随") + cn.dkarbon.enroute.ui.timetable.TtAxis.options[axis].toList()
-                SegRow(
-                    title = cn.dkarbon.enroute.ui.timetable.TtAxis.names[axis],
-                    detail = cn.dkarbon.enroute.ui.timetable.TtAxis.options[axis].joinToString(" / "),
-                    options = options,
-                    selected = ov + 1,
-                    onSelect = { vm.setTtOverride(axis, if (it == 0) -1 else it - 1) },
+        PresetRail(selected = ui.ttPreset, onPick = vm::setTtPreset)
+        AxisRuler(slots = slots, ui = ui, onDot = { axis ->
+            if (!isLocked(axis, slots)) openAxis = if (openAxis == axis) -1 else axis
+        })
+        GroupTitle("逐条设置")
+        Divider()
+        Column(Modifier.fillMaxWidth().background(t.card)) {
+            for (axis in 0 until TtAxis.sizes.size) {
+                val locked = isLocked(axis, slots)
+                AxisRow(
+                    axis = axis,
+                    slots = slots,
+                    override = overrideOf(ui, axis),
+                    locked = locked,
+                    child = TtAxis.parentOf(axis) >= 0,
+                    open = openAxis == axis && !locked,
+                    onToggle = { openAxis = if (openAxis == axis) -1 else axis },
+                    onPick = { value -> vm.setTtOverride(axis, value) },
                 )
+                if (axis < TtAxis.sizes.size - 1) Divider()
             }
         }
+        Divider()
 
-        Section("随时间的效果", PaperTex.CROSS) {
-            SwitchRow(
-                title = "小幽灵",
-                detail = "沿当前时刻推进，走过哪节课就吃掉哪个格子",
-                checked = ui.ttCardGhost,
-                onChange = vm::setTtCardGhost,
-            )
-            SwitchRow(
-                title = "食物图标",
-                detail = "未排课列表左侧的小图标；关掉后只留文字",
-                checked = ui.ttCardFood,
-                onChange = vm::setTtCardFood,
-            )
-            SwitchRow(
-                title = "当前课描边",
-                detail = "正在上的那节加 2dp 主色描边",
-                checked = ui.ttCardNowRing,
-                onChange = vm::setTtCardNowRing,
-            )
-        }
+        FxPills(ui = ui, vm = vm)
         Spacer(Modifier.height(Space.xxl))
     }
 }
 
-/** 读某条轴的覆盖值（-1 = 跟随预设） */
+/** 一次性把 13 个覆盖位收成一个 TtOverrides（预览与课表用同一份解析逻辑） */
+private fun overridesOf(ui: AppState): TtOverrides = TtOverrides(
+    shape = ui.ttOvShape,
+    decor = ui.ttOvDecor,
+    meta = ui.ttOvMeta,
+    badge = ui.ttOvBadge,
+    erosion = ui.ttOvErosion,
+    motion = ui.ttOvMotion,
+    tone = ui.ttOvTone,
+    header = ui.ttOvHeader,
+    grid = ui.ttOvGrid,
+    backdrop = ui.ttOvBackdrop,
+    bgMotion = ui.ttOvBgMotion,
+    tess = ui.ttOvTess,
+    tessMode = ui.ttOvTessMode,
+)
+
 private fun overrideOf(ui: AppState, axis: Int): Int = when (axis) {
-    cn.dkarbon.enroute.ui.timetable.TtAxis.SHAPE -> ui.ttOvShape
-    cn.dkarbon.enroute.ui.timetable.TtAxis.DECOR -> ui.ttOvDecor
-    cn.dkarbon.enroute.ui.timetable.TtAxis.META -> ui.ttOvMeta
-    cn.dkarbon.enroute.ui.timetable.TtAxis.BADGE -> ui.ttOvBadge
-    cn.dkarbon.enroute.ui.timetable.TtAxis.EROSION -> ui.ttOvErosion
-    cn.dkarbon.enroute.ui.timetable.TtAxis.MOTION -> ui.ttOvMotion
-    cn.dkarbon.enroute.ui.timetable.TtAxis.TONE -> ui.ttOvTone
-    cn.dkarbon.enroute.ui.timetable.TtAxis.HEADER -> ui.ttOvHeader
-    cn.dkarbon.enroute.ui.timetable.TtAxis.GRID -> ui.ttOvGrid
-    cn.dkarbon.enroute.ui.timetable.TtAxis.BACKDROP -> ui.ttOvBackdrop
-    else -> ui.ttOvBgMotion
+    TtAxis.SHAPE -> ui.ttOvShape
+    TtAxis.DECOR -> ui.ttOvDecor
+    TtAxis.META -> ui.ttOvMeta
+    TtAxis.BADGE -> ui.ttOvBadge
+    TtAxis.EROSION -> ui.ttOvErosion
+    TtAxis.MOTION -> ui.ttOvMotion
+    TtAxis.TONE -> ui.ttOvTone
+    TtAxis.HEADER -> ui.ttOvHeader
+    TtAxis.GRID -> ui.ttOvGrid
+    TtAxis.BACKDROP -> ui.ttOvBackdrop
+    TtAxis.BG_MOTION -> ui.ttOvBgMotion
+    TtAxis.TESS -> ui.ttOvTess
+    else -> ui.ttOvTessMode
 }
 
-/**
- * 预设行：左边一枚**真的按槽位画的**小样 —— 不是色块示意。
- *
- * 用真槽位画而不是截图：预设改了颜色/形状，这一行自动跟着变，
- * 不会出现「设置页说纸卡、课表里是标签」这种自相矛盾。
- */
+/** 子轴在父轴关掉时整条锁住：改不动，也不显示当前值（写「—」）。 */
+private fun isLocked(axis: Int, slots: TtSlots): Boolean =
+    TtAxis.parentOf(axis) >= 0 && slots.tess == 0
+
+/** 预设 rail：五枚真格子样 + 名字，横向滚动 */
 @Composable
-private fun PresetRow(
-    preset: cn.dkarbon.enroute.ui.timetable.TtPreset,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
+private fun PresetRail(selected: Int, onPick: (Int) -> Unit) {
     val t = InkTokens.current
     Row(
-        Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .background(if (selected) t.primary.copy(alpha = 0.06f) else Color.Transparent)
-            .padding(horizontal = Space.m, vertical = Space.s),
-        verticalAlignment = Alignment.CenterVertically,
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+            .padding(horizontal = Space.l, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        PresetSwatch(preset.slots)
-        Spacer(Modifier.width(Space.m))
-        Column(Modifier.weight(1f)) {
-            Text(preset.label, fontSize = 13.sp, fontWeight = FontWeight.Medium, color = t.ink)
-            Text(
-                preset.note,
-                fontSize = 10.sp,
-                lineHeight = 13.sp,
-                color = t.inkFaint,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
-        // 选中态不靠文字：一条墨色竖标
-        Box(
-            Modifier
-                .width(2.dp)
-                .height(28.dp)
-                .background(if (selected) t.primary else Color.Transparent),
-        )
-    }
-}
-
-/** 45×52 的小样：形状 / 装饰 / 字段 / 底色四条轴照真值画 */
-@Composable
-private fun PresetSwatch(slots: cn.dkarbon.enroute.ui.timetable.TtSlots) {
-    val t = InkTokens.current
-    val shape = cn.dkarbon.enroute.ui.timetable.shapeOf(slots.shape)
-    val fill = when (slots.tone) {
-        1 -> t.cardAlt
-        2 -> Color.Transparent
-        else -> t.primary.copy(alpha = 0.16f)
-    }
-    val ink = when (slots.tone) { 2 -> t.inkSoft; else -> t.ink }
-    Box(
-        Modifier
-            .width(45.dp)
-            .height(52.dp)
-            .clip(shape)
-            .background(fill)
-            .border(0.75.dp, if (slots.shape == 2 || slots.tone == 2) t.outline else t.primary.copy(alpha = 0.35f), shape),
-    ) {
-        if (slots.decor == 1) {
-            Box(Modifier.width(2.5.dp).fillMaxHeight().background(t.primary.copy(alpha = 0.7f)))
-        }
-        Column(Modifier.padding(start = if (slots.decor == 1) 5.dp else 5.dp, top = 4.dp, end = 3.dp)) {
-            // 三条字条代表字段行数：只课名就一条，三行就三条
-            val lines = when (slots.meta) { 3 -> 1; 1 -> 2; 2 -> 3; else -> 3 }
-            repeat(lines) { i ->
+        TtPresets.ALL.forEachIndexed { i, preset ->
+            val on = selected == i
+            Column(
+                Modifier.clickable { onPick(i) },
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
                 Box(
                     Modifier
-                        .padding(top = if (i == 0) 0.dp else 2.5.dp)
-                        .fillMaxWidth(if (i == 0) 1f else 0.66f)
-                        .height(if (i == 0) 3.dp else 2.dp)
-                        .background(ink.copy(alpha = if (i == 0) 0.85f else 0.35f)),
+                        .border(
+                            if (on) 1.5.dp else 0.75.dp,
+                            if (on) t.primary else t.outline,
+                            RectangleShape,
+                        )
+                        .padding(2.dp),
+                ) {
+                    TtSlotsSample(preset.slots)
+                }
+                Spacer(Modifier.height(5.dp))
+                Text(
+                    preset.label,
+                    fontSize = 9.5.sp,
+                    color = if (on) t.ink else t.inkFaint,
+                    fontWeight = if (on) FontWeight.Medium else FontWeight.Normal,
                 )
             }
         }
     }
 }
 
+/**
+ * 13 格刻度：一枚点对应一条轴。
+ *
+ * 红实心 = 这条被钉死了（不再跟随预设）；空心 = 跟随预设；小灰点 = 与预设不同（预设本身就这么设的）。
+ * 这样一眼能看出「这套预设在哪些地方被我改过」，不用逐条读字。
+ */
 @Composable
-private fun Section(title: String, tex: PaperTex, content: @Composable () -> Unit) {
+private fun AxisRuler(slots: TtSlots, ui: AppState, onDot: (Int) -> Unit) {
     val t = InkTokens.current
-    Column(
-        Modifier.fillMaxWidth().padding(top = Space.l),
-        verticalArrangement = Arrangement.spacedBy(1.dp),
+    val presetSlots = TtPresets.of(ui.ttPreset).slots
+    Row(
+        Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            title,
-            fontSize = 10.sp,
-            color = t.inkFaint,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = Space.xs),
-        )
-        Column(
-            Modifier.fillMaxWidth().background(t.card).border(Stroke.hairline, t.outline),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) { content() }
+        for (axis in 0 until TtAxis.sizes.size) {
+            val pinned = overrideOf(ui, axis) >= 0
+            val touched = slots.axisValue(axis) != presetSlots.axisValue(axis)
+            val d = if (pinned) 5.dp else 3.5.dp
+            Box(
+                Modifier.size(d).clip(CircleShape)
+                    .background(
+                        when {
+                            pinned -> t.primary
+                            touched -> t.inkFaint
+                            else -> Color.Transparent
+                        },
+                    )
+                    .then(
+                        if (!pinned && !touched) Modifier.border(0.75.dp, t.outline, CircleShape)
+                        else Modifier,
+                    )
+                    .clickable { onDot(axis) },
+            )
+        }
     }
 }
 
+/** 分组：13 条轴之前的一行小标题，把「预设 / 刻度」与「逐条设置」分开 */
 @Composable
-private fun SegRow(
-    title: String,
-    detail: String,
-    options: List<String>,
-    selected: Int,
-    onSelect: (Int) -> Unit,
+private fun GroupTitle(text: String) {
+    val t = InkTokens.current
+    Text(
+        text,
+        fontSize = 11.sp,
+        color = t.inkFaint,
+        modifier = Modifier.fillMaxWidth().padding(start = Space.l, top = 12.dp, bottom = 8.dp),
+    )
+}
+
+/**
+ * 一条轴：行头（名字 + 当前值），点开是胶片。
+ *
+ * 行头不写解释、不写取值清单 —— 想比差别就点开看实样（AGENTS.md：用设计，不用文字）。
+ */
+@Composable
+private fun AxisRow(
+    axis: Int,
+    slots: TtSlots,
+    override: Int,
+    locked: Boolean,
+    child: Boolean,
+    open: Boolean,
+    onToggle: () -> Unit,
+    onPick: (Int) -> Unit,
 ) {
     val t = InkTokens.current
-    Row(
-        Modifier.fillMaxWidth().heightIn(min = 56.dp)
-            .padding(horizontal = Space.m, vertical = Space.s),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 13.sp, color = t.ink)
-            Spacer(Modifier.height(2.dp))
-            Text(detail, fontSize = 10.sp, lineHeight = 15.sp, color = t.inkFaint)
+    val value = slots.axisValue(axis)
+    val label = if (locked) "—" else TtAxis.options[axis][value.coerceIn(0, TtAxis.options[axis].lastIndex)]
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            Modifier.fillMaxWidth().height(44.dp)
+                .clickable(enabled = !locked, onClick = onToggle)
+                .padding(start = Space.l + if (child) 16.dp else 0.dp, end = Space.l),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                TtAxis.names[axis],
+                fontSize = 13.sp,
+                color = if (locked) t.inkFaint else t.ink,
+            )
+            Spacer(Modifier.weight(1f))
+            Text(label, fontSize = 11.sp, color = t.inkFaint)
         }
-        Spacer(Modifier.width(Space.s))
-        Row(horizontalArrangement = Arrangement.spacedBy(Space.xs)) {
-            options.forEachIndexed { i, label ->
-                val on = i == selected
-                Box(
-                    Modifier.heightIn(min = 32.dp).clip(RectangleShape)
-                        .background(if (on) t.cardAlt else t.card)
-                        .border(if (on) 1.5.dp else Stroke.hairline, if (on) t.primary else t.outline)
-                        .clickable { onSelect(i) }
-                        .padding(horizontal = Space.s, vertical = 5.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        label,
-                        fontSize = 11.sp,
-                        color = if (on) t.ink else t.inkSoft,
-                        fontWeight = if (on) FontWeight.Bold else FontWeight.Normal,
+        if (open) {
+            Row(
+                Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+                    .padding(start = Space.l + if (child) 16.dp else 0.dp, end = Space.l, bottom = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                for (v in 0 until TtAxis.sizes[axis]) {
+                    OptionChip(
+                        axis = axis,
+                        value = v,
+                        slots = slots,
+                        selected = override == v,
+                        onClick = { onPick(v) },
                     )
                 }
             }
@@ -285,24 +286,83 @@ private fun SegRow(
     }
 }
 
+/** 胶片里的一枚取值：实样 + 名字。互斥被改掉的取值画灰（它选下去也会被换掉） */
 @Composable
-private fun SwitchRow(
-    title: String,
-    detail: String,
-    checked: Boolean,
-    onChange: (Boolean) -> Unit,
+private fun OptionChip(
+    axis: Int,
+    value: Int,
+    slots: TtSlots,
+    selected: Boolean,
+    onClick: () -> Unit,
 ) {
     val t = InkTokens.current
+    val dis = TtPresets.sanitize(slots.withAxis(axis, value)).axisValue(axis) != value
+    Column(
+        Modifier.width(sampleWidthOf(axis)).clickable(enabled = !dis, onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            Modifier
+                .border(
+                    if (selected) 1.5.dp else 0.75.dp,
+                    if (selected) t.primary else t.outline,
+                    RectangleShape,
+                )
+                .padding(2.dp),
+        ) {
+            TtAxisSample(
+                axis = axis,
+                value = value,
+                slots = slots,
+                modifier = if (dis) Modifier.alpha(0.3f) else Modifier,
+            )
+        }
+        Spacer(Modifier.height(4.dp))
+        Text(
+            TtAxis.options[axis][value],
+            fontSize = 9.sp,
+            color = if (selected) t.ink else t.inkFaint,
+            fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+/** 三个随时间的效果：小药丸，亮着 = 开 */
+@Composable
+private fun FxPills(ui: AppState, vm: TimetableViewModel) {
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 52.dp)
-            .padding(horizontal = Space.m, vertical = Space.s),
+        Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())
+            .padding(horizontal = Space.l, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        FxPill("小幽灵", ui.ttCardGhost, vm::setTtCardGhost)
+        FxPill("食物图标", ui.ttCardFood, vm::setTtCardFood)
+        FxPill("当前课描边", ui.ttCardNowRing, vm::setTtCardNowRing)
+    }
+}
+
+@Composable
+private fun FxPill(label: String, on: Boolean, onChange: (Boolean) -> Unit) {
+    val t = InkTokens.current
+    Row(
+        Modifier.border(0.75.dp, if (on) t.primary else t.outline, RectangleShape)
+            .clickable { onChange(!on) }
+            .padding(horizontal = 10.dp, vertical = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1f)) {
-            Text(title, fontSize = 13.sp, color = t.ink)
-            Spacer(Modifier.height(2.dp))
-            Text(detail, fontSize = 10.sp, lineHeight = 15.sp, color = t.inkFaint)
-        }
-        Switch(checked = checked, onCheckedChange = onChange)
+        Box(
+            Modifier.size(9.dp).clip(CircleShape)
+                .background(if (on) t.primary else Color.Transparent)
+                .then(if (on) Modifier else Modifier.border(0.75.dp, t.outline, CircleShape)),
+        )
+        Spacer(Modifier.width(6.dp))
+        Text(label, fontSize = 10.5.sp, color = if (on) t.ink else t.inkFaint)
     }
+}
+
+@Composable
+private fun Divider() {
+    Box(Modifier.fillMaxWidth().height(0.75.dp).background(InkTokens.current.outline))
 }

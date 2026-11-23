@@ -71,6 +71,19 @@ object Tesseract4D {
     /** 4D→3D 的透视距离（太小会撕裂，太大看不出"四维感"） */
     const val W_DISTANCE = 2.6f
 
+    /**
+     * 正交投影的两个缩放系数（projectInto 的 ortho = true）。
+     *
+     * 0.52 是量出来的：透视档里 w 最大可到 ±1.94，1/(2.6-w) 落在 0.22 到 0.85，
+     * 乘上 3D 相机后图形外接半径约 0.5 到 0.6 —— 正交档取 0.52 与原档观感尺寸相当，
+     * 换档时不会突然缩一半或撑出界。
+     */
+    const val ORTHO_K4 = 0.52f
+    const val ORTHO_K2 = 0.52f
+
+    /** 正交档的深度一律同浓 */
+    const val ORTHO_DEPTH = 0.5f
+
     /** 3D→2D 的相机角：**固定**。三维视角不能动，否则"是四维在转"就说不清了 */
     const val CAM_PITCH = 0.52f
     const val CAM_YAW = 0.36f
@@ -158,6 +171,8 @@ object Tesseract4D {
         cx: Float,
         cy: Float,
         radius: Float,
+        /** true = 正交投影（Schlegel 图）：不做透视除法，里外两个立方体一样大 */
+        ortho: Boolean = false,
     ) {
         val cp = cos(CAM_PITCH)
         val sp = sin(CAM_PITCH)
@@ -177,7 +192,9 @@ object Tesseract4D {
             val w = angleScratch[3]
 
             // ① 4D → 3D：w 做透视除法。w 越大 → k 越大 → 越"近"→ 内立方体涨出来
-            val k4 = 1f / (W_DISTANCE - w)
+            // 正交投影时不做这个除法：w 再怎么变都不影响尺寸，画出来是
+            // 「一个立方体套着另一个同样大的立方体」（Schlegel 图），四维关系最清楚的一档。
+            val k4 = if (ortho) ORTHO_K4 else 1f / (W_DISTANCE - w)
             val x3 = x * k4
             val y3 = y * k4
             val z3 = z * k4
@@ -189,10 +206,11 @@ object Tesseract4D {
             val zb = y3 * sp + za * cp
 
             // ③ 3D → 2D：z 透视
-            val k2 = Z_SCALE / (Z_DISTANCE - zb)
+            // 正交档 z 也不参与缩放；深度统一 0.5，线一律同浓（否则正交就白做了）
+            val k2 = if (ortho) ORTHO_K2 else Z_SCALE / (Z_DISTANCE - zb)
             xy[i * 2] = cx + xa * k2 * radius
             xy[i * 2 + 1] = cy + ya * k2 * radius
-            depth[i] = k2
+            depth[i] = if (ortho) ORTHO_DEPTH else k2
         }
     }
 

@@ -1,0 +1,917 @@
+<!doctype html>
+<html lang="zh-CN" class="pre">
+<head>
+<meta charset="utf-8">
+<title>tt-settings-a · 常驻预览 + 分组条带</title>
+<style>
+/* ============================================================
+   A 方向 · 常驻预览 + 分组条带
+   顶部一块真课表预览固定不动；参数在下面滚。
+   一滚进参数区，预览就折成一条 106px 的窄带（靠高度变化表达，不写一个字）。
+   颜色只用任务书给的 token，不另调色。
+   ============================================================ */
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{
+  background:#EDE7DB;
+  font-family:-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  color:#16211B;
+  display:flex;justify-content:center;align-items:flex-start;
+  padding:30px 24px 26px;
+}
+.sheet{width:1330px}
+.sheet-head{display:flex;align-items:baseline;gap:14px;padding:0 2px 20px}
+.sheet-head h1{margin:0;font-size:13px;font-weight:600;letter-spacing:.06em}
+.sheet-head span{font-size:11px;color:#6E7B72;letter-spacing:.03em}
+.board{display:flex;gap:42px;align-items:flex-start}
+.col{display:flex;flex-direction:column;gap:13px}
+.cap{font-size:10.5px;color:#5A6A60;letter-spacing:.04em;display:flex;gap:7px;align-items:center;padding-left:3px}
+.cap b{font-weight:600;color:#3C4A42}
+.cap i{display:inline-block;width:14px;height:1px;background:#B9B0A0}
+
+/* ---------- 手机壳 ---------- */
+.phone{
+  /* 浅色 token */
+  --paper:#FAF7F1; --card:#FFFFFF; --cardAlt:#F1ECE1; --band:#F7F3EA;
+  --ink:#16211B; --inkSoft:#3C4A42; --inkFaint:#5A6A60;
+  --rule:#91825F; --outline:#7B897F;
+  --pine:#1F4A3D; --clay:#B4553C; --indigo:#2E5266; --olive:#3E5C34; --ochre:#7A5714;
+
+  position:relative;width:393px;height:852px;border-radius:36px;overflow:hidden;
+  background:var(--paper);display:flex;flex-direction:column;
+  box-shadow:0 0 0 1px rgba(22,33,27,.14), 0 22px 48px -22px rgba(22,33,27,.5);
+  isolation:isolate;
+}
+.phone.dark{
+  --paper:#141A17; --card:#1B231F; --cardAlt:#232C27; --band:#181F1B;
+  --ink:#F1EFE7; --inkSoft:#C6CDC6; --inkFaint:#9AA69D;
+  --rule:#647D71; --outline:#6E7B72;
+  --pine:#8FBFA6; --clay:#E0937A; --indigo:#A8C2CF; --olive:#A9C496; --ochre:#D9B96E;
+}
+
+/* 状态栏 + 标题栏 */
+.sbar{flex:0 0 auto;height:26px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--inkSoft)}
+.sbar .batt{width:15px;height:8px;border:1px solid currentColor;border-radius:2px;position:relative;opacity:.8}
+.sbar .batt::after{content:"";position:absolute;inset:1.5px;background:currentColor;border-radius:1px;transform-origin:left;width:70%}
+.abar{flex:0 0 auto;height:44px;display:flex;align-items:center;gap:11px;padding:0 15px}
+.abar .back{width:24px;height:24px;display:grid;place-items:center;flex:0 0 auto}
+.abar .back i{display:block;width:7.5px;height:7.5px;border-left:1.4px solid var(--ink);
+  border-bottom:1.4px solid var(--ink);transform:rotate(45deg);margin-left:2px}
+.abar .ttl{font-size:14px;font-weight:600;letter-spacing:.03em;color:var(--ink)}
+
+/* ---------- 常驻预览：占 42% 高度，滚动时不动 ---------- */
+.stage{
+  flex:0 0 auto;height:var(--stage,356px);overflow:hidden;position:relative;
+  background:var(--paper);
+  transition:height .34s cubic-bezier(.24,.82,.34,1);
+  border-bottom:1px solid color-mix(in srgb,var(--rule) 22%,transparent);
+}
+.phone.narrow .stage{height:106px}
+.phone.narrow .stage::after{content:"";position:absolute;left:0;right:0;bottom:0;height:18px;pointer-events:none;
+  background:linear-gradient(180deg,transparent,var(--paper) 82%)}
+
+.pv{position:relative;padding:8px 10px 0}
+.pv-head{
+  height:var(--headH,42px);overflow:hidden;display:flex;align-items:center;justify-content:space-between;
+  padding:0 2px;transition:height .3s cubic-bezier(.24,.82,.34,1),opacity .2s;position:relative;
+}
+.phone.narrow .pv-head{height:0;opacity:0}
+.pv-head b{font-size:15px;font-weight:600;letter-spacing:.01em;color:var(--ink)}
+.pv-head .sub{font-size:8.5px;color:var(--inkFaint);letter-spacing:.05em;margin-top:1px}
+.pv-head .right{text-align:right}
+.pv-head .right .d{font-size:9px;color:var(--inkSoft);letter-spacing:.04em}
+.pv-head .right .w{font-size:8px;color:var(--inkFaint);letter-spacing:.05em}
+
+/* 周条 */
+.pv-week{display:flex;height:24px;align-items:stretch;border-bottom:1px solid color-mix(in srgb,var(--rule) 34%,transparent)}
+.pv-week .axisw{width:24px;flex:0 0 24px}
+.pv-week .wk{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:0;line-height:1}
+.pv-week .wk b{font-size:var(--daySz,11px);font-weight:600;color:var(--ink)}
+.pv-week .wk span{font-size:7.5px;color:var(--inkFaint);margin-top:1.5px;letter-spacing:.02em}
+.pv-week .wk.today b{color:var(--brick)}
+.pv-week .wk.today span{color:var(--brick);opacity:.8}
+.phone.dark .pv-week .wk.today b{color:var(--clay)}
+.phone.dark .pv-week .wk.today span{color:var(--clay)}
+.pv-week .wk.today::after{content:"";position:absolute;}
+
+/* 网格窗口：固定高度，行多了自然被裁掉（露边） */
+.pv-win{position:relative;height:var(--winH,274px);overflow:hidden;transition:height .34s cubic-bezier(.24,.82,.34,1)}
+.pv-grid{position:relative;transition:transform .34s cubic-bezier(.24,.82,.34,1)}
+.pv-tex{position:absolute;left:24px;right:0;top:0;bottom:0;pointer-events:none;z-index:0}
+
+.pv-band{display:flex;align-items:center;height:11px;position:relative;z-index:1}
+.pv-band span{font-size:6.5px;letter-spacing:.14em;color:var(--inkFaint);padding-left:2px}
+.pv-band::after{content:"";flex:1;height:1px;margin-left:6px;background:color-mix(in srgb,var(--rule) 18%,transparent)}
+
+.pv-row{display:flex;height:var(--rowH,40px);gap:1.5px;position:relative;z-index:1;
+  border-bottom:1px solid color-mix(in srgb,var(--rule) 16%,transparent)}
+.pv-axis{width:24px;flex:0 0 24px;display:flex;flex-direction:column;justify-content:center;gap:1px}
+.pv-axis b{font-size:7.5px;font-weight:600;color:var(--inkSoft);letter-spacing:.02em}
+.pv-axis span{font-size:6.5px;color:var(--inkFaint);letter-spacing:.02em}
+
+/* ---------- 格子 ---------- */
+.cell{
+  position:relative;flex:1 1 0;min-width:0;overflow:hidden;
+  display:flex;flex-direction:column;padding:3px 3px 2px 4.5px;
+  transition:background .2s linear,border-radius .2s linear;
+}
+.cell--v{background:transparent;box-shadow:none;border:none}
+.cell .dc{position:absolute;pointer-events:none;z-index:2}
+.cell[data-d="1"] .dc{left:0;top:0;bottom:0;width:2.5px;background:var(--sp)}
+.cell[data-d="2"] .dc{left:0;right:0;top:0;height:3px;background:var(--sp)}
+.cell[data-d="3"] .dc{right:0;top:0;width:9px;height:9px;border-top:2px solid var(--sp);border-right:2px solid var(--sp)}
+.cell[data-d="4"] .dc{left:0;right:0;bottom:1.5px;height:1.5px;background:var(--sp)}
+.cell[data-d="5"] .dc{left:0;right:0;top:0;bottom:0;background:var(--sp);opacity:.10}
+.cell[data-d="6"] .dc{left:0;right:0;top:0;bottom:0;
+  background:repeating-linear-gradient(62deg,transparent 0 6px,color-mix(in srgb,var(--sp) 22%,transparent) 6px 8px)}
+.cell .er{position:absolute;left:0;right:0;top:0;z-index:3;
+  background:linear-gradient(180deg,var(--fade) 0%,var(--fade) 58%,transparent 100%)}
+.cell .er2{position:absolute;top:-30%;bottom:-30%;width:60%;z-index:3;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--sp) 20%,transparent),transparent);
+  transform:skewX(-14deg)}
+.cell .tx{position:relative;z-index:4;display:flex;flex-direction:column;min-width:0;height:100%}
+.cell .nm{font-size:8.5px;line-height:10px;font-weight:600;color:var(--ink);
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.cell .rm{font-size:6.5px;line-height:8.4px;color:var(--inkSoft);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .tc{font-size:6px;line-height:8px;color:var(--inkFaint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .sb{font-size:6.3px;line-height:8.4px;color:var(--inkSoft);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .bt{margin-top:auto;display:flex;flex-direction:column}
+.cell[data-m="1"] .nm{-webkit-line-clamp:2}
+/* 行距压到 40px 上下时，把行高收一点，保证「课名 + 教室」不被盒底切掉 */
+.pv[data-short="1"] .cell .nm{font-size:8.2px;line-height:9.4px}
+.pv[data-short="1"] .cell .rm,.pv[data-short="1"] .cell .sb{line-height:7.8px;margin-top:0}
+.pv[data-short="1"] .cell .tc{display:none}
+.cell[data-m="3"] .nm{-webkit-line-clamp:3}
+
+.cell .bd1{position:absolute;right:0;top:0;width:0;height:0;z-index:5;
+  border-top:11px solid color-mix(in srgb,var(--sp) 88%,transparent);border-left:11px solid transparent}
+.cell .bd2{position:absolute;right:0;top:0;width:11px;height:11px;z-index:5;
+  background:repeating-linear-gradient(45deg,transparent 0 3.5px,color-mix(in srgb,var(--sp) 80%,transparent) 3.5px 5px)}
+
+/* 呼吸 */
+.cell .mb{position:absolute;inset:0;z-index:6;background:var(--sp);pointer-events:none;opacity:0}
+.cell.breathe .mb{animation:breathe 2.6s linear infinite alternate}
+.cell.breathe.slow .mb{animation:breatheSlow 2.6s linear infinite alternate}
+@keyframes breathe{from{opacity:.045}to{opacity:.075}}
+@keyframes breatheSlow{from{opacity:.02}to{opacity:.09}}
+
+/* 改动定位脉冲：几何由 JS 给，560ms 一次 */
+.cell .pl{position:absolute;z-index:9;pointer-events:none;opacity:0;
+  left:var(--plx,0);top:var(--ply,0);width:var(--plw,100%);height:var(--plh,100%);
+  background:color-mix(in srgb,var(--brick) 13%,transparent);
+  box-shadow:inset 0 0 0 1.3px var(--brick);border-radius:1px}
+.cell.is-pl .pl{animation:plIn .56s cubic-bezier(.2,.7,.3,1) 1}
+@keyframes plIn{
+  0%{opacity:0;transform:scale(.9)}
+  16%{opacity:1;transform:scale(1)}
+  58%{opacity:.62;transform:scale(1)}
+  100%{opacity:0;transform:scale(1.035)}
+}
+.cell.is-pl{animation:cellNudge .56s cubic-bezier(.2,.7,.3,1)}
+.cell.is-pl.hold .pl{animation:none;opacity:.62}
+@keyframes cellNudge{0%{transform:scale(1)}22%{transform:scale(1.016)}100%{transform:scale(1)}}
+
+/* 页头 / 行距 / 底纹 三条轴的定位脉冲 */
+.pv-head .plh{position:absolute;inset:-2px;opacity:0;box-shadow:inset 0 0 0 1.4px var(--pine);
+  background:color-mix(in srgb,var(--pine) 9%,transparent);border-radius:3px}
+.pv.is-pl-header .plh{animation:plIn .56s ease-out 1}
+.pv-axis{position:relative}
+.pv.is-pl-grid .pv-axis b{animation:axisFlash .56s ease-out}
+@keyframes axisFlash{0%{color:var(--pine);transform:translateX(-2px)}60%{color:var(--pine)}100%{color:var(--inkSoft)}}
+.pv.is-pl-tex .pv-tex{animation:texFlash .56s ease-out}
+@keyframes texFlash{0%{box-shadow:inset 0 0 0 1.4px var(--pine);background-color:color-mix(in srgb,var(--pine) 8%,transparent)}100%{box-shadow:inset 0 0 0 1.4px transparent;background-color:transparent}}
+.pv.is-pl-all .cell:not(.cell--v){animation:cellNudge .5s cubic-bezier(.2,.7,.3,1)}
+
+/* 底纹：横线 / 田垄 / 复相 / 纯色 */
+.pv-tex[data-b="1"]{background:repeating-linear-gradient(180deg,transparent 0 calc(var(--rowH) - 1px),
+  color-mix(in srgb,var(--rule) 34%,transparent) calc(var(--rowH) - 1px) var(--rowH))}
+.pv-tex[data-b="2"]{background:repeating-linear-gradient(180deg,var(--band) 0 var(--rowH),
+  transparent var(--rowH) calc(var(--rowH) * 2))}
+.pv-tex[data-b="3"]{background:repeating-linear-gradient(180deg,transparent 0 calc(var(--rowH) / 3 - .6px),
+  color-mix(in srgb,var(--rule) 9%,transparent) calc(var(--rowH) / 3 - .6px) calc(var(--rowH) / 3))}
+.pv-tex[data-b="4"]{background:var(--band)}
+.pv-tex.drift{animation:drift 22s linear infinite}
+@keyframes drift{from{background-position-y:0}to{background-position-y:calc(var(--rowH) * 2)}}
+
+/* ---------- 参数区（滚动） ---------- */
+.params{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;
+  padding:0 0 26px}
+.params::-webkit-scrollbar{display:none}
+
+/* 预设条带 */
+/* 首帧直出：截图与首屏不受过渡干扰 */
+html.pre *, html.pre *::before, html.pre *::after{transition:none!important;animation:none!important}
+
+/* 预设条带吸顶：滚到任何一条轴，都还能看见「选了哪套 / 改了几条 / 点回跟随」 */
+.pbar{position:sticky;top:0;z-index:6;padding:8px 0 8px;background:var(--paper);margin-bottom:6px}
+.phone.narrow .pbar{box-shadow:0 1px 0 color-mix(in srgb,var(--rule) 16%,transparent)}
+.prail{display:flex;gap:9px;overflow-x:auto;scrollbar-width:none;padding:0 14px 0 14px}
+.prail::-webkit-scrollbar{display:none}
+.pchip{
+  flex:0 0 auto;width:62px;display:flex;flex-direction:column;align-items:center;gap:5px;
+  background:none;border:0;padding:0;cursor:pointer;font-family:inherit;
+  position:relative;
+}
+.psw{width:46px;height:54px;position:relative;border-radius:3px;overflow:hidden;transition:transform .18s}
+.pchip .pnm{font-size:9px;letter-spacing:.05em;color:var(--inkFaint);transition:color .18s}
+.pchip.on .pnm{color:var(--ink);font-weight:600}
+.pchip.on .psw{transform:translateY(-2px)}
+.pchip.on::after{content:"";position:absolute;left:50%;transform:translateX(-50%);
+  bottom:-1px;width:16px;height:2px;background:var(--ink);border-radius:1px}
+.pchip:active .psw{transform:scale(.96)}
+
+/* 覆盖刻度尺：改过的那几条在这里凸出来，点一下回跟随 */
+.pips{display:flex;align-items:flex-end;gap:5px;height:22px;padding:0 16px;margin-top:7px}
+.pips .gap{width:5px}
+.pip{width:12px;height:5px;padding:0;border:0;background:color-mix(in srgb,var(--inkFaint) 34%,transparent);
+  border-radius:1px;cursor:pointer;transition:height .2s,background .2s;align-self:flex-end}
+.pip.on{height:13px;background:var(--ink)}
+.pip:active{transform:translateY(1px)}
+
+/* 分组 */
+.grp{border-top:1px solid color-mix(in srgb,var(--rule) 26%,transparent)}
+.grp-head{
+  width:100%;height:40px;display:flex;align-items:center;gap:10px;
+  background:none;border:0;padding:0 16px;cursor:pointer;font-family:inherit;text-align:left;
+}
+.grp-head .gg{width:20px;height:24px;flex:0 0 auto;position:relative}
+.grp-head .gn{font-size:11.5px;letter-spacing:.14em;color:var(--ink);font-weight:600}
+.grp-head .cnt{display:flex;gap:3px;align-items:center;margin-left:2px}
+.grp-head .cnt i{width:3px;height:8px;background:color-mix(in srgb,var(--ink) 22%,transparent);border-radius:1px}
+.grp-head .cnt i.on{background:var(--ink);height:11px}
+.grp-head .fold{margin-left:auto;width:11px;height:11px;position:relative}
+.grp-head .fold::before{content:"";position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 49%,color-mix(in srgb,var(--ink) 62%,transparent) 50%);
+  transition:transform .3s}
+.grp.closed .fold::before{transform:rotate(180deg)}
+
+.grp-body{display:grid;grid-template-rows:1fr;transition:grid-template-rows .36s cubic-bezier(.24,.82,.34,1)}
+.grp.closed .grp-body{grid-template-rows:0fr}
+.grp-inner{overflow:hidden}
+
+.ax{padding:9px 0 13px}
+.ax-name{font-size:9.5px;letter-spacing:.14em;color:var(--inkFaint);padding:0 16px 7px;font-weight:600}
+
+/* 横向滑轨 chips —— 边缘永远露半个，靠内容被切断表达可滑动 */
+.rail{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:0 26px 0 16px;scroll-snap-type:x proximity}
+.rail::-webkit-scrollbar{display:none}
+.chip{
+  flex:0 0 auto;width:70px;height:78px;scroll-snap-align:start;
+  background:var(--card);border:1px solid color-mix(in srgb,var(--outline) 34%,transparent);
+  border-radius:3px;padding:6px 5px 4px;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;
+  transition:border-color .16s,background .16s,transform .12s;
+}
+.chip .cg{width:100%;height:44px;flex:0 0 auto;color:var(--ink)}
+.chip .cg svg{width:100%;height:100%;display:block}
+.chip .cn{font-size:9px;letter-spacing:.06em;color:var(--inkFaint);line-height:1;white-space:nowrap}
+.chip:hover{border-color:color-mix(in srgb,var(--outline) 70%,transparent)}
+.chip.on{border-color:var(--ink);background:var(--card)}
+.chip.on .cn{color:var(--ink);font-weight:600}
+.chip.on::after{content:"";position:absolute;left:6px;right:6px;bottom:0;height:2.5px;background:var(--ink);border-radius:2px 2px 0 0}
+.chip.inh{border-style:dashed;border-color:color-mix(in srgb,var(--outline) 58%,transparent);background:transparent}
+.chip.inh .cg{opacity:.5}
+.chip.off{opacity:.26;pointer-events:none;
+  background:repeating-linear-gradient(45deg,transparent 0 5px,color-mix(in srgb,var(--ink) 5%,transparent) 5px 7px)}
+.chip.pop{animation:chipPop .34s cubic-bezier(.2,.7,.3,1)}
+@keyframes chipPop{0%{transform:scale(1)}38%{transform:scale(.955)}100%{transform:scale(1)}}
+
+/* chip 里的图形 */
+.g .gl{fill:color-mix(in srgb,var(--ink) 8%,transparent);stroke:color-mix(in srgb,var(--ink) 60%,transparent);stroke-width:1}
+.g .gl-line{fill:none;stroke:color-mix(in srgb,var(--ink) 62%,transparent);stroke-width:1.1}
+.g .gl-solid{fill:color-mix(in srgb,var(--ink) 26%,transparent);stroke:color-mix(in srgb,var(--ink) 52%,transparent)}
+.g .gf{fill:color-mix(in srgb,var(--ink) 72%,transparent)}
+.g .gs{stroke:color-mix(in srgb,var(--ink) 72%,transparent);fill:none;stroke-width:1.6;stroke-linecap:round}
+.g .gn{fill:color-mix(in srgb,var(--ink) 55%,transparent)}
+.g .gbg{fill:color-mix(in srgb,var(--ink) 6%,transparent);stroke:color-mix(in srgb,var(--ink) 26%,transparent);stroke-width:.8}
+.g .gdot{stroke:none}
+.g .gbr{fill:color-mix(in srgb,var(--ink) 20%,transparent);animation:gbreathe 2.2s ease-in-out infinite alternate}
+@keyframes gbreathe{from{fill-opacity:.10}to{fill-opacity:.62}}
+.g .gdrift{animation:gdrift 3.4s linear infinite}
+@keyframes gdrift{from{transform:translateY(0)}to{transform:translateY(6px)}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <clipPath id="mclip"><rect x="8" y="3" width="30" height="34" rx="3"/></clipPath>
+</defs></svg>
+
+<div class="sheet">
+  <div class="sheet-head">
+    <h1>A · 常驻预览 + 分组条带</h1>
+    <span>课程表卡片设置 · 393×852 · 三台独立可交互</span>
+  </div>
+  <div class="board" id="board"></div>
+</div>
+
+<script>
+/* =====================================================================
+   1. 契约：十一条轴（序号与 TtAxis 一致）、五套预设（与 TtPresets 一致）
+   ===================================================================== */
+const AXES = [
+  {k:'shape',    g:0, n:'形状', o:['方卡','便签','细线','色块','标签']},
+  {k:'decor',    g:0, n:'装饰', o:['无','左脊','顶帽','角点','底线','淡底','斜纹']},
+  {k:'meta',     g:0, n:'字段', o:['三行','同行','底栏','只课名']},
+  {k:'badge',    g:0, n:'角标', o:['无','折角','斜纹带']},
+  {k:'erosion',  g:0, n:'侵蚀', o:['不褪','上褪','斜线','整块淡']},
+  {k:'motion',   g:0, n:'动效', o:['关','呼吸','褪色呼吸']},
+  {k:'tone',     g:0, n:'底色', o:['四色','单墨','无色']},
+  {k:'header',   g:1, n:'页头', o:['紧凑','标准','舒展']},
+  {k:'grid',     g:1, n:'行距', o:['紧凑','标准','宽松']},
+  {k:'backdrop', g:2, n:'底纹', o:['无','横线','田垄','复相','纯色']},
+  {k:'bgMotion', g:2, n:'底纹动效', o:['关','缓移']},
+];
+const GROUPS = [
+  {n:'格子', axes:[0,1,2,3,4,5,6]},
+  {n:'骨架', axes:[7,8]},
+  {n:'底纹', axes:[9,10]},
+];
+
+const PRESETS = [
+  {id:'paper',  n:'纸卡', s:{shape:0,decor:1,meta:0,badge:0,erosion:1,motion:0,tone:0,header:1,grid:1,backdrop:0,bgMotion:0}},
+  {id:'ledger', n:'账页', s:{shape:3,decor:4,meta:1,badge:0,erosion:0,motion:0,tone:1,header:0,grid:0,backdrop:1,bgMotion:0}},
+  {id:'dense',  n:'密排', s:{shape:2,decor:0,meta:3,badge:0,erosion:0,motion:0,tone:1,header:0,grid:0,backdrop:0,bgMotion:0}},
+  {id:'agenda', n:'日程', s:{shape:1,decor:2,meta:2,badge:0,erosion:3,motion:1,tone:0,header:2,grid:2,backdrop:2,bgMotion:0}},
+  {id:'quiet',  n:'安静', s:{shape:4,decor:5,meta:0,badge:0,erosion:0,motion:0,tone:2,header:1,grid:1,backdrop:3,bgMotion:1}},
+];
+
+/* 假课表：真课名，缺就留空——不填 0、不编时间 */
+const COURSES = [
+  {c:0, r:1, name:'不动产估价',         room:'二606', teacher:'董秀茹', fam:'clay',   p:1.0},
+  {c:0, r:2, name:'国土空间规划',       room:'二408', teacher:'吴佳倩', fam:'indigo', p:.25},
+  {c:1, r:1, name:'地球表层系统概论',   room:'二610', teacher:'孙仲秀', fam:'olive',  p:0},
+  {c:2, r:1, name:'不动产估价',         room:'二606', teacher:'董秀茹', fam:'clay',   p:0},
+  {c:3, r:0, name:'马克思主义基本原理', room:'一101', teacher:'李想',   fam:'ochre',  p:0},
+  {c:4, r:3, name:'土地资源调查与评价', room:'三205', teacher:'王立新', fam:'indigo', p:0},
+];
+const DAYS = [['一','23'],['二','24'],['三','25'],['四','26'],['五','27'],['六','28'],['日','29']];
+const SLOTS = [['1-2','08:00'],['3-4','10:05'],['5-6','13:30'],['7-8','15:35'],['9-10','18:00'],['11-12','20:20']];
+const BANDS = {0:'上午',2:'下午',4:'晚上'};
+
+/* 互斥：算得出来的冲突，直接不给选 */
+function forbids(s){
+  const f = {};
+  if(s.badge === 2) f.meta = [0,1,2];
+  if(s.decor === 3) f.badge = [1];
+  if(s.shape === 2) f.decor = [5,6];
+  if(s.tone === 2)  f.shape = [3];
+  return f;
+}
+function sanitize(s){
+  const r = Object.assign({}, s);
+  if(r.badge === 2) r.meta = 3;
+  if(r.decor === 3 && r.badge === 1) r.badge = 0;
+  if(r.shape === 2 && (r.decor === 5 || r.decor === 6)) r.decor = 0;
+  if(r.tone === 2 && r.shape === 3) r.shape = 0;
+  return r;
+}
+function resolve(pi, ov){
+  const base = PRESETS[pi].s, s = {};
+  AXES.forEach(a => { const v = ov[a.k]; s[a.k] = (v === undefined || v < 0) ? base[a.k] : v; });
+  return sanitize(s);
+}
+
+/* =====================================================================
+   2. chip 里的图形：每条轴画出它自己的样子，不用文字按钮代替
+   ===================================================================== */
+const SVG = (inner) => '<svg class="g" viewBox="0 0 46 40">' + inner + '</svg>';
+const BOX = '<rect x="8" y="3" width="30" height="34" rx="3" class="gl"/>';
+
+function gShape(v){
+  if(v === 2) return SVG('<rect x="8" y="3" width="30" height="34" class="gl-line"/>');
+  if(v === 3) return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gl-solid"/>');
+  if(v === 4) return SVG('<path class="gl" d="M18 3h17q3 0 3 3v23q0 8-9 8H11q-3 0-3-3V12q0-9 10-9z"/>');
+  if(v === 1) return SVG('<rect x="8" y="3" width="30" height="34" rx=".6" class="gl"/>');
+  return SVG('<rect x="8" y="3" width="30" height="34" rx="7" class="gl"/>');
+}
+function gDecor(v){
+  let o = '';
+  if(v === 1) o = '<rect x="8" y="3" width="2.6" height="34" class="gf"/>';
+  if(v === 2) o = '<rect x="8" y="3" width="30" height="3" class="gf"/>';
+  if(v === 3) o = '<path d="M29 3h9M38 3v9" class="gs"/>';
+  if(v === 4) o = '<rect x="8" y="35" width="30" height="2" class="gf"/>';
+  if(v === 5) o = '<rect x="8" y="3" width="30" height="34" rx="3" class="gf" opacity=".18"/>';
+  if(v === 6) o = '<g clip-path="url(#mclip)" opacity=".55"><path d="M12 3l9 34M22 3l9 34M32 3l9 34" class="gs" stroke-width="3"/></g>';
+  return SVG(BOX + o);
+}
+function gMeta(v){
+  const L = (y,w,op,cls) => '<rect x="13" y="'+y+'" width="'+w+'" height="2.4" rx="1.2" class="'+(cls||'gn')+'" opacity="'+op+'"/>';
+  if(v === 1) return SVG(BOX + L(11,19,1) + L(18,19,.55));
+  if(v === 2) return SVG(BOX + L(9,19,1) + L(28,15,.55) + L(32,11,.38));
+  if(v === 3) return SVG(BOX + '<rect x="13" y="14" width="20" height="3.2" rx="1.6" class="gn" opacity="1"/>');
+  return SVG(BOX + L(9,19,1) + L(15,15,.55) + L(21,11,.36));
+}
+function gBadge(v){
+  let o = '';
+  if(v === 1) o = '<path d="M29 3h9v9z" class="gf"/>';
+  if(v === 2) o = '<g clip-path="url(#mclip)"><path d="M30 3l8 8M26 3l8 8" class="gs" stroke-width="1.6"/></g>';
+  return SVG(BOX + o);
+}
+function gErosion(v){
+  let o = '';
+  if(v === 1) o = '<g clip-path="url(#mclip)"><rect x="8" y="3" width="30" height="11" class="gf" opacity=".55"/><rect x="8" y="14" width="30" height="7" class="gf" opacity=".28"/><rect x="8" y="21" width="30" height="4" class="gf" opacity=".13"/></g>';
+  if(v === 2) o = '<g clip-path="url(#mclip)"><path d="M16 3l-6 34M26 3l-6 34M36 3l-6 34" class="gs" stroke-width="6" opacity=".2"/></g>';
+  if(v === 3) o = '<g clip-path="url(#mclip)"><rect x="8" y="3" width="30" height="34" class="gf" opacity=".34"/></g>';
+  return SVG(BOX + o);
+}
+function gMotion(v){
+  if(v === 0) return SVG(BOX);
+  return SVG(BOX + '<rect x="8" y="3" width="30" height="34" rx="3" class="gbr"/>');
+}
+function gTone(v){
+  const D = (x,y,r,c) => '<circle cx="'+x+'" cy="'+y+'" r="'+r+'" fill="var(--'+c+')" class="gdot"/>';
+  if(v === 1) return SVG('<rect x="8" y="3" width="30" height="34" rx="3" class="gbg"/>' + D(23,20,6.4,'ink'));
+  if(v === 2) return SVG('<rect x="8" y="3" width="30" height="34" rx="3" class="gbg"/>' +
+    '<circle cx="23" cy="20" r="6" fill="none" stroke="color-mix(in srgb,var(--ink) 55%,transparent)" stroke-width="1.2"/>');
+  return SVG('<rect x="8" y="3" width="30" height="34" rx="3" class="gbg"/>' +
+    D(18,14,4.2,'clay') + D(28,14,4.2,'indigo') + D(18,26,4.2,'olive') + D(28,26,4.2,'ochre'));
+}
+function gHeader(v){
+  const h = [7,10,14][v];
+  return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gbg"/>' +
+    '<rect x="8" y="3" width="30" height="'+h+'" fill="color-mix(in srgb,var(--ink) 22%,transparent)"/>' +
+    '<path d="M8 '+(3+h)+'h30" stroke="color-mix(in srgb,var(--ink) 30%,transparent)" stroke-width=".8"/>' +
+    '<path d="M12 '+(5+h)+'h6M21 '+(5+h)+'h6M30 '+(5+h)+'h5" stroke="color-mix(in srgb,var(--ink) 26%,transparent)" stroke-width="1.4"/>' +
+    '<path d="M8 '+(37-Math.max(4,h))+ 'h30" stroke="none"/>');
+}
+function gGrid(v){
+  const step = [6,7.5,9.5][v];
+  let o = '';
+  for(let y = 5; y < 37; y += step) o += '<path d="M8 '+y+'h30" stroke="color-mix(in srgb,var(--ink) 30%,transparent)" stroke-width="1"/>';
+  o += '<rect x="8" y="3" width="30" height="34" rx="2" fill="none" stroke="color-mix(in srgb,var(--ink) 26%,transparent)" stroke-width=".8"/>';
+  return SVG(o);
+}
+function gBackdrop(v){
+  if(v === 1) return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gbg"/>' +
+    '<path d="M8 10h30M8 17h30M8 24h30M8 31h30" stroke="color-mix(in srgb,var(--rule) 55%,transparent)" stroke-width="1"/>');
+  if(v === 2) return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gbg"/>' +
+    '<rect x="8" y="3" width="30" height="8.5" fill="color-mix(in srgb,var(--cardAlt) 90%,transparent)"/>' +
+    '<rect x="8" y="20" width="30" height="8.5" fill="color-mix(in srgb,var(--cardAlt) 90%,transparent)"/>');
+  if(v === 3) return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gbg"/>' +
+    '<path d="M8 7h30M8 11h30M8 15h30M8 19h30M8 23h30M8 27h30M8 31h30M8 35h30" stroke="color-mix(in srgb,var(--rule) 26%,transparent)" stroke-width=".7"/>');
+  if(v === 4) return SVG('<rect x="8" y="3" width="30" height="34" rx="2" fill="color-mix(in srgb,var(--band) 100%,transparent)" stroke="color-mix(in srgb,var(--ink) 22%,transparent)" stroke-width=".8"/>');
+  return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gbg"/>');
+}
+function gBgMotion(v){
+  if(v === 0) return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gbg"/>' +
+    '<path d="M8 13h30M8 23h30M8 33h30" stroke="color-mix(in srgb,var(--rule) 40%,transparent)" stroke-width="1"/>');
+  return SVG('<rect x="8" y="3" width="30" height="34" rx="2" class="gbg"/>' +
+    '<g class="gdrift"><path d="M8 9h30M8 19h30M8 29h30M8 39h30" stroke="color-mix(in srgb,var(--rule) 52%,transparent)" stroke-width="1"/></g>');
+}
+
+const GLYPH = {
+  shape:gShape, decor:gDecor, meta:gMeta, badge:gBadge, erosion:gErosion,
+  motion:gMotion, tone:gTone, header:gHeader, grid:gGrid, backdrop:gBackdrop, bgMotion:gBgMotion,
+};
+
+/* =====================================================================
+   3. 一台手机
+   ===================================================================== */
+class Phone {
+  constructor(host, cfg){
+    this.cfg = cfg;
+    this.preset = cfg.preset;
+    this.ov = Object.assign({}, cfg.ov || {});
+    this.narrow = false;
+    this.closed = {};
+    this.root = document.createElement('div');
+    this.root.className = 'phone' + (cfg.dark ? ' dark' : '');
+    this.root.innerHTML = this.shell();
+    host.appendChild(this.root);
+    this.cache();
+    this.bind();
+    this.render(true);
+    requestAnimationFrame(() => {
+      const par = this.els.params;
+      const pbar = this.root.querySelector('.pbar');
+      if(cfg.narrow) this.setNarrow(true);
+      if(cfg.scrollTo != null){
+        const g = this.els.groupEls[cfg.scrollTo];
+        if(g){
+          /* 用 rect 差算落位：.grp 的 offsetTop 是相对 .phone 的，不能直接用。
+             吸顶条会盖住前 100 多像素，所以量两次、第二次按残差补正 */
+          par.scrollTop = 0;
+          const off = () => g.getBoundingClientRect().top - par.getBoundingClientRect().top - pbar.offsetHeight;
+          par.scrollTop = Math.max(0, off());
+          const d = off();
+          if(Math.abs(d) > 1) par.scrollTop = Math.max(0, par.scrollTop + d);
+        }
+      } else if(cfg.scroll != null){
+        par.scrollTop = cfg.scroll;
+      }
+      /* 静态分镜：把「刚改的那条轴在哪」定住，截图里看得到 */
+      if(cfg.hold) this.pulse(cfg.hold, true);
+      requestAnimationFrame(() => document.documentElement.classList.remove('pre'));
+    });
+  }
+
+  /* 三段骨架：预览 / 参数 */
+  shell(){
+    return ''
+    + '<div class="sbar"><span>14:10</span><span class="batt"></span></div>'
+    + '<div class="abar"><span class="back"><i></i></span><span class="ttl">课表卡片</span></div>'
+    + '<div class="stage"><div class="pv">'
+    +   '<div class="pv-head"><div><b>第 13 周</b><div class="sub">2026 秋季学期</div></div>'
+    +     '<div class="right"><div class="d">11月23日</div><div class="w">周一</div></div>'
+    +     '<i class="plh"></i></div>'
+    +   '<div class="pv-week"></div>'
+    +   '<div class="pv-win"><div class="pv-tex"></div><div class="pv-grid"></div></div>'
+    + '</div></div>'
+    + '<div class="params"><div class="pbar"><div class="prail"></div><div class="pips"></div></div>'
+    +   '<div class="groups"></div></div>';
+  }
+
+  cache(){
+    const q = (s) => this.root.querySelector(s);
+    this.els = {
+      pv:q('.pv'), head:q('.pv-head'), week:q('.pv-week'),
+      win:q('.pv-win'), tex:q('.pv-tex'), grid:q('.pv-grid'),
+      params:q('.params'), prail:q('.prail'), pips:q('.pips'), groups:q('.groups'),
+    };
+    /* 分组 + 轴 + 滑轨，只建一次 */
+    this.els.groups.innerHTML = GROUPS.map((g,gi) => {
+      const axes = g.axes.map(i => {
+        const a = AXES[i];
+        return '<div class="ax" data-axis="'+a.k+'">'
+          + '<div class="ax-name">'+a.n+'</div>'
+          + '<div class="rail" data-rail="'+a.k+'"></div></div>';
+      }).join('');
+      return '<section class="grp" data-g="'+gi+'">'
+        + '<button class="grp-head"><span class="gg"></span><span class="gn">'+g.n+'</span>'
+        + '<span class="cnt">' + g.axes.map(()=>'<i></i>').join('') + '</span>'
+        + '<span class="fold"></span></button>'
+        + '<div class="grp-body"><div class="grp-inner">' + axes + '</div></div></section>';
+    }).join('');
+    this.els.groupEls = [...this.root.querySelectorAll('.grp')];
+    this.els.heads = [...this.root.querySelectorAll('.grp-head')];
+    this.els.rails = {};
+    AXES.forEach(a => { this.els.rails[a.k] = this.root.querySelector('[data-rail="'+a.k+'"]'); });
+    this.els.chips = {};
+  }
+
+  bind(){
+    /* 滚动即折：滚出 18px 收成条带，回到 4px 以内展开（带迟滞，防抖） */
+    this.els.params.addEventListener('scroll', () => {
+      const y = this.els.params.scrollTop;
+      if(!this.narrow && y > 18) this.setNarrow(true);
+      else if(this.narrow && y < 4) this.setNarrow(false);
+    });
+    /* 段落头：折角翻转即开合 */
+    this.els.heads.forEach((h, gi) => {
+      h.addEventListener('click', () => {
+        this.closed[gi] = !this.closed[gi];
+        this.els.groupEls[gi].classList.toggle('closed', !!this.closed[gi]);
+        this.els.heads[gi].querySelector('.fold');
+      });
+    });
+  }
+
+  setNarrow(on){
+    if(this.narrow === on) return;
+    this.narrow = on;
+    this.root.classList.toggle('narrow', on);
+    this.layoutWin();
+  }
+
+  /* ============ 渲染 ============ */
+  render(full){
+    const s = this.slots = resolve(this.preset, this.ov);
+    this.renderWeek(s);
+    this.renderGrid(s);
+    this.renderPresets(s);
+    this.renderRails(s);
+    this.renderGroups(s);
+    this.layoutWin();
+  }
+
+  renderWeek(s){
+    this.els.pv.style.setProperty('--headH', [34,42,50][s.header] + 'px');
+    this.els.pv.style.setProperty('--daySz', [10.5,11,12.5][s.header] + 'px');
+    this.els.week.innerHTML = '<div class="axisw"></div>' + DAYS.map((d,i) =>
+      '<div class="wk'+(i===0?' today':'')+'"><b>'+d[0]+'</b><span>'+d[1]+'</span></div>').join('');
+  }
+
+  renderGrid(s){
+    const pv = this.els.pv;
+    const rowH = Math.round(46 * (s.grid === 0 ? .87 : s.grid === 2 ? 1.13 : 1));
+    pv.style.setProperty('--rowH', rowH + 'px');
+    pv.dataset.short = rowH < 44 ? '1' : '';
+    pv.dataset.decor = s.decor;
+    this.els.tex.dataset.b = s.backdrop;
+    this.els.tex.classList.toggle('drift', s.bgMotion === 1);
+    this.els.tex.style.setProperty('--rowH', rowH + 'px');
+
+    let html = '';
+    for(let r = 0; r < 7; r++){
+      if(BANDS[r] !== undefined) html += '<div class="pv-band"><span>'+BANDS[r]+'</span></div>';
+      html += '<div class="pv-row" data-r="'+r+'">';
+      html += '<div class="pv-axis"><b>'+(SLOTS[r] ? SLOTS[r][0] : '13-14')+'</b><span>'+(SLOTS[r] ? SLOTS[r][1] : '—')+'</span></div>';
+      for(let c = 0; c < 7; c++){
+        const co = COURSES.find(x => x.r === r && x.c === c);
+        html += co ? this.cellHTML(co, s) : '<div class="cell cell--v"></div>';
+      }
+      html += '</div>';
+    }
+    this.els.grid.innerHTML = html;
+    this.rows = [...this.els.grid.querySelectorAll('.pv-row')];
+  }
+
+  /* 真格子：形状/装饰/字段/角标/侵蚀/底色 六轴 + 动效 */
+  cellHTML(co, s){
+    const dark = this.cfg.dark;
+    const fam = co.fam;
+    let bg;
+    if(s.shape === 2 || s.tone === 2) bg = 'transparent';
+    else if(s.tone === 1) bg = 'var(--cardAlt)';
+    else if(s.shape === 3) bg = 'color-mix(in srgb, var(--'+fam+') 30%, var(--card))';
+    else bg = 'color-mix(in srgb, var(--'+fam+') '+(dark?24:21)+'%, var(--card))';
+
+    const sp = 'color-mix(in srgb, var(--'+fam+') '+(dark?66:56)+'%, transparent)';
+    const line = (s.shape === 2 || s.tone === 2) ? 'var(--outline)' : sp;
+    const radius = ['5px','1px','0','2px','10px 3px 10px 3px'][s.shape];
+
+    let tx = '<span class="nm">'+co.name+'</span>';
+    if(s.meta === 0) tx += '<span class="rm">'+co.room+'</span><span class="tc">'+co.teacher+'</span>';
+    if(s.meta === 1) tx += '<span class="sb">'+co.room+' · '+co.teacher+'</span>';
+    if(s.meta === 2) tx += '<span class="bt"><span class="rm">'+co.room+'</span><span class="tc">'+co.teacher+'</span></span>';
+
+    let ero = '';
+    if(s.erosion === 1 && co.p > 0) ero = '<i class="er" style="height:'+(co.p*100).toFixed(1)+'%"></i>';
+    if(s.erosion === 2 && co.p > 0) ero = '<i class="er2" style="left:'+(-30 + co.p*90).toFixed(1)+'%"></i>';
+    if(s.erosion === 3 && co.p > 0) ero = '<i class="er" style="height:'+(co.p*60).toFixed(1)+'%"></i>';
+
+    let badge = '';
+    if(s.badge === 1) badge = '<i class="bd1"></i>';
+    if(s.badge === 2) badge = '<i class="bd2"></i>';
+
+    const motionCls = s.motion === 1 ? ' breathe' : (s.motion === 2 ? ' breathe slow' : '');
+    const fadeCol = 'color-mix(in srgb, var(--cardAlt) 62%, var(--paper))';
+
+    return '<div class="cell'+motionCls+'" data-m="'+s.meta+'" data-d="'+s.decor+'" '
+      + 'style="background:'+bg+';border-radius:'+radius+';box-shadow:inset 0 0 0 .8px '+line+';'
+      + '--sp:'+sp+';--fade:'+fadeCol+'">'
+      + '<i class="dc"></i>' + ero
+      + '<div class="tx">'+tx+'</div>'
+      + badge
+      + (s.motion ? '<i class="mb"></i>' : '')
+      + '<i class="pl"></i></div>';
+  }
+
+  renderPresets(s){
+    const rail = this.els.prail;
+    const keep = rail.scrollLeft;
+    rail.innerHTML = PRESETS.map((p,i) =>
+      '<button class="pchip'+(i===this.preset?' on':'')+'" data-p="'+i+'">'
+      + '<span class="psw">'+this.swatch(p.s)+'</span>'
+      + '<span class="pnm">'+p.n+'</span></button>').join('');
+    rail.scrollLeft = keep;
+    [...rail.children].forEach(el => {
+      el.addEventListener('click', () => {
+        this.preset = +el.dataset.p;
+        this.render();
+        this.pulse('all');
+        const chip = this.els.prail.querySelector('[data-p="'+this.preset+'"]');
+        if(chip) chip.classList.add('pop');
+      });
+    });
+
+    const pips = this.els.pips;
+    pips.innerHTML = '';
+    GROUPS.forEach((g, gi) => {
+      if(gi) { const sp = document.createElement('span'); sp.className = 'gap'; pips.appendChild(sp); }
+      g.axes.forEach(i => {
+        const a = AXES[i];
+        const b = document.createElement('button');
+        b.className = 'pip' + ((this.ov[a.k] >= 0) ? ' on' : '');
+        b.dataset.k = a.k;
+        b.title = a.n;
+        b.addEventListener('click', () => {
+          if(this.ov[a.k] < 0) return;
+          this.ov[a.k] = -1;
+          this.render();
+          this.pulse(a.k);
+        });
+        pips.appendChild(b);
+      });
+    });
+  }
+
+  /* 预设小样：按真槽位画，45×52 的缩略 */
+  swatch(sl){
+    const fam = 'clay';
+    let bg;
+    if(sl.shape === 2 || sl.tone === 2) bg = 'transparent';
+    else if(sl.tone === 1) bg = 'var(--cardAlt)';
+    else bg = 'color-mix(in srgb, var(--'+fam+') '+(this.cfg.dark?24:21)+'%, var(--card))';
+    const sp = 'color-mix(in srgb, var(--'+fam+') '+(this.cfg.dark?66:56)+'%, transparent)';
+    const radius = ['5px','1px','0','2px','10px 3px 10px 3px'][sl.shape];
+    const line = (sl.shape === 2 || sl.tone === 2) ? 'var(--outline)' : sp;
+    let d = '';
+    if(sl.decor === 1) d = '<i style="position:absolute;left:0;top:0;bottom:0;width:2.2px;background:'+sp+'"></i>';
+    if(sl.decor === 2) d = '<i style="position:absolute;left:0;right:0;top:0;height:2.6px;background:'+sp+'"></i>';
+    if(sl.decor === 3) d = '<i style="position:absolute;right:0;top:0;width:8px;height:8px;border-top:1.8px solid '+sp+';border-right:1.8px solid '+sp+'"></i>';
+    if(sl.decor === 4) d = '<i style="position:absolute;left:0;right:0;bottom:1px;height:1.4px;background:'+sp+'"></i>';
+    if(sl.decor === 5) d = '<i style="position:absolute;inset:0;background:'+sp+';opacity:.12"></i>';
+    if(sl.decor === 6) d = '<i style="position:absolute;inset:0;background:repeating-linear-gradient(62deg,transparent 0 5px,'+sp+' 5px 6.6px);opacity:.6"></i>';
+    let bd = '';
+    if(sl.badge === 1) bd = '<i style="position:absolute;right:0;top:0;border-top:9px solid '+sp+';border-left:9px solid transparent"></i>';
+    if(sl.badge === 2) bd = '<i style="position:absolute;right:0;top:0;width:9px;height:9px;background:repeating-linear-gradient(45deg,transparent 0 3px,'+sp+' 3px 4.4px)"></i>';
+    const lines = sl.meta === 3 ? 1 : (sl.meta === 1 ? 2 : 3);
+    let tx = '';
+    for(let i = 0; i < lines; i++){
+      tx += '<i style="display:block;height:'+(i?2:2.8)+'px;border-radius:1px;margin-top:'+(i?2.6:0)+'px;'
+        + 'width:'+(i===0?100:64)+'%;background:color-mix(in srgb,var(--ink) '+(i===0?78:34)+'%,transparent)"></i>';
+    }
+    return '<div style="position:absolute;inset:0;border-radius:'+radius+';background:'+bg+';'
+      + 'box-shadow:inset 0 0 0 .8px '+line+'">'+d+bd
+      + '<div style="position:absolute;left:4px;right:3px;top:4px">'+tx+'</div></div>';
+  }
+
+  renderRails(s){
+    const f = forbids(s);
+    AXES.forEach(a => {
+      const rail = this.els.rails[a.k];
+      const keep = rail.scrollLeft;
+      const cur = this.ov[a.k];
+      let html = this.chip(a, -1, s, false, false);
+      a.o.forEach((name, vi) => {
+        const dis = !!(f[a.k] && f[a.k].indexOf(vi) >= 0);
+        html += this.chip(a, vi, s, cur === vi, dis);
+      });
+      rail.innerHTML = html;
+      rail.scrollLeft = keep;
+      [...rail.children].forEach(el => {
+        el.addEventListener('click', () => this.pick(a.k, +el.dataset.v));
+      });
+    });
+  }
+
+  chip(a, v, s, on, dis){
+    const inherited = v < 0;
+    const shown = inherited ? s[a.k] : v;
+    const name = inherited ? '跟随' : a.o[v];
+    return '<button class="chip'+(on?' on':'')+(inherited?' inh':'')+(dis?' off':'')+'" '
+      + 'data-v="'+v+'" data-k="'+a.k+'">'
+      + '<span class="cg">'+GLYPH[a.k](shown)+'</span>'
+      + '<span class="cn">'+name+'</span></button>';
+  }
+
+  /* 分组头：一枚真缩略（格子=真格子、骨架=真页面、底纹=真纹理）+ 覆盖刻度 */
+  renderGroups(s){
+    const heads = this.els.heads;
+    GROUPS.forEach((g, gi) => {
+      const marks = heads[gi].querySelectorAll('.cnt i');
+      let n = 0;
+      g.axes.forEach((i, k) => {
+        const on = this.ov[AXES[i].k] >= 0;
+        marks[k].classList.toggle('on', on);
+        if(on) n++;
+      });
+      const gg = heads[gi].querySelector('.gg');
+      if(gi === 0) gg.innerHTML = this.swatch(s);
+      if(gi === 1){
+        const h = [10,13,16][s.header];
+        gg.innerHTML = '<div style="position:absolute;inset:0;border:1px solid color-mix(in srgb,var(--ink) 26%,transparent);border-radius:2px">'
+          + '<i style="position:absolute;left:0;right:0;top:0;height:'+h+'px;background:color-mix(in srgb,var(--ink) 16%,transparent)"></i>'
+          + '<i style="position:absolute;left:2px;right:2px;top:'+(h+3)+'px;height:1px;background:color-mix(in srgb,var(--ink) 26%,transparent)"></i>'
+          + '<i style="position:absolute;left:2px;right:2px;top:'+(h+6)+'px;height:1px;background:color-mix(in srgb,var(--ink) 16%,transparent)"></i>'
+          + '</div>';
+      }
+      if(gi === 2){
+        const pat = {
+          0:'transparent',
+          1:'repeating-linear-gradient(180deg,transparent 0 3px,color-mix(in srgb,var(--rule) 50%,transparent) 3px 4px)',
+          2:'repeating-linear-gradient(180deg,var(--band) 0 4px,transparent 4px 8px)',
+          3:'repeating-linear-gradient(180deg,transparent 0 2px,color-mix(in srgb,var(--rule) 22%,transparent) 2px 2.6px)',
+          4:'var(--band)',
+        }[s.backdrop];
+        gg.innerHTML = '<div style="position:absolute;inset:0;border:1px solid color-mix(in srgb,var(--ink) 22%,transparent);border-radius:2px;background:'+pat+'"></div>';
+      }
+    });
+  }
+
+  /* 选一条轴：改、消互斥、脉冲定位 */
+  pick(k, v){
+    const before = resolve(this.preset, this.ov);
+    this.ov[k] = v;
+    const after = resolve(this.preset, this.ov);
+    /* 被牵连的轴钉死，界面才不说谎 */
+    AXES.forEach(a => {
+      if(a.k !== k && before[a.k] !== after[a.k]){
+        if(this.ov[a.k] < 0) this.ov[a.k] = after[a.k];
+      }
+    });
+    this.render();
+    this.pulse(k);
+    const chip = this.els.rails[k].querySelector('[data-v="'+v+'"]');
+    if(chip) chip.classList.add('pop');
+  }
+
+  /* ---------- 改动定位：脉冲画在这条轴改变的那块几何上 ---------- */
+  pulse(kind, hold){
+    const pv = this.els.pv;
+    const clear = () => {
+      pv.classList.remove('is-pl-header','is-pl-grid','is-pl-tex','is-pl-all');
+      this.root.querySelectorAll('.cell').forEach(c => c.classList.remove('is-pl'));
+    };
+    clear();
+    void pv.offsetWidth;
+
+    if(kind === 'header'){ pv.classList.add('is-pl-header'); }
+    else if(kind === 'grid'){ pv.classList.add('is-pl-grid'); }
+    else if(kind === 'backdrop' || kind === 'bgMotion'){ pv.classList.add('is-pl-tex'); this.els.tex.classList.add('is-pl'); }
+    else if(kind === 'all'){ pv.classList.add('is-pl-all'); }
+    else {
+      const g = this.geom(kind);
+      pv.style.setProperty('--plx', g[0]); pv.style.setProperty('--ply', g[1]);
+      pv.style.setProperty('--plw', g[2]); pv.style.setProperty('--plh', g[3]);
+      this.root.querySelectorAll('.cell:not(.cell--v)').forEach(c => c.classList.add('is-pl'));
+    }
+    /* 条带状态下，把被改的那一行滑到窗口里 */
+    if(this.narrow) this.focusRowFor(kind);
+
+    clearTimeout(this._pt);
+    if(hold){
+      this.root.querySelectorAll('.cell.is-pl').forEach(c => c.classList.add('hold'));
+    } else {
+      this._pt = setTimeout(clear, 600);
+    }
+  }
+
+  geom(kind){
+    const cell = this.root.querySelector('.cell:not(.cell--v)');
+    const W = cell ? cell.clientWidth : 46;
+    const H = cell ? cell.clientHeight : 38;
+    const s = this.slots;
+    const px = (n) => n + 'px';
+    switch(kind){
+      case 'shape': return [px(0),px(0),px(W),px(H)];
+      case 'tone':  return [px(0),px(0),px(W),px(H)];
+      case 'meta':  return [px(3),px(2),px(W-6),px(H-5)];
+      case 'badge': return [px(W-17),px(-1),px(17),px(17)];
+      case 'erosion': return [px(0),px(0),px(W),px(Math.round(H*.55))];
+      case 'motion': return [px(0),px(0),px(W),px(H)];
+      case 'decor':
+        if(s.decor === 1) return [px(0),px(0),px(4),px(H)];
+        if(s.decor === 2) return [px(0),px(-1),px(W),px(5)];
+        if(s.decor === 3) return [px(W-13),px(-1),px(14),px(14)];
+        if(s.decor === 4) return [px(0),px(H-4),px(W),px(5)];
+        return [px(0),px(0),px(W),px(H)];
+      default: return [px(0),px(0),px(W),px(H)];
+    }
+  }
+
+  focusRowFor(kind){
+    /* 找一条最可能被这条轴影响的课：优先选进度非零的那节 */
+    let target = 1;
+    const co = COURSES.find(c => (kind === 'badge' || kind === 'meta') && c.p > 0) || COURSES[0];
+    if(co) target = co.r;
+    this.focusRow = target;
+    this.layoutWin();
+  }
+
+  /* 窗口高度 + 条带下的定位 */
+  layoutWin(){
+    const rowH = Math.round(46 * (this.slots.grid === 0 ? .87 : this.slots.grid === 2 ? 1.13 : 1));
+    const winH = this.narrow ? 74 : 273;
+    this.els.win.style.setProperty('--winH', winH + 'px');
+    if(this.narrow && this.rows){
+      const r = Math.max(0, Math.min(this.focusRow || 1, this.rows.length - 1));
+      const top = this.rows[r].offsetTop;
+      this.els.grid.style.transform = 'translateY(' + (-Math.max(0, top)) + 'px)';
+    } else {
+      this.els.grid.style.transform = 'translateY(0)';
+    }
+  }
+}
+
+/* =====================================================================
+   4. 三台：默认浅色 / 改过几条（条带态）/ 深色
+   ===================================================================== */
+const board = document.getElementById('board');
+const PHONES = [
+  {dark:false, preset:0, ov:{}, cap:'① 纸卡 · 默认', sub:'停在顶：预览满幅', scroll:0},
+  {dark:false, preset:1, ov:{shape:1, decor:2, badge:2, erosion:2}, cap:'② 账页 + 4 条覆盖',
+   sub:'已滚到「骨架」：预览折成 106px 条带，角标那一下定在格子上', scrollTo:1, narrow:true, hold:'badge'},
+  {dark:true,  preset:4, ov:{tone:0, motion:1}, cap:'③ 安静 · 深色', sub:'改了两条', scroll:0},
+];
+
+PHONES.forEach((cfg, i) => {
+  const col = document.createElement('div');
+  col.className = 'col';
+  board.appendChild(col);
+  const host = document.createElement('div');
+  col.appendChild(host);
+  const cap = document.createElement('div');
+  cap.className = 'cap';
+  cap.innerHTML = '<b>'+cfg.cap+'</b><i></i>'+cfg.sub;
+  col.appendChild(cap);
+  new Phone(host, cfg);
+});
+</script>
+</body>
+</html>

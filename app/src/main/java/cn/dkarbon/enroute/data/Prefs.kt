@@ -128,6 +128,12 @@ class Prefs(ctx: Context) {
     var ttOvBgMotion: Int
         get() = sp.getInt("tt_ov_bg_motion", -1)
         set(v) = sp.edit().putInt("tt_ov_bg_motion", v).apply()
+    var ttOvTess: Int
+        get() = sp.getInt("tt_ov_tess", -1)
+        set(v) = sp.edit().putInt("tt_ov_tess", v).apply()
+    var ttOvTessMode: Int
+        get() = sp.getInt("tt_ov_tess_mode", -1)
+        set(v) = sp.edit().putInt("tt_ov_tess_mode", v).apply()
 
     /**
      * 取色来源（票 16 追加项②）：0 = 固定农业色板；1 = 跟随壁纸取色（仅 Android 12+ 生效）。

@@ -17,7 +17,10 @@ import cn.dkarbon.enroute.data.UrpClient
 import cn.dkarbon.enroute.ui.timetable.TermCalendar
 import cn.dkarbon.enroute.ui.timetable.TtAxis
 import cn.dkarbon.enroute.ui.timetable.TtDecorSpine
+import cn.dkarbon.enroute.ui.timetable.TtOverrides
 import cn.dkarbon.enroute.ui.timetable.TtPresetCount
+import cn.dkarbon.enroute.ui.timetable.TtPresets
+import cn.dkarbon.enroute.ui.timetable.TtSlots
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -161,6 +164,8 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 ttOvGrid = prefs.ttOvGrid,
                 ttOvBackdrop = prefs.ttOvBackdrop,
                 ttOvBgMotion = prefs.ttOvBgMotion,
+                ttOvTess = prefs.ttOvTess,
+                ttOvTessMode = prefs.ttOvTessMode,
             )
             // 读盘后立刻把卡片配置推给绘制层（否则冷启动第一帧还是默认值）
             // ①a 票 24：先把教务数据的三档缓存灌进界面 —— **这一步不发任何网络请求**，
@@ -1466,25 +1471,93 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
      * 单墨底色 / 关掉的竖脊全被预设盖回去 —— 那是视觉回退，不是升级。
      */
     private fun migrateSlotsIfNeeded() {
-        if (prefs.ttSlotsVersion >= 1) return
-        prefs.ttOvTone = prefs.ttCardTint.coerceIn(0, 2)
-        prefs.ttOvDecor = if (prefs.ttCardSpine) TtDecorSpine else 0
-        prefs.ttOvErosion = if (prefs.ttCardErode) 1 else 0
-        prefs.ttSlotsVersion = 1
+        // v1（m41）：m39 的 tint / spine / erode 搬进覆盖位，不让升级冲掉用户挑的观感。
+        if (prefs.ttSlotsVersion < 1) {
+            prefs.ttOvTone = prefs.ttCardTint.coerceIn(0, 2)
+            prefs.ttOvDecor = if (prefs.ttCardSpine) TtDecorSpine else 0
+            prefs.ttOvErosion = if (prefs.ttCardErode) 1 else 0
+            prefs.ttSlotsVersion = 1
+        }
+        // v2（2026-11-23）：覆盖位从「-1 跟随」改成「显式值」，并把 m39 遗留的
+        // 「账页版式」（tt_card_layout = 1）折成「账页」预设 —— 那个开关已经从设置页删掉，
+        // 不折的话老用户会永久卡在账页渲染分支上（设置页怎么调格子都不变）。
+        if (prefs.ttSlotsVersion >= 2) return
+        val idx = if (prefs.ttCardLayout == 1) {
+            TtPresets.indexOf("ledger")
+        } else {
+            prefs.ttPreset.coerceIn(0, TtPresetCount - 1)
+        }
+        val slots = TtPresets.resolve(
+            idx,
+            TtOverrides(
+                shape = prefs.ttOvShape,
+                decor = prefs.ttOvDecor,
+                meta = prefs.ttOvMeta,
+                badge = prefs.ttOvBadge,
+                erosion = prefs.ttOvErosion,
+                motion = prefs.ttOvMotion,
+                tone = prefs.ttOvTone,
+                header = prefs.ttOvHeader,
+                grid = prefs.ttOvGrid,
+                backdrop = prefs.ttOvBackdrop,
+                bgMotion = prefs.ttOvBgMotion,
+                tess = prefs.ttOvTess,
+                tessMode = prefs.ttOvTessMode,
+            ),
+        )
+        prefs.ttPreset = idx
+        applySlots(slots, idx)
+        prefs.ttSlotsVersion = 2
     }
 
-    /** 换预设：把已钉死的覆盖位全部松开，否则「换了预设没变化」 */
+    /**
+     * 换预设 = **一次写入那一套的 13 个具体值**。
+     *
+     * 2026-11-23 主人定：预设那几枚不是「跟随某个基准」，而是「选择对应字段的效果组合」。
+     * 所以点下去就把每条轴写成确定值（不再留 -1），界面任何一行都读得出当前值，
+     * 也就不会再出现「换了没反应 / 看不出改了什么」。
+     *
+     * 版式标记（账页）跟着预设一起改 —— 否则「账页」只换格子不换页头，两边对不上。
+     */
     fun setTtPreset(v: Int) {
-        val s = v.coerceIn(0, TtPresetCount - 1)
-        prefs.ttPreset = s
-        prefs.ttOvShape = -1; prefs.ttOvDecor = -1; prefs.ttOvMeta = -1; prefs.ttOvBadge = -1
-        prefs.ttOvErosion = -1; prefs.ttOvMotion = -1; prefs.ttOvTone = -1
-        prefs.ttOvHeader = -1; prefs.ttOvGrid = -1; prefs.ttOvBackdrop = -1; prefs.ttOvBgMotion = -1
+        val idx = v.coerceIn(0, TtPresetCount - 1)
+        val preset = TtPresets.of(idx)
+        prefs.ttPreset = idx
+        prefs.ttCardLayout = preset.layout
+        applySlots(preset.slots, idx)
+    }
+
+    /** 把一套槽位原样写成显式覆盖位：磁盘与内存同一次改完，避免「半套生效」 */
+    private fun applySlots(slots: TtSlots, preset: Int) {
+        prefs.ttOvShape = slots.shape
+        prefs.ttOvDecor = slots.decor
+        prefs.ttOvMeta = slots.meta
+        prefs.ttOvBadge = slots.badge
+        prefs.ttOvErosion = slots.erosion
+        prefs.ttOvMotion = slots.motion
+        prefs.ttOvTone = slots.tone
+        prefs.ttOvHeader = slots.header
+        prefs.ttOvGrid = slots.grid
+        prefs.ttOvBackdrop = slots.backdrop
+        prefs.ttOvBgMotion = if (slots.bgMotion) 1 else 0
+        prefs.ttOvTess = slots.tess
+        prefs.ttOvTessMode = slots.tessMode
         _ui.value = _ui.value.copy(
-            ttPreset = s,
-            ttOvShape = -1, ttOvDecor = -1, ttOvMeta = -1, ttOvBadge = -1,
-            ttOvErosion = -1, ttOvMotion = -1, ttOvTone = -1,
-            ttOvHeader = -1, ttOvGrid = -1, ttOvBackdrop = -1, ttOvBgMotion = -1,
+            ttPreset = preset,
+            ttCardLayout = prefs.ttCardLayout,
+            ttOvShape = slots.shape,
+            ttOvDecor = slots.decor,
+            ttOvMeta = slots.meta,
+            ttOvBadge = slots.badge,
+            ttOvErosion = slots.erosion,
+            ttOvMotion = slots.motion,
+            ttOvTone = slots.tone,
+            ttOvHeader = slots.header,
+            ttOvGrid = slots.grid,
+            ttOvBackdrop = slots.backdrop,
+            ttOvBgMotion = if (slots.bgMotion) 1 else 0,
+            ttOvTess = slots.tess,
+            ttOvTessMode = slots.tessMode,
         )
     }
 
@@ -1506,6 +1579,12 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
             TtAxis.GRID -> { prefs.ttOvGrid = v; _ui.value = _ui.value.copy(ttOvGrid = v) }
             TtAxis.BACKDROP -> { prefs.ttOvBackdrop = v; _ui.value = _ui.value.copy(ttOvBackdrop = v) }
             TtAxis.BG_MOTION -> { prefs.ttOvBgMotion = v; _ui.value = _ui.value.copy(ttOvBgMotion = v) }
+            TtAxis.TESS -> {
+                prefs.ttOvTess = v
+                _ui.value = _ui.value.copy(ttOvTess = v)
+                // 不动「转动逻辑」的取值：关掉再打开要能回到用户原来选的档（整合稿 §3）
+            }
+            TtAxis.TESS_MODE -> { prefs.ttOvTessMode = v; _ui.value = _ui.value.copy(ttOvTessMode = v) }
         }
     }
 

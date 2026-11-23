@@ -277,6 +277,10 @@ data class AppState(
     val ttOvGrid: Int = -1,
     val ttOvBackdrop: Int = -1,
     val ttOvBgMotion: Int = -1,
+    /** 超立方体：0 不显示 / 1 淡线 / 2 亮线；-1 跟随预设 */
+    val ttOvTess: Int = -1,
+    /** 转动逻辑：0 自由旋转 / 1 跟手横滑 / 2 反向双转 / 3 定格 / 4 正交投影；-1 跟随预设 */
+    val ttOvTessMode: Int = -1,
     /** 取色来源：0 固定农业色板 / 1 跟随壁纸取色（仅 Android 12+ 生效）/ 2 自定义配色 */
     val colorSource: Int = 0,
     /** 自定义配色的四个槽（票 25）：浅色/深色各自独立，0 = 该槽未设置 */

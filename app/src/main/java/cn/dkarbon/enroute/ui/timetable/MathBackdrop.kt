@@ -194,13 +194,17 @@ internal fun DrawScope.drawTesseract4D(
     strokeWidth: Float,
     buffers: TesseractBuffers,
     radiusFactor: Float = 0.55f,
+    /** 正交投影（Schlegel 图） */
+    ortho: Boolean = false,
 ) {
     val cx = size.width / 2f
     val cy = size.height * 0.52f
     val radius = kotlin.math.min(size.width, size.height) * radiusFactor
 
     Tesseract4D.anglesInto(buffers.angles, phase)
-    Tesseract4D.projectInto(buffers.xy, buffers.depth, buffers.scratch, buffers.angles, cx, cy, radius)
+    Tesseract4D.projectInto(
+        buffers.xy, buffers.depth, buffers.scratch, buffers.angles, cx, cy, radius, ortho,
+    )
 
     val base = color.copy(alpha = alpha)
     val edges = Tesseract4D.EDGES
@@ -250,6 +254,10 @@ fun MathBackdropMotion(
     periodSeconds: Float = 34f,
     initialPhase: Float = 0.31f,
     drive: State<Float>? = null,
+    /** 跟手档的传动比：负数 = 反向，绝对值大于 1 = 转得更快 */
+    driveScale: Float = 1f,
+    /** 正交投影（Schlegel 图） */
+    orthographic: Boolean = false,
 ) {
     val ctx = LocalContext.current
     // 只读一次：这个值在会话中不会变，不值得为它挂监听
@@ -279,7 +287,7 @@ fun MathBackdropMotion(
         onDispose { lifecycle.removeObserver(observer) }
     }
 
-    LaunchedEffect(visible, animScaleOff) {
+    LaunchedEffect(visible, animScaleOff, drive, driveScale) {
         if (!visible || animScaleOff) return@LaunchedEffect
         if (drive == null) {
             // 原行为：无条件按 periodSeconds 自转（关于页那处调用走这里）
@@ -303,7 +311,7 @@ fun MathBackdropMotion(
                 val delta = d - lastDrive
                 lastDrive = d
                 if (kotlin.math.abs(delta) > DRIVE_EPSILON) {
-                    phase.floatValue = Tesseract4D.normalizePhase(phase.floatValue + delta)
+                    phase.floatValue = Tesseract4D.normalizePhase(phase.floatValue + delta * driveScale)
                     lastInputAt = now
                 }
                 if (now - lastInputAt > DRIVE_IDLE_NANOS) {
@@ -324,6 +332,7 @@ fun MathBackdropMotion(
             //   线太细会更难被看见；1.4 仍在"背景不是主角"的档位内，不抢课名。）
             strokeWidth = 1.4f,
             buffers = buffers,
+            ortho = orthographic,
         )
     }
 }

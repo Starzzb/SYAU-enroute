@@ -337,12 +337,33 @@ private fun TimetableBody(ui: AppState, vm: TimetableViewModel) {
         // tesseractAlpha(editorial)（0.115/0.085）更高：那个口径是按「关于页」调的
         // （留白最多、没有行带盖它）；课表页有 zebra 行带 + 实心卡两层遮挡，
         // 底纹必须自己扛住遮挡，故本页显式用 0.17/0.11，不共用该建议值。
-        MathBackdropMotion(
-            modifier = Modifier.fillMaxSize(),
-            color = if (tone.isDark) tone.ink else tone.outlineStrong,
-            alpha = if (tone.isDark) 0.17f else 0.11f,
-            drive = backdropDrive,
-        )
+        // 超立方体两轴（m41 v4）：
+        //   · tess 决定「显示 / 淡线 / 亮线」——不显示就整层不挂，连帧循环都不起；
+        //   · tessMode 决定「怎么转」——自由旋转（自转）/ 跟手横滑（吃手势 drive）/
+        //     反向双转（同一手势反向两倍速）/ 定格（drive 恒定，600ms 后自己停帧）/ 正交投影。
+        // 两者由 TtPresets.sanitize 保证不出现「不显示却还在转」。
+        val ttSlots = TtCardPrefs.slots
+        val frozenDrive = remember { mutableFloatStateOf(0f) }
+        if (ttSlots.tess != 0) {
+            MathBackdropMotion(
+                modifier = Modifier.fillMaxSize(),
+                color = if (tone.isDark) tone.ink else tone.outlineStrong,
+                // 亮线比淡线高一档；课表页本来就要压过 zebra 行带与实心卡，所以基准值
+                // 沿用本页 0.17/0.11，而不是「关于页」那套 0.14/0.12。
+                alpha = if (ttSlots.tess == 2) {
+                    if (tone.isDark) 0.26f else 0.18f
+                } else {
+                    if (tone.isDark) 0.17f else 0.11f
+                },
+                drive = when (ttSlots.tessMode) {
+                    0 -> null
+                    3 -> frozenDrive
+                    else -> backdropDrive
+                },
+                driveScale = if (ttSlots.tessMode == 2) -2f else 1f,
+                orthographic = ttSlots.tessMode == 4,
+            )
+        }
         Column(
             Modifier
                 .fillMaxSize()
@@ -761,17 +782,11 @@ internal fun GridArea(
                                 ) {
                                     when {
                                         course == null -> Unit
-                                        // 票 17 重做：账页走「浮起便签」渲染（顶帽 + 圆角 + 软阴影）
-                                        // 2026-11-17 主人指令：下课也别把卡片换成残影 —— 课名要一直在，
+                                        // m41b（2026-11-23 主人）：「账页」不再是一条独立的渲染分支。
+                                        // 它以前绕开 slots 直接画浮起便签，于是设置页怎么调格子都不变；
+                                        // 现在账页只是「账页」预设的一套取值，格子永远只走这条路径。
+                                        // 2026-11-17 主人指令不变：下课也别把卡片换成残影 —— 课名要一直在，
                                         // 而且一直点得开。侵蚀只做「褪色」，不做「删除」。
-                                        ed -> LedgerCourseCell(
-                                            course = course,
-                                            // 侵蚀开关（m39）：关掉就恒为 0（= 完整卡片）
-                                            progress = if (TtCardPrefs.erode) prog else 0f,
-                                            isNow = isTodayCol && prog > 0f,
-                                            onClick = { onCourseClick(course) },
-                                            onLongClick = { onCourseLongClick(course) },
-                                        )
                                         else -> CourseCard(
                                             course = course,
                                             progress = if (TtCardPrefs.erode) prog else 0f,

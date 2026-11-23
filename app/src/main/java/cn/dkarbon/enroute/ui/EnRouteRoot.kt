@@ -145,6 +145,8 @@ fun EnRouteRoot(ui: AppState, vm: TimetableViewModel) {
             grid = ui.ttOvGrid,
             backdrop = ui.ttOvBackdrop,
             bgMotion = ui.ttOvBgMotion,
+            tess = ui.ttOvTess,
+            tessMode = ui.ttOvTessMode,
         ),
     )
     val cardConfig = cn.dkarbon.enroute.ui.timetable.TtCardConfig(

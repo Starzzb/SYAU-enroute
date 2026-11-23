@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.graphics.PathEffect
 import cn.dkarbon.enroute.data.Course
 import cn.dkarbon.enroute.ui.theme.InkTokens
 
@@ -94,6 +95,14 @@ fun TtCourseCell(
         else -> progress
     }
 
+    // 色块（shape = 3）是实底：字必须换成纸白，否则深底深字读不出来。
+    // 这是原型 .cell.sh3 的口径（background: accent; color: #FFFDF7）。
+    val block = slots.shape == 3
+    val paperInk = Color(0xFFFFFDF7)
+    val textMain = if (block) paperInk else t.ink
+    val textSoft = if (block) paperInk.copy(alpha = 0.86f) else t.inkSoft
+    val textFaint = if (block) paperInk.copy(alpha = 0.72f) else t.inkFaint
+
     val body: @Composable () -> Unit = {
         Row(Modifier.fillMaxSize()) {
             if (slots.decor == 1) {
@@ -108,34 +117,34 @@ fun TtCourseCell(
                 when (slots.meta) {
                     // 三行：课名 / 地点 / 教师
                     0 -> Column {
-                        Name(course.name, t)
+                        Name(course.name, textMain)
                         if (course.roomShort.isNotBlank()) {
                             Spacer(Modifier.height(1.dp))
-                            Line(CourseFacts.shortPlace(course.roomShort), 8.sp, 9.5.sp, t.inkSoft)
+                            Line(CourseFacts.shortPlace(course.roomShort), 8.sp, 9.5.sp, textSoft)
                         }
-                        if (course.teacher.isNotBlank()) Line(course.teacher, 7.5.sp, 9.sp, t.inkFaint)
+                        if (course.teacher.isNotBlank()) Line(course.teacher, 7.5.sp, 9.sp, textFaint)
                     }
                     // 同行：课名 + 「地点 · 教师」挤一行
                     1 -> Column {
-                        Name(course.name, t)
+                        Name(course.name, textMain)
                         val sub = listOf(
                             CourseFacts.shortPlace(course.roomShort).takeIf { it.isNotBlank() } ?: "",
                             course.teacher.takeIf { it.isNotBlank() } ?: "",
                         ).filter { it.isNotEmpty() }.joinToString(" · ")
-                        if (sub.isNotEmpty()) Line(sub, 7.5.sp, 9.sp, t.inkSoft, maxLines = 1)
+                        if (sub.isNotEmpty()) Line(sub, 7.5.sp, 9.sp, textSoft, maxLines = 1)
                     }
                     // 底栏：课名贴顶，地点教师贴底
                     2 -> {
-                        Name(course.name, t)
+                        Name(course.name, textMain)
                         Column {
                             if (course.roomShort.isNotBlank()) {
-                                Line(CourseFacts.shortPlace(course.roomShort), 7.5.sp, 9.sp, t.inkSoft, maxLines = 1)
+                                Line(CourseFacts.shortPlace(course.roomShort), 7.5.sp, 9.sp, textSoft, maxLines = 1)
                             }
-                            if (course.teacher.isNotBlank()) Line(course.teacher, 7.sp, 8.5.sp, t.inkFaint, maxLines = 1)
+                            if (course.teacher.isNotBlank()) Line(course.teacher, 7.sp, 8.5.sp, textFaint, maxLines = 1)
                         }
                     }
                     // 只课名
-                    else -> Name(course.name, t, maxLines = 2)
+                    else -> Name(course.name, textMain, maxLines = 2)
                 }
             }
         }
@@ -147,15 +156,28 @@ fun TtCourseCell(
             Modifier
                 .fillMaxSize()
                 .clip(shape)
-                .background(if (slots.tone == 2) Color.Transparent else wash)
-                .then(
-                    if (outlineOnly) Modifier.border(0.75.dp, t.outline, shape)
-                    else Modifier.border(
-                        0.75.dp,
-                        spineColor.copy(alpha = if (t.isDark) 0.55f else 0.30f),
-                        shape,
-                    ),
+                // 色块是实底（原型 .cell.sh3）：底色取本门课的主色，字已换成纸白；
+                // 实底再叠描边会显得脏，所以这一档不描边。
+                .background(
+                    when {
+                        block -> spineColor
+                        slots.tone == 2 -> Color.Transparent
+                        else -> wash
+                    },
                 )
+                .then(
+                    when {
+                        outlineOnly -> Modifier.border(1.dp, spineColor, shape)
+                        block -> Modifier
+                        else -> Modifier.border(
+                            0.75.dp,
+                            spineColor.copy(alpha = if (t.isDark) 0.55f else 0.30f),
+                            shape,
+                        )
+                    },
+                )
+                // 便签（shape = 1）：左侧一条虚线缝，和方卡的实线边一眼能分开
+                .then(if (slots.shape == 1) Modifier.dashLeft(spineColor) else Modifier)
                 .decorLayer(slots.decor, spineColor, t.isDark)
                 .then(if (slots.erosion == 2) Modifier.diagVeil(progress, spineColor) else Modifier),
         )
@@ -252,7 +274,7 @@ fun backdropDrift(enabled: Boolean): Float {
 }
 
 @Composable
-private fun Name(text: String, t: cn.dkarbon.enroute.ui.theme.InkTokenSet, maxLines: Int = 3) {
+private fun Name(text: String, color: Color, maxLines: Int = 3) {
     Text(
         text,
         fontSize = 9.5.sp,
@@ -260,7 +282,7 @@ private fun Name(text: String, t: cn.dkarbon.enroute.ui.theme.InkTokenSet, maxLi
         fontWeight = FontWeight.Medium,
         maxLines = maxLines,
         overflow = TextOverflow.Ellipsis,
-        color = t.ink,
+        color = color,
     )
 }
 
@@ -288,7 +310,8 @@ fun shapeOf(shape: Int): Shape = when (shape) {
     1 -> RoundedCornerShape(2.dp)
     2 -> RectangleShape
     3 -> RoundedCornerShape(2.dp)
-    else -> RoundedCornerShape(topStart = 10.dp, bottomEnd = 10.dp, topEnd = 3.dp, bottomStart = 3.dp)
+    // 标签：右上角切一个 10dp 的斜口（原型 border-radius: 0 10px 2px 0）
+    else -> RoundedCornerShape(topStart = 0.dp, topEnd = 10.dp, bottomEnd = 2.dp, bottomStart = 0.dp)
 }
 
 /** 装饰轴里「面」的部分：顶帽 / 角点 / 底线 / 淡底 / 斜纹。左脊由正文 Row 前那 2.5dp 承担。 */
@@ -321,6 +344,19 @@ private fun Modifier.decorLayer(decor: Int, color: Color, dark: Boolean): Modifi
 }
 
 /** 侵蚀轴 = 斜线：一条从左上切到右下的半透明带，跟随进度右移 */
+/** 形状轴的「便签」：左边一条虚线缝 */
+private fun Modifier.dashLeft(color: Color): Modifier = drawBehind {
+    val stroke = 1.5.dp.toPx()
+    val inset = 1.dp.toPx()
+    drawLine(
+        color.copy(alpha = 0.8f),
+        Offset(inset, inset),
+        Offset(inset, size.height - inset),
+        stroke,
+        pathEffect = PathEffect.dashPathEffect(floatArrayOf(6f, 4f)),
+    )
+}
+
 private fun Modifier.diagVeil(progress: Float, color: Color): Modifier = drawBehind {
     val p = progress.coerceIn(0f, 1f)
     if (p <= 0f) return@drawBehind

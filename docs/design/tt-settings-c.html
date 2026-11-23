@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>课程表卡片 · 变体对比墙</title>
+<style>
+/* ============================================================
+   课程表卡片设置 · 方向 C「变体对比墙」
+   每台机身 393×852，自上而下：
+     ① 薄预览带 200px（常驻，不随阶梯滚动）
+     ② 预设封面轨（5 张 45×52 三连格 + 名字 + 位置刻度）
+     ③ 11 条阶梯：每条轴一行，行内横排该轴全部取值
+   颜色只用 brief 的 token；无外链、无字体文件、无图表库。
+   ============================================================ */
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{overflow-x:auto}
+body{
+  background:#F1ECE1;
+  color:#16211B;
+  font-family:-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:24px 30px 30px;
+  min-width:1320px;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+.page{max-width:1231px;margin:0 auto 14px;display:flex;align-items:baseline;gap:16px;
+  padding-bottom:8px;border-bottom:1px solid rgba(145,130,95,.35)}
+.page .ttl{font-size:15px;font-weight:600;letter-spacing:.02em}
+.page .spec{margin-left:auto;font-size:10px;color:#5A6A60;letter-spacing:.06em}
+
+.stage{display:flex;flex-direction:column;gap:26px;max-width:1231px;margin:0 auto}
+.band-row{display:flex;gap:26px;justify-content:center;align-items:flex-start}
+.frame{display:flex;flex-direction:column;gap:8px}
+.cap{display:flex;align-items:center;gap:7px;padding-left:2px;height:18px}
+.cap .num{font-size:10px;width:15px;height:15px;display:flex;align-items:center;justify-content:center;
+  border:1px solid rgba(145,130,95,.55);color:#5A6A60;line-height:1}
+.cap .nm{font-size:11px;color:#3C4A42;letter-spacing:.03em}
+.cap .cut{margin-left:auto;font-size:9px;color:#91825F;letter-spacing:.08em}
+
+.phone{
+  width:393px;height:852px;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;background:var(--paper);
+  box-shadow:0 1px 0 rgba(22,33,27,.10),0 14px 34px -18px rgba(22,33,27,.45);
+}
+.phone[data-theme="light"]{
+  --paper:#FAF7F1;--card:#FFFFFF;--cardAlt:#F1ECE1;--bandTint:#F7F3EA;
+  --ink:#16211B;--inkSoft:#3C4A42;--inkFaint:#5A6A60;
+  --rule:#91825F;--outline:#7B897F;
+  --pine:#1F4A3D;--clay:#B4553C;--indigo:#2E5266;--olive:#3E5C34;--ochre:#7A5714;--brick:#8E2B1E;
+  --ruleA:rgba(145,130,95,.34);
+  --hlc:rgba(180,85,60,.62);
+}
+.phone[data-theme="dark"]{
+  --paper:#141A17;--card:#1B231F;--cardAlt:#232C27;--bandTint:#181F1B;
+  --ink:#F1EFE7;--inkSoft:#C6CDC6;--inkFaint:#9AA69D;
+  --rule:#647D71;--outline:#6E7B72;
+  --pine:#8FBFA6;--clay:#E0937A;--indigo:#A8C2CF;--olive:#A9C496;--ochre:#D9B96E;--brick:#E5A08F;
+  --ruleA:rgba(100,125,113,.42);
+  --hlc:rgba(224,147,122,.70);
+}
+.phone,.phone *{color:var(--ink)}
+
+/* ---------------- ① 薄预览带 ---------------- */
+.band{flex:none;position:relative;z-index:6;background:var(--paper);padding:7px 12px 3px;
+  transition:box-shadow .18s ease}
+.band.stuck{box-shadow:0 9px 12px -12px rgba(22,33,27,.55),0 1px 0 rgba(145,130,95,.28)}
+
+.bandTop{display:flex;align-items:baseline;height:22px}
+.bandTop .wk{font-size:10px;letter-spacing:.10em;color:var(--inkFaint)}
+.bandTop .wk b{font-size:11.5px;color:var(--ink);letter-spacing:.04em;font-weight:600}
+.bandTop .ptag{margin-left:auto;font-size:9.5px;color:var(--inkFaint);letter-spacing:.10em;position:relative;padding-right:9px}
+.bandTop .ptag .pd{position:absolute;right:0;top:1px;width:5px;height:5px;border-radius:50%;background:var(--clay)}
+
+.pbody{height:170px;overflow:hidden;position:relative;
+  -webkit-mask-image:linear-gradient(to bottom,#000 84%,rgba(0,0,0,.06));
+          mask-image:linear-gradient(to bottom,#000 84%,rgba(0,0,0,.06))}
+.pgrid{width:315px;margin:0 auto;position:relative;--rh:52px;
+  display:grid;grid-template-columns:repeat(7,45px);align-content:start}
+
+/* 底纹：与行距同拍，只画在格子背后 */
+.pgrid .backdrop{position:absolute;inset:0;z-index:0;pointer-events:none}
+.pgrid.pat1 .backdrop{
+  background-image:repeating-linear-gradient(to bottom,var(--ruleA) 0 1px,transparent 1px 100%);
+  background-size:100% var(--rh)}
+.pgrid.pat2 .backdrop{
+  background-image:repeating-linear-gradient(to bottom,var(--bandTint) 0 var(--rh),transparent var(--rh) calc(var(--rh)*2));
+  background-size:100% calc(var(--rh)*2)}
+.pgrid.pat3 .backdrop{
+  background-image:repeating-linear-gradient(to bottom,var(--ruleA) 0 .5px,transparent .5px calc(var(--rh)/3));
+  background-size:100% var(--rh);opacity:.7}
+.pgrid.pat4 .backdrop{background:var(--bandTint)}
+.pgrid.drift .backdrop{animation:drift 12s linear infinite}
+@keyframes drift{from{background-position-y:0}to{background-position-y:calc(var(--rh)*2)}}
+
+/* 周条：页头轴改的是它的高度与字号 */
+.sd{position:relative;z-index:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:1px;
+  border-bottom:1px solid rgba(145,130,95,.26)}
+.sd .d{line-height:1;color:var(--ink)}
+.sd .n{font-size:8.5px;line-height:1;color:var(--inkFaint);font-variant-numeric:tabular-nums}
+.sd.today{background:rgba(142,43,30,.055)}
+.sd.today .d{color:var(--brick)}
+.sd.today::after{content:"";position:absolute;left:0;right:0;top:0;height:2px;background:var(--brick);opacity:.6}
+
+.bandlabel{grid-column:1/-1;height:10px;display:flex;align-items:center;z-index:1;
+  font-size:7px;letter-spacing:.22em;color:var(--inkFaint);padding-left:1px}
+
+.grow{grid-column:1/-1;position:relative;height:var(--rh);z-index:1;
+  display:grid;grid-template-columns:repeat(7,45px)}
+.gslot{position:relative}
+.gslot .cell{position:absolute;inset:0;width:auto;height:auto}
+
+/* 行距轴：贴在行左外侧的刻度 */
+.rowtick{position:absolute;left:-5px;top:50%;width:3px;height:1px;background:var(--rule);opacity:.3;
+  transition:width .15s,background .15s,left .15s,opacity .15s}
+.rowtick.on{left:-11px;width:10px;height:2px;background:var(--clay);opacity:1}
+
+/* ---------------- 格子（TtCell.kt 同口径） ---------------- */
+.cell{position:relative;width:45px;height:52px;overflow:hidden;background:transparent}
+.cell.fluid{width:100%;height:100%}
+.cell .pane{position:absolute;inset:0;background:var(--fill);border:1px solid var(--bc);border-radius:inherit}
+.cell .decorwrap{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none}
+.cell .decorwrap>i{position:absolute;display:block}
+.d1{left:0;top:0;bottom:0;width:2.5px;background:var(--sp)}
+.d2{left:0;right:0;top:0;height:3px;background:var(--sp)}
+.d3{right:0;top:0;width:10px;height:2px;background:var(--sp)}
+.d3b{right:0;top:0;width:2px;height:10px;background:var(--sp)}
+.d4{left:0;right:0;bottom:0;height:1.5px;background:var(--sp)}
+.d5{inset:0;background:var(--sp);opacity:.10}
+.d6a,.d6b,.d6c{top:0;bottom:0;width:3px;background:var(--sp);opacity:.13;
+  transform:skewX(-28deg);transform-origin:top}
+.d6a{left:13%}.d6b{left:44%}.d6c{left:75%}
+
+.cell .erode{position:absolute;inset:0;pointer-events:none;z-index:2}
+.cell.e1 .erode{background:linear-gradient(to bottom,rgba(250,247,241,.90) 0%,rgba(250,247,241,0) 40%)}
+.phone[data-theme="dark"] .cell.e1 .erode{background:linear-gradient(to bottom,rgba(20,26,23,.90) 0%,rgba(20,26,23,0) 40%)}
+.cell.e2 .erode{background:linear-gradient(116deg,transparent 34%,var(--sp) 34%,var(--sp) 66%,transparent 66%);opacity:.11}
+.cell.e3{opacity:.74}
+
+.cell .body{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;padding:3px 2px 2.5px 4.5px}
+.cell .body.spine-in{padding-left:5.5px}
+.cell .nm{font-size:9px;line-height:11px;font-weight:500;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cell .nm.n3{-webkit-line-clamp:3}
+.cell .sub{font-size:8px;line-height:9.5px;color:var(--inkSoft);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .sub2{font-size:7.5px;line-height:9px;color:var(--inkFaint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cell .body.bottom{justify-content:space-between}
+.cell .tail{display:flex;flex-direction:column}
+
+.cell .badgewrap{position:absolute;inset:0;z-index:4;pointer-events:none}
+.b1a{position:absolute;right:0;top:0;width:0;height:0;border-top:8px solid var(--sp);border-left:8px solid transparent;opacity:.92}
+.b1b{position:absolute;right:0;top:0;width:0;height:0;border-top:5px solid var(--paper);border-left:5px solid transparent;opacity:.9}
+.b2{position:absolute;left:0;right:0;top:0;height:7px;
+  background-image:repeating-linear-gradient(45deg,var(--sp) 0 2.5px,transparent 2.5px 5.5px);opacity:.5}
+
+.cell .mveil{position:absolute;inset:0;z-index:5;background:var(--sp);opacity:0;pointer-events:none}
+.cell.m1 .mveil{animation:breath 2.6s linear infinite alternate;--a:.03;--b:.085}
+.cell.m2 .mveil{animation:breath 2.6s linear infinite alternate;--a:0;--b:.13}
+@keyframes breath{from{opacity:var(--a)}to{opacity:var(--b)}}
+
+.hl{outline:1px dashed var(--hlc);outline-offset:1px}
+.hlblock{outline:1px dashed var(--hlc);outline-offset:-2px}
+
+/* ---------------- ② 预设封面轨 ---------------- */
+.prailzone{flex:none;border-top:1px solid rgba(145,130,95,.20);position:relative}
+.prail{display:flex;gap:10px;overflow-x:auto;padding:9px 12px 2px;scrollbar-width:none}
+.prail::-webkit-scrollbar{display:none}
+.cover{flex:none;position:relative;display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:0 0 4px}
+.cover .trio{display:flex;gap:1px;transition:transform .16s ease}
+.cover .cn{font-size:9px;color:var(--inkFaint);letter-spacing:.03em;padding-left:1px;transition:color .15s}
+.cover[aria-pressed="true"] .trio{transform:translateY(-2px)}
+.cover[aria-pressed="true"] .cn{color:var(--ink);font-weight:600}
+.cover[aria-pressed="true"]::after{content:"";position:absolute;left:0;right:0;bottom:0;height:1.5px;background:var(--ink)}
+.cover:hover .trio{transform:translateY(-1px)}
+
+.prail{padding-bottom:11px}
+
+/* ---------------- ③ 阶梯墙 ---------------- */
+.wall{flex:1;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:0 12px 30px}
+.wall::-webkit-scrollbar{display:none}
+
+.row{padding:5px 0 2px;position:relative}
+.row+.row{border-top:1px solid rgba(145,130,95,.20)}
+.rowhead{display:flex;align-items:center;gap:7px;height:15px;margin-bottom:5px}
+.gut{width:9px;height:15px;position:relative;flex:none}
+.pin{position:absolute;left:0;top:4px;width:6px;height:6px;border-radius:50%;background:var(--clay);
+  opacity:.9;cursor:pointer;transition:all .15s}
+.pin:hover{background:transparent;box-shadow:inset 0 0 0 1.5px var(--clay);transform:scale(1.5)}
+.rowhead .axn{font-size:11px;letter-spacing:.04em;color:var(--ink)}
+.rowhead .axn.pinned{font-weight:600}
+.row.on .axn{box-shadow:0 1.5px 0 var(--hlc)}
+.rowhead .chg{width:4px;height:4px;border-radius:50%;background:var(--pine);opacity:.5;margin-left:5px;flex:none}
+.rowhead .cur{margin-left:auto;font-size:9.5px;color:var(--inkFaint);letter-spacing:.02em}
+.rowhead .cur .auto{display:inline-block;margin-left:4px;width:4px;height:4px;border-radius:50%;
+  box-shadow:inset 0 0 0 1px var(--inkFaint);vertical-align:middle}
+
+.ladder{display:flex;gap:4px;align-items:flex-start}
+.tile{position:relative;width:45px;flex:none;display:flex;flex-direction:column;align-items:center;
+  cursor:pointer}
+.tile .cv{position:relative;width:45px;height:52px;display:block;
+  transition:transform .16s ease,opacity .16s ease,box-shadow .16s ease;border-radius:2px}
+.tile:hover .cv{transform:translateY(-1px)}
+.tile.sel .cv{transform:translateY(-2px);box-shadow:0 2.5px 0 -.5px var(--ink)}
+.tile.sel .vl{color:var(--ink);font-weight:600}
+.tile .vl{font-size:7.5px;line-height:9px;color:var(--inkFaint);margin-top:3px;white-space:nowrap}
+
+.tile.blk{cursor:not-allowed}
+.tile.blk .cv{opacity:.34;filter:grayscale(.5)}
+.tile.blk .cv::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(to top right,transparent calc(50% - 1px),var(--clay) calc(50% - 1px),var(--clay) calc(50% + 1px),transparent calc(50% + 1px));
+  opacity:.6}
+.tile.blk:hover .cv{opacity:.9;filter:none}
+.tile.blk .vl{opacity:.4}
+
+.slice{position:relative;width:45px;height:52px;overflow:hidden}
+.slice .strip{display:flex;align-items:center;justify-content:center;gap:2px;
+  border-bottom:1px solid rgba(145,130,95,.3);color:var(--ink);letter-spacing:.02em}
+.slice .strip i{font-style:normal;color:var(--inkFaint)}
+.slice .sb{position:relative;overflow:hidden}
+.slice .sb .cell{position:absolute;inset:0;width:auto;height:auto}
+.slice .pat{position:absolute;inset:0;z-index:0;background-size:100% 100%}
+.slice .ghost{position:absolute;inset:0;z-index:1}
+.slice .ghost .gr{flex:none;display:flex;align-items:flex-start;padding:2.5px 3px;
+  font-size:8px;line-height:9.5px;overflow:hidden;white-space:nowrap;color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="ttl">课程表卡片 · 变体对比墙</div>
+  <div class="spec">393 × 852 · 11 条轴 · 45 × 52 格</div>
+</div>
+
+<div class="stage" id="stage"></div>
+
+<script>
+/* ============================================================
+   0. 数据
+   ============================================================ */
+const DAYS = [
+  {d:'一', n:'23', today:true},
+  {d:'二', n:'24'}, {d:'三', n:'25'}, {d:'四', n:'26'},
+  {d:'五', n:'27'}, {d:'六', n:'28'}, {d:'日', n:'29'},
+];
+
+const COURSES = [
+  {day:0,row:1,name:'不动产估价',        room:'二606',teacher:'董秀茹',fam:0},
+  {day:0,row:2,name:'国土空间规划',      room:'二408',teacher:'吴佳倩',fam:1},
+  {day:1,row:1,name:'地球表层系统概论',  room:'二610',teacher:'孙仲秀',fam:2},
+  {day:2,row:1,name:'不动产估价',        room:'二606',teacher:'董秀茹',fam:0},
+  {day:3,row:0,name:'马克思主义基本原理',room:'一101',teacher:'李想',  fam:3},
+  {day:4,row:3,name:'土地资源调查与评价',room:'三205',teacher:'王立新',fam:4},
+];
+const BANDS = {0:'上午', 2:'下午', 4:'晚上'};
+
+/* 阶梯里统一用同一门课：比的是「同一张卡换一种画法」 */
+const C0 = COURSES[0];
+
+const AXES = [
+  {k:'shape',   n:'形状',     o:['方卡','便签','细线','色块','标签']},
+  {k:'decor',   n:'装饰',     o:['无','左脊','顶帽','角点','底线','淡底','斜纹']},
+  {k:'meta',    n:'字段',     o:['三行','同行','底栏','只课名']},
+  {k:'badge',   n:'角标',     o:['无','折角','斜纹带']},
+  {k:'erosion', n:'侵蚀',     o:['不褪','上褪','斜线','整块淡']},
+  {k:'motion',  n:'动效',     o:['关','呼吸','褪色呼吸']},
+  {k:'tone',    n:'底色',     o:['四色','单墨','无色']},
+  {k:'header',  n:'页头',     o:['紧凑','标准','舒展'], slice:'header'},
+  {k:'grid',    n:'行距',     o:['紧凑','标准','宽松'], slice:'grid'},
+  {k:'backdrop',n:'底纹',     o:['无','横线','田垄','复相','纯色'], slice:'backdrop'},
+  {k:'bgMotion',n:'底纹动效', o:['关','缓移'], bool:true, slice:'backdrop'},
+];
+const AXMAP = Object.fromEntries(AXES.map(a=>[a.k,a]));
+
+/* 五套预设：取值照 TtPreset.kt 的 TtPresets.ALL */
+const PRESETS = [
+  {id:'paper', label:'纸卡', s:{shape:0,decor:1,meta:0,badge:0,erosion:1,motion:0,tone:0,header:1,grid:1,backdrop:0,bgMotion:false}},
+  {id:'ledger',label:'账页', s:{shape:3,decor:4,meta:1,badge:0,erosion:0,motion:0,tone:1,header:0,grid:0,backdrop:1,bgMotion:false}},
+  {id:'dense', label:'密排', s:{shape:2,decor:0,meta:3,badge:0,erosion:0,motion:0,tone:1,header:0,grid:0,backdrop:0,bgMotion:false}},
+  {id:'agenda',label:'日程', s:{shape:1,decor:2,meta:2,badge:0,erosion:3,motion:1,tone:0,header:2,grid:2,backdrop:2,bgMotion:false}},
+  {id:'quiet', label:'安静', s:{shape:4,decor:5,meta:0,badge:0,erosion:0,motion:0,tone:2,header:1,grid:1,backdrop:3,bgMotion:true}},
+];
+
+const FAMS = {
+  light:['#B4553C','#2E5266','#3E5C34','#8E2B1E','#7A5714'],
+  dark: ['#E0937A','#A8C2CF','#A9C496','#E5A08F','#D9B96E'],
+};
+
+/* ============================================================
+   1. 槽位求解（与 TtPresets.resolve / sanitize 同序）
+   ============================================================ */
+function sanitize(s){
+  const r = {...s};
+  if(r.badge === 2) r.meta = 3;                                     // 斜纹带贴顶，吃掉任何一行
+  if(r.decor === 3 && r.badge === 1) r.badge = 0;                   // 角点与折角抢同一个右上角
+  if(r.shape === 2 && (r.decor === 5 || r.decor === 6)) r.decor = 0; // 细线没有填充面
+  if(r.tone === 2 && r.shape === 3) r.shape = 0;                    // 无色 + 色块 = 只剩描边
+  return r;
+}
+
+function resolve(st){
+  const raw = {...PRESETS[st.preset].s};
+  for(const a of AXES){
+    const v = st.ov[a.k];
+    if(v === undefined || v < 0) continue;
+    raw[a.k] = a.bool ? (v === 1) : v;
+  }
+  const clean = sanitize(raw);
+  const auto = {};
+  for(const a of AXES) if(clean[a.k] !== raw[a.k]) auto[a.k] = true;
+  return {slots:clean, auto};
+}
+
+/* 这一格能不能点：点了会不会推翻你自己钉死的另一条轴 */
+function isBlocked(st, k, v){
+  const cur = resolve(st).slots;
+  const next = {...cur, [k]: AXMAP[k].bool ? (v === 1) : v};
+  const clean = sanitize(next);
+  if(clean[k] !== next[k]) return true;
+  for(const a of AXES){
+    if(a.k === k) continue;
+    const pinned = st.ov[a.k] !== undefined && st.ov[a.k] >= 0;
+    if(pinned && clean[a.k] !== cur[a.k]) return true;
+  }
+  return false;
+}
+
+/* ============================================================
+   2. 格子
+   ============================================================ */
+function rgba(hex,a){
+  const n = parseInt(hex.slice(1),16);
+  return 'rgba(' + (n>>16&255) + ',' + (n>>8&255) + ',' + (n&255) + ',' + a + ')';
+}
+const SHAPE_R = ['4px','2px','0px','2px','10px 3px 10px 3px'];
+
+function cellHTML(c, s, o){
+  o = o || {};
+  const dark = !!o.dark;
+  const sp = FAMS[dark?'dark':'light'][c ? c.fam : 0];
+  const outlineOnly = (s.shape === 2) || (s.tone === 2);
+  const fill = s.tone === 2 ? 'transparent'
+             : s.tone === 1 ? 'var(--cardAlt)'
+             : rgba(sp, dark ? 0.17 : 0.12);
+  const bc = outlineOnly ? 'var(--outline)' : rgba(sp, dark ? 0.55 : 0.30);
+  const radius = SHAPE_R[s.shape];
+
+  const cls = ['cell'];
+  if(o.fluid) cls.push('fluid');
+  if(s.erosion === 1) cls.push('e1');
+  if(s.erosion === 2) cls.push('e2');
+  if(s.erosion === 3) cls.push('e3');
+  if(s.motion === 1) cls.push('m1');
+  if(s.motion === 2) cls.push('m2');
+
+  let deco = '';
+  if(s.decor === 1) deco = '<i class="d1"></i>';
+  else if(s.decor === 2) deco = '<i class="d2"></i>';
+  else if(s.decor === 3) deco = '<i class="d3"></i><i class="d3b"></i>';
+  else if(s.decor === 4) deco = '<i class="d4"></i>';
+  else if(s.decor === 5) deco = '<i class="d5"></i>';
+  else if(s.decor === 6) deco = '<i class="d6a"></i><i class="d6b"></i><i class="d6c"></i>';
+
+  let badge = '';
+  if(s.badge === 1) badge = '<i class="b1a"></i><i class="b1b"></i>';
+  else if(s.badge === 2) badge = '<i class="b2"></i>';
+
+  const name = c ? c.name : '不动产估价';
+  const room = c ? c.room : '二606';
+  const tec  = c ? c.teacher : '董秀茹';
+  let body;
+  if(s.meta === 0){
+    body = '<div class="nm">' + name + '</div><div class="sub">' + room + '</div><div class="sub2">' + tec + '</div>';
+  } else if(s.meta === 1){
+    body = '<div class="nm">' + name + '</div><div class="sub">' + room + ' · ' + tec + '</div>';
+  } else if(s.meta === 2){
+    body = '<div class="nm">' + name + '</div><div class="tail"><div class="sub">' + room + '</div><div class="sub2">' + tec + '</div></div>';
+  } else {
+    body = '<div class="nm n3">' + name + '</div>';
+  }
+  const bodyCls = 'body' + (s.meta === 2 ? ' bottom' : '') + (s.decor === 1 ? ' spine-in' : '');
+
+  return '<div class="' + cls.join(' ') + '" style="border-radius:' + radius + ';--sp:' + sp + ';--fill:' + fill + ';--bc:' + bc + '">'
+       +   '<div class="pane"></div>'
+       +   '<div class="decorwrap">' + deco + '</div>'
+       +   '<div class="erode"></div>'
+       +   '<div class="' + bodyCls + '">' + body + '</div>'
+       +   '<div class="badgewrap">' + badge + '</div>'
+       +   '<div class="mveil"></div>'
+       + '</div>';
+}
+
+/* 切面：页头 / 行距 / 底纹 改的是整片网格，用一格大小的切面表达 */
+function sliceHTML(s, kind, dark){
+  if(kind === 'header'){
+    const h  = [15,19,24][s.header];
+    const fs = [6,6.5,7][s.header];
+    return '<div class="slice">'
+      + '<div class="strip" style="height:' + h + 'px;font-size:' + fs + 'px">一<i>23</i></div>'
+      + '<div class="sb" style="height:' + (52 - h) + 'px">' + cellHTML(C0, s, {dark}) + '</div>'
+      + '</div>';
+  }
+  if(kind === 'grid'){
+    const rh = 26 * [0.88, 1, 1.12][s.grid];
+    return '<div class="slice"><div class="ghost">'
+      + '<div class="gr" style="height:' + rh + 'px">不动产估价</div>'
+      + '<div class="gr" style="height:' + rh + 'px">国土空间规划</div>'
+      + '<div class="gr" style="height:' + rh + 'px">地球表层</div>'
+      + '</div></div>';
+  }
+  const pat = {
+    0:'transparent',
+    1:'repeating-linear-gradient(to bottom,rgba(145,130,95,.34) 0 1px,transparent 1px 17px)',
+    2:'repeating-linear-gradient(to bottom,var(--bandTint) 0 17px,transparent 17px 34px)',
+    3:'repeating-linear-gradient(to bottom,rgba(145,130,95,.34) 0 .5px,transparent .5px 5.7px)',
+    4:'var(--bandTint)',
+  }[s.backdrop];
+  return '<div class="slice">'
+    + '<div class="pat" style="background:' + pat + '"></div>'
+    + '<div class="ghost">'
+    +   '<div class="gr" style="height:17px">不动产估价</div>'
+    +   '<div class="gr" style="height:17px">国土空间规划</div>'
+    +   '<div class="gr" style="height:17px">地球表层</div>'
+    + '</div></div>';
+}
+
+/* ============================================================
+   3. 一台机身
+   ============================================================ */
+function buildPhone(root, cfg){
+  const st = {
+    preset: cfg.preset,
+    ov: {...cfg.ov},
+    active: null,
+    changed: new Set(),
+  };
+  const dark = cfg.theme === 'dark';
+
+  if(cfg.marks){
+    AXES.forEach(a=>{
+      const pinned = st.ov[a.k] !== undefined && st.ov[a.k] >= 0;
+      if(!pinned && PRESETS[cfg.preset].s[a.k] !== PRESETS[0].s[a.k]) st.changed.add(a.k);
+    });
+  }
+
+  root.dataset.theme = cfg.theme;
+  root.innerHTML =
+      '<div class="band">'
+    +   '<div class="bandTop">'
+    +     '<span class="wk">第 <b>12</b> 周</span>'
+    +     '<span class="ptag" id="ptag"></span>'
+    +   '</div>'
+    +   '<div class="pbody"><div class="pgrid" id="pg"></div></div>'
+    + '</div>'
+    + '<div class="prailzone">'
+    +   '<div class="prail" id="rail"></div>'
+    + '</div>'
+    + '<div class="wall" id="wall"></div>';
+
+  const band  = root.querySelector('.band');
+  const pg    = root.querySelector('.pgrid');
+  const rail  = root.querySelector('.prail');
+  const wall  = root.querySelector('.wall');
+  const ptag  = root.querySelector('#ptag');
+
+  /* ---------- 预览 ---------- */
+  function drawPreview(){
+    const {slots} = resolve(st);
+    const rs  = [0.88, 1, 1.12][slots.grid];
+    const rh  = 52 * rs;
+    const sdH = [22, 26, 30][slots.header];
+    const sdF = [10.5, 11.5, 13][slots.header];
+    const patCls = ['', 'pat1', 'pat2', 'pat3', 'pat4'][slots.backdrop] || '';
+
+    let h = '<div class="backdrop"></div>';
+    DAYS.forEach(d=>{
+      h += '<div class="sd' + (d.today ? ' today' : '') + '" style="height:' + sdH + 'px">'
+         +   '<span class="d" style="font-size:' + sdF + 'px">' + d.d + '</span>'
+         +   '<span class="n">' + d.n + '</span>'
+         + '</div>';
+    });
+    for(let r=0;r<6;r++){
+      if(BANDS[r]) h += '<div class="bandlabel"><span>' + BANDS[r] + '</span></div>';
+      h += '<div class="grow">';
+      for(let d=0;d<7;d++){
+        const c = COURSES.find(x=>x.day===d && x.row===r);
+        h += '<div class="gslot">' + (c ? cellHTML(c, slots, {dark, fluid:true}) : '') + '</div>';
+      }
+      h += '<i class="rowtick"></i></div>';
+    }
+    pg.style.setProperty('--rh', rh + 'px');
+    pg.className = 'pgrid ' + patCls + (slots.bgMotion ? ' drift' : '');
+    pg.innerHTML = h;
+
+    pg.querySelectorAll('.hl,.hlblock').forEach(n=>n.classList.remove('hl','hlblock'));
+    pg.querySelectorAll('.rowtick').forEach(n=>n.classList.remove('on'));
+    const a = st.active;
+    if(a){
+      const sel = {
+        shape:'.pane', tone:'.pane', decor:'.decorwrap>i', meta:'.body',
+        badge:'.badgewrap>i', erosion:'.erode', motion:'.mveil',
+      }[a];
+      if(a === 'header') pg.querySelectorAll('.sd').forEach(n=>n.classList.add('hl'));
+      else if(a === 'grid') pg.querySelectorAll('.rowtick').forEach(n=>n.classList.add('on'));
+      else if(a === 'backdrop' || a === 'bgMotion') pg.querySelectorAll('.grow').forEach(n=>n.classList.add('hlblock'));
+      else if(sel){
+        const hits = pg.querySelectorAll(sel);
+        if(hits.length) hits.forEach(n=>n.classList.add('hl'));
+        else pg.querySelectorAll('.cell').forEach(n=>n.classList.add('hl'));
+      }
+    }
+    ptag.innerHTML = PRESETS[st.preset].label
+      + (Object.values(st.ov).some(v=>v >= 0) ? '<i class="pd"></i>' : '');
+  }
+
+  /* ---------- 预设轨 ---------- */
+  function drawRail(){
+    let h = '';
+    PRESETS.forEach((p,i)=>{
+      h += '<button class="cover" data-p="' + i + '" aria-pressed="' + (st.preset===i) + '" title="' + p.label + '">'
+        +    '<span class="trio">' + cellHTML(C0, p.s, {dark}) + cellHTML(C0, p.s, {dark}) + cellHTML(C0, p.s, {dark}) + '</span>'
+        +    '<span class="cn">' + p.label + '</span>'
+        +  '</button>';
+    });
+    rail.innerHTML = h;
+    const on = rail.querySelector('[aria-pressed="true"]');
+    if(on){
+      const off = on.offsetLeft - (rail.clientWidth - on.offsetWidth)/2;
+      rail.scrollLeft = Math.max(0, off);
+    }
+  }
+
+  /* ---------- 阶梯墙 ---------- */
+  function drawWall(){
+    const {slots, auto} = resolve(st);
+    const keep = wall.scrollTop;
+    let h = '';
+    for(const ax of AXES){
+      const curV  = ax.bool ? (slots[ax.k] ? 1 : 0) : slots[ax.k];
+      const pinned = st.ov[ax.k] !== undefined && st.ov[ax.k] >= 0;
+      const chg = st.changed.has(ax.k);
+
+      h += '<div class="row' + (st.active === ax.k ? ' on' : '') + '" data-axis="' + ax.k + '">';
+      h +=   '<div class="rowhead">';
+      h +=     '<span class="gut">' + (pinned ? '<i class="pin" data-unpin="' + ax.k + '"></i>' : '') + '</span>';
+      h +=     '<span class="axn' + (pinned ? ' pinned' : '') + '">' + ax.n + '</span>';
+      h +=     (chg ? '<i class="chg"></i>' : '');
+      h +=     '<span class="cur">' + ax.o[curV] + (auto[ax.k] ? '<i class="auto"></i>' : '') + '</span>';
+      h +=   '</div>';
+      h +=   '<div class="ladder">';
+      ax.o.forEach((label,i)=>{
+        const val = ax.bool ? (i === 1 ? 1 : 0) : i;
+        const sel = (curV === val);
+        const blk = isBlocked(st, ax.k, val);
+        const ctx = {...slots, [ax.k]: ax.bool ? (val === 1) : val};
+        const art = ax.slice ? sliceHTML(ctx, ax.slice, dark) : cellHTML(C0, ctx, {dark});
+        h += '<button class="tile' + (sel?' sel':'') + (blk?' blk':'') + '" data-v="' + val + '"'
+           +  ' aria-pressed="' + sel + '" aria-disabled="' + blk + '" title="' + label + '">'
+           +    '<span class="cv">' + art + '</span>'
+           +    '<span class="vl">' + label + '</span>'
+           +  '</button>';
+      });
+      h +=   '</div>';
+      h += '</div>';
+    }
+    wall.innerHTML = h;
+    wall.scrollTop = keep;
+  }
+
+  function syncRows(){
+    wall.querySelectorAll('.row').forEach(r=>r.classList.toggle('on', r.dataset.axis === st.active));
+  }
+  function syncStuck(){
+    band.classList.toggle('stuck', wall.scrollTop > 2);
+  }
+  function drawAll(){
+    drawPreview(); drawRail(); drawWall(); syncStuck();
+  }
+
+  /* ---------- 事件 ---------- */
+  wall.addEventListener('click', e=>{
+    const pin = e.target.closest('[data-unpin]');
+    if(pin){ st.ov[pin.dataset.unpin] = -1; drawAll(); return; }
+    const tile = e.target.closest('.tile');
+    if(!tile || tile.classList.contains('blk')) return;   // 互斥项真点不动
+    const k = tile.closest('.row').dataset.axis;
+    const v = Number(tile.dataset.v);
+    st.active = k;
+    if(tile.classList.contains('sel') && st.ov[k] !== undefined && st.ov[k] >= 0){
+      st.ov[k] = -1;
+    } else {
+      st.ov[k] = v;
+    }
+    drawAll();
+  });
+  wall.addEventListener('pointerover', e=>{
+    const row = e.target.closest('.row');
+    const k = row ? row.dataset.axis : null;
+    if(k !== st.active){ st.active = k; drawPreview(); syncRows(); }
+  });
+  wall.addEventListener('pointerleave', ()=>{
+    if(st.active !== null){ st.active = null; drawPreview(); syncRows(); }
+  });
+  wall.addEventListener('scroll', syncStuck);
+
+  function pickPreset(i){
+    const before = resolve(st).slots;
+    st.preset = i;
+    st.ov = {};
+    const after = resolve(st).slots;
+    st.changed = new Set(AXES.filter(a=>before[a.k] !== after[a.k]).map(a=>a.k));
+    drawAll();
+  }
+  rail.addEventListener('click', e=>{
+    const b = e.target.closest('.cover');
+    if(b) pickPreset(Number(b.dataset.p));
+  });
+
+  drawAll();
+  if(cfg.end){
+    const r = wall.querySelector('[data-axis="tone"]');
+    if(r){
+      const d = r.getBoundingClientRect().top - wall.getBoundingClientRect().top;
+      wall.scrollTop += d - 1;
+    } else wall.scrollTop = wall.scrollHeight;
+    syncStuck();
+  }
+}
+/* ============================================================
+   4. 三台并排 ×2：同一台机身的阶梯上半 / 末段
+   ============================================================ */
+const CASES = [
+  {theme:'light', preset:0, ov:{}, marks:false,
+   cap:['①','纸卡 · 默认']},
+  /* 日程 + 七处钉死：折角、无色、三行 …… 装饰「角点」、形状「色块」、角标「斜纹带」三格被真禁掉 */
+  {theme:'light', preset:3,
+   ov:{shape:4, badge:1, tone:2, meta:0, grid:0, backdrop:4, erosion:0}, marks:true,
+   cap:['②','日程 + 七处钉死']},
+  {theme:'dark', preset:1, ov:{shape:1, tone:0, erosion:1}, marks:false,
+   cap:['③','账页 · 深色']},
+];
+
+const stage = document.getElementById('stage');
+const rowA = document.createElement('div');
+rowA.className = 'band-row';
+const rowB = document.createElement('div');
+rowB.className = 'band-row';
+stage.appendChild(rowA);
+stage.appendChild(rowB);
+
+function mkFrame(c, note){
+  const frame = document.createElement('section');
+  frame.className = 'frame';
+  frame.innerHTML = '<div class="cap"><span class="num">' + c.cap[0] + '</span>'
+                  + '<span class="nm">' + c.cap[1] + '</span>'
+                  + '<span class="cut">' + note + '</span></div>'
+                  + '<div class="phone"></div>';
+  return frame;
+}
+
+CASES.forEach(c=>{
+  const a = mkFrame(c, '阶梯 1–6');
+  rowA.appendChild(a);
+  buildPhone(a.querySelector('.phone'), c);
+
+  const b = mkFrame(c, '阶梯 7–11');
+  rowB.appendChild(b);
+  buildPhone(b.querySelector('.phone'), Object.assign({}, c, {end:true}));
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>课程表卡片设置 · B 工作台 + 聚焦模式</title>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   这是原型外壳（文档），不是 App 界面。
+   手机框 393×852，内部一律用任务书 token。
+   ══════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box}
+html,body{margin:0}
+body{
+  background:#E7E2D8;color:#2B2A25;
+  font-family:-apple-system,"Noto Sans CJK SC","Microsoft YaHei",sans-serif;
+  -webkit-font-smoothing:antialiased;
+}
+.doc{max-width:1400px;margin:0 auto;padding:22px 20px 40px}
+.doc h1{font-size:19px;font-weight:700;margin:0 0 6px;letter-spacing:.01em}
+.doc .sub{font-size:11.5px;line-height:19px;color:#5C574B;max-width:1080px}
+.doc .sub b{color:#23221D}
+
+.stage{display:flex;gap:28px;justify-content:center;align-items:flex-start;margin-top:18px}
+.frame{width:393px}
+.cap{font-size:10.5px;color:#5C574B;margin-top:8px;line-height:15px}
+.cap b{color:#23221D;font-weight:600}
+.cap code{font-family:ui-monospace,Consolas,monospace;font-size:9.5px;background:#DED8CB;padding:0 3px}
+
+/* ── 手机外壳与主题变量（任务书 §2 原值） ─────────────────── */
+.phone{
+  --paper:#FAF7F1; --card:#FFFFFF; --cardAlt:#F1ECE1; --band:#F7F3EA;
+  --ink:#16211B; --inkSoft:#3C4A42; --inkFaint:#5A6A60;
+  --rule:#91825F; --outline:#7B897F;
+  --pine:#1F4A3D; --clay:#B4553C; --indigo:#2E5266; --olive:#3E5C34; --ochre:#7A5714; --brick:#8E2B1E;
+  /* 四色课程洗色（取 TimetableTokens.Fams 真值：设计 token 表里没有内容色） */
+  --c0:#F0E1D8; --sp0:#A63D2F;
+  --c1:#DEE4E7; --sp1:#3B5566;
+  --c2:#E5E8DA; --sp2:#5C6B3C;
+  --c3:#EDE5D3; --sp3:#9A6A16;
+  --pacc:var(--clay);
+  width:393px;height:852px;background:var(--paper);color:var(--ink);
+  border:1px solid #B5AE9E;display:flex;flex-direction:column;overflow:hidden;
+  position:relative;box-shadow:0 20px 42px -22px rgba(32,30,24,.55),0 1px 0 rgba(255,255,255,.4) inset;
+  user-select:none;
+}
+.phone[data-theme="dark"]{
+  --paper:#141A17; --card:#1B231F; --cardAlt:#232C27; --band:#181F1B;
+  --ink:#F1EFE7; --inkSoft:#C6CDC6; --inkFaint:#9AA69D;
+  --rule:#647D71; --outline:#6E7B72;
+  --pine:#8FBFA6; --clay:#E0937A; --indigo:#A8C2CF; --olive:#A9C496; --ochre:#D9B96E; --brick:#E5A08F;
+  --c0:#2A1D18; --sp0:#C4776A;
+  --c1:#1B2226; --sp1:#7E9AA5;
+  --c2:#20241A; --sp2:#93A57E;
+  --c3:#262019; --sp3:#B4956A;
+}
+
+/* ── 状态栏 / 页头 ─────────────────────────────────────── */
+.sb{height:22px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:9px;color:var(--inkFaint);letter-spacing:.04em;flex:0 0 auto}
+.sbi{display:flex;gap:2px;align-items:flex-end}
+.sbi i{width:2px;background:var(--inkFaint);display:block;border-radius:.5px}
+.sbi i:nth-child(1){height:3px}.sbi i:nth-child(2){height:5px}.sbi i:nth-child(3){height:7px}
+
+.bar{height:44px;display:flex;align-items:center;padding:0 14px;gap:10px;flex:0 0 auto;
+  border-bottom:1px solid color-mix(in srgb,var(--rule) 42%,transparent)}
+.bk{width:7px;height:7px;border-left:1.4px solid var(--ink);border-bottom:1.4px solid var(--ink);transform:rotate(45deg);margin-left:2px;flex:0 0 auto}
+.ttl{font-size:14px;font-weight:600;letter-spacing:.01em;flex:1}
+.more{display:flex;gap:2.5px;align-items:center;padding:6px 2px}
+.more i{width:2.5px;height:2.5px;border-radius:50%;background:var(--inkFaint);display:block}
+
+/* ── 工作台（板面） ─────────────────────────────────────── */
+.board{
+  margin:10px 12px 0;height:212px;flex:0 0 auto;padding:11px 10px;
+  background:var(--band);
+  border:1px solid color-mix(in srgb,var(--rule) 38%,transparent);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -10px 22px -14px rgba(22,33,27,.4);
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;position:relative;
+}
+.phone[data-theme="dark"] .board{box-shadow:inset 0 1px 0 rgba(255,255,255,.05),inset 0 -12px 26px -16px rgba(0,0,0,.7)}
+/* 板面上的点阵纸 */
+.board::before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background-image:radial-gradient(circle,color-mix(in srgb,var(--ink) 26%,transparent) 0 0.5px,transparent .8px);
+  background-size:8px 8px;opacity:.28;
+}
+.plate{position:relative;display:grid;grid-template-columns:repeat(3,calc(45px * 1.1));
+  grid-auto-rows:calc(52px * 1.1);gap:6px;z-index:1}
+/* 放样板的裁切标记 */
+.plate::before{
+  content:"";position:absolute;inset:-6px;pointer-events:none;
+  background:
+    linear-gradient(var(--rule),var(--rule)) left top/7px 1px no-repeat,
+    linear-gradient(var(--rule),var(--rule)) left top/1px 7px no-repeat,
+    linear-gradient(var(--rule),var(--rule)) right top/7px 1px no-repeat,
+    linear-gradient(var(--rule),var(--rule)) right top/1px 7px no-repeat,
+    linear-gradient(var(--rule),var(--rule)) left bottom/7px 1px no-repeat,
+    linear-gradient(var(--rule),var(--rule)) left bottom/1px 7px no-repeat,
+    linear-gradient(var(--rule),var(--rule)) right bottom/7px 1px no-repeat,
+    linear-gradient(var(--rule),var(--rule)) right bottom/1px 7px no-repeat;
+  opacity:.5;
+}
+.cellwrap{position:relative}
+
+/* ── 全表缩略（minimap） ────────────────────────────────── */
+.mini{width:173px;height:176px;flex:0 0 auto;position:relative;overflow:hidden;z-index:1;
+  background:var(--paper);border:1px solid color-mix(in srgb,var(--rule) 48%,transparent);
+  box-shadow:0 3px 8px -5px rgba(22,33,27,.45)}
+.phone[data-theme="dark"] .mini{box-shadow:0 3px 10px -4px rgba(0,0,0,.8)}
+.mhead{position:relative;padding:3px 5px 0;border-bottom:1px solid color-mix(in srgb,var(--rule) 45%,transparent);overflow:hidden}
+.mhead i{display:block;background:var(--ink);border-radius:1px}
+.mhead i:nth-child(1){height:3px;width:56%;opacity:.8}
+.mhead i:nth-child(2){height:2px;width:26%;margin-top:2px;opacity:.4}
+.mweek{display:flex;height:13px;border-bottom:1px solid color-mix(in srgb,var(--rule) 55%,transparent)}
+.mweek span{flex:1;font-size:5.5px;line-height:13px;text-align:center;color:var(--inkFaint);letter-spacing:-.02em;position:relative}
+.mweek span.today{color:var(--ink);font-weight:700}
+.mweek span.today::after{content:"";position:absolute;left:35%;right:35%;bottom:0;height:1.5px;background:var(--ink)}
+.mgrid{position:relative;overflow:hidden}
+.mrow{position:absolute;left:0;right:0;border-bottom:1px solid color-mix(in srgb,var(--rule) 26%,transparent)}
+.mband{position:absolute;left:0;right:0;height:5px;background:color-mix(in srgb,var(--cardAlt) 90%,transparent)}
+.mband::after{content:"";position:absolute;left:2px;top:2px;width:9px;height:1.5px;background:var(--inkFaint);opacity:.55}
+.mcell{position:absolute}
+.mback{position:absolute;inset:0;pointer-events:none}
+/* 底纹四态（与 TtCell.drawTtBackdrop 同构，缩略里按 26px 行高铺） */
+.bd1{background-image:repeating-linear-gradient(180deg,color-mix(in srgb,var(--rule) 55%,transparent) 0 1px,transparent 1px 13px)}
+.bd2{background-image:repeating-linear-gradient(180deg,color-mix(in srgb,var(--cardAlt) 100%,transparent) 0 13px,transparent 13px 26px)}
+.bd3{background-image:repeating-linear-gradient(180deg,color-mix(in srgb,var(--ink) 16%,transparent) 0 .7px,transparent .7px 4.2px)}
+.bd4{background:color-mix(in srgb,var(--cardAlt) 100%,transparent)}
+.bd1.drift,.bd2.drift,.bd3.drift{animation:drift 48s linear infinite}
+@keyframes drift{from{background-position:0 0}to{background-position:0 26px}}
+
+/* ── 预设轨 ─────────────────────────────────────────────── */
+.rail{display:flex;gap:7px;padding:8px 12px 0;flex:0 0 auto}
+.chip{width:64px;height:54px;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:3px 0 3px;border:1px solid transparent;position:relative;cursor:pointer}
+.chip .chsw{width:25px;height:29px;position:relative;filter:saturate(.95)}
+.chip .chn{font-size:9px;color:var(--inkSoft);letter-spacing:.02em}
+.chip .chcnt{position:absolute;top:1px;right:2px;font-size:8px;color:var(--ink);
+  font-family:ui-monospace,Consolas,monospace;line-height:9px;padding:0 2.5px;border-radius:4px;
+  background:var(--paper);box-shadow:0 0 0 1px color-mix(in srgb,var(--rule) 40%,transparent)}
+.chip:hover{background:color-mix(in srgb,var(--cardAlt) 50%,transparent)}
+.chip.on{background:color-mix(in srgb,var(--cardAlt) 85%,transparent);
+  border-color:color-mix(in srgb,var(--ink) 70%,transparent)}
+.chip.on .chn{color:var(--ink);font-weight:600}
+.chip.on::after{content:"";position:absolute;left:8px;right:8px;bottom:-1px;height:2px;
+  background:var(--pacc)}
+
+/* ── 轴清单（抽屉） ─────────────────────────────────────── */
+.list{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:6px;padding-bottom:14px;
+  border-top:1px solid color-mix(in srgb,var(--rule) 38%,transparent);scrollbar-width:none}
+.list::-webkit-scrollbar{width:0}
+.axis{height:42px;display:flex;align-items:center;gap:8px;padding:0 12px 0 10px;cursor:pointer;
+  border-bottom:1px solid color-mix(in srgb,var(--rule) 22%,transparent);position:relative}
+.axis:hover{background:color-mix(in srgb,var(--cardAlt) 42%,transparent)}
+.axis.open{background:color-mix(in srgb,var(--cardAlt) 72%,transparent)}
+.axis.open::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--pacc)}
+.pips{flex:0 0 6px;display:flex;align-items:center;justify-content:center}
+.pip{width:4px;height:4px;border-radius:50%;background:var(--pacc);display:block}
+.pip.dash{width:1px;height:8px;border-radius:0;background:var(--inkFaint);opacity:.55}
+.nm{font-size:12.5px;color:var(--ink);letter-spacing:.02em;flex:0 0 auto;min-width:62px}
+.axis.ovd .nm{font-weight:600}
+.val{flex:1;text-align:right;font-size:10.5px;color:var(--inkSoft);letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.axis.ovd .val{color:var(--ink);font-weight:600}
+.ticks{flex:0 0 auto;display:flex;align-items:center;gap:3px;height:15px;width:36px;justify-content:flex-end}
+.ticks i{width:3px;height:8px;background:transparent;display:block;
+  border:.9px solid color-mix(in srgb,var(--outline) 55%,transparent)}
+.ticks i.on{height:13px;width:3.5px;background:var(--ink);border-color:var(--ink)}
+.ticks i.ghost{border-style:dashed;border-color:color-mix(in srgb,var(--inkSoft) 65%,transparent)}
+.chev{flex:0 0 auto;width:5px;height:5px;border-top:1.2px solid var(--inkFaint);
+  border-right:1.2px solid var(--inkFaint);transform:rotate(45deg);margin-left:2px;transition:transform .16s}
+.axis.open .chev{transform:rotate(-45deg);border-color:var(--ink)}
+
+/* ── 胶片 ───────────────────────────────────────────────── */
+.film{position:relative;background:var(--cardAlt);padding:11px 0 9px;
+  border-bottom:1px solid color-mix(in srgb,var(--rule) 30%,transparent)}
+.film::before,.film::after{content:"";position:absolute;left:0;right:0;height:3px;pointer-events:none;
+  background:repeating-linear-gradient(90deg,var(--paper) 0 4px,transparent 4px 9px)}
+.film::before{top:2px}
+.film::after{bottom:2px}
+.reel{display:flex;gap:7px;padding:4px 11px 0;overflow-x:auto;scrollbar-width:none}
+.reel::-webkit-scrollbar{height:0}
+.tile{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding-bottom:1px}
+.tf{width:45px;height:52px;position:relative}
+.tf::after{content:"";position:absolute;inset:0;pointer-events:none}
+.tile .tl{font-size:8px;color:var(--inkSoft);letter-spacing:.02em;line-height:1}
+.tile.cur .tf{outline:1.5px solid color-mix(in srgb,var(--ink) 80%,transparent);outline-offset:2px}
+.tile.cur .tl{color:var(--ink);font-weight:600}
+.tile.off{cursor:default}
+.tile.off .tf{opacity:.42;filter:grayscale(.45)}
+.tile.off .tf::after{background:repeating-linear-gradient(45deg,transparent 0 4px,color-mix(in srgb,var(--ink) 26%,transparent) 4px 5px)}
+.ghost{position:relative;width:45px;height:52px}
+.ghost::before{content:"";position:absolute;inset:-2px;outline:1px dashed color-mix(in srgb,var(--ink) 42%,transparent);outline-offset:0}
+.gdot{position:absolute;top:-2px;right:-2px;width:6px;height:6px;border-radius:50%;
+  background:var(--pacc);box-shadow:0 0 0 1.5px var(--cardAlt);z-index:3}
+
+/* ══════════════════════════════════════════════════════════
+   格子渲染器：与 TtCell.kt 同构（形状 / 装饰 / 字段 / 角标 /
+   侵蚀 / 动效 / 底色），尺寸全部按 --u 缩放，1 = 真机 45×52。
+   ══════════════════════════════════════════════════════════ */
+.cell{width:calc(45px * var(--u));height:calc(52px * var(--u));position:relative}
+.cell.fam0{--w:var(--c0);--sp:var(--sp0)}
+.cell.fam1{--w:var(--c1);--sp:var(--sp1)}
+.cell.fam2{--w:var(--c2);--sp:var(--sp2)}
+.cell.fam3{--w:var(--c3);--sp:var(--sp3)}
+.cell .shape{position:absolute;inset:0;overflow:hidden;
+  border-radius:calc(4px * var(--u));border:calc(.85px * var(--u)) solid color-mix(in srgb,var(--sp) 42%,transparent);
+  background:var(--w)}
+.cell.tone1 .shape{background:var(--cardAlt)}
+.cell.tone2 .shape{background:transparent;border-color:var(--outline)}
+/* 形状 */
+.cell.sh1 .shape{border-radius:calc(2px * var(--u));box-shadow:0 calc(1px * var(--u)) calc(4px * var(--u)) rgba(22,33,27,.18)}
+.cell.sh2 .shape{border-radius:0;background:transparent;border-color:var(--outline)}
+.cell.sh3 .shape{border-radius:calc(2px * var(--u))}
+.cell.sh4 .shape{border-radius:calc(10px * var(--u)) calc(3px * var(--u)) calc(10px * var(--u)) calc(3px * var(--u))}
+.cell.tone2 .shape{background:transparent}
+
+.fill{position:absolute;inset:0;background:var(--w);opacity:.0}
+.z-decor{position:absolute;inset:0;pointer-events:none}
+.z-decor .sp{position:absolute;left:0;top:0;bottom:0;width:calc(2.5px * var(--u));background:var(--sp);opacity:.9}
+.z-decor .cap{position:absolute;left:0;right:0;top:0;height:calc(3px * var(--u));background:var(--sp);opacity:.9}
+.z-decor .arm{position:absolute;top:0;right:0;width:calc(45px * var(--u) * .22);height:calc(45px * var(--u) * .22)}
+.z-decor .arm::before{content:"";position:absolute;right:0;top:0;width:100%;height:calc(2px * var(--u));background:var(--sp)}
+.z-decor .arm::after{content:"";position:absolute;right:0;top:0;height:100%;width:calc(2px * var(--u));background:var(--sp)}
+.z-decor .base{position:absolute;left:0;right:0;bottom:0;height:calc(1.5px * var(--u));background:var(--sp)}
+.z-decor .tint{position:absolute;inset:0;background:var(--sp);opacity:.10}
+.phone[data-theme="dark"] .z-decor .tint{opacity:.16}
+.z-decor .stripes{position:absolute;inset:0;
+  background:repeating-linear-gradient(45deg,transparent 0 calc(9px * var(--u)),color-mix(in srgb,var(--sp) 15%,transparent) calc(9px * var(--u)) calc(12px * var(--u)))}
+
+.erode{position:absolute;inset:0;pointer-events:none}
+.erode.e1{height:calc(var(--p) * 100%);
+  background:linear-gradient(180deg,var(--paper) 0%,color-mix(in srgb,var(--paper) 62%,transparent) 62%,transparent 100%)}
+.erode.e3{background:var(--paper);opacity:calc(.62 * var(--p))}
+.erode.e2::before{content:"";position:absolute;top:0;bottom:0;width:calc(24px * var(--u));
+  background:color-mix(in srgb,var(--sp) 20%,transparent);
+  left:calc(-24px * var(--u) + var(--p) * (69px * var(--u)))}
+
+.z-text{position:absolute;inset:0;display:flex;flex-direction:column;overflow:hidden;
+  padding:calc(3px * var(--u)) calc(2px * var(--u)) calc(2.5px * var(--u)) calc(4.5px * var(--u))}
+.z-text.meta2{justify-content:space-between}
+.nm2{font-size:calc(9.5px * var(--u));line-height:calc(11px * var(--u));font-weight:500;
+  color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  letter-spacing:-.005em}
+.nm2.two{-webkit-line-clamp:2}
+.nm2.only{-webkit-line-clamp:2}
+.rm2{font-size:calc(8px * var(--u));line-height:calc(9.5px * var(--u));color:var(--inkSoft);
+  margin-top:calc(1px * var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tc2{font-size:calc(7.5px * var(--u));line-height:calc(9px * var(--u));color:var(--inkFaint);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub2{font-size:calc(7.4px * var(--u));line-height:calc(9px * var(--u));color:var(--inkSoft);
+  margin-top:calc(.5px * var(--u));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.foot2{display:flex;flex-direction:column}
+
+.corner{position:absolute;top:0;right:0;width:calc(12px * var(--u));height:calc(12px * var(--u));pointer-events:none}
+.corner .fold{position:absolute;top:0;right:0;width:0;height:0;
+  border-top:calc(11px * var(--u)) solid var(--sp);border-left:calc(11px * var(--u)) solid transparent;opacity:.85}
+.corner .band i{position:absolute;right:calc(-3px * var(--u));top:calc(1px * var(--u));display:block;
+  width:calc(14px * var(--u));height:calc(1.4px * var(--u));background:var(--sp);opacity:.8;transform:rotate(45deg);transform-origin:right center}
+.corner .band i:nth-child(2){top:calc(5px * var(--u))}
+
+.motion{position:absolute;inset:0;background:var(--sp);opacity:0;pointer-events:none}
+.motion.m1{animation:breathe1 2.6s linear infinite alternate}
+.motion.m2{animation:breathe2 2.6s linear infinite alternate}
+@keyframes breathe1{from{opacity:.030}to{opacity:.062}}
+@keyframes breathe2{from{opacity:.018}to{opacity:.062}}
+
+/* ── 聚焦：非目标压暗，目标区虚线框 ─────────────────────── */
+.phone[data-zone="cell"] .plate .cellwrap:not(.hero) .cell{opacity:.34}
+.phone[data-zone="cell"] .mini{opacity:.42}
+.phone[data-zone="page"] .plate{opacity:.5;filter:saturate(.7)}
+.phone[data-zone="page"] .mini{border-color:var(--ink)}
+
+.phone[data-focus="badge"] .hero .corner{outline:1px dashed var(--ink);outline-offset:1px}
+.phone[data-focus="shape"] .hero .shape{box-shadow:inset 0 0 0 1px var(--ink)}
+.phone[data-focus="tone"] .hero .shape{background-clip:padding-box;box-shadow:inset 0 0 0 1px var(--ink)}
+.phone[data-focus="decor"] .hero .z-decor{outline:1px dashed var(--ink);outline-offset:-1px}
+.phone[data-focus="meta"] .hero .z-text{outline:1px dashed var(--ink);outline-offset:-2px}
+.phone[data-focus="erosion"] .hero .erode{outline:1px dashed var(--ink);outline-offset:-1px}
+.phone[data-focus="motion"] .hero .cell>.shape{outline:1px dashed var(--ink);outline-offset:2px}
+.phone[data-focus="header"] .mini .mhead{outline:1px dashed var(--ink);outline-offset:-1px}
+.phone[data-focus="grid"] .mini .mrow{outline:1px dashed var(--ink);outline-offset:-1px}
+.phone[data-focus="backdrop"] .mini .mback{outline:1px dashed var(--ink);outline-offset:-1px}
+.phone[data-focus="bgm"] .mini .mback{outline:1px dashed var(--ink);outline-offset:-1px}
+
+/* 应用瞬间的一次落墨 */
+@keyframes flash{0%{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ink) 55%,transparent)}
+  100%{box-shadow:inset 0 0 0 1px transparent}}
+.board.flash{animation:flash .38s ease-out}
+
+/* ── 胶片里的布局轴碎片（页头 / 行距 / 底纹 不是格子轴） ── */
+.frag{width:45px;height:52px;position:relative;background-color:var(--paper);overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--rule) 30%,transparent)}
+.frag .fh{position:relative;border-bottom:1px solid color-mix(in srgb,var(--rule) 55%,transparent);padding:3px 4px 0}
+.frag .fh i{display:block;background:var(--ink);border-radius:1px}
+.frag .fh i:nth-child(1){height:3px;width:58%;opacity:.8}
+.frag .fh i:nth-child(2){height:2px;width:26%;margin-top:2px;opacity:.35}
+.frag .fw{height:7px;border-bottom:1px solid color-mix(in srgb,var(--rule) 55%,transparent);
+  background:repeating-linear-gradient(90deg,transparent 0 5.5px,color-mix(in srgb,var(--rule) 55%,transparent) 5.5px 6.4px)}
+.frag .fc{margin:3px 3px 0;height:15px;background:var(--c0);border-left:2px solid var(--sp0)}
+.frag .gr{position:relative;border-bottom:1px solid color-mix(in srgb,var(--rule) 45%,transparent)}
+.frag .gr i{position:absolute;left:3px;right:3px;top:2px;bottom:2px;background:var(--c0);border-left:2px solid var(--sp0);display:block}
+.frag.bd1{background-image:repeating-linear-gradient(180deg,color-mix(in srgb,var(--rule) 62%,transparent) 0 1px,transparent 1px 9px)}
+.frag.bd2{background-image:repeating-linear-gradient(180deg,color-mix(in srgb,var(--cardAlt) 100%,transparent) 0 11px,transparent 11px 22px)}
+.frag.bd3{background-image:repeating-linear-gradient(180deg,color-mix(in srgb,var(--ink) 20%,transparent) 0 .8px,transparent .8px 3.6px)}
+.frag .fcell{position:absolute;left:13px;top:16px;width:20px;height:22px;background:color-mix(in srgb,var(--c0) 78%,transparent);
+  border-left:2px solid var(--sp0);border-top:1px solid color-mix(in srgb,var(--sp0) 35%,transparent)}
+.frag.bd0{background-color:var(--paper)}
+
+/* ── 说明（在手机外面，属于文档） ───────────────────────── */
+.notes{margin:26px auto 0;max-width:1240px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.notes div{font-size:10.5px;line-height:16px;color:#555044;border-top:1px solid #B9B2A3;padding-top:8px}
+.notes b{display:block;color:#23221D;font-size:11px;margin-bottom:3px}
+</style>
+</head>
+<body>
+<div class="doc">
+  <h1>课程表卡片设置 · 方向 B「工作台 + 聚焦模式」</h1>
+  <div class="sub">
+    上半是放样板（9 个真格子，1.1 倍真尺寸）＋ 全表缩略；下半是 11 条轴的抽屉清单。
+    点任一行，抽屉就地拉开成一条胶片：这条轴的每个取值都是一枚真格子（45×52 原大），点哪枚就应用哪枚。
+    改哪条轴，放样板上就只亮那一块；页头 / 行距 / 底纹三条轴亮在右侧全表上。
+    三台各自独立可点：默认 · 改过几条 · 深色。
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="notes">
+    <div><b>一屏同时看见预览和参数</b>板面固定，只有下面的抽屉列表滚动；展开某一行时只滚列表并把它顶到可见处，板一个像素都不动。</div>
+    <div><b>胶片不是文字列表</b>45×52 原大真格子并排；页头 / 行距 / 底纹三条不是格子轴，画成同尺寸的真碎片（页头带、行高切片、底纹纸面）。</div>
+    <div><b>改的是哪里</b>进入聚焦后，其余 8 格降到三成，目标区自己浮出一圈 1px 虚线；布局轴则反过来压暗放样板、在全表上画框。</div>
+    <div><b>跟随预设</b>预设色小圆点 + 空心刻度；一旦覆盖，圆点变成一竖短线、刻度填实，展开后第一枚虚线格子就是「跟随」。</div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   1. 数据：11 条轴（序号即契约）、5 套预设、真课名假数据
+   ══════════════════════════════════════════════════════════════ */
+const AXES = [
+  {k:'shape',   n:'形状',     o:['方卡','便签','细线','色块','标签']},
+  {k:'decor',   n:'装饰',     o:['无','左脊','顶帽','角点','底线','淡底','斜纹']},
+  {k:'meta',    n:'字段',     o:['三行','同行','底栏','只课名']},
+  {k:'badge',   n:'角标',     o:['无','折角','斜纹带']},
+  {k:'erosion', n:'侵蚀',     o:['不褪','上褪','斜线','整块淡']},
+  {k:'motion',  n:'动效',     o:['关','呼吸','褪色呼吸']},
+  {k:'tone',    n:'底色',     o:['四色','单墨','无色']},
+  {k:'header',  n:'页头',     o:['紧凑','标准','舒展']},
+  {k:'grid',    n:'行距',     o:['紧凑','标准','宽松']},
+  {k:'backdrop',n:'底纹',     o:['无','横线','田垄','复相','纯色']},
+  {k:'bgm',     n:'底纹动效', o:['关','缓移']},
+];
+const KEY = AXES.map(a=>a.k);
+
+/* 五套预设：值照抄 TtPresets.ALL；accent 只用于「跟随」小圆点 */
+const PRESETS = [
+  {id:'paper', label:'纸卡', accent:'clay',
+   s:{shape:0,decor:1,meta:0,badge:0,erosion:1,motion:0,tone:0,header:1,grid:1,backdrop:0,bgm:0}},
+  {id:'ledger',label:'账页', accent:'indigo',
+   s:{shape:3,decor:4,meta:1,badge:0,erosion:0,motion:0,tone:1,header:0,grid:0,backdrop:1,bgm:0}},
+  {id:'dense', label:'密排', accent:'olive',
+   s:{shape:2,decor:0,meta:3,badge:0,erosion:0,motion:0,tone:1,header:0,grid:0,backdrop:0,bgm:0}},
+  {id:'agenda',label:'日程', accent:'ochre',
+   s:{shape:1,decor:2,meta:2,badge:0,erosion:3,motion:1,tone:0,header:2,grid:2,backdrop:2,bgm:0}},
+  {id:'quiet', label:'安静', accent:'pine',
+   s:{shape:4,decor:5,meta:0,badge:0,erosion:0,motion:0,tone:2,header:1,grid:1,backdrop:3,bgm:1}},
+];
+
+/* 真课名 + 真字段（假人）。f = 四色档位，p = 侵蚀进度（模拟 14:20） */
+const C = {
+  bdcg:{n:'不动产估价',           r:'二606', t:'董秀茹', f:0},
+  gtgh:{n:'国土空间规划',         r:'二408', t:'吴佳倩', f:1},
+  dqbc:{n:'地球表层系统概论',     r:'二610', t:'孙仲秀', f:2},
+  my  :{n:'马克思主义基本原理',   r:'一101', t:'李想',   f:3},
+  tdzy:{n:'土地资源调查与评价',   r:'三205', t:'王立新', f:0},
+};
+
+/* 放样板 3×3：中格是「正在编辑的格子」 */
+const PLATE = [
+  {c:C.bdcg,p:1.0},{c:C.gtgh,p:1.0},{c:C.dqbc,p:1.0},
+  {c:C.my,  p:0.45},{c:C.bdcg,p:0.45},{c:C.tdzy,p:0.45},
+  {c:C.dqbc,p:0.0},{c:C.tdzy,p:0.0},{c:C.gtgh,p:0.0},
+];
+const HERO = 4;
+
+/* 全表：6 大节 × 7 天，真课表结构（上午 1-4 / 下午 5-8 / 晚上 9-12） */
+const SCHED = [
+  [null,null,null,C.my,null,null,null],      // 1-2  08:00
+  [C.bdcg,C.dqbc,C.bdcg,null,null,null,null],// 3-4  10:00
+  [C.gtgh,null,null,null,null,null,null],    // 5-6  13:30
+  [null,null,null,null,C.tdzy,null,null],    // 7-8  15:30
+  [null,null,null,null,null,null,null],      // 9-10 18:30
+  [null,null,null,null,null,null,null],      // 11-12 20:20
+];
+const DAYS = ['一 23','二 24','三 25','四 26','五 27','六 28','日 29'];
+const TODAY = 0;
+
+/* ══════════════════════════════════════════════════════════════
+   2. 状态与求解（照抄 TtPresets.resolve / sanitize）
+   ══════════════════════════════════════════════════════════════ */
+function emptyOv(){ const o={}; KEY.forEach(k=>o[k]=-1); return o; }
+
+function sanitize(s){
+  let r = {...s};
+  if (r.badge===2) r.meta = 3;                                   // 斜纹带吃掉除「只课名」以外的行
+  if (r.decor===3 && r.badge===1) r.badge = 0;                   // 角点与折角抢同一角落
+  if (r.shape===2 && (r.decor===5||r.decor===6)) r.decor = 0;    // 细线没有面，淡底/斜纹无意义
+  if (r.tone===2 && r.shape===3) r.shape = 0;                    // 无色 + 色块退化为描边
+  return r;
+}
+function resolve(st){
+  const base = PRESETS[st.preset].s, s = {};
+  KEY.forEach(k => s[k] = st.ov[k] >= 0 ? st.ov[k] : base[k]);
+  return sanitize(s);
+}
+/* 互斥项直接禁掉（打斜线），不让用户选到「看不出效果」的组合 */
+function blocked(k, v, s){
+  if (k==='badge' && v===2 && s.meta!==3) return true;
+  if (k==='decor' && v===3 && s.badge===1) return true;
+  if (k==='decor' && (v===5||v===6) && s.shape===2) return true;
+  if (k==='meta'  && v!==3 && s.badge===2) return true;
+  if (k==='shape' && v===3 && s.tone===2) return true;
+  if (k==='tone'  && v===2 && s.shape===3) return true;
+  return false;
+}
+/* 布局轴（页头 / 行距 / 底纹 / 底纹动效）高亮落在全表上 */
+const ZONE = {header:'page',grid:'page',backdrop:'page',bgm:'page'};
+
+/* ══════════════════════════════════════════════════════════════
+   3. 格子渲染器
+   ══════════════════════════════════════════════════════════════ */
+function cellHTML(c, s, u, p){
+  p = (p===undefined) ? 0 : p;
+  let text;
+  if (s.meta===0 && u < 0.7){
+    /* 缩略尺寸下真字读不出来，改成同位置的字条 —— 露边不靠说明文字 */
+    const bar = (w,h,o)=>'<i style="display:block;height:'+(h*u).toFixed(2)+'px;width:'+(w*u).toFixed(2)
+      +'px;background:var(--ink);opacity:'+o+';border-radius:.5px;margin-top:'+(1.6*u).toFixed(2)+'px"></i>';
+    text = bar(17,1.1,.72)+bar(11,.9,.5)+bar(14,.8,.32);
+  } else if (u < 0.7){
+    const bar = (w,h,o)=>'<i style="display:block;height:'+(h*u).toFixed(2)+'px;width:'+(w*u).toFixed(2)
+      +'px;background:var(--ink);opacity:'+o+';border-radius:.5px;margin-top:'+(1.6*u).toFixed(2)+'px"></i>';
+    text = bar(18,1.2,.75)+bar(12,.9,.42);
+  } else {
+    const nm = '<div class="nm2'+((s.meta===0)?' two':'')+((s.meta===3)?' only':'')+'">'+c.n+'</div>';
+    if (s.meta===0)      text = nm + '<div class="rm2">'+c.r+'</div><div class="tc2">'+c.t+'</div>';
+    else if (s.meta===1) text = nm + '<div class="sub2">'+c.r+' · '+c.t+'</div>';
+    else if (s.meta===2) text = nm + '<div class="foot2"><div class="rm2">'+c.r+'</div><div class="tc2">'+c.t+'</div></div>';
+    else                 text = nm;
+  }
+
+  let decor = '';
+  if (s.decor===1) decor = '<i class="sp"></i>';
+  else if (s.decor===2) decor = '<i class="cap"></i>';
+  else if (s.decor===3) decor = '<i class="arm"></i>';
+  else if (s.decor===4) decor = '<i class="base"></i>';
+  else if (s.decor===5) decor = '<i class="tint"></i>';
+  else if (s.decor===6) decor = '<i class="stripes"></i>';
+
+  let badge = '';
+  if (s.badge===1) badge = '<i class="fold"></i>';
+  else if (s.badge===2) badge = '<span class="band"><i></i><i></i></span>';
+
+  return '<div class="cell fam'+c.f+' sh'+s.shape+' tone'+s.tone+'" style="--u:'+u+';--p:'+p+'">'
+    +   '<div class="shape">'
+    +     '<div class="erode e'+s.erosion+'"></div>'
+    +     '<div class="z-decor">'+decor+'</div>'
+    +     '<div class="z-text meta'+s.meta+'">'+text+'</div>'
+    +     '<div class="corner">'+badge+'</div>'
+    +     '<div class="motion m'+s.motion+'"></div>'
+    +   '</div>'
+    + '</div>';
+}
+
+/* 全表缩略：按当前槽位缩小渲染（u=0.55），高度不够就裁掉 —— 「露边」代替说明 */
+function miniHTML(s){
+  const u = .55, colW = 45*u, rh = [40,52,60][s.grid]*u, hh = [38,56,84][s.header]*u;
+  let week = '';
+  DAYS.forEach((d,i)=>{ week += '<span class="'+(i===TODAY?'today':'')+'">'+d+'</span>'; });
+
+  let body = '<div class="mback bd'+s.backdrop+(s.bgm?' drift':'')+'"></div>';
+  let top = 0;
+  for (let i=0;i<6;i++){
+    if (i===0||i===2||i===4){ body += '<div class="mband" style="top:'+top+'px"></div>'; top += 5; }
+    body += '<div class="mrow" style="top:'+top+'px;height:'+rh+'px"></div>';
+    SCHED[i].forEach((c,d)=>{
+      if (!c) return;
+      const p = [1,1,.5,0,0,0][i];
+      body += '<div class="mcell" style="top:'+(top+1)+'px;left:'+(d*colW)+'px;width:'+(colW-1)+'px;height:'+(rh-1)+'px">'
+            + cellHTML(c, s, u, p) + '</div>';
+    });
+    top += rh;
+  }
+  return '<div class="mini">'
+    + '<div class="mhead" style="height:'+hh+'px"><i></i><i></i></div>'
+    + '<div class="mweek">'+week+'</div>'
+    + '<div class="mgrid" style="height:'+(176-hh-13)+'px">'+body+'</div>'
+    + '</div>';
+}
+
+function boardHTML(s, heroOn){
+  let cells = '';
+  PLATE.forEach((it,idx)=>{
+    cells += '<div class="cellwrap'+(idx===HERO?' hero':'')+'">'+cellHTML(it.c, s, 1.1, it.p)+'</div>';
+  });
+  return '<div class="plate">'+cells+'</div>' + miniHTML(s);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   4. 胶片里的每一枚「真格子 / 真碎片」
+   ══════════════════════════════════════════════════════════════ */
+const TILE_C = {n:'不动产估价', r:'二606', t:'董秀茹', f:0};
+
+function tileInner(i, v, s){
+  const a = AXES[i];
+  if (i <= 6){
+    return cellHTML(TILE_C, {...s, [a.k]: v}, 1, .42);
+  }
+  if (i === 7){ /* 页头：真高度（缩到 0.5 才塞得进 52） */
+    const h = [19,28,42][v];
+    return '<div class="frag"><div class="fh" style="height:'+h+'px"><i></i><i></i></div>'
+         + '<div class="fw"></div><div class="fc"></div></div>';
+  }
+  if (i === 8){ /* 行距：真行高切片，紧凑 3 行 / 标准 2 行 / 宽松 1.6 行 */
+    const h = [19,26,31][v];
+    let rows = '';
+    for (let n=0;n<3;n++) rows += '<div class="gr" style="height:'+h+'px">'+(n===0?'<i></i>':'')+'</div>';
+    return '<div class="frag">'+rows+'</div>';
+  }
+  /* 底纹 / 底纹动效：纸面真纹理 + 一枚格子压在上面 */
+  const cls = 'bd'+(i===10 ? (v? '2':'0') : v);
+  return '<div class="frag '+cls+(i===10 && v? ' drift':'')+'"><div class="fcell"></div></div>';
+}
+
+function tilesHTML(i, st, s){
+  const a = AXES[i], pacc = 'var(--'+PRESETS[st.preset].accent+')';
+  let out = '';
+  /* 第 0 枚永远是「跟随」：预设色圆点 + 虚线框 + 预设真值 */
+  const baseV = PRESETS[st.preset].s[a.k];
+  out += '<div class="tile'+(st.ov[a.k]<0?' cur':'')+'" data-i="'+i+'" data-v="-1">'
+       +   '<div class="tf"><div class="ghost">'+tileInner(i, baseV, s)+'<i class="gdot"></i></div></div>'
+       +   '<span class="tl">跟随</span></div>';
+  a.o.forEach((name,v)=>{
+    const off = blocked(a.k, v, s);
+    const cur = (st.ov[a.k]>=0 && s[a.k]===v);
+    out += '<div class="tile'+(cur?' cur':'')+(off?' off':'')+'" data-i="'+i+'" data-v="'+v+'">'
+         +   '<div class="tf">'+tileInner(i,v,s)+'</div>'
+         +   '<span class="tl">'+name+'</span></div>';
+  });
+  return out;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. 列表 / 预设轨 / 整机渲染
+   ══════════════════════════════════════════════════════════════ */
+function ticksHTML(n, idx, following){
+  let h = '';
+  for (let i=0;i<n;i++) h += '<i class="'+(i===idx?(following?'ghost':'on'):'')+'"></i>';
+  return h;
+}
+
+function listHTML(st, s){
+  let out = '';
+  AXES.forEach((a,i)=>{
+    const v = s[a.k], ovd = st.ov[a.k] >= 0, open = st.open === i;
+    out += '<div class="axis'+(open?' open':'')+(ovd?' ovd':'')+'" data-i="'+i+'">'
+         +   '<span class="pips"><span class="pip'+(ovd?' dash':'')+'"></span></span>'
+         +   '<span class="nm">'+a.n+'</span>'
+         +   '<span class="val">'+a.o[v]+'</span>'
+         +   '<span class="ticks">'+ticksHTML(a.o.length, v, !ovd)+'</span>'
+         +   '<span class="chev"></span>'
+         + '</div>';
+    if (open){
+      out += '<div class="film" data-i="'+i+'"><div class="reel">'+tilesHTML(i, st, s)+'</div></div>';
+    }
+  });
+  return out;
+}
+
+function railHTML(st, s){
+  let out = '';
+  PRESETS.forEach((p,i)=>{
+    const on = st.preset === i;
+    const cnt = KEY.filter(k=>st.ov[k]>=0).length;
+    out += '<div class="chip'+(on?' on':'')+'" data-p="'+i+'">'
+         +   '<div class="chsw">'+cellHTML(TILE_C, p.s, .5, .3)+'</div>'
+         +   '<span class="chn">'+p.label+'</span>'
+         +   (on && cnt ? '<span class="chcnt">'+cnt+'</span>' : '')
+         + '</div>';
+  });
+  return out;
+}
+
+const states = {};
+function render(ph){
+  const st = states[ph.dataset.pid];
+  const s = resolve(st);
+  ph.style.setProperty('--pacc', 'var(--'+PRESETS[st.preset].accent+')');
+  ph.querySelector('[data-mount="board"]').innerHTML = boardHTML(s);
+  ph.querySelector('[data-mount="rail"]').innerHTML  = railHTML(st, s);
+  const list = ph.querySelector('[data-mount="list"]');
+  const keep = list.scrollTop;
+  list.innerHTML = listHTML(st, s);
+  list.scrollTop = keep;
+  if (st.open != null){
+    ph.dataset.focus = AXES[st.open].k;
+    ph.dataset.zone  = ZONE[AXES[st.open].k] || 'cell';
+  } else {
+    delete ph.dataset.focus; delete ph.dataset.zone;
+  }
+  if (st.open != null) revealFilm(list);
+}
+function revealFilm(list){
+  const film = list.querySelector('.film'); if (!film) return;
+  const top = film.offsetTop, bot = top + film.offsetHeight;
+  if (top < list.scrollTop + 2) list.scrollTop = top - 2;
+  else if (bot > list.scrollTop + list.clientHeight - 2) list.scrollTop = bot - list.clientHeight + 2;
+}
+function flash(ph){
+  const b = ph.querySelector('[data-mount="board"]');
+  b.classList.remove('flash'); void b.offsetWidth; b.classList.add('flash');
+}
+
+/* ══════════════════════════════════════════════════════════════
+   6. 三台机器 + 事件（各自独立）
+   ══════════════════════════════════════════════════════════════ */
+const CONFIG = [
+  {pid:'A', theme:'light', preset:0, ov:{}, open:null,
+   cap:'<b>① 默认</b> 纸卡 · 零覆盖 —— 十一个圆点全在，刻度全是 Hollow：一眼看出「这页现在什么都没钉」。'},
+  {pid:'B', theme:'light', preset:0, ov:{shape:4,decor:2,meta:1,badge:1}, open:3,
+   cap:'<b>② 纸卡 + 4 条覆盖</b> · 角标展开 —— 标签 / 顶帽 / 同行 / 折角；放样板只亮右上角那圈折角，其余 8 格退到三成。'},
+  {pid:'C', theme:'dark', preset:3, ov:{}, open:9,
+   cap:'<b>③ 深色 · 日程</b> · 底纹展开 —— 布局轴的高亮反过来落在右侧全表：纸面变田垄，放样板让位。'},
+];
+
+const stage = document.getElementById('stage');
+CONFIG.forEach(cfg=>{
+  const st = {preset:cfg.preset, ov:emptyOv(), open:cfg.open};
+  Object.keys(cfg.ov).forEach(k=>st.ov[k]=cfg.ov[k]);
+  states[cfg.pid] = st;
+  const frame = document.createElement('div');
+  frame.className = 'frame';
+  frame.innerHTML =
+    '<div class="phone" data-theme="'+cfg.theme+'" data-pid="'+cfg.pid+'">'
+  +   '<div class="sb"><span>9:41</span><span class="sbi"><i></i><i></i><i></i></span></div>'
+  +   '<div class="bar"><span class="bk"></span><span class="ttl">课程表卡片</span>'
+  +     '<span class="more"><i></i><i></i><i></i></span></div>'
+  +   '<div class="board" data-mount="board"></div>'
+  +   '<div class="rail" data-mount="rail"></div>'
+  +   '<div class="list" data-mount="list"></div>'
+  + '</div>'
+  + '<div class="cap">'+cfg.cap+'</div>';
+  stage.appendChild(frame);
+});
+
+document.querySelectorAll('.phone').forEach(ph=>{
+  ph.addEventListener('click', e=>{
+    const st = states[ph.dataset.pid];
+
+    const chip = e.target.closest('.chip');
+    if (chip){
+      st.preset = +chip.dataset.p; st.ov = emptyOv(); st.open = null;
+      render(ph); flash(ph); return;
+    }
+    const tile = e.target.closest('.tile');
+    if (tile){
+      if (tile.classList.contains('off')) return;
+      const i = +tile.dataset.i, v = +tile.dataset.v;
+      st.ov[AXES[i].k] = v;
+      st.open = null;
+      render(ph); flash(ph); return;
+    }
+    const axis = e.target.closest('.axis');
+    if (axis){
+      const i = +axis.dataset.i;
+      st.open = (st.open === i) ? null : i;
+      render(ph); return;
+    }
+  });
+});
+
+CONFIG.forEach(cfg=>{ render(document.querySelector('.phone[data-pid="'+cfg.pid+'"]')); });
+</script>
+</body>
+</html>

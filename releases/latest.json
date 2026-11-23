@@ -1,9 +1,9 @@
 {
-  "versionCode": 490,
-  "versionName": "0.10.0+m41",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m41/SYAU-enroute-m41.apk",
-  "sha256": "c51fd4aee967f2bfce652bc0681bd60b3d10c3022d7766904917b28c2c8f7abf",
-  "size": 8045224,
-  "notes": "课表现在可以整套换样子：先挑纸卡、账页、密排、日程、安静中的一套，再单独调格子形状、装饰、字段排布、折角、侵蚀和底色，底纹动画也能关掉换成纯色。顺手修掉了使用统计一直没上报的问题。",
+  "versionCode": 500,
+  "versionName": "0.11.0+m42",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m42/SYAU-enroute-m42.apk",
+  "sha256": "36803d3e5b0dab96929fa63f78eb18a66420970916ad99f5761b30ba6ea737a0",
+  "size": 8061612,
+  "notes": "课表的五套预设现在点了就生效：设置里改哪一项，课表立刻跟着变。之前选过账页版式的机型格子会一直不变，这版修好了；预设下面也不再需要「跟随」，点哪套就是哪套。",
   "minSupported": 0
 }

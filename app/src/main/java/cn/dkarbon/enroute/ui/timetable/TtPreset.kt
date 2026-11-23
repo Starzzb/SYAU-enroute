@@ -36,6 +36,10 @@ data class TtSlots(
     val backdrop: Int = 0,
     /** 背景缓慢移动（与 backdrop 正交：关动效 ≠ 换纯色） */
     val bgMotion: Boolean = false,
+    /** 超立方体：0 不显示 / 1 淡线 / 2 亮线 */
+    val tess: Int = 1,
+    /** 它的动法：0 自由旋转 / 1 跟手横滑 / 2 反向双转 / 3 定格 / 4 正交投影 */
+    val tessMode: Int = 0,
 )
 
 /** 覆盖位序号。设置页、ViewModel、渲染层共用这一份，不各写各的。 */
@@ -51,11 +55,15 @@ object TtAxis {
     const val GRID = 8
     const val BACKDROP = 9
     const val BG_MOTION = 10
-    /** 每条轴的取值个数（含「跟随预设」占一位，但界面那一位是 -1，不在这个范围内） */
-    val sizes = intArrayOf(5, 7, 4, 3, 4, 3, 3, 3, 3, 5, 2)
+    /** 超立方体本体（不显示 / 淡线 / 亮线） */
+    const val TESS = 11
+    /** 它的动法 —— TESS 的子轴：TESS=0 时整条锁死在「定格」 */
+    const val TESS_MODE = 12
+    /** 每条轴的取值个数 —— 序号 0..n-1，与 [options] 一一对应 */
+    val sizes = intArrayOf(5, 7, 4, 3, 4, 3, 3, 3, 3, 5, 2, 3, 5)
     val names = arrayOf(
         "形状", "装饰", "字段", "角标", "侵蚀", "动效", "底色",
-        "页头", "行距", "底纹", "底纹动效",
+        "页头", "行距", "底纹", "底纹动效", "超立方体", "转动逻辑",
     )
     val options = arrayOf(
         arrayOf("方卡", "便签", "细线", "色块", "标签"),
@@ -69,7 +77,17 @@ object TtAxis {
         arrayOf("紧凑", "标准", "宽松"),
         arrayOf("无", "横线", "田垄", "复相", "纯色"),
         arrayOf("关", "缓移"),
+        arrayOf("不显示", "淡线", "亮线"),
+        arrayOf("自由旋转", "跟手横滑", "反向双转", "定格", "正交投影"),
     )
+
+    /**
+     * 子轴关系：把 [TESS_MODE] 标成 [TESS] 的子项。
+     *
+     * 设置页据此把「转动逻辑」缩进一级、并在超立方体不显示时把整行置灰 ——
+     * 关系写在这里而不是界面里，是因为渲染层同样要按它做钳制（[TtPresets.sanitize]）。
+     */
+    fun parentOf(axis: Int): Int = if (axis == TESS_MODE) TESS else -1
 }
 
 /** 预设套数（ViewModel 里做上限钳制用） */
@@ -78,20 +96,30 @@ const val TtPresetCount = 5
 /** decor = 左脊的序号，migration 要用 */
 const val TtDecorSpine = 1
 
-/** 一档预设：名字 + 整套槽位取值。预设只是「一次改很多条轴」的快捷方式。 */
+/** 一档预设：名字 + 整套槽位取值。预设 = 「一次把 13 条轴写成某一组具体值」。 */
 @Immutable
 data class TtPreset(
     val id: String,
     val label: String,
     val note: String,
     val slots: TtSlots,
+    /**
+     * 版式标记：0 常规 / 1 账页。
+     *
+     * 只影响与格子无关的版面（页头质感、未排课行），**格子一律由 [slots] 决定** ——
+     * m41b 之前它是 `tt_card_layout` 这个独立开关，会让格子绕开 slots 走另一条渲染分支，
+     * 结果设置页怎么调格子都不变。现在它只是预设的一部分。
+     */
+    val layout: Int = 0,
 )
 
 /**
- * 槽位覆盖：-1 = 跟随预设，0..n = 钉死。
+ * 槽位覆盖：0..n = 具体取值，-1 = 沿用预设值。
  *
- * 主人 2026-11-21 定：「五个都暴露」—— 五套预设全部进设置页，
- * 每套下面还能逐轴覆盖，覆盖不动的仍是预设值。
+ * 主人 2026-11-21 定：「五个都暴露」—— 五套预设全部进设置页，每套下面还能逐轴改。
+ * 2026-11-23 再定：界面里不再有「跟随」这一枚 —— 预设点下去就把 13 条轴写成具体值
+ * （[TtPresets.explicit]），所以正常运行时这里不会出现 -1；-1 只是 [TtPresets.resolve]
+ * 的兜底分支，供老数据与测试使用。
  */
 @Immutable
 data class TtOverrides(
@@ -107,6 +135,8 @@ data class TtOverrides(
     val backdrop: Int = -1,
     /** -1 跟随 / 0 关 / 1 开 */
     val bgMotion: Int = -1,
+    val tess: Int = -1,
+    val tessMode: Int = -1,
 )
 
 object TtPresets {
@@ -121,16 +151,19 @@ object TtPresets {
                 shape = 0, decor = 1, meta = 0, badge = 0,
                 erosion = 1, motion = 0, tone = 0,
                 header = 1, grid = 1, backdrop = 0, bgMotion = false,
+                tess = 1, tessMode = 0,
             ),
         ),
         TtPreset(
             id = "ledger",
             label = "账页",
             note = "横线格 + 竖脊，字距更紧，一屏多一节",
+            layout = 1,
             slots = TtSlots(
                 shape = 3, decor = 4, meta = 1, badge = 0,
                 erosion = 0, motion = 0, tone = 1,
                 header = 0, grid = 0, backdrop = 1, bgMotion = false,
+                tess = 2, tessMode = 0,
             ),
         ),
         TtPreset(
@@ -141,6 +174,7 @@ object TtPresets {
                 shape = 2, decor = 0, meta = 3, badge = 0,
                 erosion = 0, motion = 0, tone = 1,
                 header = 0, grid = 0, backdrop = 0, bgMotion = false,
+                tess = 0, tessMode = 3,
             ),
         ),
         TtPreset(
@@ -151,6 +185,7 @@ object TtPresets {
                 shape = 1, decor = 2, meta = 2, badge = 0,
                 erosion = 3, motion = 1, tone = 0,
                 header = 2, grid = 2, backdrop = 2, bgMotion = false,
+                tess = 1, tessMode = 1,
             ),
         ),
         TtPreset(
@@ -161,6 +196,7 @@ object TtPresets {
                 shape = 4, decor = 5, meta = 0, badge = 0,
                 erosion = 0, motion = 0, tone = 2,
                 header = 1, grid = 1, backdrop = 3, bgMotion = true,
+                tess = 0, tessMode = 3,
             ),
         ),
     )
@@ -168,6 +204,31 @@ object TtPresets {
     fun of(index: Int): TtPreset = ALL[index.coerceIn(0, ALL.size - 1)]
 
     fun indexOf(id: String): Int = ALL.indexOfFirst { it.id == id }.coerceAtLeast(0)
+
+    /** 某套预设的版式标记（0 常规 / 1 账页） */
+    fun layoutOf(index: Int): Int = of(index).layout
+
+    /**
+     * 把一套槽位展开成 13 条**显式**覆盖值。
+     *
+     * 2026-11-23 主人定：设置页里的预设不是「跟随某个基准」，而是「选择对应字段的效果组合」。
+     * 所以点预设 = 直接把这些值逐条写下去，界面任何一行都能读出一个确定值。
+     */
+    fun explicit(slots: TtSlots): TtOverrides = TtOverrides(
+        shape = slots.shape,
+        decor = slots.decor,
+        meta = slots.meta,
+        badge = slots.badge,
+        erosion = slots.erosion,
+        motion = slots.motion,
+        tone = slots.tone,
+        header = slots.header,
+        grid = slots.grid,
+        backdrop = slots.backdrop,
+        bgMotion = if (slots.bgMotion) 1 else 0,
+        tess = slots.tess,
+        tessMode = slots.tessMode,
+    )
 
     /** 预设 + 覆盖 → 最终槽位，并就地消掉互斥组合。 */
     fun resolve(presetIndex: Int, o: TtOverrides): TtSlots {
@@ -186,6 +247,8 @@ object TtPresets {
             grid = pick(o.grid, base.grid, 2),
             backdrop = pick(o.backdrop, base.backdrop, 4),
             bgMotion = if (o.bgMotion < 0) base.bgMotion else o.bgMotion == 1,
+            tess = pick(o.tess, base.tess, 2),
+            tessMode = pick(o.tessMode, base.tessMode, 4),
         )
         s = sanitize(s)
         return s
@@ -204,6 +267,9 @@ object TtPresets {
         if (r.decor == 3 && r.badge == 1) r = r.copy(badge = 0)
         if (r.shape == 2 && (r.decor == 5 || r.decor == 6)) r = r.copy(decor = 0)
         if (r.tone == 2 && r.shape == 3) r = r.copy(shape = 0)
+        // 超立方体那两条**不做**互斥：不显示时把动法强制定格，等于用户开回来时
+        // 发现选的档被偷偷换成定格、值被吃掉了（整合稿 §3「子轴：不是互斥，是锁」）。
+        // 锁只在设置页那一行上表达：整行置灰、点不动、不显示选中值。
         return r
     }
 }

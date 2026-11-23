@@ -19,8 +19,10 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:parseReleaseLocalResources UP-TO-DATE
 > Task :app:createReleaseCompatibleScreenManifests
 > Task :app:extractDeepLinksRelease UP-TO-DATE
-> Task :app:processReleaseMainManifest
-> Task :app:processReleaseManifest
+> Task :app:processReleaseMainManifest FROM-CACHE
+> Task :app:processReleaseManifest FROM-CACHE
+> Task :app:processReleaseManifestForPackage FROM-CACHE
+> Task :app:processReleaseResources FROM-CACHE
 > Task :app:javaPreCompileRelease UP-TO-DATE
 > Task :app:extractProguardFiles UP-TO-DATE
 > Task :app:mergeReleaseJniLibFolders UP-TO-DATE
@@ -37,14 +39,12 @@ Unable to initialize metrics, ensure C:\Users\28759\.android is writable, detail
 > Task :app:mergeReleaseAssets UP-TO-DATE
 > Task :app:compressReleaseAssets UP-TO-DATE
 > Task :app:extractReleaseVersionControlInfo UP-TO-DATE
+> Task :app:optimizeReleaseResources FROM-CACHE
 > Task :app:collectReleaseDependencies UP-TO-DATE
 > Task :app:sdkReleaseDependencyData UP-TO-DATE
 > Task :app:validateSigningRelease UP-TO-DATE
 > Task :app:writeReleaseAppMetadata UP-TO-DATE
 > Task :app:writeReleaseSigningConfigVersions UP-TO-DATE
-> Task :app:processReleaseManifestForPackage
-> Task :app:processReleaseResources
-> Task :app:optimizeReleaseResources
 > Task :app:compileReleaseKotlin
 w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/auth/LoginCard.kt:94:21 'fun quadraticBezierTo(x1: Float, y1: Float, x2: Float, y2: Float): Unit' is deprecated. Use quadraticTo() for consistency with cubicTo().
 w: file:///O:/dev/enroute-android/app/src/main/java/cn/dkarbon/enroute/ui/curriculum/SyllabusSheet.kt:62:9 Condition is always 'false'.
@@ -71,8 +71,7 @@ Warning: Unable to initialize metrics, ensure C:\Users\28759\.android is writabl
 > Task :app:lintVitalReportRelease
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
-w: Detected multiple Kotlin daemon sessions at 
 
-BUILD SUCCESSFUL in 2m 20s
-48 actionable tasks: 18 executed, 30 up-to-date
+BUILD SUCCESSFUL in 2m 53s
+48 actionable tasks: 13 executed, 5 from cache, 30 up-to-date
 EXIT=0 
