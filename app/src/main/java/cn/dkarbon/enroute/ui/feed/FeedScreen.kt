@@ -149,6 +149,12 @@ import cn.dkarbon.enroute.ui.kit.backdropBlur
 private val FeedTitleRowHeight = 44.dp
 
 /**
+ * 页眉放回的增益：收起来要滑满一个页眉高度（跟着内容走，不跳），
+ * 放回来只要三分之一 —— 主人 2026-11-23 报「下滑之后头部灵敏度很低、很久才归位」。
+ */
+private const val RevealGain = 3f
+
+/**
  * 系统「减少动画」开关（动画时长倍率 = 0）。
  * 每个列表行都要读它，所以只在 [FeedScreen] 根部观察一次、用 CompositionLocal 下发 ——
  * 否则每行一个 ContentObserver。
@@ -304,36 +310,74 @@ private fun FeedListView(
     }
     val listTopPad = headerPad * (1f - collapseStep) + Space.xs
 
-    // 判据（原先「停手 1.2s 自动回显」已删）：向上滚按滚动量收起；
-    // 向下滚只有列表已经在第 0 项、并且继续下滑时才放回来 —— 手停在哪，页眉就停在哪。
+    // 手势心跳：滚动每来一帧就 +1，吸附动画只认这个计数。
+    // 旧版 snapshotFlow 观察的是 collapse 本身，而吸附动画又写回 collapse ——
+    // 写一次就打断一次 collectLatest，于是每 140ms 只挪一帧，页眉看起来是「爬」回去的
+    // （主人 2026-11-23 报的原症状：下滑之后灵敏度极低、很久才归位、甚至整块不回来）。
+    val touchTick = remember { mutableIntStateOf(0) }
+
+    // 判据：向上滚按滚动量收起（1:1 跟手）；向下滚只要列表已经在最顶就立刻放回，
+    // 并且把「滚到顶之后没被列表吃掉」的余量（onPostScroll）也算进来 ——
+    // 旧版要上一次手势先把列表送回 0/0、这一次手势才动页眉，第一下滑没反应、
+    // 第二下滑又被 atTop 的精确判等卡住，页眉就彻底出不来了。
     val collapseConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 val h = headerPx.intValue.toFloat()
                 if (h <= 0f) return Offset.Zero
-                val p = collapse.floatValue
+                touchTick.intValue++
                 if (available.y < 0f) {
+                    // 收起：页眉跟着手指走，正文同时滚 —— 两条都是 1:1
+                    val p = collapse.floatValue
                     if (p < 1f) collapse.floatValue = (p - available.y / h).coerceIn(0f, 1f)
-                } else if (available.y > 0f && p > 0f) {
-                    // 只在「已经在最顶」时放回：到顶后再继续下滑才展开，手停在哪它停在哪
-                    val atTop = listStateSlot.value.let {
-                        it == null || (it.firstVisibleItemIndex == 0 && it.firstVisibleItemScrollOffset == 0)
-                    }
-                    if (atTop) collapse.floatValue = (p - available.y / h).coerceIn(0f, 1f)
+                    return Offset.Zero
+                }
+                if (available.y > 0f && atTop()) {
+                    // 已经在最顶还要往下滑：直接放回页眉，不等列表把手势吃完
+                    return Offset(0f, reveal(available.y, h))
                 }
                 return Offset.Zero
+            }
+
+            override fun onPostScroll(
+                consumed: Offset,
+                available: Offset,
+                source: NestedScrollSource,
+            ): Offset {
+                // 列表滚不动了才剩下的下滑量（到顶后继续滑 / 甩）：一样拿来放回页眉。
+                // 一次下滑手势就能「先滚回顶部、再顺势把页眉叫回来」，不用第二次手势。
+                if (available.y <= 0f) return Offset.Zero
+                val h = headerPx.intValue.toFloat()
+                if (h <= 0f) return Offset.Zero
+                touchTick.intValue++
+                return Offset(0f, reveal(available.y, h))
+            }
+
+            private fun atTop(): Boolean = listStateSlot.value.let {
+                it == null || (it.firstVisibleItemIndex == 0 && it.firstVisibleItemScrollOffset <= 1)
+            }
+
+            /** 用 [dy] 像素的下滑量放回页眉，返回真正吃掉的量（剩下的还给列表） */
+            private fun reveal(dy: Float, h: Float): Float {
+                val p = collapse.floatValue
+                if (p <= 0f) return 0f
+                val perPx = h / RevealGain
+                val np = (p - dy / perPx).coerceAtLeast(0f)
+                collapse.floatValue = np
+                return ((p - np) * perPx).coerceIn(0f, dy)
             }
         }
     }
 
-    // 松手吸附：p 只停在 0 或 1，不再「卡在一半」（主人报的第二个症状）。
-    // collectLatest：手再动一下立刻打断当前吸附，不跟用户抢。
+    // 松手吸附：p 只停在 0 或 1，不再「卡在一半」。
+    // collectLatest 只被「新的手势帧」打断 —— 动画写回 collapse 不再取消自己。
     LaunchedEffect(Unit) {
-        snapshotFlow { collapse.floatValue }.collectLatest { v ->
-            if (v <= 0f || v >= 1f) return@collectLatest
-            delay(140)
-            val target = if (v >= 0.5f) 1f else 0f
-            animate(v, target, animationSpec = tween(180)) { value, _ ->
+        snapshotFlow { touchTick.intValue }.collectLatest {
+            delay(120)
+            val start = collapse.floatValue
+            if (start <= 0f || start >= 1f) return@collectLatest
+            val target = if (start >= 0.5f) 1f else 0f
+            animate(start, target, animationSpec = tween(Motion.base)) { value, _ ->
                 collapse.floatValue = value
             }
         }

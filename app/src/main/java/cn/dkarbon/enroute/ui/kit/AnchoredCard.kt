@@ -66,6 +66,9 @@ import cn.dkarbon.enroute.ui.theme.Stroke
  * - API 31+ 有 RenderEffect：调用方用 [backdropBlur] 把背后内容真模糊，卡片只盖半透明纸。
  * - API 29–30 没有：靠三层半透明纸叠出等效不透明度（[GlassLevel.opaquePaper]），遮罩同时加深，
  *   否则背后文字会和卡片正文抢对比度。
+ *
+ * 模糊半径 2026-11-23 整体减半：主人报「浮层背景糊成一片，看不清背后是什么」。
+ * 12/20/28dp 在 3 倍屏上是 33–77px，等于把整页抹平；现在 6/9/14dp 还能认出背后是列表。
  */
 
 /** 玻璃厚度。T2 是默认档（主人选定）。 */
@@ -79,9 +82,9 @@ enum class GlassLevel(
     val opaquePaperLight: Float,
     val opaquePaperDark: Float,
 ) {
-    T1(12.dp, 0.86f, 0.90f, 0.97f, 0.975f),
-    T2(20.dp, 0.72f, 0.78f, 0.97f, 0.975f),
-    T3(28.dp, 0.58f, 0.66f, 0.96f, 0.97f),
+    T1(6.dp, 0.86f, 0.90f, 0.97f, 0.975f),
+    T2(9.dp, 0.72f, 0.78f, 0.97f, 0.975f),
+    T3(14.dp, 0.58f, 0.66f, 0.96f, 0.97f),
 }
 
 /**
@@ -153,11 +156,20 @@ fun AnchoredCardOverlay(
     // 位置：默认从按钮下方 8dp 长出；贴边则往回收，折角跟着走
     // anchor 是 px 矩形（boundsInRoot），这里先换成 Dp 再参与排版 —— 混着算是 Dp/Float 不兼容
     val anchorLeft = anchor?.let { with(density) { it.left.toDp() } }
+    val anchorRight = anchor?.let { with(density) { it.right.toDp() } }
     val anchorBottom = anchor?.let { with(density) { it.bottom.toDp() } }
     val anchorCenterX = anchor?.let { with(density) { it.center.x.toDp() } }
 
     val gap = Space.s
-    val rawLeft = anchorLeft ?: (screenW - width - margin)
+    // 右半屏的按钮（页头 ⋯ 就在这）**右对齐**：卡片右边贴按钮右边，整块落在屏幕内。
+    // 旧版一律拿按钮的 left 当卡片 left —— 304dp 的卡片立刻越界，又被 coerce 拽回几百 px，
+    // 折角跟着被挤到 width-20 的钳位点上，看上去「浮层跟按钮错开一截、像是先错位再挪过去」
+    // （主人 2026-11-23 报的位置偏移 / 位移效果）。
+    val rawLeft = when {
+        anchorLeft == null -> screenW - width - margin
+        anchorCenterX != null && anchorCenterX > screenW / 2f -> (anchorRight ?: anchorLeft) - width
+        else -> anchorLeft
+    }
     val left = rawLeft.coerceIn(margin, (screenW - width - margin).coerceAtLeast(margin))
     val rawTop = anchorBottom?.plus(gap) ?: (margin + 56.dp)
     // 放不下就上移，别让卡片被切掉
@@ -190,7 +202,7 @@ fun AnchoredCardOverlay(
         t.isDark -> 0.46f
         else -> 0.38f
     }
-    val pivotFrac = (arrowX.value / width.value).coerceIn(0.12f, 0.88f)
+    val pivotFrac = (arrowX.value / width.value).coerceIn(0.06f, 0.94f)
 
     Box(modifier.fillMaxSize()) {
         // 遮罩：点空白处关（表单类浮层不该这样，但纯操作菜单应该）
@@ -218,10 +230,11 @@ fun AnchoredCardOverlay(
                 .graphicsLayer {
                     val v = progress.value
                     alpha = v
-                    val s = 0.9f + 0.1f * v
+                    // 从折角那个点轻轻张开（0.94 → 1），**不做位移**：
+                    // 旧版从 -8dp 滑下来 + 0.9 缩放，肉眼读成「浮层先错位、再挪到位」。
+                    val s = 0.94f + 0.06f * v
                     scaleX = s
                     scaleY = s
-                    translationY = (1f - v) * -8.dp.toPx()
                     transformOrigin = TransformOrigin(pivotFrac, 0f)
                 },
         ) {
