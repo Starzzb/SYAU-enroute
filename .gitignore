@@ -69,6 +69,12 @@ build-verify-done.txt
 
 # 真机验收截图（本地产物，不入库）
 .shots/
+在途/_shots/
+
+# 一次性排查脚本与探针输出（历史遗留两枚已跟踪的 apk_probe.*，其余不入库）
+在途/_work/*
+!在途/_work/apk_probe.py
+!在途/_work/apk_probe.txt
 
 # ── 大纲抓取的会话物（cookie / 验证码图 / 临时页，含 JSESSIONID 绝不入库）──
 在途/curriculum/_collect/cookies.txt

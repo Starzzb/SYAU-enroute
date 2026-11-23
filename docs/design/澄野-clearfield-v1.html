@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>澄野 CLEARFIELD · 沈农在途第四套预设 · 设计原型 v1</title>
+<style>
+/* ── 字族：真实平台 CJK 栈 + 已打包 IBM Plex Mono，无外链字体 ───────── */
+:root{
+  --sans:"Noto Sans SC","Source Han Sans SC","PingFang SC","Microsoft YaHei",sans-serif;
+  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  --mono:"IBM Plex Mono","Cascadia Mono","Consolas",monospace;
+
+  /* 原始 token：全部来自 HardTokens.kt / EditorialTokens.kt */
+  --paper:#FAF7F1; --card:#FFFFFF; --card-alt:#F1ECE1; --band:#F7F3EA;
+  --ink:#16211B; --ink-soft:#3C4A42; --ink-faint:#5A6A60;
+  --rule:#91825F; --outline:#7B897F;
+  --pine:#1F4A3D; --pine-dark:#8FBFA6;
+  --machine:#C74E17; --machine-ink:#A83D11; --machine-soft:#EA8F5E;
+  --wheat:#F4E7B9; --ochre:#7A5714; --crop:#4E6535; --rust:#9B2417; --steel:#345A66;
+  --paper-d:#141A17; --card-d:#1B231F; --card-alt-d:#232C27; --band-d:#181F1B;
+  --ink-d:#F1EFE7; --ink-soft-d:#C6CDC6; --ink-faint-d:#9AA69D; --rule-d:#647D71;
+
+  /* 派生层（不进色板）：copy(alpha) 覆在纸底上，Compose 可一比一实现 */
+  --tint-pine:color-mix(in srgb,var(--pine) 8%,var(--paper));
+  --tint-pine-strong:color-mix(in srgb,var(--pine) 13%,var(--paper));
+  --tint-machine:color-mix(in srgb,var(--machine) 9%,var(--paper));
+  --hairline:color-mix(in srgb,var(--ink) 10%,var(--paper));
+  --hairline-d:color-mix(in srgb,var(--ink-d) 13%,var(--paper-d));
+  --tint-pine-d:color-mix(in srgb,var(--pine-dark) 15%,var(--paper-d));
+
+  /* 间距：4 栅格 */
+  --s1:4px; --s2:8px; --s3:12px; --s4:16px; --s5:20px; --s6:24px; --s8:32px; --s10:40px;
+  --r-card:16px; --r-course:12px; --r-sheet:24px; --r-tag:8px;
+  --sh-1:0 1px 2px rgba(22,33,27,.04),0 6px 18px rgba(22,33,27,.05);
+  --sh-2:0 2px 4px rgba(22,33,27,.06),0 14px 34px rgba(22,33,27,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:var(--sans);background:var(--paper);color:var(--ink);
+  font-size:15px;line-height:1.6;padding:48px 32px 96px;
+  background-image:radial-gradient(circle at 12% 0%,var(--tint-pine) 0%,transparent 46%),
+                   radial-gradient(circle at 96% 8%,var(--tint-machine) 0%,transparent 40%);
+}
+::selection{background:var(--wheat);color:var(--ink)}
+.wrap{max-width:1560px;margin:0 auto}
+.num{font-family:var(--mono);font-feature-settings:"tnum","lnum";font-variant-numeric:tabular-nums}
+
+/* ── 页眉（这是设计稿的页眉，不是 App 界面）────────────────────── */
+header.sheet{border-bottom:2px solid var(--ink);padding-bottom:var(--s6);margin-bottom:var(--s10)}
+.kicker{font-size:11px;font-weight:600;letter-spacing:.22em;color:var(--machine-ink);text-transform:uppercase}
+header.sheet h1{font-size:clamp(34px,4.6vw,58px);font-weight:700;letter-spacing:-.02em;line-height:1.12;margin:10px 0 12px}
+header.sheet h1 em{font-family:var(--serif);font-style:normal;color:var(--pine)}
+header.sheet p{max-width:76ch;color:var(--ink-soft);font-size:15px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:var(--s5)}
+.meta span{font-size:11px;font-weight:500;letter-spacing:.06em;padding:6px 12px;border-radius:999px;
+  background:var(--card);border:1px solid var(--hairline);color:var(--ink-soft)}
+h2.sec{font-size:22px;font-weight:700;letter-spacing:-.01em;margin:var(--s10) 0 6px;display:flex;align-items:baseline;gap:12px}
+h2.sec i{font-family:var(--mono);font-style:normal;font-size:12px;font-weight:400;color:var(--machine-ink);letter-spacing:.08em}
+p.note{color:var(--ink-soft);max-width:88ch;font-size:13.5px;margin-bottom:var(--s5)}
+p.note b{color:var(--ink);font-weight:600}
+code{font-family:var(--mono);font-size:.92em;background:var(--card-alt);padding:1px 5px;border-radius:5px;color:var(--ink-soft)}
+
+/* ── 色板 ───────────────────────────────────────────────── */
+.swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(146px,1fr));gap:12px}
+.sw{border-radius:var(--r-card);overflow:hidden;background:var(--card);border:1px solid var(--hairline)}
+.sw b{display:block;height:64px}
+.sw div{padding:10px 12px}
+.sw strong{display:block;font-size:12.5px;font-weight:600}
+.sw small{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+.sw em{display:block;font-style:normal;font-size:11px;color:var(--ink-faint);margin-top:2px}
+
+/* ── 字阶表 ─────────────────────────────────────────────── */
+.type{background:var(--card);border:1px solid var(--hairline);border-radius:var(--r-sheet);overflow:hidden}
+.trow{display:grid;grid-template-columns:150px minmax(0,1fr) 250px;gap:20px;align-items:center;
+  padding:16px 24px;border-bottom:1px solid var(--hairline)}
+.trow:last-child{border-bottom:0}
+.trow .role{font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--ink-soft)}
+.trow .role small{display:block;font-family:var(--mono);font-weight:400;letter-spacing:0;color:var(--ink-faint);margin-top:3px;font-size:10.5px}
+.trow .spec{font-family:var(--mono);font-size:11px;color:var(--ink-faint);line-height:1.7;text-align:right}
+.trow .sample{min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+
+/* ── token 双表 ─────────────────────────────────────────── */
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+table.tok{width:100%;border-collapse:collapse;background:var(--card);border-radius:var(--r-card);overflow:hidden;border:1px solid var(--hairline)}
+table.tok caption{text-align:left;font-size:12px;font-weight:600;letter-spacing:.1em;color:var(--ink-soft);padding-bottom:10px}
+table.tok td{padding:9px 16px;font-size:12.5px;border-bottom:1px solid var(--hairline)}
+table.tok tr:last-child td{border-bottom:0}
+table.tok td:first-child{color:var(--ink-soft)}
+table.tok td:last-child{font-family:var(--mono);font-size:11.5px;text-align:right;color:var(--ink)}
+table.tok tr.old td{color:var(--ink-faint);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--rust) 55%,transparent)}
+table.tok tr.old td:last-child{text-decoration:none}
+
+/* ── 手机分镜 ───────────────────────────────────────────── */
+.frames{display:flex;flex-wrap:wrap;gap:32px;align-items:flex-start}
+.shot{width:390px;flex:0 0 390px}
+.shot>h3{font-size:13px;font-weight:600;margin-bottom:4px;letter-spacing:.02em}
+.shot>p{font-size:11.5px;color:var(--ink-faint);margin-bottom:14px;line-height:1.6}
+.phone{width:390px;height:844px;border-radius:38px;padding:11px;background:#20261F;
+  box-shadow:0 24px 60px rgba(22,33,27,.16),0 2px 6px rgba(22,33,27,.10)}
+.scr{width:100%;height:100%;border-radius:28px;overflow:hidden;background:var(--paper);
+  display:flex;flex-direction:column;position:relative}
+.scr.dark{background:var(--paper-d);color:var(--ink-d)}
+.body{flex:1;overflow:hidden;padding:0 20px;position:relative}
+.statusbar{height:34px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 24px;font-size:11px;font-weight:500;color:var(--ink-soft);flex:0 0 auto}
+.dark .statusbar{color:var(--ink-soft-d)}
+
+/* App 页眉 */
+.appbar{padding:10px 20px 14px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px}
+.appbar .wk{font-family:var(--serif);font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.appbar .wk small{font-family:var(--sans);font-size:12px;font-weight:500;color:var(--ink-faint);letter-spacing:.06em;margin-left:8px}
+.appbar .sub{font-size:11.5px;color:var(--ink-faint);margin-top:6px;letter-spacing:.02em}
+.iconbtns{display:flex;gap:8px}
+.ibtn{width:36px;height:36px;border-radius:50%;background:var(--card-alt);display:grid;place-items:center;color:var(--ink-soft);border:0}
+.dark .ibtn{background:var(--card-alt-d);color:var(--ink-soft-d)}
+.ibtn svg{width:18px;height:18px}
+
+/* 分段控件：全圆胶囊 */
+.seg{display:flex;gap:4px;background:var(--card-alt);padding:4px;border-radius:999px;margin:0 0 16px}
+.dark .seg{background:var(--card-alt-d)}
+.seg button{flex:1;border:0;background:transparent;font:inherit;font-size:12px;font-weight:500;
+  padding:8px 0;border-radius:999px;color:var(--ink-soft);cursor:pointer}
+.dark .seg button{color:var(--ink-soft-d)}
+.seg button[aria-selected=true]{background:var(--card);color:var(--ink);font-weight:600;box-shadow:var(--sh-1)}
+.dark .seg button[aria-selected=true]{background:var(--card-alt-d);color:var(--ink-d)}
+
+/* 周列头 */
+.weekhead{display:grid;grid-template-columns:34px repeat(7,1fr);gap:6px;margin-bottom:12px;align-items:end}
+.weekhead .dow{text-align:center;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--ink-faint);padding-bottom:6px}
+.weekhead .day{text-align:center;font-family:var(--mono);font-size:14px;font-weight:500;
+  padding:7px 0;border-radius:12px;color:var(--ink-soft)}
+.dark .weekhead .day{color:var(--ink-soft-d)}
+.weekhead .today .dow{color:var(--pine);font-weight:700}
+.dark .weekhead .today .dow{color:var(--pine-dark)}
+.weekhead .today .day{background:var(--pine);color:#fff;font-weight:600;box-shadow:var(--sh-1)}
+.dark .weekhead .today .day{background:var(--pine-dark);color:#141A17}
+
+/* 分节微标签：不靠横线 */
+.band{display:flex;align-items:baseline;gap:10px;margin:16px 0 10px}
+.band b{font-size:10px;font-weight:600;letter-spacing:.18em;color:var(--ink-faint)}
+.band span{font-family:var(--mono);font-size:10px;color:var(--ink-faint);opacity:.85}
+.dark .band b,.dark .band span{color:var(--ink-faint-d)}
+
+/* 课表行：时间轴 + 课卡，空堂不画格 */
+.slot{display:grid;grid-template-columns:34px 1fr;gap:10px;margin-bottom:10px}
+.axis{text-align:right;padding-top:4px}
+.axis b{display:block;font-family:var(--mono);font-size:12px;font-weight:600;color:var(--ink-soft);line-height:1.3}
+.axis span{display:block;font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);line-height:1.5;margin-top:2px}
+.dark .axis b{color:var(--ink-soft-d)} .dark .axis span{color:var(--ink-faint-d)}
+.lane{display:grid;grid-template-columns:1fr;gap:8px}
+
+/* 课卡：色条 + 浅底 + 12 圆角 */
+.course{position:relative;border-radius:var(--r-course);background:var(--card);
+  border:1px solid var(--hairline);padding:10px 11px 10px 14px;overflow:hidden;min-height:74px}
+.course::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--fam,var(--pine))}
+.course h4{font-size:12.5px;font-weight:600;line-height:1.4;letter-spacing:-.01em}
+.course p{font-size:10.5px;color:var(--ink-faint);line-height:1.55;margin-top:4px}
+.course .wks{font-family:var(--mono);font-size:9px;letter-spacing:.02em;color:var(--ink-faint);
+  margin-top:6px;display:inline-block;background:var(--card-alt);padding:2px 6px;border-radius:6px}
+.dark .course{background:var(--card-d);border-color:var(--hairline-d)}
+.dark .course p{color:var(--ink-faint-d)}
+.dark .course .wks{background:var(--card-alt-d);color:var(--ink-faint-d)}
+.f1{--fam:#1F4A3D}.f2{--fam:#C74E17}.f3{--fam:#345A66}.f4{--fam:#7A5714}
+.dark .f1{--fam:#8FBFA6}.dark .f2{--fam:#EA8F5E}.dark .f3{--fam:#A8C2CF}.dark .f4{--fam:#D9B96E}
+
+/* 进行中：主色浅底 + 2dp 描边 + 进度 */
+.course.live{background:var(--tint-pine);border:1.5px solid var(--pine);box-shadow:var(--sh-1)}
+.dark .course.live{background:var(--tint-pine-d);border-color:var(--pine-dark)}
+.course.live h4{color:var(--pine)}
+.dark .course.live h4{color:var(--pine-dark)}
+.course.live p{color:var(--ink-soft)}
+.dark .course.live p{color:var(--ink-soft-d)}
+.progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:color-mix(in srgb,var(--pine) 12%,transparent)}
+.progress i{display:block;height:100%;background:var(--pine);width:0}
+.dark .progress i{background:var(--pine-dark)}
+.livebadge{position:absolute;top:9px;right:10px;display:flex;align-items:center;gap:4px;
+  font-size:9px;font-weight:600;letter-spacing:.06em;color:var(--pine)}
+.dark .livebadge{color:var(--pine-dark)}
+.livebadge i{width:5px;height:5px;border-radius:50%;background:var(--pine)}
+.dark .livebadge i{background:var(--pine-dark)}
+
+/* 已上：去描边、降对比、进度满 */
+.course.done{background:var(--band);border-color:transparent}
+.dark .course.done{background:var(--band-d)}
+.course.done h4{color:var(--ink-faint);font-weight:500}
+.dark .course.done h4{color:var(--ink-faint-d)}
+.course.done::before{opacity:.35}
+.course.done p{opacity:.8}
+
+/* 调课：麦秆黄底 + 虚线 */
+.course.moved{background:color-mix(in srgb,var(--wheat) 55%,var(--card));border:1px dashed var(--ochre)}
+.course.moved .tag{font-size:9px;font-weight:600;color:var(--ochre);letter-spacing:.06em;
+  display:inline-block;margin-top:6px}
+/* 深色：调课卡不再铺亮黄，改麦秆色浅层 + 同色相文字，避免亮底吃字 */
+.dark .course.moved{background:color-mix(in srgb,#D9B96E 12%,var(--card-d));border-color:#A98F4E}
+.dark .course.moved h4{color:#D9B96E}
+.dark .course.moved p{color:var(--ink-soft-d)}
+.dark .course.moved .tag{color:#D9B96E}
+/* 日视图的空堂：一条事实，不画格 */
+.freeline{font-size:11px;color:var(--ink-faint);padding:2px 0 4px;letter-spacing:.04em}
+.dark .freeline{color:var(--ink-faint-d)}
+
+/* 周视图：7 列网格，课卡退成色块 */
+.whead{display:grid;grid-template-columns:26px repeat(7,1fr);gap:4px;margin-bottom:8px}
+.whead div{text-align:center;border-radius:8px;padding:5px 0}
+.whead b{display:block;font-family:var(--mono);font-size:12px;font-weight:600}
+.whead small{display:block;font-size:9px;letter-spacing:.06em;color:var(--ink-faint);margin-top:1px}
+.whead .now{background:var(--pine);color:#fff}
+.whead .now small{color:rgba(255,255,255,.8)}
+.wrow{display:grid;grid-template-columns:26px repeat(7,1fr);gap:4px;margin-bottom:4px}
+.waxis{font-family:var(--mono);font-size:9px;color:var(--ink-faint);text-align:right;padding-top:5px;line-height:1.4}
+.wc{border-radius:8px;padding:6px 4px;height:56px;background:var(--card);
+  border:1px solid var(--hairline);border-left:2.5px solid var(--fam,var(--pine));overflow:hidden}
+.wc b{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;
+  font-size:10px;font-weight:600;line-height:1.35;letter-spacing:-.01em}
+.wc small{display:block;font-size:8.5px;color:var(--ink-faint);line-height:1.4;margin-top:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wc.done{background:var(--band);border-top-color:transparent;border-right-color:transparent;border-bottom-color:transparent}
+.wc.done b{color:var(--ink-faint);font-weight:500}
+.wc.live{background:var(--tint-pine-strong);border:1.5px solid var(--pine);border-left-width:2.5px}
+.wc.live b{color:var(--pine)}
+.wc.today{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--pine) 22%,transparent)}
+.wc.moved{background:color-mix(in srgb,var(--wheat) 55%,var(--card));border:1px dashed var(--ochre);border-left-width:2.5px}
+
+/* 空堂：只有一条点线，无卡 */
+.empty{align-self:stretch;border-left:1px dotted var(--rule);opacity:.45;min-height:40px;margin-left:6px}
+
+/* 底部导航 */
+.tabbar{flex:0 0 auto;display:flex;padding:10px 22px 20px;gap:8px;background:var(--card);
+  border-top:1px solid var(--hairline)}
+.dark .tabbar{background:var(--card-d);border-top-color:var(--hairline-d)}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:8px 0 4px;
+  color:var(--ink-faint);font-size:10px;font-weight:500;position:relative;letter-spacing:.04em}
+.dark .tab{color:var(--ink-faint-d)}
+.tab svg{width:21px;height:21px}
+.tab[aria-current=true]{color:var(--pine)}
+.dark .tab[aria-current=true]{color:var(--pine-dark)}
+.tab[aria-current=true]::after{content:"";position:absolute;bottom:-2px;width:16px;height:3px;border-radius:3px;background:var(--pine)}
+.dark .tab[aria-current=true]::after{background:var(--pine-dark)}
+.badge{position:absolute;top:2px;left:calc(50% + 8px);min-width:16px;height:16px;padding:0 4px;border-radius:999px;
+  background:var(--machine);color:#fff;font-family:var(--mono);font-size:9.5px;display:grid;place-items:center}
+
+/* 通用卡 */
+.card{background:var(--card);border:1px solid var(--hairline);border-radius:var(--r-card);padding:18px 20px;margin-bottom:14px}
+.dark .card{background:var(--card-d);border-color:var(--hairline-d)}
+.card>h5{font-size:11px;font-weight:600;letter-spacing:.12em;color:var(--ink-faint);margin-bottom:14px}
+.dark .card>h5{color:var(--ink-faint-d)}
+.card.flat{box-shadow:none}
+.hero{background:linear-gradient(0deg,var(--tint-pine),var(--tint-pine)),var(--card);border:0;box-shadow:var(--sh-1)}
+.gpa{display:flex;align-items:baseline;gap:10px}
+.gpa b{font-family:var(--mono);font-size:40px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.gpa span{font-size:11px;color:var(--ink-soft)}
+.gpa .cr{margin-left:auto;text-align:right;font-size:11px;color:var(--ink-soft)}
+.gpa .cr b{font-size:18px;display:block}
+.rowline{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--hairline)}
+.dark .rowline{border-bottom-color:var(--hairline-d)}
+.rowline:last-child{border-bottom:0;padding-bottom:0}
+.rowline .nm{flex:1;min-width:0}
+.rowline .nm b{display:block;font-size:13.5px;font-weight:500}
+.rowline .nm small{font-size:10.5px;color:var(--ink-faint)}
+.dark .rowline .nm small{color:var(--ink-faint-d)}
+.rowline .sc{font-family:var(--mono);font-size:17px;font-weight:600}
+.rowline .sc.low{color:var(--ochre)}
+.rowline .sc.good{color:var(--crop)}
+.dark .rowline .sc.good{color:#A9C496}
+.dark .rowline .sc.low{color:#D9B96E}
+
+/* 考试时间轴 */
+.exam{display:grid;grid-template-columns:52px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--hairline)}
+.exam:last-child{border:0}
+.exam .dt{text-align:center;background:var(--card-alt);border-radius:10px;padding:7px 0}
+.dark .exam .dt{background:var(--card-alt-d)}
+.exam .dt b{display:block;font-family:var(--mono);font-size:16px;font-weight:600;line-height:1.2}
+.exam .dt span{font-size:9.5px;color:var(--ink-faint);letter-spacing:.06em}
+.dark .exam .dt span{color:var(--ink-faint-d)}
+.exam h6{font-size:13.5px;font-weight:600}
+.exam p{font-size:11px;color:var(--ink-faint);margin-top:4px;font-family:var(--mono)}
+.dark .exam p{color:var(--ink-faint-d)}
+.exam .left{font-size:10px;font-weight:600;color:var(--machine-ink);letter-spacing:.06em;margin-top:6px}
+.dark .exam .left{color:var(--machine-soft)}
+
+/* 资讯 */
+.chips{display:flex;gap:8px;overflow:hidden;margin-bottom:16px}
+.chip{flex:0 0 auto;font-size:11.5px;font-weight:500;padding:7px 14px;border-radius:999px;
+  background:var(--card);border:1px solid var(--hairline);color:var(--ink-soft)}
+.chip[aria-selected=true]{background:var(--pine);border-color:var(--pine);color:#fff}
+.art{padding:14px 0;border-bottom:1px solid var(--hairline);position:relative}
+.art:last-child{border:0}
+.art h6{font-size:14px;font-weight:500;line-height:1.55;letter-spacing:-.01em}
+.art .src{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:10.5px;color:var(--ink-faint)}
+.art .src time{font-family:var(--mono)}
+.art .src .none{opacity:.75}
+.art.unread h6{font-weight:700}
+.art.unread::before{content:"";position:absolute;left:-11px;top:23px;width:5px;height:5px;border-radius:50%;background:var(--machine)}
+.art .pill{font-size:9px;font-weight:600;letter-spacing:.06em;color:var(--steel);background:var(--card-alt);padding:2px 6px;border-radius:6px}
+
+/* 我的 */
+.idcard{background:var(--pine);color:#F3F6EF;border:0;box-shadow:var(--sh-2);position:relative;overflow:hidden}
+.idcard h5{color:rgba(243,246,239,.72)}
+.idcard .who{display:flex;align-items:center;gap:14px}
+.avatar{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.14);
+  display:grid;place-items:center;font-family:var(--serif);font-size:22px;font-weight:700}
+.idcard .who b{font-size:19px;font-weight:600;letter-spacing:.02em}
+.idcard .who small{display:block;font-family:var(--mono);font-size:11.5px;opacity:.8;margin-top:3px}
+.idcard .facts{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:18px;
+  padding-top:14px;border-top:1px solid rgba(255,255,255,.18)}
+.idcard .facts small{display:block;font-size:10px;letter-spacing:.1em;opacity:.72}
+.idcard .facts b{font-size:12.5px;font-weight:500}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat{background:var(--card);border:1px solid var(--hairline);border-radius:var(--r-card);padding:14px 8px;text-align:center}
+.stat b{display:block;font-family:var(--mono);font-size:22px;font-weight:600;letter-spacing:-.01em}
+.stat small{font-size:10.5px;color:var(--ink-faint);letter-spacing:.04em}
+.stat.na b{color:var(--ink-faint);font-size:18px}
+.listrow{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid var(--hairline);font-size:13.5px}
+.listrow:last-child{border:0}
+.listrow svg{width:18px;height:18px;color:var(--ink-soft)}
+.listrow .v{margin-left:auto;font-size:11px;color:var(--ink-faint);font-family:var(--mono)}
+
+/* ── 组件状态条 ─────────────────────────────────────────── */
+.states{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:20px}
+.state h6{font-size:11px;font-weight:600;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:12px}
+.state .demo{height:120px}
+.skel{border-radius:var(--r-card);background:var(--card);border:1px solid var(--hairline);padding:18px;height:100%}
+.skel i{display:block;height:11px;border-radius:6px;margin-bottom:12px;
+  background:linear-gradient(90deg,var(--card-alt) 25%,var(--band) 50%,var(--card-alt) 75%);
+  background-size:200% 100%;animation:shimmer 1.6s linear infinite}
+.skel i:nth-child(2){width:72%}.skel i:nth-child(3){width:44%;margin-bottom:0}
+@keyframes shimmer{to{background-position:-200% 0}}
+.emptybox{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  border:1px dashed var(--rule);border-radius:var(--r-card);color:var(--ink-faint)}
+.emptybox svg{width:26px;height:26px;opacity:.7}
+.emptybox b{font-size:13px;font-weight:500;color:var(--ink-soft)}
+.emptybox small{font-size:11px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;font:inherit;
+  font-size:13px;font-weight:600;padding:13px 22px;border-radius:14px;cursor:pointer;min-height:48px}
+.btn.p{background:var(--pine);color:#fff}
+.btn.s{background:var(--card-alt);color:var(--ink-soft)}
+.btn.d{background:var(--card-alt);color:var(--ink-faint);cursor:not-allowed}
+.btn.e{background:color-mix(in srgb,var(--rust) 10%,var(--card));color:var(--rust)}
+.errbox{border:1px solid color-mix(in srgb,var(--rust) 35%,var(--card));border-radius:var(--r-card);
+  background:color-mix(in srgb,var(--rust) 6%,var(--card));padding:14px 16px;font-size:12px;color:var(--rust);line-height:1.6}
+.errbox small{display:block;color:var(--ink-faint);font-family:var(--mono);font-size:10.5px;margin-top:6px}
+
+/* 底部面板：24 顶部圆角 */
+.sheetdemo{background:var(--card);border-radius:var(--r-sheet) var(--r-sheet) 0 0;box-shadow:var(--sh-2);padding:10px 20px 20px;border:1px solid var(--hairline)}
+.grab{width:36px;height:4px;border-radius:4px;background:var(--card-alt);margin:0 auto 16px}
+.sheetdemo h6{font-size:16px;font-weight:600;margin-bottom:4px}
+.sheetdemo p{font-size:11.5px;color:var(--ink-faint);margin-bottom:14px}
+
+/* 动态演示 */
+.replay{background:var(--card);border:1px solid var(--hairline);border-radius:var(--r-sheet);padding:24px;max-width:430px}
+.replay .stage{background:var(--paper);border-radius:var(--r-card);padding:18px;margin-bottom:16px}
+.replay .ctrl{display:flex;align-items:center;gap:14px}
+.replay .ctrl small{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+@media (prefers-reduced-motion:reduce){.skel i{animation:none}}
+
+/* ── 断点：≤4 档，全站复用 ─────────────────────────────── */
+@media (max-width:1280px){.trow{grid-template-columns:120px minmax(0,1fr)}.trow .spec{display:none}}
+@media (max-width:900px){body{padding:28px 18px 64px}.cols2{grid-template-columns:1fr}.frames{gap:28px}}
+@media (max-width:460px){
+  body{padding:20px 12px 48px}
+  .shot,.phone{width:100%;flex-basis:100%}
+  .phone{height:auto;min-height:780px;padding:8px;border-radius:30px}
+  .trow{grid-template-columns:minmax(0,1fr);gap:8px;padding:14px 16px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="sheet">
+  <div class="kicker">沈农在途 · 第四套视觉预设 · StyleSet.CLEAR = 3 · 原型 v1</div>
+  <h1>澄野 <em>CLEARFIELD</em></h1>
+  <p>同一套农业配色，换一副更亲和的骨架：标题与正文回到无衬线，数字继续用已打包的 IBM Plex Mono，
+     衬线只留下页眉那一枚周次大数字；网格不再用实线切分，靠留白与 12dp 便签卡分层；
+     圆角 16 / 12 / 24 三档，阴影只给「浮起来的东西」。本页所有色值取自
+     <code>HardTokens.kt</code> 与 <code>EditorialTokens.kt</code>，浅色层是主色按透明度覆在纸底上的派生，不进色板。</p>
+  <div class="meta">
+    <span>Operate 场景 · 可预测优先</span><span>4dp 栅格</span><span>正文行高 1.57</span>
+    <span>触区 ≥ 48dp</span><span>正文对比 ≥ 4.5:1</span><span>深色与浅色同构</span>
+    <span>假数据：张三 / 2024000000</span>
+  </div>
+</header>
+
+<!-- ═══ 01 色板 ═══ -->
+<h2 class="sec"><i>01</i>配色：一个主色，一个强调，其余全部退后</h2>
+<p class="note">主色<b>松针绿</b>承担「今天 / 进行中 / 主按钮 / 选中」；<b>农械橘</b>只做小面积强调（未读点、角标、警示性强调）。
+   小字号的有色文字一律走更深一档（<code>#A83D11</code>），因为品牌橙 <code>#C74E17</code> 对纸底只有 4.15:1。
+   深浅两套共用同一组语义位置，壁纸取色时只换 primary / accent 两个入口，层级不塌。</p>
+<div class="swatches">
+  <div class="sw"><b style="background:#FAF7F1"></b><div><strong>纸 Paper</strong><small>#FAF7F1</small><em>页面底</em></div></div>
+  <div class="sw"><b style="background:#FFFFFF;border-bottom:1px solid var(--hairline)"></b><div><strong>卡 Card</strong><small>#FFFFFF</small><em>内容承载</em></div></div>
+  <div class="sw"><b style="background:#F1ECE1"></b><div><strong>色带 CardAlt</strong><small>#F1ECE1</small><em>分段底 / 图标钮</em></div></div>
+  <div class="sw"><b style="background:var(--tint-pine)"></b><div><strong>主色浅层</strong><small>Pine 8% on Paper</small><em>进行中 / 选中底</em></div></div>
+  <div class="sw"><b style="background:#16211B"></b><div><strong>墨 Ink</strong><small>#16211B</small><em>正文 15.49:1</em></div></div>
+  <div class="sw"><b style="background:#3C4A42"></b><div><strong>次墨 InkSoft</strong><small>#3C4A42</small><em>次要 8.73:1</em></div></div>
+  <div class="sw"><b style="background:#5A6A60"></b><div><strong>淡墨 InkFaint</strong><small>#5A6A60</small><em>辅助 5.36:1</em></div></div>
+  <div class="sw"><b style="background:#1F4A3D"></b><div><strong>松针 Pine</strong><small>#1F4A3D</small><em>主色 9.33:1</em></div></div>
+  <div class="sw"><b style="background:#C74E17"></b><div><strong>农械橘 Machine</strong><small>#C74E17</small><em>仅图形 / 徽标</em></div></div>
+  <div class="sw"><b style="background:#A83D11"></b><div><strong>小字主色</strong><small>#A83D11</small><em>有色小字 5.63:1</em></div></div>
+  <div class="sw"><b style="background:#F4E7B9"></b><div><strong>麦秆 Wheat</strong><small>#F4E7B9</small><em>调课 / 待办底</em></div></div>
+  <div class="sw"><b style="background:#345A66"></b><div><strong>钢青 Steel</strong><small>#345A66</small><em>信息 7.81:1</em></div></div>
+  <div class="sw"><b style="background:#9B2417"></b><div><strong>锈红 Rust</strong><small>#9B2417</small><em>不及格 / 错误</em></div></div>
+  <div class="sw"><b style="background:#141A17"></b><div><strong>深夜 PaperDark</strong><small>#141A17</small><em>深墨绿，非纯黑</em></div></div>
+  <div class="sw"><b style="background:#8FBFA6"></b><div><strong>夜松 PineDark</strong><small>#8FBFA6</small><em>深色主色 8.55:1</em></div></div>
+  <div class="sw"><b style="background:#EA8F5E"></b><div><strong>夜橘 Machine.n300</strong><small>#EA8F5E</small><em>深色强调</em></div></div>
+</div>
+
+<!-- ═══ 02 字阶 ═══ -->
+<h2 class="sec"><i>02</i>字体与排版：三级跳，不同级才换尺寸</h2>
+<p class="note">同一屏最多出现 <b>3 个字级</b>。标题字重 600、正文 400、标签 500，靠<b>字重差 + 行高差</b>分层，不再靠 1sp 的字号微差。
+   数字统一 <code>tnum</code>，成绩、学分、时间轴竖向对齐。字距下限 <code>-0.02em</code>，再收中文就糊。</p>
+<div class="type">
+  <div class="trow">
+    <div class="role">DISPLAY<small>页眉周次 · 唯一衬线</small></div>
+    <div class="sample" style="font-family:var(--serif);font-size:34px;font-weight:700;letter-spacing:-.02em;line-height:1.18">第 12 周 <span style="font-size:20px;color:var(--ink-faint)">11.16 – 11.22</span></div>
+    <div class="spec">SerifFont / 34sp · 40sp<br>w700 · -0.02em</div>
+  </div>
+  <div class="trow">
+    <div class="role">HEADLINE<small>页级标题 · 面板标题</small></div>
+    <div class="sample" style="font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.33">本周课表</div>
+    <div class="spec">Sans / 24sp · 32sp<br>w700 · -0.02em</div>
+  </div>
+  <div class="trow">
+    <div class="role">TITLE L<small>卡片标题 / 对话框</small></div>
+    <div class="sample" style="font-size:20px;font-weight:600;letter-spacing:-.01em;line-height:1.4">农业气象学</div>
+    <div class="spec">Sans / 20sp · 28sp<br>w600 · -0.01em</div>
+  </div>
+  <div class="trow">
+    <div class="role">TITLE M<small>列表条目标题</small></div>
+    <div class="sample" style="font-size:17px;font-weight:600;line-height:1.41">关于期末考试安排的通知</div>
+    <div class="spec">Sans / 17sp · 24sp<br>w600 · 0</div>
+  </div>
+  <div class="trow">
+    <div class="role">TITLE S<small>课卡课名 / 紧凑条目</small></div>
+    <div class="sample" style="font-size:15px;font-weight:500;line-height:1.47">植物学 · 一教 203</div>
+    <div class="spec">Sans / 15sp · 22sp<br>w500 · 0</div>
+  </div>
+  <div class="trow">
+    <div class="role">BODY L<small>资讯正文 · 长文阅读</small></div>
+    <div class="sample" style="font-size:16px;line-height:1.625;font-weight:400">各学院须于本周五前完成考场编排，并将结果报送教务处。</div>
+    <div class="spec">Sans / 16sp · 26sp<br>w400 · 行高 1.625 · 65–75 字/行</div>
+  </div>
+  <div class="trow">
+    <div class="role">BODY M<small>默认正文</small></div>
+    <div class="sample" style="font-size:14px;line-height:1.57">土壤学 实验楼 305，第 3–16 周，双周上课。</div>
+    <div class="spec">Sans / 14sp · 22sp<br>w400 · 行高 1.57</div>
+  </div>
+  <div class="trow">
+    <div class="role">BODY S<small>辅助说明 · 地点教师</small></div>
+    <div class="sample" style="font-size:12px;line-height:1.5;color:var(--ink-soft)">王老师 · 一教 203 · 3–16 周</div>
+    <div class="spec">Sans / 12sp · 18sp<br>w400 · InkSoft</div>
+  </div>
+  <div class="trow">
+    <div class="role">NUMERIC<small>成绩 / 学分 / 时间轴</small></div>
+    <div class="sample num" style="font-size:20px;font-weight:600;letter-spacing:-.01em">92 <span style="color:var(--ink-faint);font-size:14px">/ 2.5 学分</span> <span style="color:var(--ochre);font-size:14px">08:00</span></div>
+    <div class="spec">IBM Plex Mono / 12·17·20·28·40sp<br>tnum + lnum · 等宽</div>
+  </div>
+  <div class="trow">
+    <div class="role">LABEL L<small>分段 / 按钮 / 胶囊</small></div>
+    <div class="sample" style="font-size:13px;font-weight:500;letter-spacing:.04em">本周　下周　全部</div>
+    <div class="spec">Sans / 13sp · 18sp<br>w500 · +0.04em</div>
+  </div>
+  <div class="trow">
+    <div class="role">LABEL M<small>分节抬头 / 来源</small></div>
+    <div class="sample" style="font-size:11px;font-weight:500;letter-spacing:.06em;color:var(--ink-soft)">上午 · 教务处 · 11-20</div>
+    <div class="spec">Sans / 11sp · 16sp<br>w500 · +0.06em</div>
+  </div>
+  <div class="trow">
+    <div class="role">LABEL S<small>角标 / 周次徽</small></div>
+    <div class="sample" style="font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--ink-faint)">1–2 节 · 双周 · 已结束</div>
+    <div class="spec">Sans / 10sp · 14sp<br>w500 · +0.08em · 不再用 9sp</div>
+  </div>
+</div>
+
+<!-- ═══ 03 形态与间距 ═══ -->
+<h2 class="sec"><i>03</i>形态：圆角、阴影、间距的口径</h2>
+<p class="note">阴影只给<b>浮在纸上的东西</b>：进行中的课卡、底部面板、身份卡。普通内容卡零阴影，靠 1dp 半透明描边与纸底的明度差分层——满屏浮卡是这套方案要避免的第一件事。</p>
+<div class="cols2">
+  <table class="tok">
+    <caption>圆角与描边（dp）</caption>
+    <tr><td>内容卡 radiusCard</td><td>16</td></tr>
+    <tr><td>课卡 radiusCourseCard</td><td>12</td></tr>
+    <tr><td>底部面板 radiusSheet</td><td>24（仅顶部两角）</td></tr>
+    <tr><td>按钮 / 输入框</td><td>14</td></tr>
+    <tr><td>小标签 / 周次徽</td><td>8</td></tr>
+    <tr><td>胶囊 / 头像 / 图标钮</td><td>全圆</td></tr>
+    <tr><td>内容卡描边</td><td>1 · Ink 10% on Paper</td></tr>
+    <tr><td>进行中描边</td><td>1.5 · primary</td></tr>
+    <tr><td>调课描边</td><td>1 · dashed ochre 6-6</td></tr>
+    <tr class="old"><td>旧 HARD：全 0 圆角 + 2dp 硬投影</td><td>0</td></tr>
+  </table>
+  <table class="tok">
+    <caption>间距与节奏（dp，4 栅格）</caption>
+    <tr><td>页面左右边距</td><td>20（原 16）</td></tr>
+    <tr><td>卡内边距</td><td>20 / 紧凑 16</td></tr>
+    <tr><td>卡与卡</td><td>12–14</td></tr>
+    <tr><td>节与节（不同内容组）</td><td>32</td></tr>
+    <tr><td>标题上方 / 下方</td><td>24 / 12（上 &gt; 下）</td></tr>
+    <tr><td>课表列间距</td><td>8，代替竖实线</td></tr>
+    <tr><td>课表行间距</td><td>10</td></tr>
+    <tr><td>时间轴宽</td><td>34（原 44）</td></tr>
+    <tr><td>列表行最小高度</td><td>48</td></tr>
+    <tr><td>底部导航高</td><td>72 + 手势区</td></tr>
+  </table>
+</div>
+
+<!-- ═══ 04 五个分镜 ═══ -->
+<h2 class="sec"><i>04</i>六个分镜：日视图 / 周视图 / 学业 / 资讯 / 我的 / 深色</h2>
+<p class="note">课表去掉了所有横贯横线与竖实线，空堂不画格——空本身就是信息。<b>已上的课不再用 45° 侵蚀斜纹</b>，改为退到底色 + 进度线走满；
+   进行中的课用主色浅底 + 底部进度条。竞赛条目的发布日期仍是 <code>—</code>，绩点缺字段仍是 <code>暂缺</code>，数据诚实的口径一寸不动。</p>
+
+<div class="frames">
+
+  <!-- 1 课表 -->
+  <div class="shot">
+    <h3>课表 · 日视图（今天）</h3>
+    <p>周日历条选中今天，下面是当天的时间轴：一张课卡一行，时间轴收窄到 34dp，空堂只写一句事实。</p>
+    <div class="phone"><div class="scr">
+      <div class="statusbar"><span class="num">08:24</span><span>沈农在途</span></div>
+      <div class="appbar">
+        <div><div class="wk">第 12 周<small>11.16 – 11.22</small></div><div class="sub">本学期 18 周 · 今天 4 门次</div></div>
+        <div class="iconbtns">
+          <button class="ibtn" aria-label="搜索"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+          <button class="ibtn" aria-label="版式"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></button>
+        </div>
+      </div>
+      <div class="body">
+        <div class="seg"><button aria-selected="true">本周</button><button aria-selected="false">下周</button><button aria-selected="false">学期</button></div>
+        <div class="weekhead">
+          <span></span>
+          <div><div class="dow">一</div><div class="day">16</div></div>
+          <div><div class="dow">二</div><div class="day">17</div></div>
+          <div><div class="dow">三</div><div class="day">18</div></div>
+          <div><div class="dow">四</div><div class="day">19</div></div>
+          <div class="today"><div class="dow">五</div><div class="day">20</div></div>
+          <div><div class="dow">六</div><div class="day">21</div></div>
+          <div><div class="dow">日</div><div class="day">22</div></div>
+        </div>
+        <div class="band"><b>上午</b><span>08:00 – 11:40</span></div>
+        <div class="slot">
+          <div class="axis"><b>1–2</b><span>08:00<br>09:40</span></div>
+          <div class="lane">
+            <div class="course done f1"><h4>植物学</h4><p>一教 203 · 王老师</p><span class="wks">3–16 周</span></div>
+          </div>
+        </div>
+        <div class="slot">
+          <div class="axis"><b>3–4</b><span>10:00<br>11:40</span></div>
+          <div class="lane">
+            <div class="course live f1">
+              <span class="livebadge"><i></i>进行中</span>
+              <h4>农业气象学</h4><p>实验楼 305 · 赵老师</p><span class="wks">5–14 周</span>
+              <div class="progress"><i style="width:62%"></i></div>
+            </div>
+          </div>
+        </div>
+        <div class="band"><b>下午</b><span>13:30 – 17:10</span></div>
+        <div class="slot">
+          <div class="axis"><b>5–6</b><span>13:30<br>15:10</span></div>
+          <div class="lane">
+            <div class="course f4 moved"><h4>土壤学</h4><p>改至 实验楼 201</p><span class="tag">调课 · 原 305</span></div>
+          </div>
+        </div>
+        <div class="slot">
+          <div class="axis"><b>7–8</b><span>15:30<br>17:10</span></div>
+          <div class="lane">
+            <div class="course f3"><h4>有机化学</h4><p>实验楼 B105 · 孙老师 · 双周</p><span class="wks">7–15 周</span></div>
+          </div>
+        </div>
+        <div class="band"><b>晚上</b><span>18:30 – 20:10</span></div>
+        <div class="freeline">今晚无课</div>
+      </div>
+      <div class="tabbar">
+        <div class="tab" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>课表</div>
+        <div class="tab"><span class="badge">3</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3.5h11l3 3V20.5H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>资讯</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.6-4 4.2-5.5 7.5-5.5s5.9 1.5 7.5 5.5"/></svg>我的</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 2 周视图 -->
+  <div class="shot">
+    <h3>课表 · 周视图（7 列）</h3>
+    <p>周视图只回答「哪节有课」：左色条 + 8 圆角 + 课名三行封顶，地点留给日视图与详情。竖实线与横贯线都不画，列间 4dp 空隙就是网格。</p>
+    <div class="phone"><div class="scr">
+      <div class="statusbar"><span class="num">08:24</span><span>沈农在途</span></div>
+      <div class="appbar">
+        <div><div class="wk">第 12 周<small>11.16 – 11.22</small></div><div class="sub">本学期 18 周 · 本周 14 门次</div></div>
+        <div class="iconbtns">
+          <button class="ibtn" aria-label="搜索"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+          <button class="ibtn" aria-label="版式"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></button>
+        </div>
+      </div>
+      <div class="body">
+        <div class="seg"><button aria-selected="true">本周</button><button aria-selected="false">下周</button><button aria-selected="false">学期</button></div>
+        <div id="weekGrid"></div>
+        <div class="band"><b>今天</b><span>11-20 周五 · 4 门次</span></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>课表</div>
+        <div class="tab"><span class="badge">3</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3.5h11l3 3V20.5H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>资讯</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.6-4 4.2-5.5 7.5-5.5s5.9 1.5 7.5 5.5"/></svg>我的</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3 成绩与考试 -->
+  <div class="shot">
+    <h3>成绩 + 考试</h3>
+    <p>绩点是页内唯一的大数字；偏低成绩用麦秆色系而不是一律标红，红只留给不及格。</p>
+    <div class="phone"><div class="scr">
+      <div class="statusbar"><span class="num">08:24</span><span>沈农在途</span></div>
+      <div class="appbar">
+        <div><div class="wk" style="font-family:var(--sans);font-size:28px">学业<small>2026 秋</small></div><div class="sub">数据来自教务 · 11-20 22:14 更新</div></div>
+        <div class="iconbtns"><button class="ibtn" aria-label="刷新"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg></button></div>
+      </div>
+      <div class="body">
+        <div class="seg"><button aria-selected="true">成绩</button><button aria-selected="false">考试</button><button aria-selected="false">学期</button></div>
+        <div class="card hero">
+          <h5>平均绩点 · 按学校绩点加权</h5>
+          <div class="gpa"><b>3.42</b><span>/ 4.5</span><div class="cr">已修学分<b class="num">48.5</b></div></div>
+        </div>
+        <div class="card">
+          <h5>2026 秋 · 5 门</h5>
+          <div class="rowline"><div class="nm"><b>植物学</b><small>必修 · 2.5 学分</small></div><span class="sc good">92</span></div>
+          <div class="rowline"><div class="nm"><b>高等数学</b><small>必修 · 4.0 学分</small></div><span class="sc good">88</span></div>
+          <div class="rowline"><div class="nm"><b>大学英语</b><small>必修 · 3.0 学分</small></div><span class="sc">85</span></div>
+          <div class="rowline"><div class="nm"><b>有机化学</b><small>必修 · 3.5 学分</small></div><span class="sc low">76</span></div>
+          <div class="rowline"><div class="nm"><b>专业导论</b><small>考查 · 1.0 学分</small></div><span class="sc" style="font-family:var(--sans);font-size:12px;font-weight:400;color:var(--ink-faint)">暂缺</span></div>
+        </div>
+        <div class="card">
+          <h5>考试安排</h5>
+          <div class="exam"><div class="dt"><b>18</b><span>12 月</span></div><div><h6>农业气象学</h6><p>08:00 – 09:40 · 一教 203</p><div class="left">26 天后</div></div></div>
+          <div class="exam"><div class="dt"><b>22</b><span>12 月</span></div><div><h6>土壤学</h6><p>14:00 – 15:40 · 实验楼 305</p><div class="left">30 天后</div></div></div>
+          <div class="exam"><div class="dt"><b>—</b><span>待定</span></div><div><h6>大学英语</h6><p>时间地点暂缺</p></div></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>课表</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3.5h11l3 3V20.5H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>资讯</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.6-4 4.2-5.5 7.5-5.5s5.9 1.5 7.5 5.5"/></svg>我的</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 3 资讯 -->
+  <div class="shot">
+    <h3>资讯</h3>
+    <p>未读靠字重 + 一枚橘点，不再加色块；竞赛条目发布日期留「—」，报名起始日不冒充发布日。</p>
+    <div class="phone"><div class="scr">
+      <div class="statusbar"><span class="num">08:24</span><span>沈农在途</span></div>
+      <div class="appbar">
+        <div><div class="wk" style="font-family:var(--sans);font-size:28px">资讯<small>3 条未读</small></div><div class="sub">校内公开页面 · 只读</div></div>
+        <div class="iconbtns"><button class="ibtn" aria-label="筛选"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M7 12h10M10 17h4"/></svg></button></div>
+      </div>
+      <div class="body">
+        <div class="chips">
+          <span class="chip" aria-selected="true">全部</span><span class="chip">教务处</span>
+          <span class="chip">学院</span><span class="chip">竞赛</span><span class="chip">图书馆</span>
+        </div>
+        <div class="art unread"><h6>关于 2026 年秋季学期期末考试安排的通知</h6>
+          <div class="src"><span class="pill">教务处</span><time>11-20</time></div></div>
+        <div class="art unread"><h6>大学生创新创业训练计划项目申报开始</h6>
+          <div class="src"><span class="pill">创新创业</span><time>11-19</time></div></div>
+        <div class="art"><h6>图书馆冬季开放时间调整说明</h6>
+          <div class="src"><span class="pill">图书馆</span><time>11-18</time></div></div>
+        <div class="art unread"><h6>全国大学生生命科学竞赛（2027）报名通知</h6>
+          <div class="src"><span class="pill">竞赛</span><time class="none">—</time><span>报名 12-01 起</span></div></div>
+        <div class="art"><h6>农学院学术报告：黑土地保护与利用</h6>
+          <div class="src"><span class="pill">学院</span><time>11-14</time></div></div>
+        <div class="art"><h6>关于冬季供暖与教学楼晚间开放的安排</h6>
+          <div class="src"><span class="pill">后勤</span><time>11-12</time></div></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>课表</div>
+        <div class="tab" aria-current="true"><span class="badge">3</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3.5h11l3 3V20.5H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>资讯</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.6-4 4.2-5.5 7.5-5.5s5.9 1.5 7.5 5.5"/></svg>我的</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 4 我的 -->
+  <div class="shot">
+    <h3>我的</h3>
+    <p>唯一一张重色卡留给身份；统计格里没拿到的数据写「暂缺」，不补 0。</p>
+    <div class="phone"><div class="scr">
+      <div class="statusbar"><span class="num">08:24</span><span>沈农在途</span></div>
+      <div class="appbar">
+        <div><div class="wk" style="font-family:var(--sans);font-size:28px">我的</div><div class="sub">登录态有效 · 仅缓存本人数据</div></div>
+        <div class="iconbtns"><button class="ibtn" aria-label="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.4M12 18.6V21M3 12h2.4M18.6 12H21M5.6 5.6l1.7 1.7M16.7 16.7l1.7 1.7M18.4 5.6l-1.7 1.7M7.3 16.7l-1.7 1.7"/></svg></button></div>
+      </div>
+      <div class="body">
+        <div class="card idcard">
+          <h5>沈阳农业大学 · 本科</h5>
+          <div class="who"><div class="avatar">张</div><div><b>张三</b><small>2024000000</small></div></div>
+          <div class="facts">
+            <div><small>院系</small><b>农学院</b></div>
+            <div><small>入学</small><b class="num">2024</b></div>
+            <div><small>当前</small><b>第 12 周</b></div>
+          </div>
+        </div>
+        <div class="stats">
+          <div class="stat"><b>6</b><small>今日课程</small></div>
+          <div class="stat"><b>2</b><small>待考科目</small></div>
+          <div class="stat na"><b>暂缺</b><small>体测成绩</small></div>
+        </div>
+        <div class="card">
+          <div class="listrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>课表版式<span class="v">澄野</span></div>
+          <div class="listrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="12" r="8"/><path d="M12 7.5V12l3 2"/></svg>上课提醒<span class="v">提前 10 分钟</span></div>
+          <div class="listrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 3.5l7.5 4v5c0 4.5-3.2 7.3-7.5 8-4.3-.7-7.5-3.5-7.5-8v-5z"/></svg>登录与凭据<span class="v">已保存</span></div>
+          <div class="listrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M20 12a8 8 0 1 1-2.6-5.9M20 4v5h-5"/></svg>检查更新<span class="v">0.10.0</span></div>
+        </div>
+      </div>
+      <div class="tabbar">
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>课表</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3.5h11l3 3V20.5H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>资讯</div>
+        <div class="tab" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.6-4 4.2-5.5 7.5-5.5s5.9 1.5 7.5 5.5"/></svg>我的</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- 5 深色课表 -->
+  <div class="shot">
+    <h3>深色 · 同一张日视图</h3>
+    <p>深墨绿而不是纯黑；进行中的课用主色浅层 15%，描边与课名同色相提亮，不用灰字压彩色底。</p>
+    <div class="phone"><div class="scr dark">
+      <div class="statusbar"><span class="num">22:41</span><span>沈农在途</span></div>
+      <div class="appbar">
+        <div><div class="wk">第 12 周<small>11.16 – 11.22</small></div><div class="sub">本学期 18 周 · 明天 3 门次</div></div>
+        <div class="iconbtns">
+          <button class="ibtn" aria-label="搜索"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></button>
+          <button class="ibtn" aria-label="版式"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg></button>
+        </div>
+      </div>
+      <div class="body">
+        <div class="seg"><button aria-selected="true">本周</button><button aria-selected="false">下周</button><button aria-selected="false">学期</button></div>
+        <div class="weekhead">
+          <span></span>
+          <div><div class="dow">一</div><div class="day">16</div></div>
+          <div><div class="dow">二</div><div class="day">17</div></div>
+          <div><div class="dow">三</div><div class="day">18</div></div>
+          <div><div class="dow">四</div><div class="day">19</div></div>
+          <div class="today"><div class="dow">五</div><div class="day">20</div></div>
+          <div><div class="dow">六</div><div class="day">21</div></div>
+          <div><div class="dow">日</div><div class="day">22</div></div>
+        </div>
+        <div class="band"><b>上午</b><span>08:00 – 11:40</span></div>
+        <div class="slot">
+          <div class="axis"><b>1–2</b><span>08:00<br>09:40</span></div>
+          <div class="lane">
+            <div class="course done f1"><h4>植物学</h4><p>一教 203 · 王老师</p><span class="wks">3–16 周</span></div>
+          </div>
+        </div>
+        <div class="slot">
+          <div class="axis"><b>3–4</b><span>10:00<br>11:40</span></div>
+          <div class="lane">
+            <div class="course live f1"><span class="livebadge"><i></i>进行中</span><h4>农业气象学</h4><p>实验楼 305 · 赵老师</p><span class="wks">5–14 周</span><div class="progress"><i style="width:62%"></i></div></div>
+          </div>
+        </div>
+        <div class="band"><b>下午</b><span>13:30 – 17:10</span></div>
+        <div class="slot">
+          <div class="axis"><b>5–6</b><span>13:30<br>15:10</span></div>
+          <div class="lane">
+            <div class="course f4 moved"><h4>土壤学</h4><p>改至 实验楼 201</p><span class="tag">调课 · 原 305</span></div>
+          </div>
+        </div>
+        <div class="slot">
+          <div class="axis"><b>7–8</b><span>15:30<br>17:10</span></div>
+          <div class="lane"><div class="course f3"><h4>有机化学</h4><p>实验楼 B105 · 孙老师 · 双周</p><span class="wks">7–15 周</span></div></div>
+        </div>
+        <div class="band"><b>晚上</b><span>18:30 – 20:10</span></div>
+        <div class="freeline">今晚无课</div>
+      </div>
+      <div class="tabbar">
+        <div class="tab" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>课表</div>
+        <div class="tab"><span class="badge">3</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M5 3.5h11l3 3V20.5H5z"/><path d="M8.5 9h7M8.5 13h7M8.5 17h4"/></svg>资讯</div>
+        <div class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8.5" r="4"/><path d="M4.5 20.5c1.6-4 4.2-5.5 7.5-5.5s5.9 1.5 7.5 5.5"/></svg>我的</div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ═══ 05 状态 ═══ -->
+<h2 class="sec"><i>05</i>状态：按钮 / 加载 / 空 / 错误 / 浮层</h2>
+<p class="note">空态不写功能说明，错误态只讲发生了什么和时间，不教用户怎么点。加载用与真实卡同尺寸的骨架，避免跳版。</p>
+<div class="states">
+  <div class="state"><h6>按钮四态 · 48dp 高 · 14 圆角</h6>
+    <div style="display:grid;gap:10px">
+      <button class="btn p">保存</button><button class="btn s">看成绩</button>
+      <button class="btn d" disabled>已保存</button><button class="btn e">重新登录</button>
+    </div>
+  </div>
+  <div class="state"><h6>加载骨架 · 同尺寸不跳版</h6>
+    <div class="skel demo"><i></i><i></i><i></i></div>
+  </div>
+  <div class="state"><h6>空态 · 虚线框 + 一句事实</h6>
+    <div class="emptybox demo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M3.5 10h17M8 3.5v3M16 3.5v3"/></svg>
+      <b>这一周没有课</b><small>2026-11-16 – 11-22</small>
+    </div>
+  </div>
+  <div class="state"><h6>错误 · 校内网不可达时如实说</h6>
+    <div class="errbox">教务系统暂时无法连接，成绩未更新。当前显示的是上次缓存。<small>上次成功 11-20 22:14 · 10.2.0.47</small></div>
+    <div style="height:10px"></div>
+    <div class="errbox" style="background:color-mix(in srgb,var(--steel) 7%,var(--card));border-color:color-mix(in srgb,var(--steel) 30%,var(--card));color:var(--steel)">校内接口只在校内网可达，移动网络下失败属正常。</div>
+  </div>
+  <div class="state"><h6>底部面板 · 顶部 24 圆角</h6>
+    <div class="sheetdemo">
+      <div class="grab"></div><h6>农业气象学</h6><p>实验楼 305 · 赵老师 · 5–14 周 · 3–4 节</p>
+      <button class="btn s" style="width:100%">课程大纲</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 06 动态演示 ═══ -->
+<h2 class="sec"><i>06</i>动态演示：一节课的推进</h2>
+<p class="note">进行中课卡的进度条随时间走，走满后退成「已上」——不用斜纹、不用闪烁。动效时长 180ms 进、240ms 退，无回弹。点「重播」看完整过程。</p>
+<div class="replay">
+  <div class="stage">
+    <div class="slot" style="margin-bottom:0">
+      <div class="axis"><b>3–4</b><span>10:00<br>11:40</span></div>
+      <div class="lane">
+        <div class="course live f1" id="demoCard">
+          <span class="livebadge" id="demoBadge"><i></i>进行中</span>
+          <h4>农业气象学</h4><p>实验楼 305 · 赵老师</p><span class="wks">5–14 周</span>
+          <div class="progress"><i id="demoBar"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="ctrl">
+    <button class="btn p" id="replayBtn" style="min-height:44px;padding:10px 20px">重播</button>
+    <small id="demoClock">已进行 0 / 100 分钟</small>
+  </div>
+</div>
+
+<h2 class="sec"><i>07</i>落到代码：改动面与不动的地方</h2>
+<p class="note">新增 <code>StyleSet.CLEAR = 3</code> 与 <code>FormSpec.Clearfield</code>，旧三套逐像素不动。
+   新增开关：<code>softGrid</code>（去竖实线）、<code>noErosion</code>（已上课不再画斜纹）、<code>progressLive</code>（进行中底部进度）、
+   <code>roundedNav</code>（胶囊选中态）、<code>radiusButton=14</code>。字体层只把 <code>displayFamily</code> 的默认换成无衬线，
+   <code>numberFamily</code> 保持 <code>NumericFont</code>，页眉周次单独指定 <code>SerifFont</code>。
+   <b>不动的部分</b>：UrpClient 与全部解析器、缓存与数据诚实口径、触区下限、壁纸取色的两个入口、现有三套主题的渲染分支。</p>
+
+</div>
+
+<script>
+(function(){
+  var host=document.getElementById('weekGrid');
+  if(!host)return;
+  var TODAY=4;
+  var days=[['一','16'],['二','17'],['三','18'],['四','19'],['五','20'],['六','21'],['日','22']];
+  var slots=[['1–2','08:00'],['3–4','10:00'],['5–6','13:30'],['7–8','15:30'],['9–10','18:30']];
+  // fam: 1 松针 2 农械橘 3 钢青 4 麦秆；s: done/live/moved
+  var rows=[
+    [{n:'植物学',r:'一教203',f:1,s:'done'},{n:'高等数学',r:'一教401',f:2},{n:'大学英语',r:'二教108',f:3},{n:'植物学',r:'一教203',f:1,s:'done'},{n:'植物学',r:'一教203',f:1,s:'done'},null,null],
+    [{n:'农业气象学',r:'实验305',f:1,s:'done'},{n:'有机化学',r:'实验B105',f:3},{n:'高等数学',r:'一教401',f:2},{n:'大学英语',r:'二教108',f:3},{n:'农业气象学',r:'实验305',f:1,s:'live'},null,null],
+    [{n:'土壤学',r:'实验305',f:4},{n:'体育',r:'东体育场',f:2},{n:'马克思主义基本原理',r:'三教201',f:3},{n:'土壤学',r:'实验305',f:4},{n:'土壤学',r:'改实验201',f:4,s:'moved'},null,null],
+    [null,{n:'有机化学',r:'实验B105',f:3},null,{n:'专业导论',r:'一教106',f:1},{n:'有机化学',r:'实验B105',f:3},null,null],
+    [null,null,{n:'学术报告',r:'图书馆报告厅',f:1},null,null,null,null]
+  ];
+  var html='<div class="whead"><span></span>'+days.map(function(d,i){
+    return '<div class="'+(i===TODAY?'now':'')+'"><b>'+d[1]+'</b><small>'+d[0]+'</small></div>';
+  }).join('')+'</div>';
+  rows.forEach(function(row,r){
+    html+='<div class="wrow"><div class="waxis">'+slots[r][0]+'<br>'+slots[r][1]+'</div>';
+    row.forEach(function(c,i){
+      if(!c){html+='<div></div>';return;}
+      var cls='wc f'+c.f+(c.s?' '+c.s:'')+(i===TODAY?' today':'');
+      html+='<div class="'+cls+'"><b>'+c.n+'</b></div>';
+    });
+    html+='</div>';
+  });
+  host.innerHTML=html;
+})();
+(function(){
+  var bar=document.getElementById('demoBar'),card=document.getElementById('demoCard'),
+      badge=document.getElementById('demoBadge'),clock=document.getElementById('demoClock'),
+      btn=document.getElementById('replayBtn'),raf=null;
+  var DURATION=6000;
+  function frame(ts,start){
+    var p=Math.min(1,(ts-start)/DURATION);
+    bar.style.width=(p*100).toFixed(1)+'%';
+    clock.textContent='已进行 '+Math.round(p*100)+' / 100 分钟';
+    if(p<1){raf=requestAnimationFrame(function(t){frame(t,start)});}
+    else{
+      card.classList.remove('live');card.classList.add('done');
+      badge.style.display='none';clock.textContent='已结束 · 100 / 100 分钟';
+    }
+  }
+  function play(){
+    if(raf)cancelAnimationFrame(raf);
+    card.classList.add('live');card.classList.remove('done');badge.style.display='flex';
+    raf=requestAnimationFrame(function(t){frame(t,t)});
+  }
+  btn.addEventListener('click',play);
+  if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){play();}
+  else{bar.style.width='62%';clock.textContent='已进行 62 / 100 分钟';}
+  document.querySelectorAll('.seg').forEach(function(seg){
+    seg.addEventListener('click',function(e){
+      if(e.target.tagName!=='BUTTON')return;
+      seg.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected','false')});
+      e.target.setAttribute('aria-selected','true');
+    });
+  });
+})();
+</script>
+</body>
+</html>
