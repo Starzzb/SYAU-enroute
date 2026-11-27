@@ -96,3 +96,4 @@ server/telemetry/data/
 # ── 压包中间产物（成品已进 app/src/main/assets，这里只用于复现）──
 在途/curriculum/asset/
 在途/curriculum/json/pack/
+build-*-utf8.txt

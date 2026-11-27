@@ -1,9 +1,9 @@
 {
-  "versionCode": 500,
-  "versionName": "0.11.0+m42",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m42/SYAU-enroute-m42.apk",
-  "sha256": "36803d3e5b0dab96929fa63f78eb18a66420970916ad99f5761b30ba6ea737a0",
+  "versionCode": 510,
+  "versionName": "0.12.0+m43",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m43/SYAU-enroute-m43.apk",
+  "sha256": "d1de433e9aa567ce90c4c62ebff14166bffaf7e9d125b2af2d831d2424cf233d",
   "size": 8061612,
-  "notes": "课表的五套预设现在点了就生效：设置里改哪一项，课表立刻跟着变。之前选过账页版式的机型格子会一直不变，这版修好了；预设下面也不再需要「跟随」，点哪套就是哪套。",
+  "notes": "一、教务系统短暂故障时不再判定登录过期，已获取的成绩与考试信息保留不动。\n二、课表与资讯读写中断时不再损坏已有数据。\n三、恢复校外通知来源的抓取；更新下载失败后不再重复发起。",
   "minSupported": 0
 }
