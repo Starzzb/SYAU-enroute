@@ -427,6 +427,29 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
      * 并在 [AppState.sessionCheckMsg] 里照实说「这次没法确认」——
      * 既不说它有效，也不冤枉它过期（否则学生每次出校都被要求重登）。
      */
+    /**
+     * 接口半路答了 3xx（CAS 把我们踢回登录页）—— 与冷启动验活用**同一套语义**。
+     *
+     * 为什么必须在这里落定：以前 `HttpURLConnection` 自动跟跳转，跟到登录页拿到 200 + HTML，
+     * 解析失败后界面说「没抓到，接口可能不同」—— 明明是登录过期，用户却被派去跑「接口诊断」。
+     * 现在置 [SessionState.Expired]、清内存会话、记账，并按 L2 规则尝试一次静默续期。
+     */
+    private suspend fun handleSessionExpired() {
+        DebugLog.log("SESSION", "接口返回 3xx（被踢回登录页）→ 判会话已过期")
+        session = null
+        withContext(Dispatchers.IO) { runCatching { sessionStore.markExpired() } }
+        _ui.value = _ui.value.copy(
+            sessionState = SessionRules.stateOf(hasSession = false, probe = SessionProbe.Expired),
+            sessionCheckMsg = SessionText.EXPIRED_NOTE,
+        )
+        val creds = withContext(Dispatchers.IO) {
+            runCatching { if (credStore.isEnabled()) credStore.read() else null }.getOrNull()
+        }
+        if (creds != null && !credStore.autoReloginBlocked()) {
+            silentRelogin(creds, reason = "http-3xx")
+        }
+    }
+
     private suspend fun verifyRestoredSession(s: UrpClient.Session) {
         val probe = runCatching { UrpClient.verifySession(s) }.getOrElse { SessionProbe.Unreachable }
         when (probe) {
@@ -656,6 +679,11 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         // 内层 fetchExamsOrNull 已经用「null = 没拿到」表达了失败，这里只取一层 Result。
         // （写成 `?.getOrNull()` 会被解析成 List.getOrNull(index)，那是另一个函数）
         val list: List<cn.dkarbon.enroute.data.ExamItem>? = r.getOrNull()
+        if (list == null && r.exceptionOrNull() is cn.dkarbon.enroute.data.SessionExpiredException) {
+            handleSessionExpired()
+            _ui.value = _ui.value.copy(examsLoading = false, examsMsg = SessionText.EXPIRED_HINT)
+            return false
+        }
         if (list == null) {
             DebugLog.log(
                 "CACHE",
@@ -690,6 +718,11 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         if (!silent) _ui.value = _ui.value.copy(scoresLoading = true, scoresMsg = "抓取中…")
         val r = withContext(Dispatchers.IO) { runCatching { AcademicApi.fetchScoresOrNull(s) } }
         val list: List<cn.dkarbon.enroute.data.ScoreItem>? = r.getOrNull()
+        if (list == null && r.exceptionOrNull() is cn.dkarbon.enroute.data.SessionExpiredException) {
+            handleSessionExpired()
+            _ui.value = _ui.value.copy(scoresLoading = false, scoresMsg = SessionText.EXPIRED_HINT)
+            return false
+        }
         if (list == null) {
             DebugLog.log("CACHE", "成绩没拿到 → 保留 ${cache.scores.size} 条旧数据")
             _ui.value = _ui.value.copy(

@@ -36,7 +36,7 @@
         <domain includeSubdomains="false">10.2.0.58</domain>
         <domain includeSubdomains="true">exam.syau.edu.cn</domain>
 
-        <!-- 自建服务：地图补丁上报 + 更新检查的回落地址（票 13/15）。
+        <!-- 自建服务：地图补丁上报 + 更新清单/APK 的分发口（票 13/15，2026-11-27 起多一个 /app/）。
              明文是**设计如此**：手机链路上那台机器的 TLS 握手会被中间设备 RST，
              而补丁内容只有「公共设施属性 + 匿名随机串」，不含任何个人信息。
              见 docs/校园地图-补丁服务部署.md §1 -->

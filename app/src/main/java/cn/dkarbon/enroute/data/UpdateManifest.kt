@@ -92,6 +92,53 @@ object UpdatePolicy {
     val MIRROR_HOSTS = listOf("gh-proxy.com", "ghproxy.net")
 
     /**
+     * **自建分发口**（2026-11-27 开）。
+     *
+     * 这台机器上只放两样东西，都在 `/app/` 一个目录下（nginx 路由见
+     * `server/telemetry/deploy.sh`，文件由发版脚本同步）：
+     *   · `/app/latest.json`        —— 与仓库里 `releases/latest.json` **同一个文件**
+     *   · `/app/enroute-latest.apk` —— 最新包的稳定文件名副本（每版覆盖）
+     *
+     * ## 为什么允许明文 http
+     *
+     * 这台机器没有域名证书；`https://wb.dkarbon.cn` 在手机链路上时通时不通
+     * （DNS 被解析到 fake-ip 后握手被 RST），而 18082 是实测能连的那一个口。
+     * 风险由三层兜住，缺一层都不行：
+     *   1. **地址钉死**：只有 `http://[SELF_HOST_HOST]:[SELF_HOST_HTTP_PORT]/app/` 这一种形态通过
+     *      ——协议、主机、端口、路径前缀全要匹配，改一个字就拒；
+     *   2. **sha256**：包体必须与 `latest.json` 里的 `sha256` 一致，路上被改一个字节就判失败并删包；
+     *   3. **签名**：真装的时候 Android 还会按签名再挡一次 —— 不是同一把钥匙签的包装不上。
+     * 所以从明文口拿到的最坏结果仍然是「下载失败」，不是「装上错东西」。
+     *
+     * **清单（latest.json）仍以 https 源为主**：自建只是国内必通的旁路，
+     * 不是「谁决定发什么版本」的唯一来源。
+     */
+    const val SELF_HOST_HOST = "47.95.12.198"
+
+    /** 自建口的明文 HTTP 端口（nginx 里那个只放行少量前缀的站点） */
+    const val SELF_HOST_HTTP_PORT = 18082
+
+    const val SELF_HOST_ORIGIN = "http://" + SELF_HOST_HOST + ":" + SELF_HOST_HTTP_PORT
+
+    const val SELF_HOST_MANIFEST_URL = SELF_HOST_ORIGIN + "/app/latest.json"
+
+    /** 最新包的稳定地址（每版覆盖同一个文件名，地址不随版本变） */
+    const val SELF_HOST_APK_URL = SELF_HOST_ORIGIN + "/app/enroute-latest.apk"
+
+    private const val SELF_HOST_APP_PREFIX = "/app/"
+
+    /** 自建口地址是否合法：**http** + 那个主机 + 那个端口 + `/app/` 下**确实有文件名** */
+    fun isAllowedSelfHost(url: String): Boolean {
+        val u = runCatching { URI(url.trim()) }.getOrNull() ?: return false
+        if (!u.scheme.equals("http", ignoreCase = true)) return false
+        if (!u.host.orEmpty().equals(SELF_HOST_HOST, ignoreCase = true)) return false
+        if ((if (u.port > 0) u.port else 80) != SELF_HOST_HTTP_PORT) return false
+        val path = u.path.orEmpty()
+        // 前缀之后必须还有东西 —— `/app/` 本身是目录，不是一个文件
+        return path.startsWith(SELF_HOST_APP_PREFIX) && path.length > SELF_HOST_APP_PREFIX.length
+    }
+
+    /**
      * 下载候选地址：**直连优先**，失败再走镜像。
      *
      * @param original 已经过 [isAllowedApkUrl] 校验的入口地址

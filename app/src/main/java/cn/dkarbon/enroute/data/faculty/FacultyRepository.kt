@@ -35,6 +35,14 @@ object FacultyRepository {
     private const val MAX_PAGES = 10
 
     /**
+     * 这个状态码是「页面真的不存在」还是「这次没拿到」。
+     *
+     * 404/410 = 链接过期或栏目改名 —— 换条路还能找到；
+     * 429/5xx/-1/-2 = 服务端或链路的问题 —— 如实说「网络/服务端」，别怪地址。
+     */
+    private fun isGone(status: Int): Boolean = status == 404 || status == 410
+
+    /**
      * 读一位老师的官网公开信息（阻塞调用，必须在 IO 线程里跑）。
      *
      * @param dept 教务侧的 `departmentName`（`土环` / `农学` …），用来选站
@@ -86,7 +94,13 @@ object FacultyRepository {
             if (!visited.add(listUrl)) continue
             val listPage = runCatching { FeedHttp.get(listUrl, TIMEOUT_MS) }.getOrNull()
             if (listPage == null) { sawNetworkError = true; continue }
-            if (listPage.status !in 200..299) { sawNetworkError = sawNetworkError || listPage.status < 0; continue }
+            if (listPage.status !in 200..299) {
+                // 404/410 是「这个栏目不存在」，5xx 与 -1/-2 是「这次没拿到」。
+                // 以前混在一起算网络错误，于是一个配错的栏目地址会让整次查询显示「网络不通」，
+                // 用户以为断网，其实是我们把地址写错了（2026-11-27 分）。
+                if (!isGone(listPage.status)) sawNetworkError = true
+                continue
+            }
             sawColumn = true
             val links = FacultyParser.findDetailLinks(listPage.body, name, listPage.finalUrl)
             if (links.isEmpty()) {
@@ -100,7 +114,8 @@ object FacultyRepository {
 
             val detail = runCatching { FeedHttp.get(links.first(), TIMEOUT_MS) }.getOrNull()
             if (detail == null || detail.status !in 200..299) {
-                sawNetworkError = true
+                // 详情页 404 说明这条链接过期（列表是旧的），接着找别的，不算网络故障
+                if (detail == null || !isGone(detail.status)) sawNetworkError = true
                 queue += FacultyParser.pagination(listPage.body, listPage.finalUrl)
                 continue
             }

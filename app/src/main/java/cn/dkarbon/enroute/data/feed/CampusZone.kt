@@ -52,10 +52,24 @@ object CampusZone {
     suspend fun detect(force: Boolean = false): Zone = withContext(Dispatchers.IO) {
         val now = System.currentTimeMillis()
         if (!force && zone != Zone.Unknown && now - checkedAt < TTL_MS) return@withContext zone
+        // 三种结局要分开（2026-11-27 改）：
+        //   拿到页面 → 校内；连不上（超时/无路由）→ 校外；**探针自己回 4xx/5xx → 不知道**。
+        // 以前第三种也算校外，于是一次临时 502 就能把 9 个校内源全部跳过，
+        // 用户看到的是「资讯全空」，而其实只是学校那台机器打了个喷嚏。
         val z = runCatching {
             val resp = FeedHttp.get(PROBE_URL, timeoutMs = 2_500)
-            if (resp.status in 200..299 && resp.body.isNotEmpty()) Zone.Campus else Zone.OffCampus
+            when {
+                resp.status in 200..299 && resp.body.isNotEmpty() -> Zone.Campus
+                resp.status in 400..599 -> Zone.Unknown
+                else -> Zone.OffCampus
+            }
         }.getOrElse { Zone.OffCampus }
+        if (z == Zone.Unknown) {
+            // 「不知道」不进缓存：保留上一次的结论，并让下次调用重新探
+            checkedAt = 0L
+            DebugLog.log("FEED", "网络身份探测未完成：探针返回异常状态，沿用上次结论（${zone.name}）")
+            return@withContext zone
+        }
         zone = z
         checkedAt = now
         DebugLog.log("FEED", "网络身份探测：${if (z == Zone.Campus) "校内/VPN" else "校外"}（${PROBE_URL}）")

@@ -20,8 +20,6 @@ data class FacultySource(
 ) {
     /** 栏目页绝对地址（同时用作「原文/自选」入口） */
     fun columnUrl(path: String): String = "https://$host$path"
-
-    val primaryUrl: String get() = columnUrl(columns.first())
 }
 
 /**

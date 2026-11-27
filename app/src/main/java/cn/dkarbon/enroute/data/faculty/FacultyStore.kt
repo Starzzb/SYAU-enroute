@@ -102,17 +102,13 @@ class FacultyStore(ctx: Context) {
         return info?.takeIf { it.schema == FacultyInfo.SCHEMA }
     }
 
-    /** 原子写：先写 `.tmp` 再改名，避免掉电/进程被杀留下半个 JSON */
+    /** 原子写：统一走 [cn.dkarbon.enroute.data.SafeWrite]（tmp + fsync + 改名 + 回滚） */
     fun write(info: FacultyInfo): Boolean {
         if (info.key.isBlank()) return false
-        return runCatching {
-            dir.mkdirs()
-            val target = File(dir, "${info.key}.json")
-            val tmp = File(dir, "${info.key}.json.tmp")
-            tmp.writeText(FacultyCache.toJson(info), Charsets.UTF_8)
-            if (target.exists()) target.delete()
-            tmp.renameTo(target)
-        }.getOrDefault(false)
+        return cn.dkarbon.enroute.data.SafeWrite.text(
+            File(dir, "${info.key}.json"),
+            FacultyCache.toJson(info),
+        )
     }
 
     /** 超上限时按「最旧」淘汰（近似的 LRU） */

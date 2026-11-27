@@ -1,6 +1,7 @@
 package cn.dkarbon.enroute
 
 import cn.dkarbon.enroute.data.UpdateCenter
+import cn.dkarbon.enroute.data.UpdatePolicy
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,18 +45,43 @@ class UpdateSourceOrderTest {
     }
 
     @Test
-    fun `已知不可用的自建源必须排在最后`() {
-        // 2026-11-16 实测：18082 连接被掐、18081 返回 404。放前面会每次白等超时。
-        val selfHosted = urls.withIndex().filter { it.value.contains("47.95.12.198") }
-        if (selfHosted.isNotEmpty()) {
-            val firstPublic = urls.indexOfFirst { !it.contains("47.95.12.198") }
-            selfHosted.forEach {
-                assertTrue(
-                    "自建源 ${it.value} 应排在所有公共源之后",
-                    firstPublic < 0 || it.index > firstPublic,
-                )
-            }
-        }
+    fun `自建源排在第一位，且落在 app 前缀下`() {
+        // 2026-11-27 起与 2026-11-16 的结论**相反**：那台机器上的 /app/ 已经有真文件
+        // （由 server/telemetry/deploy.sh 从 releases/ 同步），从「白等超时的死源」变成
+        // 「不缓存、不发旧版」的首选。别照着老注释把它挪到最后。
+        val selfIdx = urls.indexOfFirst { it.contains(UpdatePolicy.SELF_HOST_HOST) }
+        assertEquals("自建源应排在第一位", 0, selfIdx)
+        assertEquals(
+            "自建清单地址必须是那个常量（端口与前缀都钉死）",
+            UpdatePolicy.SELF_HOST_MANIFEST_URL,
+            urls[selfIdx],
+        )
+        assertTrue("自建清单必须在 /app/ 下", urls[selfIdx].endsWith("/app/latest.json"))
+    }
+
+    @Test
+    fun `自建口只认那个主机端口和 app 前缀`() {
+        assertTrue(UpdatePolicy.isAllowedSelfHost(UpdatePolicy.SELF_HOST_APK_URL))
+        assertTrue(UpdatePolicy.isAllowedSelfHost(UpdatePolicy.SELF_HOST_MANIFEST_URL))
+        // 端口、目录、协议、主机 —— 任一项不同就拒（明文口只开了这一个格子）
+        assertTrue("18081 不走这条口", !UpdatePolicy.isAllowedSelfHost("http://47.95.12.198:18081/app/x.apk"))
+        assertTrue("目录本身不是文件", !UpdatePolicy.isAllowedSelfHost("http://47.95.12.198:18082/app/"))
+        assertTrue("别的路径应拒", !UpdatePolicy.isAllowedSelfHost("http://47.95.12.198:18082/map/api/dataset"))
+        assertTrue("https 不走明文口", !UpdatePolicy.isAllowedSelfHost("https://47.95.12.198:18082/app/x.apk"))
+        assertTrue("别的 IP 应拒", !UpdatePolicy.isAllowedSelfHost("http://47.95.12.199:18082/app/x.apk"))
+    }
+
+    @Test
+    fun `下载候选最后一项是自建口，且它是稳定文件名`() {
+        val original = "https://github.com/Starzzb/SYAU-enroute/releases/download/m22/SYAU-enroute-m22.apk"
+        val candidates = UpdatePolicy.mirrorsOf(original) + UpdatePolicy.SELF_HOST_APK_URL
+        assertEquals("最后一项应是自建口", UpdatePolicy.SELF_HOST_APK_URL, candidates.last())
+        assertTrue(
+            "自建口文件名不带版本号（每版覆盖同一个文件）",
+            UpdatePolicy.SELF_HOST_APK_URL.endsWith("/app/enroute-latest.apk"),
+        )
+        // 前几项仍是「原始地址 + 镜像」，不改口
+        assertTrue(candidates.drop(1).dropLast(1).all { it.endsWith(original) })
     }
 
     @Test

@@ -2,10 +2,7 @@ package cn.dkarbon.enroute.data.map
 
 import android.content.Context
 import cn.dkarbon.enroute.data.DebugLog
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.HttpURLConnection
 import java.net.URI
@@ -29,7 +26,6 @@ class MapDatasetClient(ctx: Context) {
 
     private val app = ctx.applicationContext
     private val store = MapDatasetStore(app)
-    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     /** 面板渲染用：当前生效的数据集（缓存） */
     fun current(): MapDataset.Dataset? = store.load()
@@ -37,23 +33,6 @@ class MapDatasetClient(ctx: Context) {
     fun lastCheckAt(): Long = store.lastCheckAt()
 
     fun lastError(): String = store.lastError()
-
-    /**
-     * 进地图页时调用：`> 5 分钟`或 `force` 才发请求。**fire-and-forget**。
-     * @param onChanged 有新数据时回调（在 IO 线程；UI 层用来触发重组）
-     */
-    fun syncAsync(
-        mapVersion: String,
-        force: Boolean = false,
-        onChanged: (MapDataset.Dataset) -> Unit = {},
-    ) {
-        if (mapVersion.isBlank()) return                       // 地图包还没加载完
-        if (!force && !MapDataset.shouldPull(System.currentTimeMillis(), store.lastCheckAt())) return
-        scope.launch {
-            runCatching { sync(mapVersion, force) }
-                .onSuccess { ds -> if (ds != null) onChanged(ds) }
-        }
-    }
 
     /**
      * 同步一次。
@@ -146,7 +125,7 @@ class MapDatasetClient(ctx: Context) {
     }
 
     companion object {
-        /** 与上传同一套地址（18082 主用、18081 回落） */
+        /** 与上传同一套地址（见 [MapUploader.ENDPOINTS]） */
         val ENDPOINTS = listOf(
             "http://47.95.12.198:18082/map/api/dataset",
             "http://47.95.12.198:18081/map/api/dataset",
@@ -155,9 +134,9 @@ class MapDatasetClient(ctx: Context) {
         /**
          * ⚠️ **这一行不能删。**
          *
-         * nginx 在 18082 上有 UA 过滤器，`curl/` `wget/` `python-` `java/` 等一律 403。
-         * `HttpURLConnection` 的**默认 UA 是 `Java/1.x`**，正好命中黑名单 ——
-         * 删了这行，拉取会以「403」失败（看起来像权限问题，其实是 UA）。
+         * 2026-11-27 线上真机复验过：默认 `Java/1.x` 打 `/map/api/dataset` 会被 nginx 回 403
+         * （带 App 的 UA 才是 200），删了这行拉取会以「403」失败、看着像权限问题。
+         * 规则本身见 [MapUploader] 的 `UA` 常量注释。
          */
         private const val UA = "SYAU-Enroute (personal student test build; map dataset)"
 

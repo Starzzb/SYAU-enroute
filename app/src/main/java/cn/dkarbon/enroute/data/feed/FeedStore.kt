@@ -42,10 +42,10 @@ class FeedStore(ctx: Context) {
 
     suspend fun saveItems(items: List<FeedItem>) = mutex.withLock {
         runCatching {
-            dir.mkdirs()
-            val tmp = File(dir, "items.json.tmp")
-            tmp.writeText(json.encodeToString(kotlinx.serialization.builtins.ListSerializer(FeedItem.serializer()), items))
-            tmp.renameTo(itemsFile)
+            cn.dkarbon.enroute.data.SafeWrite.text(
+                itemsFile,
+                json.encodeToString(kotlinx.serialization.builtins.ListSerializer(FeedItem.serializer()), items),
+            )
         }
         Unit
     }
@@ -94,7 +94,7 @@ class FeedStore(ctx: Context) {
             // 落盘前盖版本号：调用方（解析器）不需要关心这个字段，
             // 但缓存闸门认它 —— 漏盖就会让这条缓存下一版立刻失效。
             val stamped = payload.copy(schema = BodyPayload.SCHEMA)
-            bodyFile(key).writeText(json.encodeToString(BodyPayload.serializer(), stamped))
+            cn.dkarbon.enroute.data.SafeWrite.text(bodyFile(key), json.encodeToString(BodyPayload.serializer(), stamped))
         }
         Unit
     }

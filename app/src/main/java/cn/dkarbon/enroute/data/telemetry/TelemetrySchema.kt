@@ -61,7 +61,8 @@ object TelemetrySchema {
             "app.start" to mapOf(
                 "cold" to BOOL,
                 // 安装后第几天：档位，不报精确天数（精确天数能和别的数据对上号）
-                "ms_since_install" to setOf("0", "1-7", "8-30", "31-90", "90+"),
+                // 与 180 天保留期对齐（见 Telemetry.bucketDaysSinceInstall）
+                "ms_since_install" to setOf("0", "1-7", "8-30", "31-90", "91-180", "180+"),
                 "ver" to ver,
                 // ABI 只到位数粒度，不报机型
                 "abi" to setOf("arm64", "arm32", "x86", "unknown"),
@@ -134,8 +135,8 @@ object TelemetrySchema {
             // ── 更新通道 ─────────────────────────────────
             "update.check" to mapOf(
                 "result" to setOf("none", "has", "mandatory"),
-                // manifest 的五条候选谁常胜出（1 起，按列表顺序）
-                "channel" to setOf("1", "2", "3", "4", "5", "(none)"),
+                // manifest 的六条候选谁常胜出（1 起，按列表顺序；1 = 自建口）
+                "channel" to setOf("1", "2", "3", "4", "5", "6", "(none)"),
             ),
             "update.download" to mapOf(
                 "ok" to BOOL,

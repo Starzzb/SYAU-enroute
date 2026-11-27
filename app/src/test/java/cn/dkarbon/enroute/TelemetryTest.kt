@@ -191,9 +191,15 @@ class TelemetryTest {
             assertTrue(Telemetry.bucketAssetMs(ms) in setOf("0-50", "50-200", "200-600", "600+"))
             assertTrue(Telemetry.bucketSinceStart(ms) in setOf("0-5", "5-30", "30-120", "120+"))
         }
-        for (d in listOf(0L, 1L, 7L, 8L, 30L, 31L, 90L, 400L)) {
-            assertTrue(Telemetry.bucketDaysSinceInstall(d) in setOf("0", "1-7", "8-30", "31-90", "90+"))
+        for (d in listOf(0L, 1L, 7L, 8L, 30L, 31L, 90L, 91L, 180L, 181L, 400L)) {
+            assertTrue(
+                Telemetry.bucketDaysSinceInstall(d) in
+                    setOf("0", "1-7", "8-30", "31-90", "91-180", "180+"),
+            )
         }
+        // 档位必须覆盖服务端 180 天保留期，否则 90 天以上的用户全挤进一个桶
+        assertEquals("91-180", Telemetry.bucketDaysSinceInstall(91))
+        assertEquals("180+", Telemetry.bucketDaysSinceInstall(181))
     }
 
     @Test

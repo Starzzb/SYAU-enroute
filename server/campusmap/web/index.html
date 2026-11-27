@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>校园地图补丁审核</title>
+<style>
+  :root {
+    --paper: #f7f4ec;
+    --ink: #272219;
+    --faint: #6d675c;
+    --line: #d9d2c2;
+    --seal: #8c3a2b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 28px 20px 80px;
+    background: var(--paper); color: var(--ink);
+    font: 15px/1.65 -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  .wrap { max-width: 960px; margin: 0 auto; }
+  h1 { font-size: 20px; font-weight: 600; letter-spacing: .02em; margin: 0 0 4px; }
+  .sub { color: var(--faint); font-size: 13px; margin-bottom: 22px; }
+  .bar {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+    background: #fffdf7; margin-bottom: 16px;
+  }
+  input[type=password], input[type=text] {
+    flex: 1 1 220px; min-width: 180px; padding: 8px 10px;
+    border: 1px solid var(--line); border-radius: 6px;
+    background: #fff; color: var(--ink); font: inherit;
+  }
+  button {
+    padding: 8px 14px; border-radius: 6px; border: 1px solid var(--ink);
+    background: var(--ink); color: #fffdf7; font: inherit; cursor: pointer;
+  }
+  button:disabled { opacity: .45; cursor: default; }
+  button.ghost { background: transparent; color: var(--ink); }
+  .stats { display: flex; gap: 22px; flex-wrap: wrap; font-size: 13px; color: var(--faint); margin: 0 0 14px; }
+  .stats b { color: var(--ink); font-weight: 600; font-size: 15px; }
+  table { width: 100%; border-collapse: collapse; background: #fffdf7; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  th, td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 12px; font-weight: 600; color: var(--faint); letter-spacing: .04em; text-transform: uppercase; }
+  tr:last-child td { border-bottom: 0; }
+  td.val { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; word-break: break-all; }
+  td.id { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; color: var(--faint); }
+  .empty { padding: 26px 10px; text-align: center; color: var(--faint); }
+  .msg { margin-top: 14px; font-size: 13px; min-height: 20px; }
+  .msg.err { color: var(--seal); }
+  .foot { margin-top: 26px; font-size: 12px; color: var(--faint); line-height: 1.8; }
+  .foot code { background: #efe9db; padding: 1px 5px; border-radius: 3px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>校园地图补丁审核</h1>
+  <div class="sub">通过的补丁才会进 App 的共享数据集；未通过的留在待审列表里，不对外。</div>
+
+  <div class="bar">
+    <input id="key" type="password" placeholder="管理钥匙（CMAP_ADMIN_KEY）" autocomplete="off">
+    <button id="connect">载入</button>
+    <button id="refresh" class="ghost" disabled>刷新</button>
+  </div>
+
+  <div class="stats" id="stats"></div>
+
+  <table id="tbl" hidden>
+    <thead>
+      <tr>
+        <th style="width:34px"><input type="checkbox" id="all" checked></th>
+        <th style="width:78px">要素</th>
+        <th style="width:110px">字段</th>
+        <th>值</th>
+        <th style="width:74px">动作</th>
+        <th style="width:140px">时间</th>
+        <th style="width:96px">补丁 id</th>
+      </tr>
+    </thead>
+    <tbody id="rows"></tbody>
+  </table>
+  <div class="empty" id="empty" hidden>没有待审补丁</div>
+
+  <div class="bar" style="margin-top:16px" id="actbar" hidden>
+    <button id="approve" disabled>通过所选</button>
+    <span id="picked" style="font-size:13px;color:var(--faint)"></span>
+  </div>
+
+  <div class="msg" id="msg"></div>
+
+  <div class="foot">
+    接口：<code>GET /map/api/pending</code> · <code>POST /map/api/approve</code> · <code>GET /map/api/stats</code>（均需钥匙）。<br>
+    只允许「通过」，不提供撤销 —— 撤回要单独做，避免一个接口既能审又能撤。
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY_STORE = "cmap_admin_key";
+  var state = { key: "", items: [], picked: new Set() };
+  var $ = function (id) { return document.getElementById(id); };
+
+  function setMsg(text, isErr) {
+    var el = $("msg");
+    el.textContent = text || "";
+    el.className = "msg" + (isErr ? " err" : "");
+  }
+
+  function fmtTime(ts) {
+    var t = Number(ts);
+    if (!isFinite(t) || t <= 0) return "—";
+    var d = new Date(t < 1e12 ? t * 1000 : t);
+    var p = function (n) { return (n < 10 ? "0" : "") + n; };
+    return d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate()) + " " + p(d.getHours()) + ":" + p(d.getMinutes());
+  }
+
+  function api(path, opts) {
+    opts = opts || {};
+    opts.headers = Object.assign({ "X-Admin-Key": state.key }, opts.headers || {});
+    return fetch(path, opts).then(function (r) {
+      if (r.status === 403) throw new Error("钥匙不对（403）");
+      if (!r.ok) throw new Error("HTTP " + r.status);
+      return r.json();
+    });
+  }
+
+  function render() {
+    var rows = $("rows");
+    rows.innerHTML = "";
+    state.items.forEach(function (it) {
+      var tr = document.createElement("tr");
+      var tdChk = document.createElement("td");
+      var chk = document.createElement("input");
+      chk.type = "checkbox";
+      chk.checked = state.picked.has(it.id);
+      chk.addEventListener("change", function () {
+        if (chk.checked) state.picked.add(it.id); else state.picked.delete(it.id);
+        syncPick();
+      });
+      tdChk.appendChild(chk);
+      tr.appendChild(tdChk);
+
+      var cells = [it.fid, it.field, it.value === "" ? "（空）" : it.value, it.op === "delete" ? "删除" : "写入", fmtTime(it.ts)];
+      cells.forEach(function (v, i) {
+        var td = document.createElement("td");
+        td.textContent = v == null ? "" : String(v);
+        if (i === 2) td.className = "val";
+        tr.appendChild(td);
+      });
+
+      var tdId = document.createElement("td");
+      tdId.className = "id";
+      tdId.textContent = String(it.id || "").slice(0, 10);
+      tr.appendChild(tdId);
+      rows.appendChild(tr);
+    });
+
+    var has = state.items.length > 0;
+    $("tbl").hidden = !has;
+    $("empty").hidden = has;
+    $("actbar").hidden = !has;
+    $("all").checked = has && state.picked.size === state.items.length;
+    syncPick();
+  }
+
+  function syncPick() {
+    var n = state.picked.size;
+    $("picked").textContent = n ? "已选 " + n + " 条" : "";
+    $("approve").disabled = n === 0;
+  }
+
+  function load() {
+    setMsg("载入中…");
+    return Promise.all([
+      api("/map/api/pending?limit=300"),
+      api("/map/api/stats")
+    ]).then(function (res) {
+      var pending = res[0] || {};
+      var stats = res[1] || {};
+      state.items = Array.isArray(pending.items) ? pending.items : [];
+      state.picked = new Set(state.items.map(function (x) { return x.id; }));
+      $("stats").innerHTML = [
+        ["补丁总数", stats.patches],
+        ["已通过", stats.approved],
+        ["待审", stats.pending],
+        ["生效格", stats.effectiveKeys],
+        ["数据版本", stats.rev]
+      ].map(function (kv) {
+        return "<span>" + kv[0] + " <b>" + (kv[1] == null ? "—" : kv[1]) + "</b></span>";
+      }).join("");
+      render();
+      setMsg(state.items.length ? "共 " + state.items.length + " 条待审" : "");
+    }).catch(function (e) {
+      setMsg(e.message || "载入失败", true);
+    });
+  }
+
+  $("connect").addEventListener("click", function () {
+    var k = $("key").value.trim();
+    if (!k) { setMsg("先填管理钥匙", true); return; }
+    state.key = k;
+    try { sessionStorage.setItem(KEY_STORE, k); } catch (e) {}
+    $("refresh").disabled = false;
+    load();
+  });
+
+  $("refresh").addEventListener("click", load);
+
+  $("all").addEventListener("change", function () {
+    var on = $("all").checked;
+    state.picked = on ? new Set(state.items.map(function (x) { return x.id; })) : new Set();
+    render();
+  });
+
+  $("approve").addEventListener("click", function () {
+    var ids = Array.from(state.picked);
+    if (!ids.length) return;
+    $("approve").disabled = true;
+    setMsg("提交中…");
+    api("/map/api/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: ids })
+    }).then(function (r) {
+      var parts = ["通过 " + (r.approved || 0) + " 条"];
+      if (r.alreadyApproved) parts.push("已审过 " + r.alreadyApproved + " 条");
+      if (r.missing && r.missing.length) parts.push("找不到 " + r.missing.length + " 条");
+      setMsg(parts.join("，"));
+      return load();
+    }).catch(function (e) {
+      setMsg(e.message || "提交失败", true);
+      $("approve").disabled = false;
+    });
+  });
+
+  // 同一标签页刷新不用重填钥匙
+  try {
+    var saved = sessionStorage.getItem(KEY_STORE);
+    if (saved) {
+      state.key = saved;
+      $("key").value = saved;
+      $("refresh").disabled = false;
+      load();
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>

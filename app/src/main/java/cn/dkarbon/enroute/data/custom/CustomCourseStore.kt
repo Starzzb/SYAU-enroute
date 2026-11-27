@@ -33,18 +33,16 @@ class CustomCourseStore(ctx: Context) {
     }
 
     fun load(): List<CustomCourse> = runCatching {
-        if (!file.isFile) return emptyList()
-        json.decodeFromString(CustomCourseFile.serializer(), file.readText()).courses
+        val text = cn.dkarbon.enroute.data.SafeWrite.read(file) ?: return emptyList()
+        json.decodeFromString(CustomCourseFile.serializer(), text).courses
     }.getOrDefault(emptyList())
 
-    /** 原子写：先 `.tmp` 再改名（与课表、标注同一套做法） */
-    fun save(courses: List<CustomCourse>): Boolean = runCatching {
-        dir.mkdirs()
-        val tmp = File(dir, "custom.json.tmp")
-        tmp.writeText(json.encodeToString(CustomCourseFile.serializer(), CustomCourseFile(courses = courses)))
-        if (file.exists()) file.delete()
-        tmp.renameTo(file)
-    }.getOrDefault(false)
+    /** 原子写：统一走 [cn.dkarbon.enroute.data.SafeWrite]（同目录 tmp + fsync + 改名 + 回滚） */
+    fun save(courses: List<CustomCourse>): Boolean =
+        cn.dkarbon.enroute.data.SafeWrite.text(
+            file,
+            json.encodeToString(CustomCourseFile.serializer(), CustomCourseFile(courses = courses)),
+        )
 
     /** 纯编解码（给单测用，不碰文件） */
     fun encode(courses: List<CustomCourse>): String =

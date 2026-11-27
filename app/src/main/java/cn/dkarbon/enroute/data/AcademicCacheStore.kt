@@ -333,20 +333,14 @@ class AcademicCacheStore(ctx: Context) {
 
     /** @return null = 没存过 / 读坏了 / 版本不认识（都当没有，不猜） */
     fun load(): AcademicCache? {
-        if (!file.isFile) return null
-        return runCatching { AcademicCache.fromJson(file.readText(Charsets.UTF_8)) }.getOrNull()
+        val text = SafeWrite.read(file) ?: return null
+        return runCatching { AcademicCache.fromJson(text) }.getOrNull()
     }
 
-    fun save(cache: AcademicCache): Boolean = runCatching {
-        dir.mkdirs()
-        val tmp = File(dir, "cache.json.tmp")
-        tmp.writeText(AcademicCache.toJson(cache), Charsets.UTF_8)
-        if (file.exists()) file.delete()
-        tmp.renameTo(file)
-    }.getOrDefault(false)
+    fun save(cache: AcademicCache): Boolean = SafeWrite.text(file, AcademicCache.toJson(cache))
 
     fun clear(): Boolean = runCatching {
-        file.delete()
+        SafeWrite.delete(file)
         dir.listFiles()?.forEach { it.delete() }
         true
     }.getOrDefault(false)

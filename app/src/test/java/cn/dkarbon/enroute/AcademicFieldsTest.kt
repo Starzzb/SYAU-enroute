@@ -132,10 +132,4 @@ class AcademicFieldsTest {
         assertTrue(list[1].failed)
         assertTrue("合格/合格制这种没有分数证据的不算挂科", !list[2].failed)
     }
-
-    @Test
-    fun `诊断文案只拼地址不发请求`() {
-        assertTrue(AcademicApi.examPathPreview().contains("/examPlan/detail?start="))
-        assertTrue(AcademicApi.scorePathPreview().contains("/allTermScores/data"))
-    }
 }

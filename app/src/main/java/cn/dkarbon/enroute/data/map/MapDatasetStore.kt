@@ -47,13 +47,8 @@ class MapDatasetStore(ctx: Context) {
     }.getOrNull()
 
     /** 原子写：成功返回 true（写失败不影响界面，下次同步再试） */
-    fun save(ds: MapDataset.Dataset): Boolean = runCatching {
-        file.parentFile?.mkdirs()
-        val tmp = File(file.parentFile, file.name + ".tmp")
-        tmp.writeText(MapDataset.encode(ds))
-        if (file.exists()) file.delete()
-        tmp.renameTo(file)
-    }.getOrDefault(false)
+    fun save(ds: MapDataset.Dataset): Boolean =
+        cn.dkarbon.enroute.data.SafeWrite.text(file, MapDataset.encode(ds))
 
     fun clear(): Boolean = runCatching { file.delete() }.getOrDefault(false)
 

@@ -35,7 +35,8 @@ class TelemetryQueue(private val dir: File) {
         dir.mkdirs()
         val existing = if (file.exists()) file.readText() else ""
         val merged = trimToCap(existing + lines.joinToString("\n", postfix = "\n"), CAP_BYTES)
-        file.writeText(merged)
+        // 原子写：事件队列被写坏 = 已经采到的数据整批消失，比上传失败严重得多
+        cn.dkarbon.enroute.data.SafeWrite.text(file, merged)
     }
 
     /**
@@ -52,8 +53,22 @@ class TelemetryQueue(private val dir: File) {
     fun dropFirst(n: Int) {
         if (n <= 0 || !file.exists()) return
         val rest = file.readLines().filter { it.isNotBlank() }.drop(n)
-        dir.mkdirs()
-        file.writeText(if (rest.isEmpty()) "" else rest.joinToString("\n", postfix = "\n"))
+        cn.dkarbon.enroute.data.SafeWrite.text(file, if (rest.isEmpty()) "" else rest.joinToString("\n", postfix = "\n"))
+    }
+
+    /**
+     * 丢掉**最旧的一半**，返回丢掉的条数。
+     *
+     * 上传连续失败封顶（`TelemetryUploader.MAX_ATTEMPTS`）时用这个而不是 [clear]：
+     * 整批清空会把「离线那几天」的数据一起蒸发，等于白采；只扔一半既止血又留住最近的事件。
+     */
+    fun dropOldestHalf(): Int {
+        if (!file.exists()) return 0
+        val lines = file.readLines().filter { it.isNotBlank() }
+        if (lines.isEmpty()) return 0
+        val n = (lines.size + 1) / 2
+        dropFirst(n)
+        return n
     }
 
     fun clear() {

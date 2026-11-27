@@ -265,6 +265,9 @@ class MapUploader(ctx: Context) {
          * nginx 在 18082 上有 UA 过滤器，`curl/` `wget/` `python-` `java/` 等一律 403。
          * `HttpURLConnection` 的**默认 UA 是 `Java/1.x`**，正好命中黑名单 ——
          * 删了这行，上传会以「403」而不是网络错误失败，非常难查（已被踩过一次）。
+         *
+         * **这条规则的三份 UA 各自独立**：上传（这里）、拉地图包（MapDatasetClient）、
+         * 遥测（TelemetryUploader）。规则说明只写在这一处，另两处按需指向这里。
          */
         private const val UA = "SYAU-Enroute (personal student test build; map contribute)"
 

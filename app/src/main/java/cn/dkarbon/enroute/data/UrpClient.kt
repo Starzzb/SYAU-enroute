@@ -29,8 +29,6 @@ import javax.net.ssl.HttpsURLConnection
  */
 object UrpClient {
 
-    private const val SSO = "https://pass.syau.edu.cn"
-
     /**
      * 学校统一认证（CAS）地址 —— **凭据唯一允许发往的主机**（票 14 安全要求 §1）。
      *
@@ -131,8 +129,7 @@ object UrpClient {
         val session = Session()
 
         // ── ① 取登录页，抠 lt ────────────────────────────
-        val loginUrl = "$SSO/tpass/login?service=" +
-            URLEncoder.encode("$URP/login", "UTF-8")
+        val loginUrl = casLoginUrl("$URP/login")
         val page = httpGet(
             session, loginUrl, secure = true, nav = true,
             extraHeaders = mapOf("Referer" to NO_REFERER),
@@ -150,7 +147,7 @@ object UrpClient {
         // ── ② 取 RSA 公钥 ────────────────────────────────
         val keyBody = httpPost(
             session,
-            "$SSO/tpass/rsa",
+            CAS_LOGIN_URL + "/tpass/rsa",
             "",
             secure = true,
             extraHeaders = mapOf("Referer" to loginUrl),
@@ -176,7 +173,7 @@ object UrpClient {
         DebugLog.log("URP", "→ POST SSO 提交登录（表单 ${form.length} 字节，内容已隐去）")
 
         val resp = httpPost(
-            session, "$SSO/tpass/login?service=" + URLEncoder.encode("$URP/login", "UTF-8"),
+            session, casLoginUrl("$URP/login"),
             form, secure = true, nav = true,
             extraHeaders = mapOf("Referer" to NO_REFERER),
         )
@@ -222,32 +219,45 @@ object UrpClient {
      * 不当成过期也不当成有效。
      */
     suspend fun verifySession(session: Session): SessionProbe = withContext(Dispatchers.IO) {
-        val body = runCatching {
-            httpGet(session, "$URP$CAMPUS_LIST")
+        val resp = runCatching {
+            httpGetResult(session, "$URP$CAMPUS_LIST")
         }.getOrElse {
             // 超时/拒绝连接/不在校园网：会话可能还活着，我们只是问不到 —— 不能判过期
             DebugLog.step("SESSION", "验活未完成：${it.javaClass.simpleName}（多半不在校园网）")
             return@withContext SessionProbe.Unreachable
         }
-        val probe = judgeSession(body)
+        val probe = judgeResponse(resp)
         DebugLog.step(
             "SESSION",
-            "验活：${body.length} 字节 → $probe" +
+            "验活：HTTP ${resp.code}/${resp.failure} ${resp.body.length} 字节 → $probe" +
                 // 只看开头几个字符判断「是不是数据页」，不记内容（里面是校区名）
-                "（首字符=${body.trimStart().take(1).ifBlank { "空" }}）",
+                "（首字符=${resp.body.trimStart().take(1).ifBlank { "空" }}）",
         )
         probe
+    }
+
+    /**
+     * 把一次验活响应判成「活 / 过期 / 问不到」。
+     *
+     * 分流顺序是这次改造的重点（2026-11-27）：**先看状态码，再看正文**。
+     * 5xx 维护页、4xx、跟不动的跳转一律是 [SessionProbe.Unreachable] ——
+     * 服务器自己出了问题，不该让学生的会话跟着作废重登。
+     */
+    internal fun judgeResponse(resp: UrpResponse): SessionProbe = when (resp.failure) {
+        UrpFailure.None -> judgeSession(resp.body)
+        UrpFailure.Expired -> SessionProbe.Expired
+        else -> SessionProbe.Unreachable
     }
 
     /**
      * 验活判定的**纯函数**部分（单测直接打）。
      *
      * - 拿到 JSON（`[` 或 `{`）→ [SessionProbe.Ok]：只读接口肯给数据，会话就是活的；
-     * - 其余一律 [SessionProbe.Expired]：CAS 踢回登录页是 HTML、非 2xx 时 [request]
-     *   返回空串、错误页也是 HTML —— 这三种都表示「服务器没把我们当已登录用户」。
+     * - 2xx 但不是 JSON（CAS 登录页那类 HTML）→ [SessionProbe.Expired]。
      *
-     * ⚠️ 注意它**不处理网络异常**：异常由 [verifySession] 映射成
-     * [SessionProbe.Unreachable]，两者语义完全不同（见该枚举的注释）。
+     * ⚠️ 它只负责 **2xx 的正文**这一种判断。非 2xx 由 [judgeResponse] 按状态码分流：
+     * 5xx 维护页曾经也走到这里被当成过期（学生被无故踢下线），现在归 [SessionProbe.Unreachable]。
+     * 网络异常同样由 [verifySession] 映射成 [SessionProbe.Unreachable]。
      */
     internal fun judgeSession(body: String): SessionProbe {
         val t = body.trimStart()
@@ -458,7 +468,16 @@ object UrpClient {
         secure: Boolean = false,
         extraHeaders: Map<String, String> = emptyMap(),
         nav: Boolean = false,
-    ): String = request(session, url, "GET", null, secure, extraHeaders, nav)
+    ): String = httpGetResult(session, url, secure, extraHeaders, nav).body
+
+    /** 同 [httpGet]，但把状态码与最终地址一起带回来（判失败用，见 [UrpResponse]） */
+    private fun httpGetResult(
+        session: Session,
+        url: String,
+        secure: Boolean = false,
+        extraHeaders: Map<String, String> = emptyMap(),
+        nav: Boolean = false,
+    ): UrpResponse = request(session, url, "GET", null, secure, extraHeaders, nav)
 
     private fun httpPost(
         session: Session,
@@ -467,7 +486,7 @@ object UrpClient {
         secure: Boolean = false,
         extraHeaders: Map<String, String> = emptyMap(),
         nav: Boolean = false,
-    ): String = request(session, url, "POST", body, secure, extraHeaders, nav)
+    ): String = request(session, url, "POST", body, secure, extraHeaders, nav).body
 
     private fun request(
         session: Session,
@@ -477,7 +496,7 @@ object UrpClient {
         secure: Boolean,
         extraHeaders: Map<String, String>,
         nav: Boolean = false,
-    ): String {
+    ): UrpResponse {
         var currentUrl = url
         var currentMethod = method
         var currentBody = body
@@ -546,9 +565,10 @@ object UrpClient {
                 hops++
                 continue
             }
-            return text
+            return UrpResponse(code = code, body = text, path = path, location = location)
         }
-        return ""
+        // 跳转超过 8 跳：不能当成「没数据」，这是一次跟踪失败
+        return UrpResponse(code = 0, body = "", path = url, location = null)
     }
 
     /** RSA 公钥加密（X.509 SubjectPublicKeyInfo，PKCS#1 v1.5 填充） */

@@ -21,6 +21,19 @@ val localProps = Properties().apply {
 val releaseStorePath = localProps.getProperty("ENROUTE_STORE_FILE").orEmpty()
 val hasReleaseKey = releaseStorePath.isNotBlank() && File(releaseStorePath).exists()
 
+// 正式包**没有密钥就构建失败**（2026-11-27 改）。
+// 以前缺密钥会静默回退 debug 签名：那种包 android:debuggable=true、能被任意重签，
+// 一旦混进分发，谁都能在上面套一层。宁可构建红，也不要出一个「看着像正式版」的包。
+// 内测走 assembleInternal —— 同一个 release 配置，只是签名用 debug。
+val wantsRelease = gradle.startParameter.taskNames.any { it.contains("Release", ignoreCase = true) }
+if (wantsRelease && !hasReleaseKey) {
+    throw GradleException(
+        "正式构建缺少签名密钥：local.properties 里的 ENROUTE_STORE_FILE 指向的文件不存在。\n" +
+            "  正式包：配置 ENROUTE_STORE_FILE / ENROUTE_STORE_PASSWORD / ENROUTE_KEY_ALIAS / ENROUTE_KEY_PASSWORD\n" +
+            "  内测包：改用 assembleInternal（release 配置 + debug 签名，可调试、不可分发）",
+    )
+}
+
 android {
     namespace = "cn.dkarbon.enroute"
     compileSdk = 35
@@ -30,8 +43,8 @@ android {
         applicationId = "cn.dkarbon.enroute"
         minSdk = 26
         targetSdk = 35
-        versionCode = 500
-        versionName = "0.11.0+m42"
+        versionCode = 510
+        versionName = "0.12.0+m43"
 
         // 「关于」页要显示构建来源：commit 短哈希 + 构建日期。
         // 开源软件的 About 页惯例是把「这一版到底是哪份代码」写清楚，方便反馈问题时对照。
@@ -85,13 +98,17 @@ android {
         release {
             isMinifyEnabled = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // 有正式密钥就用它；没有就回退 debug（那种包可调试，仅内测）
-            signingConfig = if (hasReleaseKey) {
-                signingConfigs.getByName("release")
-            } else {
-                logger.warn("⚠️ 未配置 ENROUTE_STORE_FILE，release 将回退 debug 签名（不建议分发）")
-                signingConfigs.getByName("debug")
-            }
+            // 只认正式密钥；没配就由上面的 GradleException 拦下，这里不再兜底
+            signingConfig = signingConfigs.findByName("release")
+        }
+
+        // 内测：与 release 同一套代码与混淆配置，只把签名换成 debug。
+        // 独立成一个构建类型，是为了让「可调试的包」有个说得出口的名字 ——
+        // 以前它顶着 release 的名字出现，分发时没人分得清。
+        create("internal") {
+            initWith(getByName("release"))
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
         }
     }
 

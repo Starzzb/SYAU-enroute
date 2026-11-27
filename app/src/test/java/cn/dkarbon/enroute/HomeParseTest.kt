@@ -97,6 +97,22 @@ class HomeParseTest {
     }
 
     @Test
+    fun `有一门课缺绩点就整表不给总绩点`() {
+        // 2026-11-27：以前把缺绩点的课跳过、拿剩下的算均值，界面显示的是一个只覆盖
+        // 一部分课程的假绩点。宁可显示「暂缺」，也不给一个算不全的数。
+        val raw = """
+            {"lnList":[{"zxf":6.0,"tgms":2,"zms":2,"wtgms":0,"cjlx":"2024-2025学年秋",
+              "cjList":[
+                {"courseName":"有绩点","credit":3,"cj":90,"gradePointScore":4.0},
+                {"courseName":"缺绩点","credit":3,"cj":80}
+              ]}]}
+        """.trimIndent()
+        val s = UrpHomeApi.parseScoreStats(raw)
+        assertNull("有一门缺绩点却给出了总绩点", s.weightedGpa)
+        assertEquals(6.0, s.creditSum, 0.001)
+    }
+
+    @Test
     fun `空 payload 解析成空统计`() {
         assertTrue(UrpHomeApi.parseScoreStats("{}").isEmpty)
         assertTrue(UrpHomeApi.parseScoreStats("not json").isEmpty)

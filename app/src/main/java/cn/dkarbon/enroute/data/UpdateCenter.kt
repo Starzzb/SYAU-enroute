@@ -206,7 +206,10 @@ class UpdateCenter(private val ctx: Context) {
         info: UpdateInfo,
         onProgress: (Long, Long) -> Unit = { _, _ -> },
     ): DownloadResult {
-        val candidates = UpdatePolicy.mirrorsOf(info.url)
+        // 直连 → 两个 GitHub 代理 → **自建口垫底**。
+        // 自建那台出口只有 ~148 KB/s，一个 8 MB 的包要一分钟，还跟地图补丁服务抢带宽；
+        // 所以它只在 GitHub 那几条全挂时才顶上（国内被掐的时候正好就是这种情况）。
+        val candidates = UpdatePolicy.mirrorsOf(info.url) + UpdatePolicy.SELF_HOST_APK_URL
         val startedAt = System.currentTimeMillis()
         var last: DownloadResult.Failed? = null
         for ((i, url) in candidates.withIndex()) {
@@ -248,8 +251,9 @@ class UpdateCenter(private val ctx: Context) {
             var hops = 0
             while (true) {
                 if (hops++ > 5) return@withContext DownloadResult.Failed("下载地址跳转太多次，已放弃")
-                // 每一跳都重新过白名单：GitHub Releases 会 302 到 objects.githubusercontent.com
-                if (!UpdatePolicy.isAllowedRedirect(current)) {
+                // 每一跳都重新过白名单：GitHub Releases 会 302 到 objects.githubusercontent.com。
+                // 自建口是明文 http，走另一条更严的判据（主机 + 端口 + /app/ 前缀全钉死）。
+                if (!UpdatePolicy.isAllowedRedirect(current) && !UpdatePolicy.isAllowedSelfHost(current)) {
                     return@withContext DownloadResult.Failed(
                         "下载地址跳到了不允许的域名，已中断（${hostOf(current)}）",
                     )
@@ -289,7 +293,9 @@ class UpdateCenter(private val ctx: Context) {
                 // 三个确定判据（m37）：首包 20 秒、连续 30 秒平均 < 10 KB/s、总耗时 15 分钟。
                 // 判死就返回 Failed —— 阻塞浮层必须能给出一句人话，而不是一直转圈。
                 val startedAt = System.currentTimeMillis()
-                var winAt = startedAt
+                // 速度窗口从**第一个字节到达**开始算，不是从连上开始：
+                // TLS 握手 + 首包慢的那几秒会白吃掉 30 秒窗口，把正常的慢启动判成「卡死」。
+                var winAt = 0L
                 var winBytes = 0L
                 FileOutputStream(part).use { out ->
                     conn.inputStream.use { input ->
@@ -303,11 +309,13 @@ class UpdateCenter(private val ctx: Context) {
                             onProgress(done, total)
 
                             val nowMs = System.currentTimeMillis()
-                            if (done == 0L && nowMs - startedAt >= FIRST_BYTE_MS) {
-                                part.delete()
-                                return@withContext DownloadResult.Failed(
-                                    "连上了但 20 秒没有一个字节过来，已中断。换个网络再试。",
-                                )
+                            // 首包判据原先写成「done == 0 且超 20 秒」，而这段代码只有在读到字节后才执行，
+                            // done 永远不为 0 —— 那条判据是**死代码**，从没生效过（2026-11-27 修）。
+                            // 真正兜住「连上但不给数据」的是 readTimeout=20s：它会抛 SocketTimeoutException，
+                            // 落到 describeNetError() 变成一句人话。这里只负责把窗口对齐到首字节。
+                            if (winAt == 0L) {
+                                winAt = nowMs
+                                winBytes = 0L
                             }
                             if (nowMs - winAt >= SPEED_WINDOW_MS) {
                                 val gained = done - winBytes
@@ -373,10 +381,17 @@ class UpdateCenter(private val ctx: Context) {
      *
      * 失败一律落到 [DownloadState.Failed]，由浮层给「重试 / 稍后」两个出口。
      */
+    /** 上一次失败的时刻：连点「重试」时用它挡住重复发起（见 [MIN_RETRY_GAP_MS]） */
+    @Volatile
+    private var lastFailAt: Long = 0L
+
     fun startDownload(info: UpdateInfo) {
         val current = _downloadState.value
         if (current is DownloadState.Downloading) return
         if (current is DownloadState.Ready && current.info.versionCode == info.versionCode) return
+        // 失败后 3 秒内不再发起：浮层上的「重试」被连点时，每次都会 new 一个连接，
+        // 结果是一串并行半截下载抢同一个 .part 文件（2026-11-27 加）
+        if (current is DownloadState.Failed && System.currentTimeMillis() - lastFailAt < MIN_RETRY_GAP_MS) return
 
         dlJob?.cancel()
         _downloadState.value = DownloadState.Downloading(0L, info.size.coerceAtLeast(0L), info)
@@ -392,12 +407,15 @@ class UpdateCenter(private val ctx: Context) {
             }
             _downloadState.value = when (val r = result.getOrNull()) {
                 is DownloadResult.Ready -> DownloadState.Ready(r.apk, info)
-                is DownloadResult.Failed -> DownloadState.Failed(r.message, info)
+                is DownloadResult.Failed -> {
+                    lastFailAt = System.currentTimeMillis()
+                    DownloadState.Failed(r.message, info)
+                }
                 is DownloadResult.Cancelled -> DownloadState.Idle
-                null -> DownloadState.Failed(
-                    describeNetError(result.exceptionOrNull()),
-                    info,
-                )
+                null -> {
+                    lastFailAt = System.currentTimeMillis()
+                    DownloadState.Failed(describeNetError(result.exceptionOrNull()), info)
+                }
             }
         }
     }
@@ -515,49 +533,58 @@ class UpdateCenter(private val ctx: Context) {
         /**
          * `latest.json` 的候选地址，按顺序试（第一个拿到就用）。
          *
-         * ## 2026-11-16 全面改版（实测驱动）
+         * ## 2026-11-27 复查后的顺序
          *
-         * 真机上点「检查更新」长期卡在「正在连接服务器…」，实测三个源的真实情况：
-         *
-         * | 源 | 实测结果 |
+         * | 源 | 实测 |
          * |---|---|
-         * | `raw.githubusercontent.com` | **超时**（国内不通） |
-         * | `cdn.jsdelivr.net/gh/…@master/…` | **5 次全通，428–656ms** |
-         * | `fastly.jsdelivr.net/…` | 同源换节点，作备份 |
-         * | 自建 `47.95.12.198:18082/app/latest.json` | **000（连接被掐）** |
-         * | 自建 `47.95.12.198:18081/app/latest.json` | **404** |
+         * | 自建 `…:18082/app/latest.json` | **已配路由 + 已放真文件**（2026-11-27 起） |
+         * | `gh-proxy.com/https://raw.githubusercontent.com/…` | 832ms，内容新 |
+         * | `raw.githubusercontent.com` | 669ms 时通，国内常被掐 |
+         * | `raw.githack.com` | 904ms，但**会缓存**（2026-11-16 实测给的是上一版） |
+         * | jsDelivr ×2 | 428–656ms 最快，但**分支缓存 12 小时且 purge 无效** → 垫底 |
          *
-         * 也就是说：改版前**主力国内不通、两个回落全是死的**，能连上才怪。
-         * 自建机上只有 `/map/api/` 配了 nginx 路由，`/app/` 这条从来没配置过 ——
-         * 下面保留它们只是**给将来真部署时留位**，并标注清楚现在不可用，
-         * 免得下一个人又以为有可用回落而在真机上白等超时。
+         * **自建为什么排第一**：那台机器是我们自己的 —— 不缓存、不跳转、不发旧版，
+         * 内容跟着部署走。2026-11-16 那版把它放最后，是因为当时 `/app/` 根本没配 nginx 路由
+         * （18082 连接被掐、18081 直接 404），排在前面只会白等超时；现在那里是真文件了。
+         * 它要是挂了，最坏是多等一次 [MANIFEST_TIMEOUT_MS]，后面四个公共源照常兜。
          *
-         * ## 为什么 composer 清单可以放 CDN，APK 不行
+         * ## 为什么清单可以放 CDN，APK 也可以从自建明文口下
          *
-         * 清单只有 408 字节，被中间人改掉也没用：真正的防线是
-         * [UpdatePolicy.PINNED_RELEASE_PREFIX]（APK 地址必须指向本仓库 releases）+ sha256。
-         * 攻击者拿不到本仓库写权限，就提供不出**可安装**的包 —— **最坏结果只是「下载失败」**。
-         * APK 本体（50MB+）不放自建机：个人机没 TLS，且 50MB 分发不是它该干的活。
+         * 清单只有几百字节，被中间人改掉也没用：真正的防线是
+         * [UpdatePolicy.PINNED_RELEASE_PREFIX]（入口地址必须指向本仓库 releases）+ sha256。
+         * 攻击者拿不到本仓库写权限，就提供不出**可安装**的包 —— 最坏结果只是「下载失败」。
+         * 自建口是明文 http，同一个道理：包体要过 sha256，装之前 Android 还要验签名。
+         * 详见 [UpdatePolicy.isAllowedSelfHost]。
          *
-         * 顺序：jsDelivr 主（国内实测最快）→ fastly 备份 → GitHub raw（境外最快）→ 自建（现不可用）。
-         * timeout 从 10s 收到 6s：四条最坏 24s 太久，用户等不了；实测通的那条约 500ms。
+         * ⚠️ **顺序就是遥测里 `update.check.channel` 的含义**（channel = 序号 + 1）。
+         * 改动这条列表 = 改动历史数据的口径，动之前先想清楚。
          */
         val MANIFEST_URLS = listOf(
-            // ① gh-proxy：实测 832ms 且**内容是最新的**（见下方 jsDelivr 的坑）
+            // ① 自建：动态机、内容跟部署同步；nginx 路由与文件由 server/telemetry/deploy.sh 提供
+            UpdatePolicy.SELF_HOST_MANIFEST_URL,
+            // ② gh-proxy：实测 832ms 且**内容是最新的**（见下方 jsDelivr 的坑）
             "https://gh-proxy.com/https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ② GitHub raw 直连：实测 669ms，内容总是新的（国内时通时不通，故放第二）
+            // ③ GitHub raw 直连：实测 669ms，内容总是新的（国内时通时不通）
             "https://raw.githubusercontent.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ③ raw.githack：实测 904ms，但**会缓存**（2026-11-16 实测给的是上一版），故降级
+            // ④ raw.githack：实测 904ms，但**会缓存**（2026-11-16 实测给的是上一版），故降级
             "https://raw.githack.com/Starzzb/SYAU-enroute/master/releases/latest.json",
-            // ④⑤ jsDelivr：最快（428–656ms）但**分支缓存 12 小时且 purge 无效** —— 放后面，
+            // ⑤⑥ jsDelivr：最快（428–656ms）但**分支缓存 12 小时且 purge 无效** —— 垫底，
             //      只在前面全挂时用；用了也可能拿到旧版本（表现为「已是最新」，不会误报更新）
             "https://cdn.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
             "https://fastly.jsdelivr.net/gh/Starzzb/SYAU-enroute@master/releases/latest.json",
         )
 
         /** 单条源的超时；通的那条约 500ms，6s 已足够且不让用户干等 */
-        /** 首包判定：连上后 20 秒零字节就判死 */
+        /**
+         * 首包判据的口径：连上后 20 秒零字节就判死。
+         *
+         * 实际执行者是连接的 readTimeout（20 秒，抛 SocketTimeoutException），
+         * 不是循环里的判断 —— 这里留着常量只为说明这个数与它一致。
+         */
         private const val FIRST_BYTE_MS = 20_000L
+
+        /** 失败后多久才允许再次发起（防连点重试抢同一个 .part） */
+        private const val MIN_RETRY_GAP_MS = 3_000L
 
         /** 低速窗口：每 30 秒看一次增量 */
         private const val SPEED_WINDOW_MS = 30_000L

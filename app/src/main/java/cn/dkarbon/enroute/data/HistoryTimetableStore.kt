@@ -38,16 +38,12 @@ class HistoryTimetableStore(ctx: Context) {
             ?.takeIf { it.timetable.courses.isNotEmpty() || it.planCode.isNotBlank() }
     }
 
-    /** 原子写：先 `.tmp` 再改名，避免掉电/被杀留下半个 JSON */
-    fun write(entry: HistoryEntry): Boolean = runCatching {
+    /** 原子写：统一走 [SafeWrite]（tmp + fsync + 改名 + 回滚） */
+    fun write(entry: HistoryEntry): Boolean {
         if (entry.planCode.isBlank()) return false
-        dir.mkdirs()
         val target = File(dir, HistorySemesters.cacheFileName(entry.planCode))
-        val tmp = File(dir, target.name + ".tmp")
-        tmp.writeText(json.encodeToString(HistoryEntry.serializer(), entry))
-        if (target.exists()) target.delete()
-        tmp.renameTo(target)
-    }.getOrDefault(false)
+        return SafeWrite.text(target, json.encodeToString(HistoryEntry.serializer(), entry))
+    }
 
     fun clear(): Boolean = runCatching {
         dir.listFiles()?.forEach { it.delete() }

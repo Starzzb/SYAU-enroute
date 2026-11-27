@@ -4,6 +4,8 @@ import cn.dkarbon.enroute.data.SessionProbe
 import cn.dkarbon.enroute.data.SessionRules
 import cn.dkarbon.enroute.data.SessionState
 import cn.dkarbon.enroute.data.UrpClient
+import cn.dkarbon.enroute.data.UrpFailure
+import cn.dkarbon.enroute.data.UrpResponse
 import cn.dkarbon.enroute.ui.SessionText
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -117,6 +119,45 @@ class SessionStateTest {
         assertEquals(SessionProbe.Expired, UrpClient.judgeSession(""))
         assertEquals(SessionProbe.Expired, UrpClient.judgeSession("   \n  "))
         assertEquals(SessionProbe.Expired, UrpClient.judgeSession("<html><body>系统维护</body></html>"))
+    }
+
+    // ── 带状态码的判定：只有登录页 / 401 / 403 算过期 ──────
+
+    @Test
+    fun `5xx 维护页不算过期 只是这次没拿到`() {
+        // 2026-11-27 的教训：教务挂了 502，旧逻辑把学生踢下线要求重登
+        val resp = UrpResponse(code = 502, body = "<html>502 Bad Gateway</html>", path = "/urp/x")
+        assertEquals(SessionProbe.Unreachable, UrpClient.judgeResponse(resp))
+        assertEquals(UrpFailure.Server, resp.failure)
+        assertEquals(SessionProbe.Unreachable, UrpClient.judgeResponse(UrpResponse(500, "", "/urp/x")))
+        assertEquals(SessionProbe.Unreachable, UrpClient.judgeResponse(UrpResponse(404, "", "/urp/x")))
+    }
+
+    @Test
+    fun `401 与 403 就是过期`() {
+        assertEquals(SessionProbe.Expired, UrpClient.judgeResponse(UrpResponse(401, "", "/urp/x")))
+        assertEquals(SessionProbe.Expired, UrpClient.judgeResponse(UrpResponse(403, "", "/urp/x")))
+    }
+
+    @Test
+    fun `被 302 踢回登录页算过期 跳到别处不算`() {
+        val toLogin = UrpResponse(
+            code = 302,
+            body = "",
+            path = "/urp/x",
+            location = "https://pass.syau.edu.cn/cas/login?service=x",
+        )
+        assertEquals(SessionProbe.Expired, UrpClient.judgeResponse(toLogin))
+        val elsewhere = UrpResponse(302, "", "/urp/x", location = "/urp/home" )
+        assertEquals(UrpFailure.Redirect, elsewhere.failure)
+        assertEquals(SessionProbe.Unreachable, UrpClient.judgeResponse(elsewhere))
+    }
+
+    @Test
+    fun `2xx 但正文是登录页 也算过期`() {
+        val body = """<html><form id="loginForm" action="/tpass/login"></form></html>"""
+        val resp = UrpResponse(code = 200, body = body, path = "/urp/x")
+        assertEquals(SessionProbe.Expired, UrpClient.judgeResponse(resp))
     }
 
     // ── 文案：三态必须说三句不同的话 ───────────────────────

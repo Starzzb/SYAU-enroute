@@ -29,17 +29,15 @@ class TimetableStore(ctx: Context) {
 
     /** 读不到/解析失败一律返回 null，让上层显示「还没有课表」而不是崩 */
     fun load(): Timetable? = runCatching {
-        if (!file.isFile) return null
-        readJson.decodeFromString(Timetable.serializer(), file.readText())
+        val text = SafeWrite.read(file) ?: return null
+        readJson.decodeFromString(Timetable.serializer(), text)
     }.getOrNull()
 
-    fun save(tt: Timetable): Boolean = runCatching {
-        dir.mkdirs()
-        file.writeText(writeJson.encodeToString(Timetable.serializer(), tt))
-        true
-    }.getOrDefault(false)
+    /** 原子写（见 [SafeWrite]）：掉电或进程被杀也不会留下半截 JSON */
+    fun save(tt: Timetable): Boolean =
+        SafeWrite.text(file, writeJson.encodeToString(Timetable.serializer(), tt))
 
-    fun clear(): Boolean = runCatching { file.delete() }.getOrDefault(false)
+    fun clear(): Boolean = SafeWrite.delete(file)
 
     /** 解析外部 JSON（导入用）。解析失败抛异常，由上层转成提示文案。 */
     fun parse(text: String): Timetable =

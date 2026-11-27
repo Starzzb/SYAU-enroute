@@ -26,6 +26,7 @@
 import argparse
 import gzip
 import hashlib
+import io
 import json
 import os
 import re
@@ -43,6 +44,11 @@ USERS_PATH = os.path.join(DATA_DIR, "users.json")
 
 UA_PREFIX = "SYAU-Enroute"
 MAX_BODY = 64 * 1024
+
+# 解压后的上限：一批 100 条事件约 11 KB，正常客户端连 1/10 都用不到。
+# 设这个数是防「压缩炸弹」——不设的话 gzip.decompress 会把内存吃光，
+# 一个 60 KB 的请求就能把整台机器拖死（2026-11-27 补）。
+MAX_UNZIPPED = 1024 * 1024
 RATE_PER_MIN = 60
 RETAIN_DAYS = 180
 MAX_DAYS_PER_DEVICE = 400
@@ -65,6 +71,24 @@ def load_schema():
 SCHEMA = load_schema()
 EVENTS = SCHEMA["events"]
 LIMITS = SCHEMA.get("$limits", {})
+
+
+class _TooBig(Exception):
+    pass
+
+
+def gunzip_capped(raw, limit):
+    """解 gzip，但解到 limit 字节就停 —— 不把整段展开再判断。"""
+    out = bytearray()
+    with gzip.GzipFile(fileobj=io.BytesIO(raw)) as gz:
+        while True:
+            chunk = gz.read(65536)
+            if not chunk:
+                break
+            out += chunk
+            if len(out) > limit:
+                raise _TooBig()
+    return bytes(out)
 
 
 def _hex_ok(v, lo, hi):
@@ -317,13 +341,23 @@ class Handler(BaseHTTPRequestHandler):
             n = int(self.headers.get("Content-Length", "0"))
         except ValueError:
             n = 0
-        if n <= 0 or n > MAX_BODY:
+        if n <= 0:
+            # 空批是**正常**的：客户端队列被并发清空、或这一批全被本地过滤掉时，
+            # 它会发一个空体。判成 413 会让客户端把整批当「被拒」丢掉（m41 就是这么丢数的）。
+            # 回 200 + 全零 = 「什么都没做，也不算出错」。
+            self._send(200, {"accepted": 0, "dropped": 0})
+            return
+        if n > MAX_BODY:
             self._send(413, {"error": "body size"})
             return
         raw = self.rfile.read(n)
         if self.headers.get("Content-Encoding", "").lower() == "gzip":
             try:
-                raw = gzip.decompress(raw)
+                raw = gunzip_capped(raw, MAX_UNZIPPED)
+            except _TooBig:
+                # 压缩体能压到 1/1000，64KB 的 gzip 可以炸出几个 GB —— 必须在解压时设上限
+                self._send(413, {"error": "unzipped size"})
+                return
             except Exception:
                 self._send(400, {"error": "gzip"})
                 return

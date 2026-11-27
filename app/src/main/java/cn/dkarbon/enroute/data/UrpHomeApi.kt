@@ -126,8 +126,10 @@ object UrpHomeApi {
     /**
      * 成绩统计。
      *
-     * [weightedGpa] 为 null 的含义很重要：**没有任何一条同时有绩点和学分**，
-     * 此时界面上不能显示 0.00（那是假数据），只显示「绩点暂缺」。
+     * [weightedGpa] 为 null 有两种含义，界面都只显示「绩点暂缺」：
+     * ① 没有任何一条同时有绩点和学分；
+     * ② **有任意一门课缺绩点或缺学分** —— 那时算出来的均值只覆盖了一部分课程，
+     *    是个「看着像真的」的假数字。宁可留空，也不给一个少算了几门课的平均分。
      */
     @Serializable
     data class ScoreStats(
@@ -400,11 +402,14 @@ object UrpHomeApi {
         sessionNo: Int,
         dayPlus: Int = 0,
     ): FreeRooms {
-        // ① 选楼：POST 表单，服务器把「当前楼」记在会话里，响应是 153KB 的外壳 HTML（内容无用）
-        val pickBody = postForm(FREE_ROOMS, freeRoomsPickForm(campusNo, buildingNo, campusName), s)
-        // ② 立刻取这一节的空闲教室（同一会话，中间不插请求）
-        val roomsBody = get(freeRoomsPath(sessionNo, dayPlus), s)
-        return judgeFreeRooms(pickBody, roomsBody, buildingNo)
+        // 两步整体独占（见 [UrpSticky]）：快速切楼时 A 的第二步不许插到 B 的选楼后面
+        return UrpSticky.withFreeRoom {
+            // ① 选楼：POST 表单，服务器把「当前楼」记在会话里，响应是 153KB 的外壳 HTML（内容无用）
+            val pickBody = postForm(FREE_ROOMS, freeRoomsPickForm(campusNo, buildingNo, campusName), s)
+            // ② 立刻取这一节的空闲教室（同一会话，中间不插请求）
+            val roomsBody = get(freeRoomsPath(sessionNo, dayPlus), s)
+            judgeFreeRooms(pickBody, roomsBody, buildingNo)
+        }
     }
 
     /** 「选楼」表单：`position=<校区号>_<楼号>`、`xqm=<校区名>`（纯函数，单测锁住字段名） */
@@ -656,17 +661,23 @@ object UrpHomeApi {
             (term["cjList"] as? JsonArray)?.filterIsInstance<JsonObject>()?.forEach { c ->
                 val cr = num(c, "credit")
                 val gp = num(c, "gradePointScore")
-                if (cr > 0.0 && gp > 0.0) {
-                    gpaWeighted += gp * cr
-                    gpaCredit += cr
-                    anyGpa = true
-                } else if (cr > 0.0) {
-                    allHaveGpa = false
+                // 空行（课程名/学分/绩点全无）不是「缺绩点」，跳过，别让它把整张表作废
+                val blank = cr <= 0.0 && gp <= 0.0 && str(c, "courseName").isBlank()
+                when {
+                    blank -> Unit
+                    cr > 0.0 && gp > 0.0 -> {
+                        gpaWeighted += gp * cr
+                        gpaCredit += cr
+                        anyGpa = true
+                    }
+                    // 有学分没绩点（或反过来）：这门课算不进加权，算出来的均值就只覆盖了一部分课程。
+                    // 那是个「看着像真的」的假数字，比留空更糟 —— 整表判缺，界面显示「绩点暂缺」。
+                    else -> allHaveGpa = false
                 }
             }
         }
 
-        val gpa = if (anyGpa && gpaCredit > 0.0) gpaWeighted / gpaCredit else null
+        val gpa = if (allHaveGpa && anyGpa && gpaCredit > 0.0) gpaWeighted / gpaCredit else null
         return ScoreStats(
             weightedGpa = gpa,
             gpaCreditSum = gpaCredit,
@@ -981,7 +992,8 @@ object UrpHomeApi {
         return try {
             conn.requestMethod = "GET"
             applyCommon(conn, s, path, "GET")
-            read(conn, path, s)
+            // 非 2xx 不往下走：500 的错误页曾被解析成「空列表」，界面就成了「没有数据」
+            read(conn, path, s).requireOk("GET " + path)
         } catch (e: Exception) {
             DebugLog.error("HOME", "GET ${path.take(80)} 失败：${e.javaClass.simpleName} ${e.message}")
             throw e
@@ -1001,7 +1013,7 @@ object UrpHomeApi {
             conn.doOutput = true
             applyCommon(conn, s, path, "POST")
             conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
-            read(conn, path, s)
+            read(conn, path, s).requireOk("POST " + path)
         } catch (e: Exception) {
             DebugLog.error("HOME", "POST ${path.take(80)} 失败：${e.javaClass.simpleName} ${e.message}")
             throw e
@@ -1024,7 +1036,7 @@ object UrpHomeApi {
         if (cookie.isNotBlank()) conn.setRequestProperty("Cookie", cookie)
     }
 
-    private fun read(conn: HttpURLConnection, path: String, s: UrpClient.Session): String {
+    private fun read(conn: HttpURLConnection, path: String, s: UrpClient.Session): UrpResponse {
         val code = conn.responseCode
         // 收下 Set-Cookie：空闲教室是**会话粘滞**的，选楼状态存在服务器会话里。
         // 若服务器在这一步换了 JSESSIONID 而我们不更新 cookie，下一次 GET 就回到「没选楼」→ 恒空。
@@ -1032,7 +1044,9 @@ object UrpHomeApi {
         val stream = if (code in 200..299) conn.inputStream else conn.errorStream
         val body = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
         DebugLog.http("HOME", if (conn.requestMethod == "POST") "POST" else "GET", path, code, body.length, preview = body)
-        return body
+        // 跳转是跟了的（applyCommon 里 instanceFollowRedirects = true），所以登录页会以 200 落地，
+        // 由 UrpResponse.failure 里的 isLoginPage 认出来 —— 不用在这里单独看 Location。
+        return UrpResponse(code, body, path)
     }
 
     // ── 工具 ──────────────────────────────────────────────
@@ -1053,16 +1067,5 @@ object UrpHomeApi {
         return t.toDoubleOrNull() ?: 0.0
     }
 
-    /** 诊断用：把主页面依赖的四支接口形态写出来（token 部分只能是形态） */
-    fun pathPreview(): List<Pair<String, String>> = listOf(
-        "学籍" to PROFILE,
-        "学分进度" to "$PLAN_INDEX → /instructionPlanQuery/<token>/detail/callback",
-        "成绩统计" to "$PASS_INDEX → /scoreQuery/<token>/allPassingScores/callback",
-        "空闲教室" to "① POST $FREE_ROOMS (position=<校区号>_<楼号> & xqm=<校区名>) " +
-            "→ ② GET $FREE_ROOMS/<节次>?dayplus=<0|1|2>（会话粘滞，两步必须同一会话）",
-        "查教师" to "POST $TEACHER_SEARCH (executiveEducationPlanNumber=<学期> & teacherName=<关键字>)",
-        "教室档案" to "POST $CLASSROOM_SEARCH (executiveEducationPlanNumber + pageNum/pageSize；" +
-            "过滤字段未实测，靠客户端匹配) — 占用课表另有一条未探明路由",
-    )
 }
 

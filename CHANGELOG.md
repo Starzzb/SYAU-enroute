@@ -4,6 +4,65 @@
 `versionName` 用标准 SemVer + build metadata（`0.3.0+m20`，`mNN` = 第 N 轮开发批次），
 `versionCode = (mNN + 1) × 10`（发版）或 `(mNN + 1) × 10 + n`（开发版）。
 
+## m43 · 拿不到 ≠ 没有（2026-11-27）
+
+`0.12.0+m43` / `versionCode 510`。这一批修的全是「看起来没事、其实在骗人」的地方：
+接口答 500 时把缓存写成空、断电时留下半截 JSON、校外资讯源被静默拦下、连点重试起好几个半截下载。
+
+### 会话与失败判定
+
+- 新增 `data/UrpHttp.kt`：`UrpResponse(code, body, path, location)` 把状态码、正文、最终地址一起带回来；
+  `UrpFailure` 分 None / Expired / Server / Client / Redirect / Unknown 六类，**只有 Expired 允许清会话**。
+  `requireOk(where)` 只在「401 / 403 / 被踢回登录页 / 2xx 但正文是登录页」判过期，5xx 维护页与超时只算「这次没拿到」——
+  以前 502 也会让学生被踢下线重登。
+- `HttpURLConnection` 不再自动跟随跳转：CAS 踢人以前会变成「200 + 登录页 HTML」，解析失败后界面说「接口可能改了」，
+  把登录过期说成学校改接口。新增 `SessionText.EXPIRED_HINT` 统一提示「登录已过期，重新登录一次」。
+- `data/Academic.kt`：`fetchExamsOrNull` / `fetchScores` 失败返回 `null`，调用方据此**不覆盖**旧缓存；
+  断网冷启动不会再抹掉缓存里的考试与成绩。
+- `data/HomeParse.kt`：一门课有学分却缺绩点时，整表不给加权绩点（显示「暂缺」），不再按 0 折算把总分拉低。
+
+### 写入不留半截
+
+- 新增 `data/SafeWrite.kt`：同目录 `.tmp` → `fd.sync()` → rename，改名失败回滚旧文件并保留 `.bak`。
+- 课程表、历史课表、资讯、教师、地图标注、地图数据集、地图贡献、学业缓存、自定义课程**九个 Store** 全部改走它。
+  以前断电或进程被杀会留下空文件 / 半截 JSON，下次启动解析失败就成了「还没有课表」，而用户其实刚导过。
+
+### 抓取闸门
+
+- 新增 `data/feed/FeedGuard.kt`：只许 http/https；主机只许 `*.syau.edu.cn`（带点匹配，`notsyau.edu.cn` 不放行）
+  与登记过的校外源（`neea.edu.cn` 后缀 + 8 个具体主机，共 12 条）；校内地址按 robots 口径拒掉带 `?` 的；
+  单次响应 3 MB 封顶；同主机两次请求至少隔 1 秒。
+- `data/feed/FeedHttp.kt` 接入闸门，`CampusZone` 的主机判定同步收敛。
+
+### 更新链路
+
+- `data/UpdateManifest.kt`：新增自建分发口 `http://47.95.12.198:18082/app/`，地址三层钉死
+  （协议 + 主机 + 端口 + `/app/` 前缀），包体再按 `latest.json` 的 sha256 校验，安装时 Android 按签名挡第三次。
+- `data/UpdateCenter.kt`：候选顺序 = 直连 → 两个 GitHub 代理 → 自建口垫底；速度窗口从**首字节**起算
+  （握手慢不再被误判为卡死）；删掉一条从未生效的「连上 20 秒没字节」判据（那段代码只在读到字节后才执行）；
+  失败后 3 秒内不再重复发起，避免连点重试时几个半截下载抢同一个 `.part`。
+- `app/build.gradle.kts`：缺正式签名密钥时构建**直接失败**，不再静默回退 debug 签名；内测改用 `assembleInternal`。
+
+### 遥测
+
+- 三次失败不再 `queue.clear()` 整批蒸发（离线两天、一联网就清空），改为丢掉最旧的一半。
+- 出队只认服务端 body 里的 `accepted` 条数：2xx 但有行被 schema 丢弃时不再当成功。
+- 同一时刻只允许一趟上传（`Gate.busy` CAS），避免两趟各自 peek 同一批再各自删。
+- `server/telemetry/server.py` 与 `schema.json` 同步（安装标识 `i`、`t` 秒/毫秒兼容、事件白名单）。
+
+### 补丁审核
+
+- `server/campusmap/`：审核页上线 `https://wb.dkarbon.cn/map/admin/`（basic auth + `X-Admin-Key` 两层，
+  TLS 走已有的 `wb2api` 站点），App 侧仍走明文 `18082`；`deploy.sh` 幂等安装页面、snippet 与 include。
+
+### 测试
+
+- 新增 `FeedGuardTest` 8 条：校内放行、带 `?` 拦截与两站例外、12 条校外源放行、伪造主机拒、协议拒、
+  3 MB 上限、同主机限速。
+- `SessionStateTest` 加 4 条：5xx 维护页不算过期、401/403 算、302 踢回登录页算且跳到别处不算、2xx 但正文是登录页算。
+- `HomeParseTest` 加「一门课缺绩点就整表不给总绩点」；`AcademicFieldsTest` / `TelemetryTest` / `UpdateSourceOrderTest` 随实现更新。
+- 全仓 690 条 / 0 失败 / 1 跳过。
+
 ## m42 · 课表预设即取即用（2026-11-23）
 
 主人三问（设置改完怎么保存 / 已在用的卡片有没有显示 / 预设是不是「选值」而不是「跟随」）带出两处真问题，都已修：

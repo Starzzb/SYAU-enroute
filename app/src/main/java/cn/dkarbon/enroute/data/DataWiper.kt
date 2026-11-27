@@ -111,9 +111,38 @@ object DataWiper {
             }
         }.onFailure { Log.w("DataWiper", "清教务缓存失败: ${it.message}") }
 
-        // ⑥ 调试日志（内存）
+        // ⑥ 调试日志（内存 + 落盘）
         DebugLog.clear()
         done += "调试日志（内存）"
+
+        // ⑦ 目录级兜底清扫（2026-11-27 补）。
+        //    上面每个 Store 只清自己认识的文件，于是漏了三类没人认领的东西：
+        //    遥测队列与退避文件（telemetry/）、下载中的安装包（updates/）、落盘调试日志（debug/）。
+        //    「清除所有数据」若留下它们，用户看到的是「清了但没全清」—— 比不清更糟。
+        //    所以最后一律按**目录**扫，不依赖任何 Store 记得自己有什么。
+        val leftovers = listOf(
+            "telemetry" to "遥测队列与重试状态",
+            "updates" to "下载中的安装包",
+            "debug" to "落盘调试日志",
+            "map" to "地图数据与待提交补丁",
+            "faculty" to "教师官网资料与图片",
+        )
+        for ((name, label) in leftovers) {
+            runCatching {
+                val dir = java.io.File(app.filesDir, name)
+                if (dir.exists()) {
+                    val ok = dir.deleteRecursively()
+                    done += if (ok) label else "$label（删除未完成）"
+                }
+            }.onFailure { Log.w("DataWiper", "清扫 $name 失败: ${it.message}") }
+        }
+
+        // ⑧ 残留自检：清完再扫一遍 filesDir，把「还有东西」如实报出来。
+        //    这里不假装成功 —— 有残留就让界面看得见，下一次修才有据可查。
+        runCatching {
+            val rest = app.filesDir.listFiles()?.filter { it.exists() }?.map { it.name }.orEmpty()
+            done += if (rest.isEmpty()) "残留检查：filesDir 已空" else "残留检查：仍有 ${rest.joinToString("、")}"
+        }.onFailure { Log.w("DataWiper", "残留检查失败: ${it.message}") }
 
         return done
     }

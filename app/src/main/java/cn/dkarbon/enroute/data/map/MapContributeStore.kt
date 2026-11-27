@@ -124,9 +124,7 @@ class MapContributeStore(ctx: Context) {
                 )
             },
         )
-        val tmp = File(queueFile.parentFile, "pending.json.tmp")
-        tmp.writeText(arr.toString())
-        tmp.renameTo(queueFile)
+        cn.dkarbon.enroute.data.SafeWrite.text(queueFile, arr.toString())
     }.isSuccess
 
     /** 入队 = 覆盖同格旧值（同一地块同一字段只留最新一条） */

@@ -76,6 +76,11 @@ build-verify-done.txt
 !在途/_work/apk_probe.py
 !在途/_work/apk_probe.txt
 
+# ── 本机凭证留档（服务器口令/钥匙，绝不入库）───────────────
+# 里面是 ssh 端口、审核页 basic auth、CMAP_ADMIN_KEY、遥测管理钥匙；
+# 只在本机看，任何情况下都不要提交。
+docs/_local/
+
 # ── 大纲抓取的会话物（cookie / 验证码图 / 临时页，含 JSESSIONID 绝不入库）──
 在途/curriculum/_collect/cookies.txt
 在途/curriculum/_collect/jar_*.txt

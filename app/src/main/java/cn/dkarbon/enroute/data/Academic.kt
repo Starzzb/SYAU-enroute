@@ -137,6 +137,17 @@ data class ProbeResult(
     val sample: String,
 )
 
+/**
+ * 教务把我们踢回登录页（HTTP 3xx）。
+ *
+ * 为什么需要这个类型：`HttpURLConnection` 默认会**自动跟**302，跟过去拿到的是 200 + 登录页
+ * HTML，解析必然失败 —— 界面于是说「没抓到，接口可能不同」（把登录过期说成学校改了接口）。
+ * 现在一律不跟跳转，3xx 直接抛这个，由上层落成 [cn.dkarbon.enroute.data.SessionState.Expired]。
+ *
+ * 2026-11-27 改：47 个只读接口实测都不靠 3xx 完成正常跳转，唯一会 3xx 的就是 CAS 踢人。
+ */
+class SessionExpiredException(message: String) : Exception(message)
+
 object AcademicApi {
 
     /** URP 主机（校内地址）。与 [UrpClient] 里的私有常量保持一致 */
@@ -166,23 +177,14 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
     // ── 考试 ──────────────────────────────────────────────
 
     /**
-     * 考试安排。
+     * 考试安排，**区分「真没有考试」和「没拿到」**（票 24）。
+     *
+     * 为什么不返回 `List<ExamItem>`：缓存分层要靠「这次抓成功了吗」决定**要不要覆盖旧值**
+     * （断网冷启动绝不能把缓存里的考试抹掉）。把失败压成 `emptyList()`，从外部看不出区别 ——
+     * 那是丢信息。
      *
      * @param from/to 查询区间；默认「今天往前 100 天 ~ 往后 150 天」，覆盖一个学期。
      *                公开接口按区间查，所以区间给宽一点比较稳（实测服务器会自己截断）。
-     */
-    suspend fun fetchExams(
-        session: UrpClient.Session,
-        from: LocalDate = LocalDate.now().minusDays(100),
-        to: LocalDate = LocalDate.now().plusDays(150),
-    ): List<ExamItem> = fetchExamsOrNull(session, from, to).orEmpty()
-
-    /**
-     * 与 [fetchExams] 完全同一条链路，但**区分「真没有考试」和「没拿到」**（票 24）。
-     *
-     * 为什么非要多这一支：缓存分层要靠「这次抓成功了吗」决定**要不要覆盖旧值**
-     * （断网冷启动绝不能把缓存里的考试抹掉）。而 [fetchExams] 把所有失败都压成
-     * `emptyList()`，从外部看不出区别 —— 那是丢信息。
      *
      * @return 服务端答的是数据页 → 列表（可能合法为空，例如本学期还没排考试）；
      *   请求/解析/会话失效 → `null`（**没拿到，不是「没有」**）
@@ -198,7 +200,7 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         runCatching { get(EXAM_INDEX, session) }
 
         val path = "$EXAM_DETAIL?start=${from.format(DASH)}&end=${to.format(DASH)}&_=${System.currentTimeMillis()}"
-        val body = runCatching { get(path, session).second }.getOrNull() ?: return null
+        val body = keepExpiry { get(path, session).requireOk("考试安排") } ?: return null
         val el = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return null
         // 「203/空 data」这类响应也是合法 JSON，但解析后没有任何考试条目 —— 那确实是「当前没有考试」
         return parseExams(el)
@@ -285,23 +287,18 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
     // ── 成绩 ──────────────────────────────────────────────
 
     /**
-     * 全部学期成绩。
+     * 全部学期成绩，失败返回 `null`（票 24 的「没拿到 ≠ 没有成绩」）。
+     *
+     * 理由同 [fetchExamsOrNull]：缓存要不要覆盖，取决于这次是不是真的抓到了。
      *
      * 两步走：先取 index 页抠 token，再打 data。**中间不能停顿太久** ——
      * token 跟页面会话绑着，隔太久可能失效，所以两请求紧挨着发。
      */
-    suspend fun fetchScores(session: UrpClient.Session): List<ScoreItem> =
-        fetchScoresOrNull(session).orEmpty()
-
-    /**
-     * 与 [fetchScores] 同一条链路，但失败返回 `null`（票 24 的「没拿到 ≠ 没有成绩」）。
-     * 理由同 [fetchExamsOrNull]：缓存要不要覆盖，取决于这次是不是真的抓到了。
-     */
     suspend fun fetchScoresOrNull(session: UrpClient.Session): List<ScoreItem>? {
-        val html = runCatching { get(SCORE_INDEX, session).second }.getOrNull() ?: return null
+        val html = keepExpiry { get(SCORE_INDEX, session).requireOk("成绩首页") } ?: return null
         val token = TOKEN_RE.find(html)?.groupValues?.get(1) ?: return null
         val path = "/student/integratedQuery/scoreQuery/$token/allTermScores/data"
-        val body = runCatching { get(path, session).second }.getOrNull() ?: return null
+        val body = keepExpiry { get(path, session).requireOk("成绩数据") } ?: return null
         val el = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return null
         return parseScores(el)
     }
@@ -344,19 +341,6 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         }
         return m
     }
-
-    // ── 诊断文案（不发请求，只拼给人看的地址）──────────────
-
-    /** 考试数据实际打的地址（诊断浮层显示用） */
-    fun examPathPreview(): String {
-        val today = LocalDate.now()
-        return "$EXAM_DETAIL?start=${today.minusDays(100).format(DASH)}" +
-            "&end=${today.plusDays(150).format(DASH)}&_=<ts>"
-    }
-
-    /** 成绩两步流的地址形态（token 每次都变，所以只能给形态） */
-    fun scorePathPreview(): String =
-        "$SCORE_INDEX → /student/integratedQuery/scoreQuery/<token>/allTermScores/data"
 
     // ── 诊断 ──────────────────────────────────────────────
 
@@ -442,7 +426,7 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
 
                 // 空闲教室是**会话粘滞**的两步：先 POST 选中楼栋，GET 才答得出那一栋。
                 // 第一步只是选择视图（不写任何数据），第二步才是要报的那一条。
-                "room.free" -> {
+                "room.free" -> UrpSticky.withFreeRoom {
                     call(
                         "/student/teachingResources/freeClassroom/today", session,
                         listOf("position" to "001_1", "xqm" to ""),
@@ -463,10 +447,10 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         form: List<Pair<String, String>>? = null,
     ): Pair<ProbeResult, String> =
         runCatching { if (form == null) get(path, session) else post(path, form, session) }
-            .map { (code, body) ->
-                val head = body.trimStart()
+            .map { resp ->
+                val head = resp.body.trimStart()
                 val json = head.startsWith("{") || head.startsWith("[")
-                ProbeResult(path, code, body.length, json, head.take(200)) to body
+                ProbeResult(path, resp.code, resp.body.length, json, head.take(200)) to resp.body
             }
             .getOrElse {
                 ProbeResult(path, -1, 0, false, "请求失败：${it.message}") to ""
@@ -486,23 +470,42 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         return (v as? JsonPrimitive)?.content?.trim().orEmpty()
     }
 
-    private fun get(path: String, session: UrpClient.Session): Pair<Int, String> {
+    /**
+     * `runCatching` 的「会话过期不上当」版：把 [SessionExpiredException] 原样抛出去，其余异常压成 null。
+     *
+     * 不能一律吞：明确的登录页 / 401 / 403 是「登录过期」，界面该说「重新登录一次」；
+     * 其它异常（含 5xx、4xx、跟不动的跳转，见 [UrpHttpException]）才是「这次没拿到」。
+     * 两者混成同一个 null，界面就只能给一句含糊的「没抓到」。
+     */
+    private inline fun <T> keepExpiry(block: () -> T): T? =
+        try {
+            block()
+        } catch (e: SessionExpiredException) {
+            throw e
+        } catch (_: Exception) {
+            null
+        }
+
+    private fun get(path: String, session: UrpClient.Session): UrpResponse {
         DebugLog.request("API", "GET", path)
         val conn = URL(URP + path).openConnection() as java.net.HttpURLConnection
         return try {
             conn.requestMethod = "GET"
             conn.connectTimeout = 12_000
             conn.readTimeout = 20_000
-            conn.instanceFollowRedirects = true
+            // 不跟跳转：跟过去只会拿到登录页 HTML（见 [SessionExpiredException]）
+            conn.instanceFollowRedirects = false
             UrpThrottle.await(conn.url.host)
             UrpHeaders.apply(conn, path = path, method = "GET", logTag = "API")
             val cookie = session.cookieHeader()
             if (cookie.isNotBlank()) conn.setRequestProperty("Cookie", cookie)
             val code = conn.responseCode
+            // 不在这里判失败：3xx 只有跳到登录页才算过期，5xx 是服务器自己的事（见 [UrpFailure]）
+            val location = conn.getHeaderField("Location")
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             val body = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
             DebugLog.http("API", "GET", path, code, body.length, preview = body)
-            code to body
+            UrpResponse(code, body, path, location)
         } catch (e: Exception) {
             DebugLog.error("API", "GET ${path.take(80)} 失败：${e.javaClass.simpleName} ${e.message}")
             throw e
@@ -516,7 +519,7 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         path: String,
         form: List<Pair<String, String>>,
         session: UrpClient.Session,
-    ): Pair<Int, String> {
+    ): UrpResponse {
         DebugLog.request("API", "POST", path)
         val body = form.joinToString("&") {
             "${java.net.URLEncoder.encode(it.first, "UTF-8")}=" +
@@ -528,17 +531,18 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
             conn.doOutput = true
             conn.connectTimeout = 12_000
             conn.readTimeout = 20_000
-            conn.instanceFollowRedirects = true
+            conn.instanceFollowRedirects = false
             UrpThrottle.await(conn.url.host)
             UrpHeaders.apply(conn, path = path, method = "POST", logTag = "API")
             val cookie = session.cookieHeader()
             if (cookie.isNotBlank()) conn.setRequestProperty("Cookie", cookie)
             conn.outputStream.use { it.write(body.toByteArray(Charsets.UTF_8)) }
             val code = conn.responseCode
+            val location = conn.getHeaderField("Location")
             val stream = if (code in 200..299) conn.inputStream else conn.errorStream
             val text = stream?.bufferedReader(Charsets.UTF_8)?.use { it.readText() } ?: ""
             DebugLog.http("API", "POST", path, code, text.length, preview = text)
-            code to text
+            UrpResponse(code, text, path, location)
         } catch (e: Exception) {
             DebugLog.error("API", "POST ${path.take(80)} 失败：${e.javaClass.simpleName} ${e.message}")
             throw e
@@ -546,8 +550,5 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
             conn.disconnect()
         }
     }
-
-    /** 供外部（设置页）显示用的「接口版本」标记 */
-    fun apiVersion(): String = "urp-syau/2 · " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("MM-dd"))
 }
 

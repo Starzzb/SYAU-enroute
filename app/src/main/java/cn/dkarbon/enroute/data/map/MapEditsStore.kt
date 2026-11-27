@@ -25,13 +25,8 @@ class MapEditsStore(ctx: Context) {
             ?.let { MapEditsCodec.fromJson(it) }
     }
 
-    fun write(edits: MapEdits): Boolean = runCatching {
-        dir.mkdirs()
-        val tmp = File(dir, "edits.json.tmp")
-        tmp.writeText(MapEditsCodec.toJson(edits), Charsets.UTF_8)
-        if (file.exists()) file.delete()
-        tmp.renameTo(file)
-    }.getOrDefault(false)
+    fun write(edits: MapEdits): Boolean =
+        cn.dkarbon.enroute.data.SafeWrite.text(file, MapEditsCodec.toJson(edits))
 
     fun path(): String = file.absolutePath
 

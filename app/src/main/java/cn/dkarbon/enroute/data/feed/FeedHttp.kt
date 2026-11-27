@@ -2,6 +2,7 @@ package cn.dkarbon.enroute.data.feed
 
 import cn.dkarbon.enroute.data.DebugLog
 import java.net.HttpURLConnection
+import java.net.URI
 import java.net.URL
 import java.util.zip.GZIPInputStream
 
@@ -28,6 +29,13 @@ object FeedHttp {
         var current = url
         var hops = 0
         while (hops < 5) {
+            // 每一跳都过闸：跳转可以把我们带到任意主机（含站外、含 file:// 之类）
+            FeedGuard.check(current)?.let { why ->
+                DebugLog.http("FEED", "GET", current, -1, 0, note = "已拦下：$why")
+                return Resp(-1, "", current, msSince(startedAt))
+            }
+            val host = runCatching { URI(current).host.orEmpty() }.getOrDefault("")
+            FeedGuard.waitFor(host).takeIf { it > 0 }?.let { Thread.sleep(it) }
             val conn = URL(current).openConnection() as HttpURLConnection
             try {
                 conn.requestMethod = "GET"
@@ -53,10 +61,19 @@ object FeedHttp {
                     return Resp(code, "", current, msSince(startedAt))
                 }
 
-                val raw = conn.inputStream.use { it.readBytes() }
+                // 上限在**读取时**生效，不是读完再判断 —— 读完就已经把内存吃掉了
+                val raw = try {
+                    conn.inputStream.use { FeedGuard.readCapped(it, FeedGuard.MAX_TEXT_BYTES) }
+                } catch (e: FeedGuard.TooLarge) {
+                    DebugLog.http("FEED", "GET", current, code, 0, elapsedMs = msSince(startedAt), note = e.message.orEmpty())
+                    return Resp(-2, "", current, msSince(startedAt))
+                }
                 val enc = conn.getHeaderField("Content-Encoding").orEmpty()
+                // 解压后同样限一次：gzip 炸弹在压缩体那一层是看不出来的
                 val bytes = if (enc.contains("gzip", true)) {
-                    runCatching { GZIPInputStream(raw.inputStream()).use { it.readBytes() } }.getOrDefault(raw)
+                    runCatching {
+                        GZIPInputStream(raw.inputStream()).use { FeedGuard.readCapped(it, FeedGuard.MAX_TEXT_BYTES) }
+                    }.getOrDefault(raw)
                 } else {
                     raw
                 }
@@ -81,6 +98,9 @@ object FeedHttp {
         var current = url
         var hops = 0
         while (hops < 5) {
+            if (FeedGuard.check(current) != null) return null
+            val host = runCatching { URI(current).host.orEmpty() }.getOrDefault("")
+            FeedGuard.waitFor(host).takeIf { it > 0 }?.let { Thread.sleep(it) }
             val conn = runCatching { URL(current).openConnection() as HttpURLConnection }.getOrNull() ?: return null
             try {
                 conn.requestMethod = "GET"
@@ -101,7 +121,12 @@ object FeedHttp {
                     DebugLog.http("FEED", "IMG", current, code, 0, elapsedMs = msSince(startedAt), note = "非 2xx")
                     return null
                 }
-                val bytes = conn.inputStream.use { it.readBytes() }
+                val bytes = try {
+                    conn.inputStream.use { FeedGuard.readCapped(it, FeedGuard.MAX_IMAGE_BYTES) }
+                } catch (e: FeedGuard.TooLarge) {
+                    DebugLog.http("FEED", "IMG", current, code, 0, note = e.message.orEmpty())
+                    return null
+                }
                 DebugLog.http("FEED", "IMG", current, code, bytes.size, elapsedMs = msSince(startedAt))
                 return bytes
             } catch (e: Exception) {
