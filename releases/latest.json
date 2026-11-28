@@ -1,9 +1,9 @@
 {
-  "versionCode": 510,
-  "versionName": "0.12.0+m43",
-  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m43/SYAU-enroute-m43.apk",
-  "sha256": "d1de433e9aa567ce90c4c62ebff14166bffaf7e9d125b2af2d831d2424cf233d",
-  "size": 8061612,
-  "notes": "一、教务系统短暂故障时不再判定登录过期，已获取的成绩与考试信息保留不动。\n二、课表与资讯读写中断时不再损坏已有数据。\n三、恢复校外通知来源的抓取；更新下载失败后不再重复发起。",
+  "versionCode": 520,
+  "versionName": "0.13.0+m44",
+  "url": "https://github.com/Starzzb/SYAU-enroute/releases/download/m44/SYAU-enroute-m44.apk",
+  "sha256": "1bb16876ae63670c8dc1a563354c9949a97e5169c618607981d620790db9e46c",
+  "size": 8077996,
+  "notes": "一、考试安排现在会显示座位号和考试名称，不再一律「暂缺」。\n二、我的页可以查任意课程的课表、班级的课表；空闲教室点开能看到这间教室当天的课。\n三、按课程号也能搜到课了。\n四、课表卡片只留「硬朗」与「账本」两种样式，并补回直角硬卡那一档。",
   "minSupported": 0
 }

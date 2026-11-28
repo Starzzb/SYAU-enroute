@@ -1514,7 +1514,7 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         // v2（2026-11-23）：覆盖位从「-1 跟随」改成「显式值」，并把 m39 遗留的
         // 「账页版式」（tt_card_layout = 1）折成「账页」预设 —— 那个开关已经从设置页删掉，
         // 不折的话老用户会永久卡在账页渲染分支上（设置页怎么调格子都不变）。
-        if (prefs.ttSlotsVersion >= 2) return
+        if (prefs.ttSlotsVersion < 2) {
         val idx = if (prefs.ttCardLayout == 1) {
             TtPresets.indexOf("ledger")
         } else {
@@ -1541,6 +1541,35 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         prefs.ttPreset = idx
         applySlots(slots, idx)
         prefs.ttSlotsVersion = 2
+        }
+
+        // v3（2026-11-28）：预设从五套收成两套（硬朗 / 账本）。
+        // 先按映射挪序号（账页 1→1，其余 →0），再看存下来的覆盖位是不是「原封不动等于旧预设」：
+        //   是 —— 没动过逐轴设置，换成新预设的槽位，观感跟着预设走；
+        //   否 —— 自己调过，原样保留，只挪序号。迁移不许冲掉人手动挑的组合。
+        if (prefs.ttSlotsVersion >= 3) return
+        val oldIdx = prefs.ttPreset.coerceIn(0, TtPresets.LEGACY_M43.lastIndex)
+        val next = TtPresets.migrateIndex(oldIdx)
+        val current = TtSlots(
+            shape = prefs.ttOvShape,
+            decor = prefs.ttOvDecor,
+            meta = prefs.ttOvMeta,
+            badge = prefs.ttOvBadge,
+            erosion = prefs.ttOvErosion,
+            motion = prefs.ttOvMotion,
+            tone = prefs.ttOvTone,
+            header = prefs.ttOvHeader,
+            grid = prefs.ttOvGrid,
+            backdrop = prefs.ttOvBackdrop,
+            bgMotion = prefs.ttOvBgMotion == 1,
+            tess = prefs.ttOvTess,
+            tessMode = prefs.ttOvTessMode,
+        )
+        val untouched = current == TtPresets.LEGACY_M43[oldIdx]
+        prefs.ttPreset = next
+        prefs.ttCardLayout = TtPresets.of(next).layout
+        applySlots(if (untouched) TtPresets.of(next).slots else current, next)
+        prefs.ttSlotsVersion = 3
     }
 
     /**
@@ -2108,6 +2137,9 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                 roomDetailLoading = false,
                 roomDetailInfo = null,
                 roomDetailMsg = noSessionHint(),
+                roomSchedule = cn.dkarbon.enroute.data.UrpHomeApi.TeacherSchedule(),
+                roomScheduleLoading = false,
+                roomScheduleMsg = noSessionHint(),
             )
             return
         }
@@ -2149,6 +2181,44 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
                     look.sessionLost -> "未登录或不在校园网"
                     look.info == null ->
                         cn.dkarbon.enroute.ui.home.HomeModel.classroomMissHint(look.totalCount, look.scanned)
+                    else -> ""
+                },
+            )
+        }
+
+        // ── 教室课表（教学资源 → 教室课表）──
+        // 与档案并行取：档案查不到也不影响排课，两件事互不拖累。
+        // 房号拼成 `buildingNo-roomNo`（教务那边 `2-601` 才是它认的 key，只给 `601` 返回空）。
+        _ui.value = _ui.value.copy(
+            roomSchedule = cn.dkarbon.enroute.data.UrpHomeApi.TeacherSchedule(),
+            roomScheduleLoading = true,
+            roomScheduleMsg = "",
+        )
+        viewModelScope.launch {
+            val campusNo = _ui.value.roomsCampusNo
+            val buildingNo = _ui.value.roomsBuildingNo
+            val r = withContext(Dispatchers.IO) {
+                runCatching {
+                    cn.dkarbon.enroute.data.UrpHomeApi.fetchClassroomSchedule(
+                        s, termCode, campusNo, buildingNo, roomNo,
+                    )
+                }
+            }
+            val res = r.getOrNull()
+            cn.dkarbon.enroute.data.DebugLog.log(
+                "HOME",
+                "教室课表 $campusNo/$buildingNo-$roomNo 学期=$termCode " +
+                    "时段=${res?.schedule?.slots?.size ?: -1} 会话失效=${res?.sessionLost == true}" +
+                    (r.exceptionOrNull()?.let { " · ${it.javaClass.simpleName}: ${it.message}" } ?: ""),
+            )
+            _ui.value = _ui.value.copy(
+                roomScheduleLoading = false,
+                roomSchedule = res?.schedule
+                    ?: cn.dkarbon.enroute.data.UrpHomeApi.TeacherSchedule(),
+                roomScheduleMsg = when {
+                    r.isFailure -> friendlyError(r.exceptionOrNull()!!)
+                    res == null || res.sessionLost -> "未登录或不在校园网"
+                    res.schedule.isEmpty -> "教务没有这间教室的排课"
                     else -> ""
                 },
             )
@@ -2289,6 +2359,200 @@ class TimetableViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
+
+    // ── 教学资源：课程课表 / 班级课表（2026-11-28 实测接入）──────
+
+    fun setCourseQuery(q: String) {
+        // 换了关键字就撤掉上一次的结论，免得对着新词还挂着「没搜到」
+        _ui.value = _ui.value.copy(courseQuery = q, courseMsg = "")
+    }
+
+    /** 按课名/课程号搜课程课表条目（关键字塞进 `kcm`，服务器 LIKE 匹配） */
+    fun searchCourses() {
+        val s = session
+        if (s == null) {
+            _ui.value = _ui.value.copy(courseMsg = noSessionHint())
+            return
+        }
+        val q = _ui.value.courseQuery.trim()
+        if (q.isBlank()) {
+            _ui.value = _ui.value.copy(courseHits = emptyList(), courseMsg = "输入课程名再搜")
+            return
+        }
+        val termCode = cn.dkarbon.enroute.ui.home.HomeModel.currentTermCode(
+            java.time.LocalDate.now(),
+            _ui.value.timetable?.term.orEmpty(),
+        )
+        _ui.value = _ui.value.copy(courseLoading = true, courseMsg = "搜索中…")
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) {
+                runCatching { cn.dkarbon.enroute.data.UrpHomeApi.searchCourses(s, termCode, q) }
+            }
+            val page = r.getOrNull()
+            val err = r.exceptionOrNull()
+            cn.dkarbon.enroute.data.DebugLog.log(
+                "HOME",
+                "查课程「$q」学期=$termCode 结果=${page?.hits?.size ?: -1}/" +
+                    "${page?.totalCount ?: -1} 会话失效=${page?.sessionLost == true}" +
+                    (err?.let { " · ${it.javaClass.simpleName}: ${it.message}" } ?: ""),
+            )
+            _ui.value = _ui.value.copy(
+                courseLoading = false,
+                courseHits = page?.hits ?: _ui.value.courseHits,
+                courseTotal = page?.totalCount ?: 0,
+                courseMsg = when {
+                    err != null -> friendlyError(err)
+                    page == null || page.sessionLost -> "未登录或不在校园网"
+                    page.hits.isEmpty() -> "这一学期没有匹配「$q」的课程"
+                    else -> "这一学期共 ${page.totalCount} 门, 先给你 ${page.hits.size} 门"
+                },
+            )
+        }
+    }
+
+    fun setClassQuery(q: String) {
+        _ui.value = _ui.value.copy(classQuery = q, classMsg = "")
+    }
+
+    /** 按班级名搜班级课表条目（关键字走 `classNum` 精确匹配；四位数当年级走 `yearNum`） */
+    fun searchClasses() {
+        val s = session
+        if (s == null) {
+            _ui.value = _ui.value.copy(classMsg = noSessionHint())
+            return
+        }
+        val q = _ui.value.classQuery.trim()
+        if (q.isBlank()) {
+            _ui.value = _ui.value.copy(classHits = emptyList(), classMsg = "输入班级名再搜")
+            return
+        }
+        _ui.value = _ui.value.copy(classLoading = true, classMsg = "搜索中…")
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) {
+                runCatching { cn.dkarbon.enroute.data.UrpHomeApi.searchClasses(s, q) }
+            }
+            val page = r.getOrNull()
+            val err = r.exceptionOrNull()
+            cn.dkarbon.enroute.data.DebugLog.log(
+                "HOME",
+                "查班级「$q」结果=${page?.hits?.size ?: -1}/${page?.totalCount ?: -1}" +
+                    " 会话失效=${page?.sessionLost == true}" +
+                    (err?.let { " · ${it.javaClass.simpleName}: ${it.message}" } ?: ""),
+            )
+            _ui.value = _ui.value.copy(
+                classLoading = false,
+                classHits = page?.hits ?: _ui.value.classHits,
+                classTotal = page?.totalCount ?: 0,
+                classMsg = when {
+                    err != null -> friendlyError(err)
+                    page == null || page.sessionLost -> "未登录或不在校园网"
+                    page.hits.isEmpty() -> "没有匹配「$q」的班级"
+                    else -> "全校共 ${page.totalCount} 个班, 先给你 ${page.hits.size} 个"
+                },
+            )
+        }
+    }
+
+    /** 点一门课 → 打开课表详情页（课程号 + 课序号 + 学期定位） */
+    fun openCourseSchedule(hit: cn.dkarbon.enroute.data.UrpHomeApi.CourseHit) {
+        val termCode = cn.dkarbon.enroute.ui.home.HomeModel.currentTermCode(
+            java.time.LocalDate.now(),
+            _ui.value.timetable?.term.orEmpty(),
+        )
+        val sub = listOf(
+            hit.code,
+            hit.teacherName,
+            if (hit.credit.isNotBlank()) hit.credit + " 学分" else "",
+            hit.category,
+        ).filter { it.isNotBlank() }.joinToString(" · ")
+        _ui.value = _ui.value.copy(
+            catalogTitle = hit.name,
+            catalogSubtitle = sub,
+            catalogKind = "course",
+            catalogKey = termCode + "|" + hit.courseNo + "|" + hit.seqNo,
+            catalogSchedule = cn.dkarbon.enroute.data.UrpHomeApi.TeacherSchedule(),
+            catalogLoading = false,
+            catalogMsg = "",
+        )
+        loadCatalogSchedule()
+    }
+
+    /** 点一个班 → 打开课表详情页（`planCode` 用该班方案号，不是当前学期号） */
+    fun openClassSchedule(hit: cn.dkarbon.enroute.data.UrpHomeApi.ClassHit) {
+        val sub = listOf(
+            hit.deptName,
+            if (hit.grade.isNotBlank()) hit.grade + " 级" else "",
+            hit.subjectName,
+            hit.planName,
+        ).filter { it.isNotBlank() }.joinToString(" · ")
+        _ui.value = _ui.value.copy(
+            catalogTitle = hit.className,
+            catalogSubtitle = sub,
+            catalogKind = "class",
+            catalogKey = hit.planNo + "|" + hit.className,
+            catalogSchedule = cn.dkarbon.enroute.data.UrpHomeApi.TeacherSchedule(),
+            catalogLoading = false,
+            catalogMsg = "",
+        )
+        loadCatalogSchedule()
+    }
+
+    fun closeCatalogSchedule() {
+        if (_ui.value.catalogTitle.isNotEmpty() || _ui.value.catalogKey.isNotEmpty()) {
+            _ui.value = _ui.value.copy(catalogTitle = "", catalogKey = "", catalogKind = "")
+        }
+    }
+
+    fun refreshCatalogSchedule() = loadCatalogSchedule()
+
+    /** 课程 / 班级课表回调共用一条路径：拿到 `[[{slot}…]]` 后交给同一份解析 */
+    private fun loadCatalogSchedule() {
+        val key = _ui.value.catalogKey
+        if (key.isBlank()) return
+        val s = session
+        if (s == null) {
+            _ui.value = _ui.value.copy(catalogLoading = false, catalogMsg = noSessionHint())
+            return
+        }
+        val kind = _ui.value.catalogKind
+        val parts = key.split("|")
+        _ui.value = _ui.value.copy(catalogLoading = true, catalogMsg = "查询课表中…")
+        viewModelScope.launch {
+            val r = withContext(Dispatchers.IO) {
+                runCatching {
+                    when {
+                        kind == "course" && parts.size >= 3 ->
+                            cn.dkarbon.enroute.data.UrpHomeApi.fetchCourseSchedule(
+                                s, parts[0], parts[1], parts[2],
+                            )
+                        kind == "class" && parts.size >= 2 ->
+                            cn.dkarbon.enroute.data.UrpHomeApi.fetchClassSchedule(
+                                s, parts[0], parts[1],
+                            )
+                        else -> cn.dkarbon.enroute.data.UrpHomeApi.TeacherScheduleResult()
+                    }
+                }
+            }
+            val res = r.getOrNull()
+            cn.dkarbon.enroute.data.DebugLog.log(
+                "HOME",
+                "教学资源课表 类型=$kind 键=$key 时段=${res?.schedule?.slots?.size ?: -1}" +
+                    " 会话失效=${res?.sessionLost == true}" +
+                    (r.exceptionOrNull()?.let { " · ${it.javaClass.simpleName}: ${it.message}" } ?: ""),
+            )
+            _ui.value = _ui.value.copy(
+                catalogLoading = false,
+                catalogSchedule = res?.schedule
+                    ?: cn.dkarbon.enroute.data.UrpHomeApi.TeacherSchedule(),
+                catalogMsg = when {
+                    r.isFailure -> friendlyError(r.exceptionOrNull()!!)
+                    res == null || res.sessionLost -> "未登录或不在校园网"
+                    res.schedule.isEmpty -> "教务没有返回排课（这份课表可能只在对应学期开放）"
+                    else -> ""
+                },
+            )
+        }
+    }
     // ── 查教师 ────────────────────────────────────────────
 
     fun setTeacherQuery(q: String) {

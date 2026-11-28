@@ -185,8 +185,11 @@ private fun PresetRail(selected: Int, onPick: (Int) -> Unit) {
 /**
  * 13 格刻度：一枚点对应一条轴。
  *
- * 红实心 = 这条被钉死了（不再跟随预设）；空心 = 跟随预设；小灰点 = 与预设不同（预设本身就这么设的）。
+ * 红实心 = 这条我自己改过（与当前预设不同）；空心 = 仍是预设给的值。
  * 这样一眼能看出「这套预设在哪些地方被我改过」，不用逐条读字。
+ *
+ * 2026-11-28 修：原来按「覆盖位 >= 0」判实心。可预设从 m42 起写的全是显式值，
+ * 覆盖位恒 >= 0 —— 十三枚点永远全红，刻度等于没有。改按「与预设值比」判。
  */
 @Composable
 private fun AxisRuler(slots: TtSlots, ui: AppState, onDot: (Int) -> Unit) {
@@ -198,21 +201,15 @@ private fun AxisRuler(slots: TtSlots, ui: AppState, onDot: (Int) -> Unit) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         for (axis in 0 until TtAxis.sizes.size) {
-            val pinned = overrideOf(ui, axis) >= 0
             val touched = slots.axisValue(axis) != presetSlots.axisValue(axis)
-            val d = if (pinned) 5.dp else 3.5.dp
+            val d = if (touched) 5.dp else 3.5.dp
             Box(
                 Modifier.size(d).clip(CircleShape)
                     .background(
-                        when {
-                            pinned -> t.primary
-                            touched -> t.inkFaint
-                            else -> Color.Transparent
-                        },
+                        if (touched) t.primary else Color.Transparent,
                     )
                     .then(
-                        if (!pinned && !touched) Modifier.border(0.75.dp, t.outline, CircleShape)
-                        else Modifier,
+                        if (!touched) Modifier.border(0.75.dp, t.outline, CircleShape) else Modifier,
                     )
                     .clickable { onDot(axis) },
             )

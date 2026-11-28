@@ -366,7 +366,7 @@ fun ExamDetailPage(
             cn.dkarbon.enroute.ui.kit.DetailFieldRow("考场", ExamRows.placeLabel(exam).ifBlank { "暂缺" })
             cn.dkarbon.enroute.ui.kit.DetailFieldRow("座位", exam.seat.ifBlank { "暂缺" })
             cn.dkarbon.enroute.ui.kit.DetailFieldRow("时长", ExamRows.durationLabel(exam).ifBlank { "暂缺" })
-            cn.dkarbon.enroute.ui.kit.DetailFieldRow("类别", exam.type.ifBlank { "暂缺" }, valueMono = false)
+            cn.dkarbon.enroute.ui.kit.DetailFieldRow("考试名称", exam.type.ifBlank { "暂缺" }, valueMono = false)
         }
 
         cn.dkarbon.enroute.ui.kit.DetailSection("校区与教室") {

@@ -97,3 +97,7 @@ server/telemetry/data/
 在途/curriculum/asset/
 在途/curriculum/json/pack/
 build-*-utf8.txt
+
+# ── 临时工作目录（截图、抓包脚本、一次性 python）──
+_work/
+_work

@@ -186,7 +186,7 @@ fun TeacherDetailScreen(ui: AppState, vm: TimetableViewModel) {
 
 /** 块标题 + 右侧小结 */
 @Composable
-private fun BlockTitle(title: String, right: String = "") {
+internal fun BlockTitle(title: String, right: String = "") {
     val t = InkTokens.current
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Text(title, fontSize = 12.sp, color = t.ink, fontWeight = FontWeight.Bold)
@@ -198,7 +198,7 @@ private fun BlockTitle(title: String, right: String = "") {
 }
 
 @Composable
-private fun HintText(text: String) {
+internal fun HintText(text: String) {
     val t = InkTokens.current
     Text(text, fontSize = 11.sp, lineHeight = 17.sp, color = t.inkSoft)
 }
@@ -243,7 +243,7 @@ private fun OpenUrlButton(label: String, onClick: () -> Unit) {
  * 所以网格只放课程名前几个字，其余信息在下面的列表里给全。
  */
 @Composable
-private fun WeekGrid(schedule: TeacherSchedule) {
+internal fun WeekGrid(schedule: TeacherSchedule) {
     val t = InkTokens.current
     val cells = remember(schedule) {
         val map = HashMap<Int, MutableList<TeacherSlot>>()
@@ -309,7 +309,7 @@ private fun WeekGrid(schedule: TeacherSchedule) {
 
 /** 明细一行：课程 + 时间 + 地点 + 班级人数 + 学分考核 */
 @Composable
-private fun SlotRow(slot: TeacherSlot) {
+internal fun SlotRow(slot: TeacherSlot) {
     val t = InkTokens.current
     Column(
         Modifier

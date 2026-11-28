@@ -73,6 +73,9 @@ private enum class UserPage(val title: String) {
     Rooms("空闲教室"),
     Teacher("查教师"),
     TeacherDetail("教师详情"),
+    CourseCatalog("课程课表"),
+    ClassCatalog("班级课表"),
+    CatalogSchedule("课表"),
     Settings("设置"),
     CardSettings("课程表卡片"),
     About("关于"),
@@ -130,7 +133,14 @@ fun UserScreen(
 
     Column(Modifier.fillMaxSize()) {
         if (current != UserPage.Root) {
-            SubHeader(current.title, onBack = { stack.removeAt(stack.lastIndex) })
+            // 课表详情页的标题是「哪门课 / 哪个班」，由 VM 在打开时定下来；
+            // 其余页用枚举里的固定标题。
+            val headerTitle = if (current == UserPage.CatalogSchedule && ui.catalogTitle.isNotBlank()) {
+                ui.catalogTitle
+            } else {
+                current.title
+            }
+            SubHeader(headerTitle, onBack = { stack.removeAt(stack.lastIndex) })
         }
         Box(Modifier.weight(1f)) {
             pageStates.SaveableStateProvider("user:${current.name}") {
@@ -148,6 +158,8 @@ fun UserScreen(
                     onOpenCustom = { vm.openCustomCourses(); stack.add(UserPage.CustomCourses) },
                     onOpenRooms = { stack.add(UserPage.Rooms) },
                     onOpenTeacher = { stack.add(UserPage.Teacher) },
+                    onOpenCourseCatalog = { stack.add(UserPage.CourseCatalog) },
+                    onOpenClassCatalog = { stack.add(UserPage.ClassCatalog) },
                     onOpenAbout = { stack.add(UserPage.About) },
                     onOpenLogin = { stack.add(UserPage.Login) },
                 )
@@ -169,6 +181,17 @@ fun UserScreen(
                     },
                 )
                 UserPage.TeacherDetail -> cn.dkarbon.enroute.ui.home.TeacherDetailScreen(ui = ui, vm = vm)
+                UserPage.CourseCatalog -> cn.dkarbon.enroute.ui.home.CourseCatalogScreen(
+                    ui = ui,
+                    vm = vm,
+                    onOpen = { stack.add(UserPage.CatalogSchedule) },
+                )
+                UserPage.ClassCatalog -> cn.dkarbon.enroute.ui.home.ClassCatalogScreen(
+                    ui = ui,
+                    vm = vm,
+                    onOpen = { stack.add(UserPage.CatalogSchedule) },
+                )
+                UserPage.CatalogSchedule -> cn.dkarbon.enroute.ui.home.CatalogScheduleScreen(ui = ui, vm = vm)
                 UserPage.CardSettings -> cn.dkarbon.enroute.ui.settings.CourseCardSettingsScreen(
                     ui = ui,
                     vm = vm,
@@ -236,6 +259,8 @@ private fun UserRoot(
     onOpenCustom: () -> Unit,
     onOpenRooms: () -> Unit,
     onOpenTeacher: () -> Unit,
+    onOpenCourseCatalog: () -> Unit,
+    onOpenClassCatalog: () -> Unit,
     onOpenAbout: () -> Unit,
     onOpenLogin: () -> Unit,
 ) {
@@ -371,6 +396,20 @@ private fun UserRoot(
                             onClick = onOpenScore,
                         ),
                         UserLedgerEntry(subject = "查教师", chevron = true, onClick = onOpenTeacher),
+                        // 教学资源 → 课程课表 / 班级课表（2026-11-28 接入）：与历年课表同一族，
+                        // 点进去先检索，再点一条看那张课表的周网格 + 明细。
+                        UserLedgerEntry(
+                            subject = "课程课表",
+                            badge = if (ui.courseHits.isEmpty()) "" else "${ui.courseHits.size} 门",
+                            chevron = true,
+                            onClick = onOpenCourseCatalog,
+                        ),
+                        UserLedgerEntry(
+                            subject = "班级课表",
+                            badge = if (ui.classHits.isEmpty()) "" else "${ui.classHits.size} 个",
+                            chevron = true,
+                            onClick = onOpenClassCatalog,
+                        ),
                         UserLedgerEntry(
                             subject = "课程大纲",
                             badge = MyPageModel.syllabusBadge(ui.syllabusIndex.size),

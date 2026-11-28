@@ -102,6 +102,9 @@ private fun ScaledHeight(scale: Float, content: @Composable () -> Unit) {
 }
 
 
+/** 预览里的侵蚀进度：定值，就为了让侵蚀轴选哪一档看得出来 */
+private const val PREVIEW_ERODE = 0.45f
+
 /** 真机宽度：预览内部一律按这个宽度排版，再由外层等比缩到面板宽度 */
 private val PHONE_W = 393.dp
 
@@ -242,8 +245,9 @@ private fun LessonRow(row: Int, rowH: Dp, axisW: Dp, slots: TtSlots) {
                 if (demo != null) {
                     TtCourseCell(
                         course = demo.course,
-                        // 预览不跑「小幽灵」：progress 恒 0；侵蚀那一条轴照样按档位生效
-                        progress = 0f,
+                        // 预览不跑「小幽灵」，但侵蚀要看得见：给一个恒定的 0.45 进度，
+                        // 上褪 / 斜线 / 整块淡三档才有差别（progress = 0 时三档长得一样）
+                        progress = PREVIEW_ERODE,
                         slots = slots,
                         tint = slots.tone,
                         onClickLabel = "",

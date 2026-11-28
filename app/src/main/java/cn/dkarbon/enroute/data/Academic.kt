@@ -46,7 +46,9 @@ data class ExamItem(
     val time: String = "",
     /** `主校 第二教学楼 201` */
     val place: String = "",
+    /** 座位号，来自考试安排首页时间轴的「座位号:」行（detail JSON 里没有） */
     val seat: String = "",
+    /** 考试名称，如 `2026-2027秋期末考试`；教务只给名称，没有单独的「类别」字段 */
     val type: String = "",
     /** 原始 start（ISO 风格，排序用） */
     val startAt: String = "",
@@ -171,7 +173,10 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
     /** 接口里 start/end 的形状：`2026-11-15 10:00` */
     private val MINUTE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
-    /** title 里的座位行。这套部署暂不返回，先认着 —— 学校加了字段不用改代码 */
+    /**
+     * title 里的座位行（学校哪天把座位写进 title 就直接认）。
+     * 目前 detail JSON 里没有座位——真正的座位号来自 [parseExamSeatsHtml] 解析的考试页时间轴。
+     */
     private val SEAT_RE = Regex("""^(?:座位号|座位|座号)\s*[:：]?\s*(\S+)$""")
 
     // ── 考试 ──────────────────────────────────────────────
@@ -197,13 +202,20 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
         // ⚠️ 必须先 GET 一次考试页，再请求 detail，否则服务端返回
         //    {"status":"203","data":""}（看起来像「没有考试」，其实是没建会话上下文）。
         //    2026-11-11 实测：同一个日期区间，不预热 = 203，预热后 = 4 场考试。
-        runCatching { get(EXAM_INDEX, session) }
+        //
+        // 2026-11-28 实测补充：这次预热**不是白跑**，它返回的 HTML 时间轴里带着
+        // 「座位号」与「考试名称」—— detail JSON 里没有这两个字段（只有 title/start/end/id/color）。
+        // 所以下面把预热的结果留下来，与 JSON 按「日期 + 课程名」合并。
+        val indexHtml = runCatching { get(EXAM_INDEX, session).requireOk("考试安排首页") }.getOrNull()
 
         val path = "$EXAM_DETAIL?start=${from.format(DASH)}&end=${to.format(DASH)}&_=${System.currentTimeMillis()}"
         val body = keepExpiry { get(path, session).requireOk("考试安排") } ?: return null
         val el = runCatching { json.parseToJsonElement(body) }.getOrNull() ?: return null
         // 「203/空 data」这类响应也是合法 JSON，但解析后没有任何考试条目 —— 那确实是「当前没有考试」
-        return parseExams(el)
+        val exams = parseExams(el)
+        // 没拿到首页 HTML 就只给 JSON 那部分：座位号留空（界面上显示「暂缺」），不猜
+        if (indexHtml.isNullOrBlank()) return exams
+        return mergeExamSeats(exams, parseExamSeatsHtml(indexHtml))
     }
 
     /** 纯解析入口（单测用真实 payload 锁住 schema） */
@@ -274,6 +286,125 @@ private const val EXAM_DETAIL = "/student/examinationManagement/examPlan/detail"
                 fields = fieldsOf(o),
             )
         }.sortedBy { it.startAt }
+    }
+
+    // ── 考试页时间轴：座位号与考试名称的唯一来源 ─────────────
+
+    /**
+     * 时间轴里一场考试的信息。
+     *
+     * 为什么单独一个类型：这两个字段**只存在于** `/examPlan/index` 的服务端渲染 HTML 里。
+     * `/examPlan/detail` 的 JSON 每场考试只有 `title`/`id`/`start`/`end`/`color` 五个键，
+     * `title` 是「课程名…教室」五行，座位与考试名称都不在其中。
+     * 2026-11-28 实测：detail 响应 637 字节、无座位字段；同一时刻 index 页 HTML
+     * 的时间轴里四场考试的「座位号」与「考试名称: 2026-2027秋期末考试」都在。
+     */
+    data class ExamSeatInfo(
+        /** 开考日期 `2026-12-15` */
+        val date: String = "",
+        /** 开考时刻 `08:00`（时间轴只给了区间，取左端） */
+        val startClock: String = "",
+        /** 课程名（已去掉 `（901040302-01）` 前缀与 `（已结束）` 后缀） */
+        val name: String = "",
+        /** 座位号 `29`；页面没写就是空串 */
+        val seat: String = "",
+        /** 考试名称 `2026-2027秋期末考试`（界面上作为「类别」展示） */
+        val type: String = "",
+    )
+
+    /** 时间轴里的字段名；顺序即页面上的顺序，取值就是「到下一个字段名之前」 */
+    private val TIMELINE_LABEL_RE = Regex("""(考试名称|考试时间|地点|座位号|准考证号|考试提示信息)\s*[:：]""")
+    private val DATE_ONLY_RE = Regex("""(\d{4}-\d{2}-\d{2})""")
+    private val CLOCK_RANGE_RE = Regex("""(\d{1,2}:\d{2})\s*[-–~—]\s*(\d{1,2}:\d{2})""")
+    private val TAG_RE = Regex("""<[^>]*>""")
+    private val BLANK_RE = Regex("""\s+""")
+    /** 课程名前缀 `（901040302-01）` */
+    private val COURSE_CODE_RE = Regex("""^[（(][^）)]*[）)]\s*""")
+    /** 课程名后缀 `（已结束）` —— 是状态，不是课程名的一部分 */
+    private val COURSE_STATE_RE = Regex("""[（(](?:已结束|未结束|进行中|已取消)[）)]\s*$""")
+    private val TIMELINE_TITLE_RE = Regex("""<h5[^>]*widget-title[^>]*>([\s\S]*?)</h5>""")
+
+    /**
+     * 从考试页 HTML 里抠出每场考试的座位号与考试名称。
+     *
+     * 解析口径（2026-11-28 按真机页面结构确定，不是猜）：
+     * 一场考试一个 `timeline-item clearfix` 块；块里 `<h5 class="widget-title smaller">` 是课程名
+     * （带课程号前缀），`widget-main` 里是「考试名称 / 考试时间 / 地点 / 座位号 / 准考证号 / 考试提示信息」
+     * 六段，用 `</br>` 分隔（注意浏览器接受的是错的 `</br>`，不是 `<br>`，两种都要认）。
+     *
+     * 页面把同一批数据在「时间轴模式」与「日历模式」各渲染一遍，所以同名条目可能重复 ——
+     * 取到的是同一份值，重复不影响结果。
+     */
+    internal fun parseExamSeatsHtml(html: String): List<ExamSeatInfo> =
+        html.split("timeline-item clearfix").drop(1).mapNotNull { block ->
+            val name = courseNameOf(block) ?: return@mapNotNull null
+            val text = htmlToText(block)
+            val labels = TIMELINE_LABEL_RE.findAll(text).toList()
+            if (labels.isEmpty()) return@mapNotNull null
+            val values = HashMap<String, String>()
+            labels.forEachIndexed { i, m ->
+                val from = m.range.last + 1
+                val to = labels.getOrNull(i + 1)?.range?.first ?: text.length
+                values[m.groupValues[1]] = text.substring(from, to).trim()
+            }
+            val whenText = values["考试时间"].orEmpty()
+            // 连日期都没有的块不可信，直接丢掉 —— 宁缺不编
+            val date = DATE_ONLY_RE.find(whenText)?.groupValues?.get(1) ?: return@mapNotNull null
+            ExamSeatInfo(
+                date = date,
+                startClock = CLOCK_RANGE_RE.find(whenText)?.groupValues?.get(1).orEmpty(),
+                name = name,
+                seat = values["座位号"].orEmpty().trim(),
+                type = values["考试名称"].orEmpty().trim(),
+            )
+        }
+
+    private fun courseNameOf(block: String): String? {
+        val raw = TIMELINE_TITLE_RE.find(block)?.groupValues?.get(1) ?: return null
+        val name = htmlToText(raw)
+            .replace(COURSE_CODE_RE, "")
+            .replace(COURSE_STATE_RE, "")
+            .trim()
+        return name.ifBlank { null }
+    }
+
+    /** HTML 片段 → 一行纯文本：`</br>`/`<br>` 当空格，实体解码，连续空白压成一个 */
+    private fun htmlToText(s: String): String = s
+        .replace("</br>", " ")
+        .replace("<br/>", " ")
+        .replace("<br>", " ")
+        .replace("&nbsp;", " ")
+        .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", "\"")
+        .replace(TAG_RE, " ")
+        .replace(BLANK_RE, " ")
+        .trim()
+
+    /**
+     * 把时间轴里的座位号 / 考试名称合并进 detail JSON 解析出来的列表。
+     *
+     * 匹配口径：先按「日期 + 课程名」，对不上再按「日期 + 开考时刻」。
+     * 两条都不中说明这场考试在首页时间轴里根本没有（例如区间里翻出了别的学期），
+     * 那就保持空 —— 界面显示「暂缺」，不拿相邻条目的座位顶上。
+     */
+    internal fun mergeExamSeats(exams: List<ExamItem>, seats: List<ExamSeatInfo>): List<ExamItem> {
+        if (exams.isEmpty() || seats.isEmpty()) return exams
+        val byName = seats.associateBy { "${it.date}|${it.name}" }
+        val byClock = seats.filter { it.startClock.isNotBlank() }
+            .associateBy { "${it.date}|${it.startClock}" }
+        return exams.map { e ->
+            val hit = byName["${e.date}|${e.name}"] ?: byClock["${e.date}|${e.startClock}"]
+            if (hit == null) {
+                e
+            } else {
+                e.copy(
+                    seat = e.seat.ifBlank { hit.seat },
+                    type = e.type.ifBlank { hit.type },
+                )
+            }
+        }
     }
 
     /** 起止时刻算时长；任何一端解析不出来就返回 0（表示「不知道」，不是 100 分钟） */

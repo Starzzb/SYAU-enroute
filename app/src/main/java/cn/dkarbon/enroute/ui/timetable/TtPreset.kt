@@ -14,7 +14,7 @@ import androidx.compose.runtime.Immutable
  */
 @Immutable
 data class TtSlots(
-    /** 0 方卡 / 1 便签 / 2 细线 / 3 色块 / 4 标签 */
+    /** 0 方卡 / 1 便签 / 2 细线 / 3 色块 / 4 标签 / 5 硬卡（0 圆角 + 实边） */
     val shape: Int = 0,
     /** 0 无 / 1 左脊 / 2 顶帽 / 3 角点 / 4 底线 / 5 淡底 / 6 斜纹 */
     val decor: Int = 1,
@@ -60,13 +60,13 @@ object TtAxis {
     /** 它的动法 —— TESS 的子轴：TESS=0 时整条锁死在「定格」 */
     const val TESS_MODE = 12
     /** 每条轴的取值个数 —— 序号 0..n-1，与 [options] 一一对应 */
-    val sizes = intArrayOf(5, 7, 4, 3, 4, 3, 3, 3, 3, 5, 2, 3, 5)
+    val sizes = intArrayOf(6, 7, 4, 3, 4, 3, 3, 3, 3, 5, 2, 3, 5)
     val names = arrayOf(
         "形状", "装饰", "字段", "角标", "侵蚀", "动效", "底色",
         "页头", "行距", "底纹", "底纹动效", "超立方体", "转动逻辑",
     )
     val options = arrayOf(
-        arrayOf("方卡", "便签", "细线", "色块", "标签"),
+        arrayOf("方卡", "便签", "细线", "色块", "标签", "硬卡"),
         arrayOf("无", "左脊", "顶帽", "角点", "底线", "淡底", "斜纹"),
         arrayOf("三行", "同行", "底栏", "只课名"),
         arrayOf("无", "折角", "斜纹带"),
@@ -91,7 +91,7 @@ object TtAxis {
 }
 
 /** 预设套数（ViewModel 里做上限钳制用） */
-const val TtPresetCount = 5
+const val TtPresetCount = 2
 
 /** decor = 左脊的序号，migration 要用 */
 const val TtDecorSpine = 1
@@ -141,65 +141,61 @@ data class TtOverrides(
 
 object TtPresets {
 
-    /** 五套预设，顺序即设置页顺序。第 0 套 = 改造前的样子。 */
+    /**
+     * 两套预设，顺序即设置页顺序。
+     *
+     * 2026-11-28 主人定：预设只留两套 ——
+     *   0「硬朗」= 最初的农业主题（直角硬卡 + 左脊四色 + 田垄底纹）；
+     *   1「账本」= 账页那套（细线框 + 竖脊单墨 + 横线格 + 账页版式）。
+     * 其余三套（密排 / 日程 / 安静）撤掉：13 条轴逐条都能改，预设多了反而选不出来。
+     */
     val ALL: List<TtPreset> = listOf(
         TtPreset(
-            id = "paper",
-            label = "纸卡",
-            note = "侵蚀纸卡 + 四色分科，改造前的老样子",
+            id = "hard",
+            label = "硬朗",
+            note = "直角实边 + 左脊四色 + 田垄底纹，最初的农业主题",
             slots = TtSlots(
-                shape = 0, decor = 1, meta = 0, badge = 0,
-                erosion = 1, motion = 0, tone = 0,
-                header = 1, grid = 1, backdrop = 0, bgMotion = false,
+                shape = 5, decor = 1, meta = 0, badge = 0,
+                erosion = 0, motion = 0, tone = 0,
+                header = 1, grid = 1, backdrop = 2, bgMotion = false,
                 tess = 1, tessMode = 0,
             ),
         ),
         TtPreset(
             id = "ledger",
-            label = "账页",
-            note = "横线格 + 竖脊，字距更紧，一屏多一节",
+            label = "账本",
+            note = "细线框 + 竖脊单墨 + 横线格，像一本账",
             layout = 1,
             slots = TtSlots(
-                shape = 3, decor = 4, meta = 1, badge = 0,
+                shape = 2, decor = 1, meta = 1, badge = 0,
                 erosion = 0, motion = 0, tone = 1,
                 header = 0, grid = 0, backdrop = 1, bgMotion = false,
-                tess = 2, tessMode = 0,
-            ),
-        ),
-        TtPreset(
-            id = "dense",
-            label = "密排",
-            note = "细线框 + 只课名，一屏十一二节",
-            slots = TtSlots(
-                shape = 2, decor = 0, meta = 3, badge = 0,
-                erosion = 0, motion = 0, tone = 1,
-                header = 0, grid = 0, backdrop = 0, bgMotion = false,
-                tess = 0, tessMode = 3,
-            ),
-        ),
-        TtPreset(
-            id = "agenda",
-            label = "日程",
-            note = "便签 + 顶帽 + 底栏，像手写日程本",
-            slots = TtSlots(
-                shape = 1, decor = 2, meta = 2, badge = 0,
-                erosion = 3, motion = 1, tone = 0,
-                header = 2, grid = 2, backdrop = 2, bgMotion = false,
-                tess = 1, tessMode = 1,
-            ),
-        ),
-        TtPreset(
-            id = "quiet",
-            label = "安静",
-            note = "标签 + 淡底 + 无色，页面几乎只剩字",
-            slots = TtSlots(
-                shape = 4, decor = 5, meta = 0, badge = 0,
-                erosion = 0, motion = 0, tone = 2,
-                header = 1, grid = 1, backdrop = 3, bgMotion = true,
-                tess = 0, tessMode = 3,
+                tess = 1, tessMode = 3,
             ),
         ),
     )
+
+    /**
+     * m43 之前的五套（paper / ledger / dense / agenda / quiet）的槽位快照。
+     *
+     * 只为一件事存在：升级到「两套预设」时判断老用户到底动没动过逐轴设置 ——
+     * 现存覆盖位与这张表里对应那一套完全相同 = 没动过，可以安全换成新预设；
+     * 动过就保留他自己的取值，只挪预设序号。不是运行时数据源，别在这里调参。
+     */
+    internal val LEGACY_M43: List<TtSlots> = listOf(
+        TtSlots(0, 1, 0, 0, 1, 0, 0, 1, 1, 0, false, 1, 0),
+        TtSlots(3, 4, 1, 0, 0, 0, 1, 0, 0, 1, false, 2, 0),
+        TtSlots(2, 0, 3, 0, 0, 0, 1, 0, 0, 0, false, 0, 3),
+        TtSlots(1, 2, 2, 0, 3, 1, 0, 2, 2, 2, false, 1, 1),
+        TtSlots(4, 5, 0, 0, 0, 0, 2, 1, 1, 3, true, 0, 3),
+    )
+
+    /**
+     * 老预设序号 → 新序号。账页原样保留（1 → 1），其余四套并到「硬朗」（0）。
+     *
+     * 迁移只搬序号；要不要连槽位一起换由调用方判断（见 [LEGACY_M43]）。
+     */
+    fun migrateIndex(old: Int): Int = if (old == 1) 1 else 0
 
     fun of(index: Int): TtPreset = ALL[index.coerceIn(0, ALL.size - 1)]
 
@@ -236,7 +232,7 @@ object TtPresets {
         fun pick(ov: Int, fallback: Int, max: Int): Int =
             if (ov < 0) fallback else ov.coerceIn(0, max)
         var s = base.copy(
-            shape = pick(o.shape, base.shape, 4),
+            shape = pick(o.shape, base.shape, 5),
             decor = pick(o.decor, base.decor, 6),
             meta = pick(o.meta, base.meta, 3),
             badge = pick(o.badge, base.badge, 2),

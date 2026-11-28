@@ -18,12 +18,12 @@ import org.junit.Test
 class TtPresetTest {
 
     @Test
-    fun `五套预设齐全且互不相同`() {
-        assertEquals(5, TtPresets.ALL.size)
+    fun `两套预设齐全且互不相同`() {
+        assertEquals(2, TtPresets.ALL.size)
         val ids = TtPresets.ALL.map { it.id }
         assertEquals(ids.size, ids.toSet().size)
         // 任意两套至少差三条轴，否则「换预设」看起来没变化
-        for (i in 0 until 5) for (j in i + 1 until 5) {
+        for (i in TtPresets.ALL.indices) for (j in i + 1 until TtPresets.ALL.size) {
             val a = TtPresets.of(i).slots
             val b = TtPresets.of(j).slots
             val diff = listOf(
@@ -38,19 +38,23 @@ class TtPresetTest {
     }
 
     @Test
-    fun `第一套预设等于改造前的样子`() {
+    fun `第一套预设是硬朗农业`() {
+        // 2026-11-28 主人定：第 0 套回到「最初的农业主题」——
+        // 直角硬卡 + 左脊 + 三行 + 四色 + 田垄底纹，不侵蚀、不动。
         val s = TtPresets.of(0).slots
-        assertEquals(0, s.shape)   // 方卡
+        assertEquals("hard", TtPresets.of(0).id)
+        assertEquals(5, s.shape)   // 硬卡（0 圆角 + 实边）
         assertEquals(1, s.decor)   // 左脊
         assertEquals(0, s.meta)    // 三行
-        assertEquals(1, s.erosion) // 上褪
+        assertEquals(0, s.erosion) // 不褪
         assertEquals(0, s.tone)    // 四色
         assertEquals(0, s.motion)  // 不动
+        assertEquals(2, s.backdrop)// 田垄
     }
 
     @Test
     fun `覆盖位全为负时沿用预设`() {
-        for (i in 0 until 5) {
+        for (i in TtPresets.ALL.indices) {
             assertEquals(TtPresets.of(i).slots, TtPresets.resolve(i, TtOverrides()))
         }
     }
@@ -68,7 +72,7 @@ class TtPresetTest {
     @Test
     fun `越界的覆盖值被钳制而不是崩溃`() {
         val s = TtPresets.resolve(0, TtOverrides(shape = 99, tone = -5, backdrop = 42))
-        assertTrue(s.shape in 0..4)
+        assertTrue(s.shape in 0..5)
         assertTrue(s.tone in 0..2)
         assertTrue(s.backdrop in 0..4)
     }
@@ -83,6 +87,8 @@ class TtPresetTest {
         assertEquals(0, TtPresets.sanitize(TtSlots(shape = 2, decor = 5)).decor)
         // 无色 + 色块 = 退化成描边
         assertNotEquals(3, TtPresets.sanitize(TtSlots(shape = 3, tone = 2)).shape)
+        // 硬卡是浅底 + 实边，无色（描边）与它不冲突，不该被改掉
+        assertEquals(5, TtPresets.sanitize(TtSlots(shape = 5, tone = 2)).shape)
     }
 
     @Test
@@ -128,7 +134,7 @@ class TtPresetTest {
     fun `预设可以展开成显式覆盖值`() {
         // 2026-11-23：点预设 = 把 13 条轴写成具体值，界面里不再有「跟随」这一枚。
         // 展开后再解析必须回到同一套槽位（不然点了预设观感会飘）。
-        for (i in 0 until 5) {
+        for (i in TtPresets.ALL.indices) {
             val slots = TtPresets.of(i).slots
             val e = TtPresets.explicit(slots)
             assertEquals(slots, TtPresets.resolve(i, e))
@@ -141,11 +147,25 @@ class TtPresetTest {
     }
 
     @Test
+    fun `旧五套序号映射到两套`() {
+        // 账页原样保留，其余四套并到「硬朗」
+        assertEquals(1, TtPresets.migrateIndex(1))
+        assertEquals(0, TtPresets.migrateIndex(0))
+        assertEquals(0, TtPresets.migrateIndex(2))
+        assertEquals(0, TtPresets.migrateIndex(3))
+        assertEquals(0, TtPresets.migrateIndex(4))
+        // 旧表必须是五套，且每一套都能对上一个新序号 —— 迁移只读它做「动没动过」的判断
+        assertEquals(5, TtPresets.LEGACY_M43.size)
+        for (i in TtPresets.LEGACY_M43.indices) assertTrue(TtPresets.migrateIndex(i) in 0..1)
+    }
+
+    @Test
     fun `账页是唯一带版式标记的预设`() {
         // 版式标记只影响页头质感与未排课行；格子一律由 slots 决定，
         // 所以除账页外都必须是 0，否则又会出现「格子走另一条渲染分支」。
         assertEquals(1, TtPresets.layoutOf(TtPresets.indexOf("ledger")))
-        for (i in 0 until 5) {
+        assertEquals(0, TtPresets.layoutOf(TtPresets.indexOf("hard")))
+        for (i in TtPresets.ALL.indices) {
             if (TtPresets.of(i).id != "ledger") assertEquals(0, TtPresets.layoutOf(i))
         }
     }

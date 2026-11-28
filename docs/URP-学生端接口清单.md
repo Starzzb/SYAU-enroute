@@ -499,3 +499,115 @@ Content-Type: application/x-www-form-urlencoded
 **用途**：App 里「历年课表」可以直接复用现有 `UrpClient.parseSchedule`（schema 相同），
 只需把 planCode 换成目标学期；样本落盘 `docs/_probe/urp/calendar_schedule_after_switch.json`，
 探针 `docs/_probe/urp/probe_calendar3.js`。
+
+---
+
+## 6.6 考试座位号与考试名称（**2026-11-28 实测，真机登录后抓包**）
+
+### 结论：detail JSON 里没有这两个字段，它们在 index 页的时间轴 HTML 里
+
+`GET /student/examinationManagement/examPlan/detail?start=&end=` 每场考试只有五个键：
+
+```json
+{"title":"不动产估价\n08:00-09:40\n主校\n第二教学楼\n201","id":"1",
+ "start":"2026-12-15 08:00","end":"2026-12-15 09:40","color":"#3a87ad"}
+```
+
+`title` 是「课程名 / 时间段 / 校区 / 教学楼 / 教室」五行，**没有座位号，也没有考试名称**。
+本次响应 `content-length: 637`（区间 2026-10-26 ~ 2026-12-07，2 条事件）。
+
+同一时刻 `GET /student/examinationManagement/examPlan/index`（63KB，服务端渲染）的时间轴区块里，每场考试是一段：
+
+```html
+<div class="timeline-item clearfix">
+  <font size="1" color="blue">20261215</font>
+  <h5 class="widget-title smaller">（901040302-01）不动产估价</h5>
+  <div class="widget-main">
+    考试名称:&nbsp;2026-2027秋期末考试</br>
+    考试时间:&nbsp; 17周&nbsp; 2026-12-15 &nbsp; 星期二 &nbsp;08:00-09:40 </br>
+    地点:&nbsp;主校&nbsp;第二教学楼&nbsp;201</br>
+    座位号:&nbsp;29</br> 准考证号:&nbsp;
+    <span style='color: red;'>考试提示信息：&nbsp;无</span>
+  </div>
+</div>
+```
+
+四场考试的座位号依次是 361 / 29 / 29 / 30，考试名称都是「2026-2027秋期末考试」。
+
+### App 侧实现（`data/Academic.kt`）
+
+- `fetchExamsOrNull` 本来就要先 GET 一次 index 建会话（否则 detail 返回 `{"status":"203"}`），现在把这次响应**留下来**：`val indexHtml = runCatching { get(EXAM_INDEX, session).requireOk(...) }.getOrNull()`
+- `parseExamSeatsHtml(html)` 按 `timeline-item clearfix` 切块 → 抠 `<h5 class="widget-title smaller">` 里的课程名（去掉 `（901040302-01）` 前缀与 `（已结束）` 后缀）→ 六段字段按 `考试名称|考试时间|地点|座位号|准考证号|考试提示信息` 切开
+- `mergeExamSeats(exams, seats)` 先按 `日期|课程名` 匹配，退一步按 `日期|开考时刻`；两条都不中保持空（界面显示「暂缺」）
+- 夹具：`app/src/test/resources/feed/urp_examplan_index.html`（真实 HTML 的 timeline 区块，座位号替换为 101~104）；单测 `app/src/test/java/cn/dkarbon/enroute/ExamSeatParseTest.kt`
+
+### 坑与边界
+
+- 页面用的是 `</br>`（非法闭合标签，浏览器照收），**不是** `<br>`；两种都要当分隔符
+- 时间轴把同一批数据在「时间轴模式」与「日历模式」各渲染一遍（`#timeline-1` / `#timeline-2`），重复不影响结果
+- index 页时间轴只覆盖**当前学期**；查区间翻到别的学期时，那些考试在 HTML 里没有对应块，座位保持空 —— 不猜、不借邻座
+- 座位号可能为空串（页面写了「座位号:」但没值），此时照样存空，界面显示「暂缺」
+## 6.7 教学资源：课程课表 / 班级课表 / 教室课表（**2026-11-28 实测接入**）
+
+菜单「教学资源」下 5 个入口，App 此前只接了「空闲教室」。本轮把另外四个里的三个接上
+（**教师课表**上一轮已接，见 §6.2），全部走同一个解析器 `parseTeacherSchedule`。
+
+### 检索两级：先搜条目，再按条目取课表
+
+| 用途 | 入口 | 方法 | 关键参数 |
+|---|---|---|---|
+| 课程检索 | `/student/teachingResources/courseCurriculum/search` | POST 表单 | `zxjxjhh`（学期号，如 `2026-2027-1-1`）、`kcm`（课名 LIKE）**或** `kch`（课号 LIKE） |
+| 课程课表 | `.../courseCurriculum/searchCurriculum/callback` | GET | `planCode`、`courseCode`、`courseSequenceCode` |
+| 班级检索 | `.../classCurriculum/search` | POST 表单 | `classNum`（班名，**精确匹配**）、`yearNum`（年级，如 `2012`）、`departmentNum`；`param_value` 是死字段 |
+| 班级课表 | `.../classCurriculum/searchCurriculumInfo/callback` | GET | `planCode`（**该班方案号**）、`classCode`（班名） |
+| 教室课表 | `.../classroomCurriculum/searchCurriculum/callback` | GET | `planNumber`、`campusNumber`、`teachingBuildingNumber`、`classroomNumber` |
+
+检索表单其余键（`kkxsh` / `kch` / `kxh` / `kclb`、`subjectNum` / `classNum`）实测留空即可，
+但**必须原样带上**——少键会 400。
+
+### 返回形状（两处不一致，是踩得最疼的一处）
+
+- 课程检索顶层是**对象**：`{"pageSize":10,"pageNum":1,"pageContext":{"totalCount":2189},"records":[{...}]}`
+  记录的键全大写：`KCM`（课名）、`KCH`（课程号）、`KXH`（课序号）、`KKXSM`（开课学院）、`XF`、`KSLXMC`、`KCLBMC`
+- 班级检索顶层是**数组套对象**：`[{"pageContext":{"totalCount":8799},"records":[{...}]}]`
+  记录的键全小写驼峰：`className`、`departmentName`、`admissionGrade`、`subjectName`、
+  `id.executiveEducationPlanNumber`（方案号）、`zxjxjhh`
+- 三个课表 callback 都是 `[[{slot}…]]`：`id.skzc`（周次串，`0/1` 逐周）、`id.skxq`（星期）、
+  `id.skjc`（起始节）、`cxjc`（连上几节）、`kcm`、`kxh`、`kch`、`jxlm`、`jasm`、`jash`、`xqm`
+- 被踢回登录页时返回 HTML 而不是 JSON —— 三个取课表的函数统一转成 `TeacherScheduleResult(sessionLost = true)`，不抛栈
+
+### 坑
+
+- **班级检索只有 `classNum`（精确）与 `yearNum` 真的过滤**：全空 8799 条；`param_value` 填任何词都还是 8799；
+  `classNum=12`、`12动医`、`%12%` 全是 0 条——不认部分匹配也不认通配符；`classNum=12动医1` 才 1 条，`yearNum=2012` 3 条。
+- **班级课表的 `planCode` 不是当前学期号**，是该班自己的培养方案号（如 `2016-2017-1-1`）。
+  传当前学期号会拿到 `[[]]`（空数组套空数组），看着像「这班没课」。
+- **教室课表的 `classroomNumber` 要 `楼号-房号`**（`2-601`）。只给 `601` 返回空。
+- 中文课名 / 班名必须 URL 编码，否则 400。课程检索走 POST 表单，由表单编码承担；两个 GET callback 手动 `URLEncoder.encode`。
+- 三个检索都**分页**（`pageNum`/`pageSize`，服务端上限 200）。App 一次只取第一页 40 条并把 `totalCount` 写在提示里，
+  不假装「这就是全部」。
+- **课程检索的 `kcm` 只认课名、`kch` 只认课号，两个同时填是「且」**（2026-11-28 真机页面内实测，同学期同表头）：
+
+  | 表单 | 结果 |
+  |---|---|
+  | `kcm=不动产` | 2 条（不动产估价 / 901040302） |
+  | `kch=901020203` | 5 条（观赏园艺学（Ⅱ）…） |
+  | `kcm=不动产&kch=不动产` | **0 条** |
+  | `kcm=X304101&kch=X304101` | **0 条** |
+  | 两个都空 | 2189 条（整学期课程表） |
+
+  App 用一个输入框，所以按形态选字段：含汉字 → `kcm`；纯 ASCII 且带数字 → `kch`；
+  猜错（0 条）就换另一边再发一次。曾经两个都塞 `kcm`，输入课程号永远 0 条。
+
+### App 侧实现
+
+- 数据层全在 `data/UrpHomeApi.kt`（与空闲教室同一个 object，复用 `get`/`postForm`/`read`/`looksLikeLoginPage` 与 cookie）：
+  `searchCourses` / `searchClasses` / `fetchCourseSchedule` / `fetchClassSchedule` / `fetchClassroomSchedule`，
+  纯函数 `courseSearchForm` / `classSearchForm` / `courseSlotsPath` / `classSlotsPath` / `classroomSlotsPath` / `parseCourses` / `parseClasses`
+- 状态：`AppState` 的 `course*` / `class*` / `catalog*` / `roomSchedule*` 四组；
+  动作：`TimetableViewModel` 的 `searchCourses` / `openCourseSchedule` / `searchClasses` / `openClassSchedule` / `refreshCatalogSchedule`
+- 界面：`ui/home/CatalogScreen.kt`（课程检索页 / 班级检索页 / 课表详情页，详情页复用教师详情那套 `WeekGrid` + `SlotRow`，
+  所以四个入口的课表长一个样）；入口在「我的 → 教务」盒里的「课程课表 / 班级课表」两行；
+  空闲教室浮层里写死的「占用暂缺」换成这间教室的真实排课
+- 夹具 `app/src/test/resources/urp/`：`tr_course.json`、`tr_class.json`、`tr_courseSlots.json`、`tr_classSlots.json`、`tr_roomSlots.json`；
+  单测 `app/src/test/java/cn/dkarbon/enroute/TeachingResourcesTest.kt`（14 条：字段落位、表单单键、三条路径拼法、空数组/`[[]]`/登录页都不抛）

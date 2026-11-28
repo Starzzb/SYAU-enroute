@@ -282,14 +282,43 @@ private fun RoomDetailSheet(ui: AppState, vm: TimetableViewModel) {
         Box(Modifier.fillMaxWidth().height(Stroke.hairline).background(t.rule))
         Spacer(Modifier.height(10.dp))
 
-        Text("这间教室的占用", fontSize = 12.sp, color = t.ink, fontWeight = FontWeight.Medium)
+        // 2026-11-28：教室课表接上了（classroomCurriculum/searchCurriculum/callback），
+        // 原来写死的「占用暂缺」撤掉 —— 有排课就把这段课列出来，真没排课才说话。
+        val slots = ui.roomSchedule.slots
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text("这间教室的课表", fontSize = 12.sp, color = t.ink, fontWeight = FontWeight.Medium)
+            Spacer(Modifier.weight(1f))
+            if (slots.isNotEmpty()) {
+                Text("${slots.size} 段", fontSize = 10.sp, color = t.inkFaint, fontFamily = NumericFont)
+            }
+        }
         Spacer(Modifier.height(4.dp))
-        Text(
-            HomeModel.occupancyHint(),
-            fontSize = 11.sp,
-            lineHeight = 17.sp,
-            color = t.inkSoft,
-        )
+        when {
+            ui.roomScheduleLoading -> Text(
+                "正在查这间教室的排课…",
+                fontSize = 11.sp,
+                lineHeight = 17.sp,
+                color = t.inkSoft,
+            )
+            slots.isNotEmpty() -> Column(
+                Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(Space.xs),
+            ) {
+                slots.forEach { slot -> SlotRow(slot) }
+            }
+            ui.roomScheduleMsg.isNotBlank() -> Text(
+                ui.roomScheduleMsg,
+                fontSize = 11.sp,
+                lineHeight = 17.sp,
+                color = t.inkSoft,
+            )
+            else -> Text(
+                "这段时间这间教室没有排课",
+                fontSize = 11.sp,
+                lineHeight = 17.sp,
+                color = t.inkFaint,
+            )
+        }
 
         val msg = when {
             ui.roomDetailLoading -> "正在查这间教室的档案…"

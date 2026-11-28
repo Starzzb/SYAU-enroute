@@ -169,6 +169,12 @@ fun TtCourseCell(
                     when {
                         outlineOnly -> Modifier.border(1.dp, spineColor, shape)
                         block -> Modifier
+                        // 硬卡：边线拉满不透明，直角 + 实边才是「硬朗」
+                        slots.shape == 5 -> Modifier.border(
+                            2.dp,
+                            spineColor.copy(alpha = if (t.isDark) 0.95f else 0.85f),
+                            shape,
+                        )
                         else -> Modifier.border(
                             0.75.dp,
                             spineColor.copy(alpha = if (t.isDark) 0.55f else 0.30f),
@@ -304,12 +310,14 @@ private fun Line(
     )
 }
 
-/** 形状轴：方卡 / 便签 / 细线 / 色块 / 标签 */
+/** 形状轴：方卡 / 便签 / 细线 / 色块 / 标签 / 硬卡 */
 fun shapeOf(shape: Int): Shape = when (shape) {
     0 -> RoundedCornerShape(4.dp)
     1 -> RoundedCornerShape(2.dp)
     2 -> RectangleShape
     3 -> RoundedCornerShape(2.dp)
+    // 硬卡：0 圆角。硬朗农业的第一道门就是「全 0 圆角 + 实心边线」（HardTokens）
+    5 -> RectangleShape
     // 标签：右上角切一个 10dp 的斜口（原型 border-radius: 0 10px 2px 0）
     else -> RoundedCornerShape(topStart = 0.dp, topEnd = 10.dp, bottomEnd = 2.dp, bottomStart = 0.dp)
 }

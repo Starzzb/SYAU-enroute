@@ -7,6 +7,8 @@ import cn.dkarbon.enroute.data.ScoreItem
 import cn.dkarbon.enroute.data.SessionState
 import cn.dkarbon.enroute.data.Timetable
 import cn.dkarbon.enroute.data.UrpHomeApi.BuildingOption
+import cn.dkarbon.enroute.data.UrpHomeApi.ClassHit
+import cn.dkarbon.enroute.data.UrpHomeApi.CourseHit
 import cn.dkarbon.enroute.data.UrpHomeApi.CampusOption
 import cn.dkarbon.enroute.data.UrpHomeApi.ClassroomInfo
 import cn.dkarbon.enroute.data.UrpHomeApi.CreditProgress
@@ -164,6 +166,40 @@ data class AppState(
     val facultyStale: Boolean = false,
     /** 官网同名候选原文地址（不替用户猜） */
     val facultyCandidates: List<String> = emptyList(),
+
+    // ── 课程课表（教学资源 → 课程检索）──
+    val courseQuery: String = "",
+    val courseLoading: Boolean = false,
+    /** 一句话状态：搜索中 / 没搜到 / 未登录… */
+    val courseMsg: String = "",
+    val courseHits: List<CourseHit> = emptyList(),
+    /** 学期内一共多少门（服务器 totalCount，用来说明覆盖面） */
+    val courseTotal: Int = 0,
+
+    // ── 班级课表（教学资源 → 班级检索）──
+    val classQuery: String = "",
+    val classLoading: Boolean = false,
+    val classMsg: String = "",
+    val classHits: List<ClassHit> = emptyList(),
+    val classTotal: Int = 0,
+
+    // ── 课表详情（课程 / 班级共用一屏）──
+    /** 详情页大标题（课名 / 班级名）；空串 = 没打开 */
+    val catalogTitle: String = "",
+    /** 副标题：课程号-序号 · 教师 / 学院 · 年级 —— 由 VM 拼好，UI 不再拼字符串 */
+    val catalogSubtitle: String = "",
+    val catalogLoading: Boolean = false,
+    val catalogMsg: String = "",
+    val catalogSchedule: TeacherSchedule = TeacherSchedule(),
+    /** 打开的是哪一种（刷新时按它重发）：course / class */
+    val catalogKind: String = "",
+    /** 刷新用的键：课程 `学期|课程号|课序号`，班级 `方案号|班名` */
+    val catalogKey: String = "",
+
+    // ── 教室课表（空闲教室浮层内）──
+    val roomScheduleLoading: Boolean = false,
+    val roomSchedule: TeacherSchedule = TeacherSchedule(),
+    val roomScheduleMsg: String = "",
 
     // ── 培养方案（票 09：内置资产，离线）──
     /** 资产索引（年份 → 专业条目） */

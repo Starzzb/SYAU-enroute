@@ -1049,6 +1049,348 @@ object UrpHomeApi {
         return UrpResponse(code, body, path)
     }
 
+    // ── 教学资源：课程 / 班级 / 教室课表（2026-11-28 真机登录态实测）──────
+    //
+    // 四条回调（course / class / classroom / teacher）返回的是**同一个 schema**：
+    // [[{slot}…]]，字段名完全一致（id.skzc 周位图、kcm、skxq、skjc、cxjc…），
+    // 所以课表解析只有一份 [parseTeacherSchedule]，这里不再复制。
+    // 差别只在查询参数名（实测见 docs/URP-学生端接口清单.md §6.7）：
+    //   课程 planCode + courseCode + courseSequenceCode
+    //   班级 planCode（= 该班方案号）+ classCode（= 班级名）
+    //   教室 planNumber + campusNumber + teachingBuildingNumber + classroomNumber（楼号-房号）
+    internal const val COURSE_SEARCH = "/student/teachingResources/courseCurriculum/search"
+    internal const val COURSE_SLOTS_CB =
+        "/student/teachingResources/courseCurriculum/searchCurriculum/callback"
+    internal const val CLASS_SEARCH = "/student/teachingResources/classCurriculum/search"
+    internal const val CLASS_SLOTS_CB =
+        "/student/teachingResources/classCurriculum/searchCurriculumInfo/callback"
+    internal const val CLASSROOM_SLOTS_CB =
+        "/student/teachingResources/classroomCurriculum/searchCurriculum/callback"
+
+    /**
+     * 课程检索命中的一门课。
+     *
+     * 服务器键名是**全大写**（KCM / KCH / XF …），与本文件其它接口的驼峰键不同族 ——
+     * 解析用大小写不敏感取值（[ciStr]），日后学校哪天改回驼峰也不用再接一次。
+     */
+    @Serializable
+    data class CourseHit(
+        val name: String = "",
+        val courseNo: String = "",
+        val seqNo: String = "",
+        val deptName: String = "",
+        val teacherName: String = "",
+        val credit: String = "",
+        val examType: String = "",
+        val category: String = "",
+        val term: String = "",
+        val termName: String = "",
+    ) {
+        val isEmpty: Boolean get() = name.isBlank()
+
+        /** 901020203-04：课程号-课序号，教务列表里就是这么成对出现的 */
+        val code: String
+            get() = listOf(courseNo, seqNo).filter { it.isNotBlank() }.joinToString("-")
+    }
+
+    @Serializable
+    data class CoursePage(
+        val totalCount: Int = 0,
+        val hits: List<CourseHit> = emptyList(),
+        val sessionLost: Boolean = false,
+    )
+
+    /** 班级检索命中的行政班（12动医1 这种） */
+    @Serializable
+    data class ClassHit(
+        val className: String = "",
+        val classNo: String = "",
+        val deptName: String = "",
+        val grade: String = "",
+        val subjectName: String = "",
+        /** 查这个班的课表要用的方案号（2016-2017-1-1 这种，**不是**当前学期号） */
+        val planNo: String = "",
+        val planName: String = "",
+        val term: String = "",
+    ) {
+        val isEmpty: Boolean get() = className.isBlank()
+    }
+
+    @Serializable
+    data class ClassPage(
+        val totalCount: Int = 0,
+        val hits: List<ClassHit> = emptyList(),
+        val sessionLost: Boolean = false,
+    )
+
+    /**
+     * 按课程名/课程号查课程课表条目。
+     *
+     * 学期必传（不带会跨学期重复，与教师课表同一个坑）。
+     *
+     * ## kcm 只认课名、kch 只认课号，两个都填是「且」
+     * 2026-11-28 在真机页面里实测（同一个学期、同样表头）：
+     * * `kcm=不动产` → 2 条（不动产估价 / 901040302）
+     * * `kch=901020203` → 5 条（观赏园艺学（Ⅱ）…）
+     * * `kcm=不动产&kch=不动产` → **0 条**，`kcm=X304101&kch=X304101` 同样 0 条
+     * * 两个都空 → 2189 条（整学期课程表）
+     *
+     * 所以一个输入框要按关键字形态选字段：先按 [looksLikeCourseNo] 猜，猜错
+     * （0 条）就换另一边再发一次。之前两个都塞 kcm，输课程号永远查不到。
+     */
+    suspend fun searchCourses(
+        s: UrpClient.Session,
+        termCode: String,
+        keyword: String,
+        pageNum: Int = 1,
+        pageSize: Int = 40,
+    ): CoursePage {
+        val byCode = looksLikeCourseNo(keyword)
+        val first = postForm(
+            COURSE_SEARCH,
+            courseSearchForm(termCode, keyword, pageNum, pageSize, byCode),
+            s,
+        )
+        if (looksLikeLoginPage(first) || !first.trimStart().startsWith("{")) {
+            return CoursePage(sessionLost = true)
+        }
+        val page = parseCourses(first)
+        if (keyword.isBlank() || page.totalCount > 0 || page.hits.isNotEmpty()) return page
+        // 猜错字段就换另一边再试一次：kcm 与 kch 是「且」，填错必然 0 条
+        val second = postForm(
+            COURSE_SEARCH,
+            courseSearchForm(termCode, keyword, pageNum, pageSize, !byCode),
+            s,
+        )
+        if (looksLikeLoginPage(second) || !second.trimStart().startsWith("{")) return page
+        return parseCourses(second)
+    }
+
+    /**
+     * 关键字像不像课程号：含汉字的一律当课名（课名里也可能有阿拉伯数字），
+     * 纯 ASCII 且带数字的当课号（X304101 / 901020203）。
+     */
+    internal fun looksLikeCourseNo(raw: String): Boolean {
+        val k = raw.trim()
+        if (k.isEmpty()) return false
+        if (k.any { it.code > 0x2E80 }) return false
+        return k.any { it.isDigit() }
+    }
+
+    /**
+     * 课程检索表单（字段名按实测 body 原样）。
+     *
+     * [byCode] 为真时关键字进 kch（课程号），否则进 kcm（课程名）——
+     * 两边同时填会被服务器当成「且」，结果恒为 0 条。
+     */
+    internal fun courseSearchForm(
+        termCode: String,
+        keyword: String,
+        pageNum: Int,
+        pageSize: Int,
+        byCode: Boolean = looksLikeCourseNo(keyword),
+    ): List<Pair<String, String>> = listOf(
+        "zxjxjhh" to termCode.trim(),
+        "kkxsh" to "",
+        "kcm" to if (byCode) "" else keyword.trim(),
+        "kch" to if (byCode) keyword.trim() else "",
+        "kxh" to "",
+        "kclb" to "",
+        "pageNum" to pageNum.coerceAtLeast(1).toString(),
+        "pageSize" to pageSize.coerceIn(1, 200).toString(),
+    )
+
+    /**
+     * 按班级名查班级课表条目。
+     *
+     * ## 哪个键才真的过滤（2026-11-28 真机页面内实测）
+     * 表单长这样：`param_value` / `executiveEducationPlanNum` / `yearNum` / `departmentNum`
+     * / `subjectNum` / `classNum`。实测结论：
+     *
+     * | 表单 | totalCount |
+     * |---|---|
+     * | 全空 | 8799 |
+     * | `param_value=12` / `=园艺` / `=12动医1` | 8799（**完全无效**） |
+     * | `classNum=12动医1` | 1（**精确匹配**） |
+     * | `classNum=12` / `12动医` / `%12%` / `12动医_` | 0（不认部分匹配、不认通配符） |
+     * | `yearNum=2012` | 3（该年级所有班） |
+     *
+     * 所以关键字进 `classNum`（要写全名），四位数（2012）当年级进 `yearNum`。
+     * `param_value` 照旧带上但留空 —— 它在这台部署里是死字段。
+     */
+    suspend fun searchClasses(
+        s: UrpClient.Session,
+        keyword: String,
+        yearNum: String = "",
+        departmentNum: String = "",
+        pageNum: Int = 1,
+        pageSize: Int = 40,
+    ): ClassPage {
+        val body = postForm(
+            CLASS_SEARCH,
+            classSearchForm(keyword, yearNum, departmentNum, pageNum, pageSize),
+            s,
+        )
+        if (looksLikeLoginPage(body) || !body.trimStart().startsWith("[")) {
+            return ClassPage(sessionLost = true)
+        }
+        return parseClasses(body)
+    }
+
+    /** 班级检索表单（字段名按实测 body 原样） */
+    internal fun classSearchForm(
+        keyword: String,
+        yearNum: String,
+        departmentNum: String,
+        pageNum: Int,
+        pageSize: Int,
+    ): List<Pair<String, String>> {
+        val k = keyword.trim()
+        // 四位数当年级（2012 → 该年级 3 个班）；其余当班级全名（精确匹配）
+        val asGrade = yearNum.trim().isEmpty() && k.length == 4 && k.all { it.isDigit() }
+        return listOf(
+            "param_value" to "",
+            "executiveEducationPlanNum" to "",
+            "yearNum" to if (asGrade) k else yearNum.trim(),
+            "departmentNum" to departmentNum.trim(),
+            "subjectNum" to "",
+            "classNum" to if (asGrade) "" else k,
+            "pageNum" to pageNum.coerceAtLeast(1).toString(),
+            "pageSize" to pageSize.coerceIn(1, 200).toString(),
+        )
+    }
+
+    /** 课程课表：一门课（课程号 + 课序号）在某个学期的排课 */
+    suspend fun fetchCourseSchedule(
+        s: UrpClient.Session,
+        planCode: String,
+        courseNo: String,
+        seqNo: String,
+    ): TeacherScheduleResult = fetchSlots(s, courseSlotsPath(planCode, courseNo, seqNo))
+
+    /** 班级课表：planCode 用该班记录自带的方案号（2016-2017-1-1），不是当前学期号 */
+    suspend fun fetchClassSchedule(
+        s: UrpClient.Session,
+        planNo: String,
+        className: String,
+    ): TeacherScheduleResult = fetchSlots(s, classSlotsPath(planNo, className))
+
+    /**
+     * 教室课表：classroomNumber 必须是**楼号-房号**全称（2-601）。
+     *
+     * 只传 601 时服务器回 [[]]（空课表），看起来像「这间教室没课」—— 实测确认必须带前缀。
+     */
+    suspend fun fetchClassroomSchedule(
+        s: UrpClient.Session,
+        planNumber: String,
+        campusNo: String,
+        buildingNo: String,
+        roomNo: String,
+    ): TeacherScheduleResult = fetchSlots(
+        s,
+        classroomSlotsPath(planNumber, campusNo, buildingNo, roomNo),
+    )
+
+    /** 三条课表回调共用的取数口径：被踢回登录页 / 非 JSON = 「没拿到」，不是「没排课」 */
+    private suspend fun fetchSlots(s: UrpClient.Session, path: String): TeacherScheduleResult {
+        val body = get(path, s)
+        if (looksLikeLoginPage(body) || !body.trimStart().startsWith("[")) {
+            return TeacherScheduleResult(sessionLost = true)
+        }
+        return TeacherScheduleResult(schedule = parseTeacherSchedule(body))
+    }
+
+    internal fun courseSlotsPath(planCode: String, courseNo: String, seqNo: String): String =
+        COURSE_SLOTS_CB + "?planCode=" + enc(planCode) +
+            "&courseCode=" + enc(courseNo) + "&courseSequenceCode=" + enc(seqNo)
+
+    internal fun classSlotsPath(planNo: String, className: String): String =
+        CLASS_SLOTS_CB + "?planCode=" + enc(planNo) + "&classCode=" + enc(className)
+
+    internal fun classroomSlotsPath(
+        planNumber: String,
+        campusNo: String,
+        buildingNo: String,
+        roomNo: String,
+    ): String = CLASSROOM_SLOTS_CB + "?planNumber=" + enc(planNumber) +
+        "&campusNumber=" + enc(campusNo) +
+        "&teachingBuildingNumber=" + enc(buildingNo) +
+        "&classroomNumber=" + enc(buildingNo + "-" + roomNo)
+
+    /**
+     * 解析课程检索：{pageSize,pageNum,pageContext:{totalCount},records:[{KCM,KCH,…}]}。
+     *
+     * 顶层是对象（与班级检索的数组套对象不同族）；拿不到 JSON 时返回空页而不是抛异常。
+     */
+    internal fun parseCourses(text: String): CoursePage {
+        val root = runCatching { json.parseToJsonElement(text) as? JsonObject }.getOrNull()
+            ?: return CoursePage()
+        val total = (root["pageContext"] as? JsonObject)?.let {
+            ciStr(it, "totalCount").toIntOrNull()
+        } ?: 0
+        val hits = (root["records"] as? JsonArray).orEmpty()
+            .filterIsInstance<JsonObject>()
+            .map { o ->
+                CourseHit(
+                    name = ciStr(o, "KCM"),
+                    courseNo = ciStr(o, "KCH"),
+                    seqNo = ciStr(o, "KXH"),
+                    deptName = ciStr(o, "KKXSM"),
+                    teacherName = ciStr(o, "JSM"),
+                    credit = ciStr(o, "XF"),
+                    examType = ciStr(o, "KSLXMC"),
+                    category = ciStr(o, "KCLBMC"),
+                    term = ciStr(o, "ZXJXJHH"),
+                    termName = ciStr(o, "ZXJXJHM"),
+                )
+            }
+            .filter { !it.isEmpty }
+        return CoursePage(totalCount = total, hits = hits)
+    }
+
+    /**
+     * 解析班级检索：[{pageContext:{totalCount},records:[{className, id:{classNum,
+     * executiveEducationPlanNumber}, …}]}] —— **数组套对象**，与课程检索不同族。
+     */
+    internal fun parseClasses(text: String): ClassPage {
+        val arr = runCatching { json.parseToJsonElement(text) as? JsonArray }.getOrNull()
+            ?: return ClassPage()
+        val wrappers = arr.filterIsInstance<JsonObject>()
+        val total = wrappers.firstNotNullOfOrNull { w ->
+            (w["pageContext"] as? JsonObject)?.let { ciStr(it, "totalCount").toIntOrNull() }
+        } ?: 0
+        val hits = wrappers
+            .flatMap { (it["records"] as? JsonArray)?.toList().orEmpty() }
+            .filterIsInstance<JsonObject>()
+            .map { o ->
+                val id = o["id"] as? JsonObject
+                ClassHit(
+                    className = ciStr(o, "className"),
+                    classNo = ciStr(id, "classNum"),
+                    deptName = ciStr(o, "departmentName"),
+                    grade = ciStr(o, "admissionGrade"),
+                    subjectName = ciStr(o, "subjectName"),
+                    planNo = ciStr(id, "executiveEducationPlanNumber"),
+                    planName = ciStr(o, "executiveEducationPlanName"),
+                    term = ciStr(o, "zxjxjhh"),
+                )
+            }
+            .filter { !it.isEmpty }
+        return ClassPage(totalCount = total, hits = hits)
+    }
+
+    /** 大小写不敏感取值：课程检索的键是全大写（KCM），其余接口是驼峰 */
+    private fun ciStr(o: JsonObject?, key: String): String {
+        if (o == null) return ""
+        val actual = o.keys.firstOrNull { it.equals(key, true) } ?: return ""
+        val v = o[actual] ?: return ""
+        if (v is JsonNull) return ""
+        return (v as? JsonPrimitive)?.content?.trim().orEmpty()
+    }
+
+    /** 查询参数的 URL 编码（课名/班级名是中文，不编码服务器会 400） */
+    private fun enc(v: String): String =
+        java.net.URLEncoder.encode(v.trim(), "UTF-8")
     // ── 工具 ──────────────────────────────────────────────
 
     private fun clean(s: String): String =

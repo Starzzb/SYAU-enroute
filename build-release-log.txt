@@ -72,6 +72,6 @@ Warning: Unable to initialize metrics, ensure C:\Users\28759\.android is writabl
 > Task :app:lintVitalRelease
 > Task :app:assembleRelease
 
-BUILD SUCCESSFUL in 2m 44s
+BUILD SUCCESSFUL in 2m 52s
 48 actionable tasks: 18 executed, 30 up-to-date
 EXIT=0 
